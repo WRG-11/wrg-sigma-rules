@@ -1,0 +1,43 @@
+title: Template -- Impersonation Brand or Personnel (profile setup)
+id: 18e9d6ba-8342-523b-bd92-b1aa17250a1e
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1656.002 (Impersonation Brand or Personnel (profile setup)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1656/002/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: proxy
+  product: windows
+detection:
+  selection_brand_persona_profile_edit:
+    cs-host|contains:
+    - linkedin.com
+    - x.com
+    - twitter.com
+    - facebook.com
+    - github.com
+    - medium.com
+    cs-uri-stem|contains:
+    - /profile/edit
+    - /settings/profile
+    - /me/edit
+    - /i/profile
+    - /edit-profile
+    cs-uri-query|re: .*(displayName|bio|company|jobTitle|title)=.*(CEO|CFO|CTO|director|VP|founder|spokesperson|journalist|reporter|professor|researcher|analyst).*
+  filter_corporate_brand_tooling:
+    cs-user-agent|contains:
+    - BrandProtection
+    - ExecutiveBranding
+    - RecruiterAPI
+    - HRTooling
+  condition: selection_brand_persona_profile_edit and not filter_corporate_brand_tooling
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1656.002
+- wrg.template
+- wrg.tactic.defense_evasion

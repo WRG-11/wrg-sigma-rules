@@ -1,0 +1,40 @@
+title: Template -- Acquire Infrastructure Domains (lookalike domain)
+id: 33550986-f326-5c9c-8345-c377e837117e
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1583.001 (Acquire Infrastructure Domains (lookalike domain)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1583/001/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: proxy
+  product: windows
+detection:
+  selection_new_domain_hint:
+    cs-uri-query|contains:
+    - newly_registered
+    - new-domain=true
+    - domain_age_days=
+    - first_seen_domain=
+  selection_narrative_lookalike_domain:
+    cs-host|re:
+    - .*(vodafone|bbc|cnn|reuters|nato|gov)[-.]?(tr|uk|eu|news|media|press)[-.].*
+    - .*(tr|uk|eu|news|media|press)[-.]?(vodafone|bbc|cnn|reuters|nato|gov)[-.].*
+  filter_legitimate_news_outlets:
+    cs-host:
+    - bbc.com
+    - bbc.co.uk
+    - reuters.com
+    - apnews.com
+    - aa.com.tr
+    - trthaber.com
+  condition: selection_new_domain_hint and selection_narrative_lookalike_domain and not filter_legitimate_news_outlets
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1583.001
+- wrg.template
+- wrg.tactic.resource_development

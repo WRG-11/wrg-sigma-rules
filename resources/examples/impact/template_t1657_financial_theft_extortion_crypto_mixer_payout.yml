@@ -1,0 +1,38 @@
+title: Template -- Financial Theft (extortion crypto mixer payout)
+id: ed72a309-7043-5291-96af-9c4dd5c61345
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1657 (Financial Theft (extortion crypto mixer payout)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1657/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_crypto_payment_infrastructure:
+    DestinationHostname|contains:
+    - tornado.cash
+    - blender.io
+    - sinbad.io
+    - chipmixer.com
+    - wasabiwallet.io
+    - samourai-wallet.com
+    - joinmarket
+    - exch.cx
+    - fixedfloat.com
+    - exolix.com
+    - godex.io
+    - changenow.io
+    - xmrwallet.com
+    - mymonero.com
+  condition: selection_crypto_payment_infrastructure
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1657
+- wrg.template
+- wrg.tactic.impact
