@@ -1,0 +1,15 @@
+# wrg-sigma-rules plugin runtime dependencies.
+#
+# Core (always required):
+pysigma>=0.10
+PyYAML>=6.0
+
+# Backend extras (lazy-imported; install per target SIEM):
+pysigma-backend-splunk>=2.0
+pysigma-backend-elasticsearch>=2.0
+# Wazuh routes through the elasticsearch Lucene backend above; no separate
+# package needed yet (no native pySigma wazuh backend on PyPI as of
+# 2026-05-22; convert_rule emits an explicit caveat warning).
+
+# Test deps (pytest + monkeypatch; pin loose to track WRG monorepo):
+# pytest>=8.0 -- declared by the parent WRG repo, not pinned here.

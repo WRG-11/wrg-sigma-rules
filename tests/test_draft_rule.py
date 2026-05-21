@@ -1,0 +1,143 @@
+"""Unit tests for ``mcp__wrg-sigma__draft_rule`` tool.
+
+Layer 4 gate coverage:
+* G1 (pySigma missing) -- ``test_pysigma_missing_returns_actionable_envelope``
+  uses monkeypatch to simulate ImportError.
+* G3 (YAML line + column) -- covered via the validate_rule tests; draft
+  itself produces parseable YAML by construction.
+* G4 (Pattern 34 redact) -- ``test_pattern_34_redaction_applied`` /
+  ``test_pattern_34_internal_domain_redacted``.
+* G5 (ASCII-only) -- ``test_ascii_only_output``.
+
+Sister R88-52d helper-impl first-attempt PASS pattern; 10-case happy +
+edge + error.
+"""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import pytest
+
+_PLUGIN_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_PLUGIN_ROOT))
+
+from tools.draft_rule import draft_rule_body  # noqa: E402
+
+
+def test_draft_rule_happy_path_process_creation() -> None:
+    result = draft_rule_body(
+        "Detect suspicious PowerShell encoded command MITRE T1059.001",
+        rule_type="process_creation",
+        severity="high",
+        references=["https://attack.mitre.org/techniques/T1059/001/"],
+    )
+    assert result["ok"] is True
+    assert "yaml" in result
+    assert "T1059.001" in result["mitre_mapping"]
+    assert result["validation"]["available"] is True
+    assert result["validation"]["valid"] is True
+
+
+def test_draft_rule_empty_description_returns_error() -> None:
+    result = draft_rule_body("")
+    assert result["ok"] is False
+    assert "description" in result["error"].lower()
+
+
+def test_draft_rule_invalid_severity_returns_error() -> None:
+    result = draft_rule_body(
+        "Some threat", severity="extreme"
+    )
+    assert result["ok"] is False
+    assert "severity" in result["error"].lower()
+    assert "valid_severity" in result
+
+
+def test_pattern_34_redaction_applied() -> None:
+    # Layer 4 G4 -- internal IP must be replaced with placeholder.
+    result = draft_rule_body(
+        "C2 beaconing from 10.10.5.42 to attacker server",
+        rule_type="network_connection",
+    )
+    assert result["ok"] is True
+    assert "10.10.5.42" not in result["yaml"]
+    assert "<internal-ip>" in result["yaml"]
+    assert any(
+        "redact" in note.lower() for note in result["draft_notes"]
+    )
+
+
+def test_pattern_34_internal_domain_redacted() -> None:
+    # Layer 4 G4 -- ``.corp`` / ``.internal`` suffixes redacted.
+    result = draft_rule_body(
+        "User joe@acme.corp received phishing link from finance.lan",
+        rule_type="authentication",
+    )
+    assert result["ok"] is True
+    assert "joe@acme.corp" not in result["yaml"]
+    assert "finance.lan" not in result["yaml"]
+
+
+def test_ascii_only_output() -> None:
+    # Layer 4 G5 -- em-dashes + non-ASCII inputs scrubbed in YAML body.
+    result = draft_rule_body(
+        "Detect command-line encoded payload — T1027",
+        rule_type="process_creation",
+    )
+    assert result["ok"] is True
+    assert all(ord(c) < 128 for c in result["yaml"])
+
+
+def test_pysigma_missing_returns_actionable_envelope(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Layer 4 G1 -- simulate pySigma not installed.
+    import builtins
+    original_import = builtins.__import__
+
+    def fake_import(name: str, *args: object, **kwargs: object) -> object:
+        if name == "sigma.rule" or name.startswith("sigma."):
+            raise ImportError("No module named 'sigma'")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
+    result = draft_rule_body(
+        "Detect suspicious PowerShell command",
+        rule_type="process_creation",
+    )
+    # YAML still produced (best-effort) but validation block degrades.
+    assert result["ok"] is True
+    assert "yaml" in result
+    assert result["validation"]["available"] is False
+    assert "pip install pysigma" in result["validation"]["hint"]
+
+
+def test_deterministic_uuid_for_same_inputs() -> None:
+    a = draft_rule_body(
+        "Identical threat description", rule_type="process_creation"
+    )
+    b = draft_rule_body(
+        "Identical threat description", rule_type="process_creation"
+    )
+    assert a["yaml"].split("\n")[1] == b["yaml"].split("\n")[1]
+
+
+def test_mitre_ttps_declared_wins_over_description_scan() -> None:
+    result = draft_rule_body(
+        "Generic threat T1059 mentioned in description",
+        rule_type="process_creation",
+        mitre_ttps=["T9999"],
+    )
+    # Declared takes precedence even when the value is exotic.
+    assert "T9999" in result["mitre_mapping"]
+
+
+def test_logsource_platform_override() -> None:
+    # ``target_platform=linux`` should swap ``product:`` to linux.
+    result = draft_rule_body(
+        "Detect suspicious bash subshell invocation",
+        rule_type="process_creation",
+        target_platform="linux",
+    )
+    assert result["ok"] is True
+    assert "product: linux" in result["yaml"]
