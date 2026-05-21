@@ -1,0 +1,32 @@
+title: Template -- Modify Authentication Process (MFA fatigue / ADFS)
+id: cb7a28a8-78f0-52c6-bc9d-0bbfc44bc05b
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1556 (Modify Authentication Process (MFA fatigue / ADFS)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1556/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: authentication
+  product: windows
+detection:
+  selection_auth_mod:
+    EventID:
+    - 4670
+    - 4738
+    - 4720
+    ObjectName|contains:
+    - MFA
+    - MultiFactor
+    - Authenticator
+  condition: selection_auth_mod | count() by ObjectName > 3 in 1m
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1556
+- wrg.template
+- wrg.tactic.credential_access
+- wrg.correlation

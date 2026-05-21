@@ -1,0 +1,25 @@
+title: Template -- Acquire Infrastructure (newly-registered-domain query)
+id: fb47f2be-fb3e-5f9f-b3f8-093ddc16fe50
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1583 (Acquire Infrastructure (newly-registered-domain query)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1583/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_newly_registered_domain_query:
+    EventID: 22
+    QueryName|re: .*(newly-registered|just-registered|reg-\d{4}-\d{2}|typo-domain).*
+  condition: selection_newly_registered_domain_query
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1583
+- wrg.template
+- wrg.tactic.resource_development

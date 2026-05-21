@@ -1,0 +1,29 @@
+title: Template -- Exfiltration Over Web Service (mega/anonfiles host)
+id: 8e21adce-4a25-5905-923b-8e86c89665e0
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1567 (Exfiltration Over Web Service (mega/anonfiles host)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1567/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1567
+- wrg.template
+- wrg.tactic.exfiltration

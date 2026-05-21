@@ -1,0 +1,40 @@
+title: Template -- Defacement (web root content modification)
+id: 7dd6c56e-020e-5cca-9473-fc8572ee2582
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1491 (Defacement (web root content modification)). Synthetic
+  exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1491/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_web_root_write:
+    TargetFilename|contains:
+    - \wwwroot\
+    - \htdocs\
+    - \public_html\
+    - /var/www/
+    - /usr/share/nginx/html/
+    TargetFilename|endswith:
+    - .html
+    - .htm
+    - .aspx
+    - .asp
+    - .jsp
+    - .php
+  filter_legit_webserver_writes:
+    Image|endswith:
+    - \w3wp.exe
+    - \httpd.exe
+    - \nginx.exe
+  condition: selection_web_root_write and not filter_legit_webserver_writes
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1491
+- wrg.template
+- wrg.tactic.impact

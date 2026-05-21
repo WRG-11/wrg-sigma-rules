@@ -1,0 +1,23 @@
+title: Crypto wallet interacts with OFAC-sanctioned address 0x098b716b8aaf21512996dc57eb0615e2383e2f96
+id: e5c2c078-b3f8-5502-b165-a40fdb4dfe0f
+status: experimental
+description: 'Wallet interacted with OFAC-sanctioned address 0x098b716b8aaf21512996dc57eb0615e2383e2f96 (designation: Blender.io
+  (Lazarus Group laundering), program DPRK, dated 2022-05-06).'
+logsource:
+  product: blockchain
+  category: transaction
+detection:
+  selection:
+    counterparty_address: '0x098b716b8aaf21512996dc57eb0615e2383e2f96'
+    counterparty_chain: eth
+  condition: selection
+level: high
+tags:
+- attack.impact
+- attack.t1657
+- ofac.dprk
+- wrg.observed
+- wrg.tactic.impact
+references:
+- https://home.treasury.gov/news/press-releases/jy0768
+author: WinstonRedGuard -- sigma plugin crypto-trace observed rules

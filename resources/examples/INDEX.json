@@ -1,0 +1,222 @@
+{
+  "_schema_version": 1,
+  "_generated_by": "plugins/wrg-sigma-rules/scripts/migrate_sigma_corpus.py",
+  "_generated_at": "2026-05-21",
+  "_pattern_34_v1_1_redaction_applied": true,
+  "_source_module_refs": [
+    "apps/<wrg-app>/src/<wrg-app>/breach/sigma/templates.py (TECHNIQUE_PATTERN_LIBRARY)",
+    "apps/<wrg-app>/tests/fixtures/sigma/*.yml (6 observed goldens)",
+    "apps/<wrg-app>/tests/fixtures/crypto_trace/sigma_rule_*.yml (2 observed)",
+    "apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml (5 detector goldens)"
+  ],
+  "total_rules": 51,
+  "categories": {
+    "code_review": [
+      "code_review/observed_ai_fingerprint_ansi_color_class.yml",
+      "code_review/observed_ai_fingerprint_decoy_block.yml",
+      "code_review/observed_ai_fingerprint_docstring_density.yml",
+      "code_review/observed_ai_fingerprint_hallucinated_cvss.yml",
+      "code_review/observed_ai_fingerprint_prompt_artifacts.yml"
+    ],
+    "collection": [
+      "collection/template_t1005_data_from_local_system_archive_utility_staging.yml",
+      "collection/template_t1213_data_from_information_repositories_sharepoint_access.yml"
+    ],
+    "command_and_control": [
+      "command_and_control/template_t1071_application_layer_protocol_c2_over_http_https.yml"
+    ],
+    "credential_access": [
+      "credential_access/observed_lapsus_t1110_correlation.yml",
+      "credential_access/template_t1003_os_credential_dumping_lsass_access_mimikatz.yml",
+      "credential_access/template_t1110_brute_force_high_volume_failed_logons.yml",
+      "credential_access/template_t1552_001_unsecured_credentials_in_files_kyocera_kmaddrbook.yml",
+      "credential_access/template_t1552_unsecured_credentials_multi_vendor_printer_admin.yml",
+      "credential_access/template_t1555_credentials_from_password_stores_browser_cred_files.yml",
+      "credential_access/template_t1556_modify_authentication_process_mfa_fatigue_adfs.yml"
+    ],
+    "defense_evasion": [
+      "defense_evasion/observed_alphv_t1027_obfuscation.yml",
+      "defense_evasion/template_crypto_r2_mixer.yml",
+      "defense_evasion/template_t1027_obfuscated_files_or_information_encoded_payload.yml",
+      "defense_evasion/template_t1036_005_masquerading_match_legitimate_name_anomalous_path.yml",
+      "defense_evasion/template_t1656_002_impersonation_brand_or_personnel_profile_setup.yml",
+      "defense_evasion/template_t1656_impersonation_persona_generation_tooling_on_host.yml"
+    ],
+    "execution": [
+      "execution/observed_alphv_t1059_001.yml",
+      "execution/template_t1059_001_powershell_encoded_command_execution.yml",
+      "execution/template_t1059_006_python_scripting_interpreter_spawned_by_shell.yml",
+      "execution/template_t1059_command_and_scripting_interpreter_generic_shell_spawn.yml",
+      "execution/template_t1204_001_user_execution_malicious_link_click_follow_through.yml"
+    ],
+    "exfiltration": [
+      "exfiltration/template_t1567_exfiltration_over_web_service_mega_anonfiles_host.yml"
+    ],
+    "impact": [
+      "impact/observed_lockbit_t1486.yml",
+      "impact/observed_nullsec_nigeria_t1491_defacement.yml",
+      "impact/observed_sigma_rule_lazarus.yml",
+      "impact/observed_sigma_rule_lockbit_btc.yml",
+      "impact/template_t1486_data_encrypted_for_impact_ransomware_extension_marker.yml",
+      "impact/template_t1490_inhibit_system_recovery_vssadmin_shadow_copy_delete.yml",
+      "impact/template_t1491_defacement_web_root_content_modification.yml",
+      "impact/template_t1657_financial_theft_extortion_crypto_mixer_payout.yml"
+    ],
+    "initial_access": [
+      "initial_access/observed_lapsus_t1078.yml",
+      "initial_access/template_t1078_002_domain_account_exploitation_nopac_cve_2021_42278_42287.yml",
+      "initial_access/template_t1078_valid_accounts_anomalous_remote_interactive_logon.yml",
+      "initial_access/template_t1133_external_remote_services_anomalous_logontype_10.yml",
+      "initial_access/template_t1190_exploit_public_facing_application_webshell_spawn.yml",
+      "initial_access/template_t1195_supply_chain_compromise_untrusted_installer_execution.yml",
+      "initial_access/template_t1199_trusted_relationship_third_party_contractor_pivot.yml",
+      "initial_access/template_t1566_001_spearphishing_attachment_office_app_child_process.yml",
+      "initial_access/template_t1566_002_spearphishing_link_proxy_side_suspicious_link.yml"
+    ],
+    "lateral_movement": [
+      "lateral_movement/template_t1021_001_remote_services_rdp_eventid_4624_logontype_10.yml",
+      "lateral_movement/template_t1021_002_remote_services_smb_admin_shares_admin_c_ipc.yml"
+    ],
+    "resource_development": [
+      "resource_development/template_t1583_001_acquire_infrastructure_domains_lookalike_domain.yml",
+      "resource_development/template_t1583_acquire_infrastructure_newly_registered_domain_query.yml",
+      "resource_development/template_t1585_001_establish_accounts_social_media_signup_hosts.yml",
+      "resource_development/template_t1585_establish_accounts_anomalous_account_creation_burst.yml",
+      "resource_development/template_t1588_obtain_capabilities_threat_intel_lookup_dns.yml"
+    ]
+  },
+  "by_detection_type": {
+    "authentication": [
+      "credential_access/observed_lapsus_t1110_correlation.yml",
+      "credential_access/template_t1110_brute_force_high_volume_failed_logons.yml",
+      "credential_access/template_t1556_modify_authentication_process_mfa_fatigue_adfs.yml",
+      "initial_access/observed_lapsus_t1078.yml",
+      "initial_access/template_t1078_valid_accounts_anomalous_remote_interactive_logon.yml",
+      "initial_access/template_t1199_trusted_relationship_third_party_contractor_pivot.yml",
+      "lateral_movement/template_t1021_001_remote_services_rdp_eventid_4624_logontype_10.yml",
+      "lateral_movement/template_t1021_002_remote_services_smb_admin_shares_admin_c_ipc.yml",
+      "resource_development/template_t1585_establish_accounts_anomalous_account_creation_burst.yml"
+    ],
+    "code_review": [
+      "code_review/observed_ai_fingerprint_ansi_color_class.yml",
+      "code_review/observed_ai_fingerprint_decoy_block.yml",
+      "code_review/observed_ai_fingerprint_docstring_density.yml",
+      "code_review/observed_ai_fingerprint_hallucinated_cvss.yml",
+      "code_review/observed_ai_fingerprint_prompt_artifacts.yml"
+    ],
+    "email": [
+      "initial_access/template_t1566_001_spearphishing_attachment_office_app_child_process.yml",
+      "initial_access/template_t1566_002_spearphishing_link_proxy_side_suspicious_link.yml"
+    ],
+    "file_event": [
+      "collection/template_t1005_data_from_local_system_archive_utility_staging.yml",
+      "defense_evasion/observed_alphv_t1027_obfuscation.yml",
+      "defense_evasion/template_t1027_obfuscated_files_or_information_encoded_payload.yml",
+      "impact/observed_lockbit_t1486.yml",
+      "impact/observed_nullsec_nigeria_t1491_defacement.yml",
+      "impact/template_t1486_data_encrypted_for_impact_ransomware_extension_marker.yml",
+      "impact/template_t1491_defacement_web_root_content_modification.yml"
+    ],
+    "network_connection": [
+      "command_and_control/template_t1071_application_layer_protocol_c2_over_http_https.yml",
+      "exfiltration/template_t1567_exfiltration_over_web_service_mega_anonfiles_host.yml",
+      "impact/template_t1657_financial_theft_extortion_crypto_mixer_payout.yml",
+      "initial_access/template_t1133_external_remote_services_anomalous_logontype_10.yml",
+      "resource_development/template_t1583_acquire_infrastructure_newly_registered_domain_query.yml",
+      "resource_development/template_t1588_obtain_capabilities_threat_intel_lookup_dns.yml"
+    ],
+    "process_creation": [
+      "credential_access/template_t1003_os_credential_dumping_lsass_access_mimikatz.yml",
+      "credential_access/template_t1555_credentials_from_password_stores_browser_cred_files.yml",
+      "defense_evasion/template_t1036_005_masquerading_match_legitimate_name_anomalous_path.yml",
+      "defense_evasion/template_t1656_impersonation_persona_generation_tooling_on_host.yml",
+      "execution/observed_alphv_t1059_001.yml",
+      "execution/template_t1059_001_powershell_encoded_command_execution.yml",
+      "execution/template_t1059_006_python_scripting_interpreter_spawned_by_shell.yml",
+      "execution/template_t1059_command_and_scripting_interpreter_generic_shell_spawn.yml",
+      "impact/template_t1490_inhibit_system_recovery_vssadmin_shadow_copy_delete.yml",
+      "initial_access/template_t1195_supply_chain_compromise_untrusted_installer_execution.yml"
+    ],
+    "proxy": [
+      "credential_access/template_t1552_unsecured_credentials_multi_vendor_printer_admin.yml",
+      "defense_evasion/template_t1656_002_impersonation_brand_or_personnel_profile_setup.yml",
+      "execution/template_t1204_001_user_execution_malicious_link_click_follow_through.yml",
+      "resource_development/template_t1583_001_acquire_infrastructure_domains_lookalike_domain.yml",
+      "resource_development/template_t1585_001_establish_accounts_social_media_signup_hosts.yml"
+    ],
+    "transaction": [
+      "defense_evasion/template_crypto_r2_mixer.yml",
+      "impact/observed_sigma_rule_lazarus.yml",
+      "impact/observed_sigma_rule_lockbit_btc.yml"
+    ],
+    "unspecified": [
+      "initial_access/template_t1078_002_domain_account_exploitation_nopac_cve_2021_42278_42287.yml"
+    ],
+    "webserver": [
+      "collection/template_t1213_data_from_information_repositories_sharepoint_access.yml",
+      "credential_access/template_t1552_001_unsecured_credentials_in_files_kyocera_kmaddrbook.yml",
+      "initial_access/template_t1190_exploit_public_facing_application_webshell_spawn.yml"
+    ]
+  },
+  "by_target_platform": {
+    "blockchain": [
+      "defense_evasion/template_crypto_r2_mixer.yml",
+      "impact/observed_sigma_rule_lazarus.yml",
+      "impact/observed_sigma_rule_lockbit_btc.yml"
+    ],
+    "unspecified": [
+      "credential_access/template_t1552_001_unsecured_credentials_in_files_kyocera_kmaddrbook.yml",
+      "credential_access/template_t1552_unsecured_credentials_multi_vendor_printer_admin.yml"
+    ],
+    "windows": [
+      "collection/template_t1005_data_from_local_system_archive_utility_staging.yml",
+      "collection/template_t1213_data_from_information_repositories_sharepoint_access.yml",
+      "command_and_control/template_t1071_application_layer_protocol_c2_over_http_https.yml",
+      "credential_access/observed_lapsus_t1110_correlation.yml",
+      "credential_access/template_t1003_os_credential_dumping_lsass_access_mimikatz.yml",
+      "credential_access/template_t1110_brute_force_high_volume_failed_logons.yml",
+      "credential_access/template_t1555_credentials_from_password_stores_browser_cred_files.yml",
+      "credential_access/template_t1556_modify_authentication_process_mfa_fatigue_adfs.yml",
+      "defense_evasion/observed_alphv_t1027_obfuscation.yml",
+      "defense_evasion/template_t1027_obfuscated_files_or_information_encoded_payload.yml",
+      "defense_evasion/template_t1036_005_masquerading_match_legitimate_name_anomalous_path.yml",
+      "defense_evasion/template_t1656_002_impersonation_brand_or_personnel_profile_setup.yml",
+      "defense_evasion/template_t1656_impersonation_persona_generation_tooling_on_host.yml",
+      "execution/observed_alphv_t1059_001.yml",
+      "execution/template_t1059_001_powershell_encoded_command_execution.yml",
+      "execution/template_t1059_006_python_scripting_interpreter_spawned_by_shell.yml",
+      "execution/template_t1059_command_and_scripting_interpreter_generic_shell_spawn.yml",
+      "execution/template_t1204_001_user_execution_malicious_link_click_follow_through.yml",
+      "exfiltration/template_t1567_exfiltration_over_web_service_mega_anonfiles_host.yml",
+      "impact/observed_lockbit_t1486.yml",
+      "impact/observed_nullsec_nigeria_t1491_defacement.yml",
+      "impact/template_t1486_data_encrypted_for_impact_ransomware_extension_marker.yml",
+      "impact/template_t1490_inhibit_system_recovery_vssadmin_shadow_copy_delete.yml",
+      "impact/template_t1491_defacement_web_root_content_modification.yml",
+      "impact/template_t1657_financial_theft_extortion_crypto_mixer_payout.yml",
+      "initial_access/observed_lapsus_t1078.yml",
+      "initial_access/template_t1078_002_domain_account_exploitation_nopac_cve_2021_42278_42287.yml",
+      "initial_access/template_t1078_valid_accounts_anomalous_remote_interactive_logon.yml",
+      "initial_access/template_t1133_external_remote_services_anomalous_logontype_10.yml",
+      "initial_access/template_t1190_exploit_public_facing_application_webshell_spawn.yml",
+      "initial_access/template_t1195_supply_chain_compromise_untrusted_installer_execution.yml",
+      "initial_access/template_t1199_trusted_relationship_third_party_contractor_pivot.yml",
+      "initial_access/template_t1566_001_spearphishing_attachment_office_app_child_process.yml",
+      "initial_access/template_t1566_002_spearphishing_link_proxy_side_suspicious_link.yml",
+      "lateral_movement/template_t1021_001_remote_services_rdp_eventid_4624_logontype_10.yml",
+      "lateral_movement/template_t1021_002_remote_services_smb_admin_shares_admin_c_ipc.yml",
+      "resource_development/template_t1583_001_acquire_infrastructure_domains_lookalike_domain.yml",
+      "resource_development/template_t1583_acquire_infrastructure_newly_registered_domain_query.yml",
+      "resource_development/template_t1585_001_establish_accounts_social_media_signup_hosts.yml",
+      "resource_development/template_t1585_establish_accounts_anomalous_account_creation_burst.yml",
+      "resource_development/template_t1588_obtain_capabilities_threat_intel_lookup_dns.yml"
+    ],
+    "wrg_ai_fingerprint": [
+      "code_review/observed_ai_fingerprint_ansi_color_class.yml",
+      "code_review/observed_ai_fingerprint_decoy_block.yml",
+      "code_review/observed_ai_fingerprint_docstring_density.yml",
+      "code_review/observed_ai_fingerprint_hallucinated_cvss.yml",
+      "code_review/observed_ai_fingerprint_prompt_artifacts.yml"
+    ]
+  }
+}

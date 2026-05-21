@@ -1,0 +1,42 @@
+title: Template -- User Execution Malicious Link (click follow-through)
+id: 116db48d-ac21-5299-9738-6847a0b1ded1
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1204.001 (User Execution Malicious Link (click follow-through)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1204/001/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: proxy
+  product: windows
+detection:
+  selection_link_click_msg_referer:
+    cs-referer|contains:
+    - outlook.com
+    - mail.google.com
+    - linkedin.com/messaging
+    - linkedin.com/in/
+    - twitter.com/messages
+    - facebook.com/messages
+    - web.whatsapp.com
+    - signal.org
+    cs-host|re: .*(verify|secure|update|reset|signin|login|recovery|unlock|account|portal)[-.].*
+  filter_corporate_collab:
+    cs-host|endswith:
+    - .sharepoint.com
+    - .slack.com
+    - .teams.microsoft.com
+    - .zoom.us
+    - .atlassian.net
+    - .docusign.net
+    - .adobesign.com
+  condition: selection_link_click_msg_referer and not filter_corporate_collab
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1204.001
+- wrg.template
+- wrg.tactic.execution

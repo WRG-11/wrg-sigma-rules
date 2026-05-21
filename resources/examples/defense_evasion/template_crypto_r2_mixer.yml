@@ -1,0 +1,26 @@
+title: Template -- Crypto wallet interacts with known mixer service
+id: ba8ddef6-769d-5972-83be-6cac159bbb41
+status: experimental
+description: Template for detecting wallet interactions with known cryptocurrency mixer services (Tornado Cash, Blender.io,
+  Sinbad, ChipMixer, etc.). Bind to your blockchain telemetry before deployment.
+references:
+- https://attack.mitre.org/techniques/T1027/
+author: WinstonRedGuard -- sigma plugin crypto-trace templates
+date: '2026-05-21'
+logsource:
+  product: blockchain
+  category: transaction
+detection:
+  selection:
+    counterparty_address: <MIXER_ADDRESS>
+  condition: selection
+level: medium
+tags:
+- attack.defense_evasion
+- attack.t1027.013
+- attack.t1657
+- wrg.template
+- wrg.tactic.defense_evasion
+falsepositives:
+- Legitimate privacy-preserving usage (research, journalism, dissident)
+- Pattern library v1 -- review for environment-specific tuning before deployment

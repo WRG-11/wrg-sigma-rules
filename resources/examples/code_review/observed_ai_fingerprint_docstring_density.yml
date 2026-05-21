@@ -1,0 +1,32 @@
+title: LLM-typical tutorial density in production code
+id: c8a1802e-65ee-5331-bd9e-3b4946c97cdc
+status: experimental
+description: 'Detects abnormally high docstring + inline-comment density for a production-grade source file. LLM output tends
+  to explain every line in tutorial-grade prose where human-authored code defers to identifiers.
+
+
+  Aggregated from 1 fingerprint hit(s) across 1 file(s). Sample paths: apps/foo/baz.py.'
+references:
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+author: WinstonRedGuard -- sigma plugin ai-fingerprint observed rules
+date: '2026-05-13'
+logsource:
+  category: code_review
+  product: wrg_ai_fingerprint
+detection:
+  selection:
+    detector: docstring_density
+    evidence|contains:
+    - docstring_ratio=0.62
+  condition: selection
+falsepositives:
+- Heavily documented public libraries
+- Pedagogical / example code
+level: low
+tags:
+- attack.t1027
+- wrg.ai_fingerprint
+- wrg.detector.docstring_density
+- wrg.severity.low
+- wrg.observed
+- wrg.tactic.code_review

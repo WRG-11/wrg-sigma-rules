@@ -1,0 +1,43 @@
+title: Nullsec Nigeria -- T1491
+id: fba0f94c-dd9c-5547-a670-0c9e26aab827
+status: test
+description: Breach intel signature for actor nullsec_nigeria, MITRE technique T1491. Derived from 1 observed incident(s)
+  in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1491/
+- https://example.test/opnigeria
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-05-10'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_web_root_write:
+    TargetFilename|contains:
+    - \wwwroot\
+    - \htdocs\
+    - \public_html\
+    - /var/www/
+    - /usr/share/nginx/html/
+    TargetFilename|endswith:
+    - .html
+    - .htm
+    - .aspx
+    - .asp
+    - .jsp
+    - .php
+  filter_legit_webserver_writes:
+    Image|endswith:
+    - \w3wp.exe
+    - \httpd.exe
+    - \nginx.exe
+  condition: selection_web_root_write and not filter_legit_webserver_writes
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1491
+- wrg.observed.actor.nullsec_nigeria
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact
