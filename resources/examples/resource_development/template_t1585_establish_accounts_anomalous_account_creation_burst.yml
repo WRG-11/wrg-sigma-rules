@@ -1,0 +1,28 @@
+title: Template -- Establish Accounts (anomalous account creation burst)
+id: feb5d2c9-944a-518f-ac82-03392c1f7769
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1585 (Establish Accounts (anomalous account creation burst)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1585/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: authentication
+  product: windows
+detection:
+  selection_anomalous_account_creation_burst:
+    EventID:
+    - 4720
+    - 4722
+    - 4738
+  condition: selection_anomalous_account_creation_burst | count() by SubjectUserName > 5 in 1h
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1585
+- wrg.template
+- wrg.tactic.resource_development
+- wrg.correlation

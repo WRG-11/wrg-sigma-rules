@@ -1,0 +1,34 @@
+title: LAPSUS$ -- T1078
+id: b6d23664-a6e7-583a-b2fc-f54bd7ef04e6
+status: test
+description: Breach intel signature for actor lapsus, MITRE technique T1078. Derived from 1 observed incident(s) in the WRG
+  breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1078/
+- https://attack.mitre.org/groups/G1004/
+- https://example.test/lapsus-vodafone
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-05-10'
+logsource:
+  category: authentication
+  product: windows
+detection:
+  selection_logon:
+    EventID:
+    - 4624
+    - 4625
+    LogonType:
+    - 3
+    - 10
+  filter_service_accounts:
+    TargetUserName|startswith: svc_
+  condition: selection_logon and not filter_service_accounts
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1078
+- wrg.observed.actor.lapsus
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

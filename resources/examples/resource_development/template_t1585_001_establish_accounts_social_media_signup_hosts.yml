@@ -1,0 +1,41 @@
+title: Template -- Establish Accounts Social Media (signup hosts)
+id: 76b96327-86d9-5fe7-aa58-d3ead464e944
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1585.001 (Establish Accounts Social Media (signup hosts)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1585/001/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: proxy
+  product: windows
+detection:
+  selection_social_media_signup:
+    cs-host|contains:
+    - x.com
+    - twitter.com
+    - facebook.com
+    - instagram.com
+    - linkedin.com
+    - tiktok.com
+    cs-uri-stem|contains:
+    - /signup
+    - /register
+    - /i/flow/signup
+    - /accounts/emailsignup/
+    - /checkpoint/
+  filter_known_marketing_or_security_tooling:
+    cs-user-agent|contains:
+    - SecurityScanner
+    - BrandProtection
+    - SocialMediaManager
+  condition: selection_social_media_signup and not filter_known_marketing_or_security_tooling
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1585.001
+- wrg.template
+- wrg.tactic.resource_development

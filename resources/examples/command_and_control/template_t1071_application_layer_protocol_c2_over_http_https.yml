@@ -1,0 +1,35 @@
+title: Template -- Application Layer Protocol (C2 over HTTP/HTTPS)
+id: 2ed4ce19-84bc-5e84-988d-e2d2111aff26
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1071 (Application Layer Protocol (C2 over HTTP/HTTPS)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1071/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_c2_http:
+    DestinationPort:
+    - 80
+    - 443
+    - 8080
+    - 8443
+    Image|endswith:
+    - \powershell.exe
+    - \cmd.exe
+    - \wscript.exe
+    - \mshta.exe
+    - \rundll32.exe
+  condition: selection_c2_http | count() by DestinationHostname > 30 in 30m
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1071
+- wrg.template
+- wrg.tactic.command_and_control
+- wrg.correlation

@@ -1,0 +1,31 @@
+title: ALPHV/BlackCat -- T1059.001
+id: 9aa6d2c4-4cf6-5cdd-8618-724ded1815de
+status: test
+description: Breach intel signature for actor alphv, MITRE technique T1059.001. Derived from 1 observed incident(s) in the
+  WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1059/001/
+- https://attack.mitre.org/groups/G1015/
+- https://example.test/mgm
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2023-09-10'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_pwsh_encoded:
+    Image|endswith: \powershell.exe
+    CommandLine|contains:
+    - ' -enc '
+    - ' -EncodedCommand '
+    - ' -e '
+  condition: selection_pwsh_encoded
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1059.001
+- wrg.observed.actor.alphv
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution
