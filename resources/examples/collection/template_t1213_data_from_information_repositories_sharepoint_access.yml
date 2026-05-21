@@ -1,0 +1,31 @@
+title: Template -- Data from Information Repositories (SharePoint access)
+id: 1e5038d3-ea08-5839-a55f-af55e5d1987b
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1213 (Data from Information Repositories (SharePoint access)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1213/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: webserver
+  product: windows
+detection:
+  selection_repo_access:
+    cs-uri-stem|contains:
+    - /_api/
+    - /sites/
+    - /wiki/
+    - /confluence/
+    sc-status:
+    - 200
+    - 206
+  condition: selection_repo_access
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1213
+- wrg.template
+- wrg.tactic.collection

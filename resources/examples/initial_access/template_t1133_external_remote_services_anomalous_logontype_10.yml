@@ -1,0 +1,29 @@
+title: Template -- External Remote Services (anomalous LogonType 10)
+id: 119fe7d2-73b3-5033-a2af-a62e482e5f9f
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1133 (External Remote Services (anomalous LogonType 10)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1133/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_remote_service:
+    EventID: 4624
+    LogonType: 10
+    IpAddress|startswith:
+    - '10.'
+    - '172.'
+    - 192.168.
+  condition: selection_remote_service
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1133
+- wrg.template
+- wrg.tactic.initial_access

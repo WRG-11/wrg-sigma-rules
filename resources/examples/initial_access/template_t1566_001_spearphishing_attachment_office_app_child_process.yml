@@ -1,0 +1,33 @@
+title: Template -- Spearphishing Attachment (office app child process)
+id: 602cd161-37b8-53c9-81a2-57f5cdf60413
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1566.001 (Spearphishing Attachment (office app child process)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1566/001/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: email
+  product: windows
+detection:
+  selection_office_child:
+    ParentImage|endswith:
+    - \winword.exe
+    - \excel.exe
+    - \powerpnt.exe
+    - \outlook.exe
+    Image|endswith:
+    - \cmd.exe
+    - \powershell.exe
+    - \wscript.exe
+    - \mshta.exe
+  condition: selection_office_child
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1566.001
+- wrg.template
+- wrg.tactic.initial_access

@@ -1,0 +1,30 @@
+title: Template -- Trusted Relationship (third-party/contractor pivot)
+id: 4cc5062a-9b25-528b-a811-1cdbd0ac9e14
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1199 (Trusted Relationship (third-party/contractor pivot)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1199/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: authentication
+  product: windows
+detection:
+  selection_trusted_logon:
+    EventID: 4624
+    LogonType:
+    - 3
+    - 10
+    AuthenticationPackageName: Kerberos
+  filter_internal:
+    WorkstationName|startswith: INT-
+  condition: selection_trusted_logon and not filter_internal
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1199
+- wrg.template
+- wrg.tactic.initial_access
