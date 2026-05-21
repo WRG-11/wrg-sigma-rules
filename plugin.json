@@ -1,0 +1,18 @@
+{
+  "name": "wrg-sigma-rules",
+  "displayName": "WRG Sigma Rules",
+  "description": "Production-grade sigma detection rule writing, validation, and conversion for SOC analysts and threat-intel teams. LLM-assisted draft + pySigma validation + multi-backend conversion (Splunk, Elastic, Wazuh). First sigma plugin in Anthropic marketplace; built on 6+ months WRG threat-intel corpus (50+ existing rules + 100+ actor TTP corpus).",
+  "version": "0.1.0-alpha",
+  "author": "WRG (WinstonRedGuard)",
+  "repository": "https://github.com/WRG-11/wrg-sigma-rules-plugin",
+  "homepage": "https://github.com/WRG-11/wrg-sigma-rules-plugin",
+  "license": "MIT",
+  "topics": ["security", "sigma", "detection", "siem", "soc", "threat-intel"],
+  "minimumClaudeCodeVersion": "1.0.0",
+  "tools": [],
+  "skills": [],
+  "prompts": [],
+  "resources": [],
+  "status": "scaffold",
+  "notes": "Scaffold seed by A R88-56a 2026-05-21; F R88-56f production-grade manifest + skill frontmatter; B R88-56b tool impl; C R88-56c test corpus; D R88-56d resources data migration; G R88-56g marketplace submission audit; E R88-56e codify-combo lockdown."
+}
