@@ -1,0 +1,25 @@
+title: Template -- Remote Services (RDP / EventID 4624 LogonType 10)
+id: 846ef798-a33a-5857-a3c8-5fff979b3b90
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1021.001 (Remote Services (RDP / EventID 4624 LogonType
+  10)). Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1021/001/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: authentication
+  product: windows
+detection:
+  selection_rdp:
+    EventID: 4624
+    LogonType: 10
+  condition: selection_rdp
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1021.001
+- wrg.template
+- wrg.tactic.lateral_movement

@@ -1,0 +1,30 @@
+title: Crypto wallet interacts with OFAC-sanctioned address bc1qjnt7vjqyzpyjs6ne5xfu44p4uy4xyl0vudr4dp
+id: 00000000-0000-0000-0000-000000000000
+status: experimental
+description: 'Wallet interacted with OFAC-sanctioned address
+
+  bc1qjnt7vjqyzpyjs6ne5xfu44p4uy4xyl0vudr4dp (designation:
+
+  LockBit operator BTC (Treasury JY2114), program CYBER2,
+
+  dated 2024-02-20).
+
+  '
+logsource:
+  product: blockchain
+  category: transaction
+detection:
+  selection:
+    counterparty_address: bc1qjnt7vjqyzpyjs6ne5xfu44p4uy4xyl0vudr4dp
+    counterparty_chain: btc
+  condition: selection
+level: high
+tags:
+- attack.impact
+- attack.t1657
+- ofac.cyber2
+- wrg.observed
+- wrg.tactic.impact
+references:
+- https://home.treasury.gov/news/press-releases/jy2114
+author: WinstonRedGuard -- sigma plugin crypto-trace observed rules

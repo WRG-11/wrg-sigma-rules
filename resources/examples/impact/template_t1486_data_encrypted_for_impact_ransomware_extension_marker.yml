@@ -1,0 +1,33 @@
+title: Template -- Data Encrypted for Impact (ransomware extension marker)
+id: 50910b77-4319-5543-ba9e-71c82dd60560
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1486 (Data Encrypted for Impact (ransomware extension marker)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1486/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_extension:
+    TargetFilename|endswith:
+    - .encrypted
+    - .locked
+    - .enc
+    - .crypto
+    - .lockbit
+    - .alphv
+    - .akira
+    - .clop
+  condition: selection_extension | count() by Image > 20 in 5m
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1486
+- wrg.template
+- wrg.tactic.impact
+- wrg.correlation

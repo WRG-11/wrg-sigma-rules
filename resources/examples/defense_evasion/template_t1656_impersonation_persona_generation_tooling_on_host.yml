@@ -1,0 +1,37 @@
+title: Template -- Impersonation (persona-generation tooling on host)
+id: 601b9767-137e-52c0-9886-88600e27383c
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1656 (Impersonation (persona-generation tooling on host)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1656/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_persona_generation_tooling:
+    Image|endswith:
+    - \powershell.exe
+    - \python.exe
+    - \pythonw.exe
+    - \node.exe
+    - \cscript.exe
+    - \wscript.exe
+    CommandLine|contains:
+    - thispersondoesnotexist
+    - faker
+    - persona_factory
+    - fake-name-generator
+    - stylegan
+    - generated-photos
+  condition: selection_persona_generation_tooling
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1656
+- wrg.template
+- wrg.tactic.defense_evasion

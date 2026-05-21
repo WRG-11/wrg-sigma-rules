@@ -1,0 +1,31 @@
+title: Template -- Valid Accounts (anomalous remote interactive logon)
+id: fc76de4b-2390-51e2-9139-9de3120d8e1e
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1078 (Valid Accounts (anomalous remote interactive logon)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1078/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: authentication
+  product: windows
+detection:
+  selection_logon:
+    EventID:
+    - 4624
+    - 4625
+    LogonType:
+    - 3
+    - 10
+  filter_service_accounts:
+    TargetUserName|startswith: svc_
+  condition: selection_logon and not filter_service_accounts
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1078
+- wrg.template
+- wrg.tactic.initial_access

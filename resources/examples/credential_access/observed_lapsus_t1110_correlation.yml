@@ -1,0 +1,32 @@
+title: LAPSUS$ -- T1110
+id: b782545c-7b35-5e55-97fd-4f30d360c765
+status: test
+description: Breach intel signature for actor lapsus, MITRE technique T1110. Derived from 1 observed incident(s) in the WRG
+  breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1110/
+- https://attack.mitre.org/groups/G1004/
+- https://example.test/lapsus-vodafone
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-05-10'
+logsource:
+  category: authentication
+  product: windows
+detection:
+  selection_failed_logon:
+    EventID: 4625
+    LogonType:
+    - 2
+    - 3
+    - 10
+  condition: selection_failed_logon | count() by SourceIP > 10 in 10m
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1110
+- wrg.observed.actor.lapsus
+- wrg.severity.high
+- wrg.correlation
+- wrg.observed
+- wrg.tactic.credential_access
