@@ -1,0 +1,36 @@
+title: Template -- Data from Local System (archive utility staging)
+id: 1d76a4c4-c33e-5a85-b0ce-11ee62b8035d
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1005 (Data from Local System (archive utility staging)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_archive_staging:
+    Image|endswith:
+    - \7z.exe
+    - \rar.exe
+    - \winrar.exe
+    - \powershell.exe
+    CommandLine|contains:
+    - \Users\
+    - \Documents\
+    - \Desktop\
+    - .pst
+    - .docx
+    - .xlsx
+    - .pdf
+  condition: selection_archive_staging
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1005
+- wrg.template
+- wrg.tactic.collection

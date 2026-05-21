@@ -1,0 +1,36 @@
+title: LockBit -- T1486
+id: dfaa58ce-d357-5dc6-abe8-ed9d0f379843
+status: test
+description: Breach intel signature for actor lockbit, MITRE technique T1486. Derived from 1 observed incident(s) in the WRG
+  breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1486/
+- https://attack.mitre.org/groups/G0140/
+- https://example.test/royal-mail
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2023-02-23'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_extension:
+    TargetFilename|endswith:
+    - .encrypted
+    - .locked
+    - .enc
+    - .crypto
+    - .lockbit
+    - .alphv
+    - .akira
+    - .clop
+  condition: selection_extension | count() by Image > 20 in 5m
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1486
+- wrg.observed.actor.lockbit
+- wrg.severity.high
+- wrg.correlation
+- wrg.observed
+- wrg.tactic.impact

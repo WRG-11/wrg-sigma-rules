@@ -1,0 +1,30 @@
+title: Template -- Remote Services SMB (admin shares ADMIN$/C$/IPC$)
+id: 97454bf1-8965-5bca-be2d-300a2c7c695e
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1021.002 (Remote Services SMB (admin shares ADMIN$/C$/IPC$)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1021/002/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: authentication
+  product: windows
+detection:
+  selection_admin_share:
+    EventID: 5140
+    ShareName|contains:
+    - ADMIN$
+    - C$
+    - IPC$
+  filter_local_machine_account:
+    AccountName|endswith: $
+  condition: selection_admin_share and not filter_local_machine_account
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1021.002
+- wrg.template
+- wrg.tactic.lateral_movement

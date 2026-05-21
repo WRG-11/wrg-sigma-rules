@@ -1,0 +1,45 @@
+title: Template -- Spearphishing Link (proxy-side suspicious link)
+id: 47c1be88-2c30-54b6-93ed-61dd7049a167
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1566.002 (Spearphishing Link (proxy-side suspicious link)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1566/002/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: email
+  product: windows
+detection:
+  selection_phish_link_indicator:
+    Subject|contains:
+    - verify your account
+    - password expir
+    - urgent action required
+    - security alert
+    - account suspended
+    - reset your password
+    URLs|contains:
+    - /verify/
+    - /reset/
+    - /secure/
+    - /confirm/
+    - /update-info/
+    - /auth/login?next=
+  filter_known_safe_workflow:
+    Sender|endswith:
+    - '@docusign.net'
+    - '@adobesign.com'
+    - '@mailchimp.com'
+    - '@sendgrid.net'
+    - '@notifications.google.com'
+    - '@accounts.google.com'
+  condition: selection_phish_link_indicator and not filter_known_safe_workflow
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1566.002
+- wrg.template
+- wrg.tactic.initial_access

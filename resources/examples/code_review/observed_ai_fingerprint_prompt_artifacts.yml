@@ -1,0 +1,33 @@
+title: LLM prompt artifact in source code
+id: db1cc369-6509-5f40-ae62-f3a6b470d0df
+status: experimental
+description: 'Detects hardcoded prompt-engineering literals in source code (persona prompts, anti-hallucination annotations,
+  system instruction fragments such as ''Core Judgment Rules:''). These literals are typical of LLM-augmented codebases.
+
+
+  Aggregated from 1 fingerprint hit(s) across 1 file(s). Sample paths: apps/foo/bar.py.'
+references:
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+author: WinstonRedGuard -- sigma plugin ai-fingerprint observed rules
+date: '2026-05-13'
+logsource:
+  category: code_review
+  product: wrg_ai_fingerprint
+detection:
+  selection:
+    detector: prompt_artifacts
+    evidence|contains:
+    - 'Core Judgment Rules:'
+  condition: selection
+falsepositives:
+- Legitimate prompt-engineering tooling
+- Educational or tutorial repositories
+level: high
+tags:
+- attack.t1027.005
+- attack.t1059.001
+- wrg.ai_fingerprint
+- wrg.detector.prompt_artifacts
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.code_review

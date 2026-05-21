@@ -1,0 +1,32 @@
+title: Template -- Obfuscated Files or Information (encoded payload)
+id: d735a2ed-439d-5a15-b31d-9c04955794cb
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1027 (Obfuscated Files or Information (encoded payload)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1027/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_encoded_powershell:
+    Image|endswith:
+    - \powershell.exe
+    - \pwsh.exe
+    CommandLine|contains:
+    - ' -enc '
+    - ' -EncodedCommand '
+    - ' -e '
+  selection_long_base64_blob:
+    CommandLine|re: '[A-Za-z0-9+/]{200,}={0,2}'
+  condition: selection_encoded_powershell or selection_long_base64_blob
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1027
+- wrg.template
+- wrg.tactic.defense_evasion
