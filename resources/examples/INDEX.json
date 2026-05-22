@@ -9,7 +9,14 @@
     "apps/<wrg-app>/tests/fixtures/crypto_trace/sigma_rule_*.yml (2 observed)",
     "apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml (5 detector goldens)"
   ],
-  "total_rules": 51,
+  "total_rules": 52,
+  "_last_extension": {
+    "date": "2026-05-22",
+    "added": [
+      "command_and_control/observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml"
+    ],
+    "context": "R88-57+ NEW-10 candidate; Pattern 36 v1.0 graduation 3rd vaka candidate trigger; ACUTE Mini Shai-Hulud npm supply chain MsftSecIntel 2026-05-21 disclosure; sister feedback_mini_shai_hulud_ioc_block_2026_05_22.md OPSEC ship + AGENTS.md §15.26 capability gap 7 3-katman 7.a paket-layer Layer 2 defansif"
+  },
   "categories": {
     "code_review": [
       "code_review/observed_ai_fingerprint_ansi_color_class.yml",
@@ -23,6 +30,7 @@
       "collection/template_t1213_data_from_information_repositories_sharepoint_access.yml"
     ],
     "command_and_control": [
+      "command_and_control/observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml",
       "command_and_control/template_t1071_application_layer_protocol_c2_over_http_https.yml"
     ],
     "credential_access": [
