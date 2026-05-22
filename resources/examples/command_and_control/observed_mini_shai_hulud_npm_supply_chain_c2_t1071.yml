@@ -1,0 +1,63 @@
+title: Mini Shai-Hulud -- T1071 npm supply chain C2 egress to m-kosche.com IOC
+id: 6d9183d6-562c-5445-987a-1df5f450f9af
+status: experimental
+description: 'Campaign-bound sigma detection for Mini Shai-Hulud npm supply chain
+  attack (MsftSecIntel 2026-05-21 disclosure). Detects outbound C2 communication
+  to the m-kosche.com domain family (apex + wildcard subdomains; canonical IOC
+  t.m-kosche.com) or hardcoded C2 IP 185.95.159.32. Initial infection vector:
+  compromised npm packages (antv family confirmed; Bun preinstall hook activation
+  + SLSA provenance forge) -- post-install egress to credential-theft + worm
+  propagation C2 endpoint. WRG defansif observation: NextDNS feed already catches
+  the domain (sister Phase E OPSEC v11 wave 2026-05-19 infrastructure ship);
+  this sigma rule adds SIEM-side detection layer for log enrichment +
+  retrospective hunt.
+
+  Aggregated from 1 active campaign disclosure 2026-05-21 (Microsoft Threat
+  Intelligence); 0 confirmed WRG environment infection (GREEN-CLEAN 11-check
+  audit verified 2026-05-22 -- Cursor + mcp-mermaid + antv + Bun + IOC + GitHub
+  PAT + SSH all clean).'
+references:
+- https://attack.mitre.org/techniques/T1071/
+- https://attack.mitre.org/techniques/T1195/002/
+- https://attack.mitre.org/techniques/T1041/
+- https://twitter.com/MsftSecIntel
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-05-22'
+logsource:
+  category: dns
+  product: windows
+detection:
+  selection_dns_query_apex:
+    QueryName|endswith:
+    - .m-kosche.com
+    - m-kosche.com
+  selection_dns_query_t_subdomain:
+    QueryName: t.m-kosche.com
+  selection_network_ip_c2:
+    DestinationIp: 185.95.159.32
+  selection_npm_process_parent:
+    ParentImage|endswith:
+    - \node.exe
+    - \npm.cmd
+    - \npm.exe
+    - \bun.exe
+    - \yarn.cmd
+    - \yarn.exe
+    - \pnpm.cmd
+    - \pnpm.exe
+  condition: 1 of selection_dns_* or selection_network_ip_c2 or (selection_npm_process_parent and 1 of selection_dns_*)
+falsepositives:
+- None expected -- the m-kosche.com domain family + IP 185.95.159.32 are campaign-specific IOCs (MsftSecIntel disclosure 2026-05-21); no legitimate use case anticipated. Tune retention window per environment SOC SLA.
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1071
+- attack.t1195.002
+- attack.t1041
+- wrg.observed.campaign.mini_shai_hulud
+- wrg.observed.ioc.m_kosche_com_domain_family
+- wrg.observed.ioc.ip_185_95_159_32
+- wrg.observed.vector.npm_supply_chain_bun_preinstall_hook
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.command_and_control
