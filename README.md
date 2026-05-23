@@ -8,7 +8,7 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
-- **52 production sigma rule corpus**: 11 ATT&CK tactic categories
+- **56 production sigma rule corpus**: 11 ATT&CK tactic categories
 - **Multi-backend conversion**: Splunk, Elastic, Wazuh, Kibana verified
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud, Lazarus, LockBit, LAPSUS, AI-fingerprint)
 

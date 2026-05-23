@@ -9,19 +9,21 @@
     "apps/<wrg-app>/tests/fixtures/crypto_trace/sigma_rule_*.yml (2 observed)",
     "apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml (5 detector goldens)"
   ],
-  "total_rules": 53,
+  "total_rules": 56,
   "_last_extension": {
     "date": "2026-05-23",
     "added": [
-      "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
+      "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml"
     ],
-    "context": "R89-04+ pre-Pazartesi A direct ship; Tier 1 government PSA -> sigma rule corpus pipeline canonical (SB-33 candidate); FBI IC3 PSA 1-052126-PSA 21 May 2026 Kali365 PhaaS OAuth device code phishing kit; T1528 Steal Application Access Token + T1566 + T1078; capability gap 7 sub-tier 5 identity/auth layer NEW; sigma submit Pazartesi narrative bonus anchor (FBI government source -> sigma corpus 24h gap close)",
+    "context": "R89-04+ pre-Pazartesi A direct ship dogfood + 2; OWASP Top 10 web-attack pattern templates T1190 Exploit Public-Facing Application; SQLi auth-bypass + path-traversal dot-dot + reflected XSS script-tag patterns; empirical validation OWASP Juice Shop lab 2026-05-23 (SQLi admin auth bypass kanit + traversal 403 + XSS 200); webserver category log detection; Pazartesi submit narrative bonus anchor (live OWASP lab-validated template family); SB-34 candidate 'lab-empirical sigma template generation discipline'",
     "previous_extension": {
-      "date": "2026-05-22",
+      "date": "2026-05-23",
       "added": [
-        "command_and_control/observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml"
+        "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
       ],
-      "context": "R88-57+ NEW-10 candidate; Pattern 36 v1.0 graduation 3rd vaka candidate trigger; ACUTE Mini Shai-Hulud npm supply chain MsftSecIntel 2026-05-21 disclosure"
+      "context": "R89-04+ pre-Pazartesi A direct ship; Tier 1 government PSA -> sigma rule corpus pipeline canonical (SB-33 candidate); FBI IC3 PSA 1-052126-PSA 21 May 2026 Kali365 PhaaS OAuth device code phishing kit"
     }
   },
   "categories": {
@@ -83,6 +85,9 @@
       "initial_access/template_t1078_002_domain_account_exploitation_nopac_cve_2021_42278_42287.yml",
       "initial_access/template_t1078_valid_accounts_anomalous_remote_interactive_logon.yml",
       "initial_access/template_t1133_external_remote_services_anomalous_logontype_10.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml",
       "initial_access/template_t1190_exploit_public_facing_application_webshell_spawn.yml",
       "initial_access/template_t1195_supply_chain_compromise_untrusted_installer_execution.yml",
       "initial_access/template_t1199_trusted_relationship_third_party_contractor_pivot.yml",
@@ -171,6 +176,9 @@
     "webserver": [
       "collection/template_t1213_data_from_information_repositories_sharepoint_access.yml",
       "credential_access/template_t1552_001_unsecured_credentials_in_files_kyocera_kmaddrbook.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml",
       "initial_access/template_t1190_exploit_public_facing_application_webshell_spawn.yml"
     ]
   },
@@ -214,6 +222,9 @@
       "initial_access/template_t1078_002_domain_account_exploitation_nopac_cve_2021_42278_42287.yml",
       "initial_access/template_t1078_valid_accounts_anomalous_remote_interactive_logon.yml",
       "initial_access/template_t1133_external_remote_services_anomalous_logontype_10.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
+      "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml",
       "initial_access/template_t1190_exploit_public_facing_application_webshell_spawn.yml",
       "initial_access/template_t1195_supply_chain_compromise_untrusted_installer_execution.yml",
       "initial_access/template_t1199_trusted_relationship_third_party_contractor_pivot.yml",
