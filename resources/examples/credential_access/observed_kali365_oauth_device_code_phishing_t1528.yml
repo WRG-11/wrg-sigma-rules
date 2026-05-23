@@ -1,0 +1,66 @@
+title: Kali365 PhaaS -- OAuth Device Code Phishing T1528 (FBI 1-052126-PSA)
+id: a7b2c8d4-1e9f-4a3b-bc5e-d6f1a9b3c8e7
+status: experimental
+description: 'Campaign-bound sigma detection for the Kali365 Phishing-as-a-Service kit
+  (FBI IC3 PSA 1-052126-PSA, 21 May 2026; first observed April 2026 via Telegram-distributed
+  kits). Detects OAuth device-code flow authentication grants on Microsoft 365 / Azure
+  AD that may indicate device-code phishing attacks. Kali365 attack chain:
+
+  (1) Lure phishing email impersonates productivity service + delivers an active
+  device code (~15-min validity window).
+  (2) Victim navigates to legitimate microsoft.com/devicelogin page and pastes the
+  code, unknowingly authorizing the attacker''s session.
+  (3) Attacker captures OAuth access + refresh tokens via attacker-controlled
+  device polling Microsoft endpoints.
+  (4) Persistent access to Outlook + Teams + OneDrive without password and without
+  MFA re-challenge (T1078 Valid Accounts; tokens valid for extended period).
+
+  Detection logic flags successful Azure AD sign-in events using deviceCode flow
+  in scope where the flow is not commonly used by the tenant. Per FBI mitigation
+  guidance, organizations should consider Conditional Access policies that block
+  or restrict the device-code authentication flow for non-required application
+  classes. Tune the filter_known_legitimate_device_code_apps list per tenant
+  (kiosks, IoT, dev tooling such as PowerShell / VS Code device-code login).
+
+  Source: Tier 1 government PSA (FBI IC3 direct; via @DarkWebInformer Twitter
+  aggregator 2026-05-22 14.6K view amplification). Aggregated from 1 first-party
+  source disclosure 2026-05-21; 0 confirmed WRG environment exposure (operator
+  M365 footprint review per Pattern 18 v1.4 audit-your-dependency-chain sister).'
+references:
+- https://attack.mitre.org/techniques/T1528/
+- https://attack.mitre.org/techniques/T1566/
+- https://attack.mitre.org/techniques/T1078/
+- https://www.ic3.gov/PSA/2026/PSA260521
+author: WinstonRedGuard -- sigma plugin observed rules (derived from FBI IC3 PSA)
+date: '2026-05-23'
+logsource:
+  product: azure
+  service: signinlogs
+detection:
+  selection_device_code_success:
+    AuthenticationProtocol: deviceCode
+    ResultType: '0'
+  filter_known_legitimate_device_code_apps:
+    AppDisplayName|contains:
+    - PowerShell
+    - Visual Studio Code
+    - Microsoft Authenticator
+    - Azure CLI
+  condition: selection_device_code_success and not filter_known_legitimate_device_code_apps
+falsepositives:
+- Legitimate device-code flow use by enterprise-approved kiosk / IoT / dev tooling -- tune the filter_known_legitimate_device_code_apps list per tenant
+- Microsoft Authenticator app registration and similar identity bootstrap flows -- consider time-window filtering
+- First-time device-code adoption by users transitioning from legacy auth -- monitor for sustained pattern vs one-off
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1528
+- attack.t1566
+- attack.t1078
+- wrg.observed.campaign.kali365_phaas
+- wrg.observed.source.fbi_psa_1_052126_2026_05_21
+- wrg.observed.vector.oauth_device_code_phishing
+- wrg.observed.tactic.credential_access_token_theft
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.credential_access

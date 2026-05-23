@@ -9,13 +9,20 @@
     "apps/<wrg-app>/tests/fixtures/crypto_trace/sigma_rule_*.yml (2 observed)",
     "apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml (5 detector goldens)"
   ],
-  "total_rules": 52,
+  "total_rules": 53,
   "_last_extension": {
-    "date": "2026-05-22",
+    "date": "2026-05-23",
     "added": [
-      "command_and_control/observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml"
+      "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
     ],
-    "context": "R88-57+ NEW-10 candidate; Pattern 36 v1.0 graduation 3rd vaka candidate trigger; ACUTE Mini Shai-Hulud npm supply chain MsftSecIntel 2026-05-21 disclosure; sister feedback_mini_shai_hulud_ioc_block_2026_05_22.md OPSEC ship + AGENTS.md §15.26 capability gap 7 3-katman 7.a paket-layer Layer 2 defansif"
+    "context": "R89-04+ pre-Pazartesi A direct ship; Tier 1 government PSA -> sigma rule corpus pipeline canonical (SB-33 candidate); FBI IC3 PSA 1-052126-PSA 21 May 2026 Kali365 PhaaS OAuth device code phishing kit; T1528 Steal Application Access Token + T1566 + T1078; capability gap 7 sub-tier 5 identity/auth layer NEW; sigma submit Pazartesi narrative bonus anchor (FBI government source -> sigma corpus 24h gap close)",
+    "previous_extension": {
+      "date": "2026-05-22",
+      "added": [
+        "command_and_control/observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml"
+      ],
+      "context": "R88-57+ NEW-10 candidate; Pattern 36 v1.0 graduation 3rd vaka candidate trigger; ACUTE Mini Shai-Hulud npm supply chain MsftSecIntel 2026-05-21 disclosure"
+    }
   },
   "categories": {
     "code_review": [
@@ -34,6 +41,7 @@
       "command_and_control/template_t1071_application_layer_protocol_c2_over_http_https.yml"
     ],
     "credential_access": [
+      "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml",
       "credential_access/observed_lapsus_t1110_correlation.yml",
       "credential_access/template_t1003_os_credential_dumping_lsass_access_mimikatz.yml",
       "credential_access/template_t1110_brute_force_high_volume_failed_logons.yml",
