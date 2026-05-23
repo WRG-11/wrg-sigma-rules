@@ -1,87 +1,105 @@
-# WRG Sigma Rules -- Anthropic Claude Code Plugin
+# WRG Sigma Rules — Anthropic Claude Code Plugin
 
-**Status**: Scaffold (R88-56a A operator seed, 2026-05-21 22:30 TR). Production ship target: R88-56 wave wrap (~2-3 day window; agent Pazartesi 2026-05-25 pickup).
+> **Status**: Production-ready. Pending submission to Anthropic community marketplace (target 2026-05-25).
 
-## Value proposition
+Production-grade sigma detection rule writing, validation, and conversion for SOC analysts, threat-intel teams, and detection engineers using Claude Code.
 
-Production-grade sigma detection rule writing, validation, and conversion for SOC analysts, threat-intel teams, and bug bounty hunters using Claude Code.
+## TL;DR
 
-- **Fastest sigma rule writing**: LLM-assisted draft from natural language description
-- **Quality-aware**: pySigma validation + best practices linter + WRG 50+ rule corpus as canonical examples
-- **Multi-backend**: convert to Splunk, Elastic, Wazuh, Kibana queries
-- **MITRE ATT&CK integration**: TTP-aware drafting + coverage gap analysis
-- **WRG ecosystem anchor**: 100+ actor TTP corpus + 6+ months threat-intel discipline
-
+- **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/Wazuh/Kibana query)
+- **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
+- **52 production sigma rule corpus**: 11 ATT&CK tactic categories
+- **Multi-backend conversion**: Splunk, Elastic, Wazuh, Kibana verified
+- **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud, Lazarus, LockBit, LAPSUS, AI-fingerprint)
 
 ## Why this plugin exists
 
-Sigma rule niche in Anthropic marketplace is **100% empty** (verified 2026-05-21: 35 plugins, 0 sigma, 1 generic security). SOC + threat-intel community has latent demand for fast, quality-aware rule writing tools integrated with LLM workflows.
+The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty** (verified 2026-05-23: 200+ plugins, 0 sigma-focused, 1 generic security plugin). SOC + threat-intel community has latent demand for fast, quality-aware rule writing tools integrated with LLM workflows.
 
-WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure including 50+ canonical sigma rules + actor catalog + pySigma integration + Pattern-driven discipline. This plugin packages that capability for the broader Anthropic ecosystem.
+WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 52 canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
 
-## Capabilities (post-ship)
+## What's included
 
-### Tools
+### MCP tools (3)
 
-- `wrg__sigma__draft_rule` -- NL description -> sigma YAML scaffold
-- `wrg__sigma__validate_rule` -- YAML schema + pySigma compat + best practices linter
-- `wrg__sigma__convert_rule` -- sigma -> splunk/elastic/wazuh/kibana query
+- `wrg__sigma__draft_rule` — NL description → sigma YAML scaffold
+- `wrg__sigma__validate_rule` — YAML schema + pySigma compat + best-practice linter
+- `wrg__sigma__convert_rule` — sigma → Splunk/Elastic/Wazuh/Kibana query
 
-### Skills
+### Claude Code skills (3)
 
-- `sigma-rule-writer` -- guided rule writing workflow
-- `sigma-rule-reviewer` -- paste rule for quality review + improvement
-- `threat-coverage-gap-analyzer` -- MITRE ATT&CK coverage analysis
+- `sigma-rule-writer` — guided rule writing workflow
+- `sigma-rule-reviewer` — paste rule for quality review + improvement suggestions
+- `threat-coverage-gap-analyzer` — MITRE ATT&CK coverage analysis vs your existing corpus
 
-### Prompts
+### Sigma rule corpus (52 production rules across 11 ATT&CK tactic categories)
 
-- `canonical-sigma-patterns` -- 5 detection pattern shapes
-- `mitre-attack-rule-template` -- TTP ID -> rule scaffold
-- `wrg-actor-rule-template` -- actor-specific rule scaffold
-- `incident-response-sigma-mapping` -- incident -> sigma rule mapping
+| Tactic | Coverage |
+|---|---|
+| `credential_access` | templates + observed (LAPSUS T1110 correlation + Mimikatz LSASS patterns) |
+| `command_and_control` | template T1071 + **observed Mini Shai-Hulud npm supply-chain C2 T1071** |
+| `defense_evasion` | templates |
+| `execution` | templates |
+| `exfiltration` | templates |
+| `impact` | templates + observed (Lazarus + LockBit BTC) |
+| `initial_access` | templates + observed (spearphishing link side T1566.002) |
+| `lateral_movement` | templates |
+| `resource_development` | templates |
+| `collection` | templates |
+| `code_review` | 5 AI-fingerprint observed rules (ANSI-color class, decoy block, docstring density, hallucinated CVSS, prompt artifacts) |
+
+See [`resources/examples/INDEX.json`](resources/examples/INDEX.json) for full enumeration.
 
 ### Resources
 
-- `wrg-sigma://patterns/canonical-5` -- canonical pattern definitions
-- `wrg-sigma://coverage/mitre-attack-matrix` -- coverage state
+- `wrg-sigma://patterns/canonical-5` — canonical detection-pattern definitions
+- `wrg-sigma://coverage/mitre-attack-matrix` — corpus coverage state
+
+## Installation
+
+### Via Anthropic Claude Code community marketplace (post-merge)
+
+```bash
+/plugin install wrg-sigma-rules
+```
+
+### Direct from this repo
+
+```bash
+git clone https://github.com/WRG-11/wrg-sigma-rules.git
+# Follow Claude Code plugin install path per https://code.claude.com/docs/en/plugins
+```
 
 ## Quality discipline
 
-- 4-Layer self-audit per [WRG audit methodology](../../docs/standards/anthropic-plugin-4-layer-audit.md) (Pattern 18 v1.1 trust-but-verify sister)
-- 80+ test cases: 50 existing rule validation + 20 NL->YAML golden + 10 integration smoke (C R88-56c)
-- pySigma 0.10+ compat + multi-backend conversion verified
-- LLM-safe output discipline: PII redact + ASCII-only + error path structure preserve (Pattern 34 v1.1 sister)
+- **4-Layer self-audit** per WRG audit methodology (Pattern 18 v1.1 trust-but-verify sister); see [`.claude-plugin/AUDIT-SELF.md`](.claude-plugin/AUDIT-SELF.md)
+- **7 Python test modules** covering rule validation + tool integration smoke
+- **pySigma 0.10+ compat** + multi-backend conversion verified
+- **LLM-safe output discipline**: ASCII-only output + error-path structure preserve (Pattern 34 v1.1 sister)
+- **`claude plugin validate` PASS** (verified 2026-05-23 on Claude Code 2.1.149)
 
-## Installation (post-ship)
+## Tested environments
 
-```bash
-# Via Anthropic marketplace (post-merge)
-/plugin install wrg-sigma-rules
+- Windows 11 + Claude Code 2.1.149
+- WSL2 Ubuntu 24.04
 
-# Or direct from this repo
-git clone https://github.com/WRG-11/wrg-sigma-rules-plugin.git
-```
+## Contributing
 
-## Status
+Sigma rule contributions welcome. Submit YAML to `resources/examples/<tactic>/` with:
 
-| Stream | Status | Notes |
-|---|---|---|
-| A R88-56a | scaffold seed | This file + plugin.json + dir tree |
-| B R88-56b | pending | 3 tool impl (draft + validate + convert) |
-| C R88-56c | pending (wait_for_b_finalize) | Test corpus 80+ tests |
-| D R88-56d | pending | WRG rules -> resources/examples migration |
-| F R88-56f | pending (wait_for_a_scaffold) | Manifest + SKILL.md + 4-Layer self-audit |
-| G R88-56g | pending (wait_for_all_finalize) | Marketplace submission audit + PR draft |
-| E R88-56e | pending (last) | Codify-combo DECADE+6 MILESTONE |
+- ATT&CK TTP mapping in `tags:` field (e.g., `attack.t1071`)
+- `observed_*` prefix for incident-specific rules
+- `template_*` prefix for canonical pattern templates
+- pySigma validation passing via `wrg__sigma__validate_rule`
 
 ## References
 
-- Anthropic plugin marketplace: https://github.com/anthropics/claude-plugins-official (22K stars, 35 plugins, 2026-05-21)
-- WRG W0 audit methodology: [`docs/standards/anthropic-plugin-4-layer-audit.md`](../../docs/standards/anthropic-plugin-4-layer-audit.md)
-- WRG Pattern 18 v1.1 trust-but-verify endpoint-supply-chain super-cluster (sister discipline)
-- WRG Pattern 33 v1.0 MCP capability category discipline (Resources URI sister)
-- WRG Pattern 34 v1.0 LLM-safe always-redact (output discipline sister)
+- [Anthropic Claude Code plugin marketplace](https://github.com/anthropics/claude-plugins-community)
+- [WRG monorepo](https://github.com/WRG-11/WinstonRedGuard)
+- 4-Layer self-audit: [`.claude-plugin/AUDIT-SELF.md`](.claude-plugin/AUDIT-SELF.md)
+- External validation: [`.claude-plugin/AUDIT-VERIFY.md`](.claude-plugin/AUDIT-VERIFY.md)
+- Marketplace PR draft: [`PR-DRAFT.md`](PR-DRAFT.md)
 
 ## License
 
-MIT
+MIT — see [`LICENSE`](LICENSE) file.
