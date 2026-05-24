@@ -1,0 +1,90 @@
+title: SOCKS5 hostname null-byte egress -- T1041 Claude Code v2.0.24-v2.1.89 bypass (Anthropic silent fix v2.1.90)
+id: a43d0a4a-1df5-4508-a6b8-cd41f54de685
+status: experimental
+description: 'Tool-bound sigma detection for the SOCKS5 hostname null-byte injection
+  bypass affecting Claude Code v2.0.24 through v2.1.89 (silent fix at v2.1.90
+  on 2026-04-01; no CVE assigned, no GitHub Security Advisory, no release-note
+  mention; HackerOne report #3646509 by researcher Aonan Guan closed as
+  duplicate). Attack chain:
+
+  (1) Prompt injection or malicious tool output induces an outbound request to
+  a hostname that contains an embedded null byte (e.g., attacker-host followed
+  by a literal NUL character followed by trusted-host).
+  (2) The Claude Code JavaScript egress filter validates the trailing trusted
+  suffix and passes the request to the SOCKS5 client.
+  (3) libc getaddrinfo truncates the hostname at the null byte and resolves
+  only the attacker portion, sending the connection to attacker infrastructure.
+  (4) Data exfiltrates to the attacker host while HTTP-level egress logs show
+  only the benign trailing suffix.
+
+  Detection logic flags DNS resolver log entries OR SOCKS5 proxy CONNECT request
+  log entries whose target hostname contains a percent-encoded null-byte
+  indicator (%00). YAML cannot safely encode literal backslash-x or backslash-u
+  unicode-escape forms in detection strings (sigma parser strictness; corpus
+  ASCII discipline); the percent-encoded form is the practical detection
+  surface for HTTP-style logs. For environments where the proxy serializes
+  null bytes as backslash-x or backslash-u escape strings, add environment-
+  specific detection entries via the resources/examples extension flow.
+  SOCKS5 raw connection logs (typically port 1080 CONNECT payload) are the
+  primary detection surface; HTTP-level egress logs miss the bypass by design.
+
+  Sister context: Pattern 28 v1.0 FORMAL Anthropic-self transparency gap --
+  5.5-month silent fix window 2025-10-20 to 2026-04-01 coincides with WRG
+  active development period. WRG operator currently runs Claude Code v2.1.149
+  (SAFE; 59 patch versions post-fix); historical exposure window has been
+  reviewed and Anthropic API key + GitHub OAuth credential rotated 2026-05-21
+  as defense-in-depth measure.
+
+  Source: Tier 1 multi-source disclosure (Cyber Security News, TheRegister,
+  SecurityWeek, ThaiCERT, Cybernews, Aonan Guan researcher blog). Aggregated
+  from 1 active researcher disclosure 2026-05-20; 0 confirmed WRG environment
+  egress on current build (Pattern 39 verify discipline applied).'
+references:
+- https://attack.mitre.org/techniques/T1041/
+- https://attack.mitre.org/techniques/T1071/
+- https://nvd.nist.gov/vuln/detail/CVE-2025-66479
+- https://cybersecuritynews.com/claude-code-network-sandbox-bypass
+- https://hackerone.com/reports/3646509
+author: WinstonRedGuard -- sigma plugin observed rules (derived from researcher disclosure)
+date: '2026-05-24'
+logsource:
+  category: proxy
+  product: zeek
+detection:
+  selection_dns_null_byte_percent_encoded:
+    query|contains:
+    - '%00'
+    - '%2500'
+  selection_socks5_connect_null_byte_percent_encoded:
+    socks5_request_host|contains:
+    - '%00'
+    - '%2500'
+  selection_double_suffix_pattern:
+    query|contains:
+    - .com%00.
+    - .net%00.
+    - .org%00.
+    - .io%00.
+  selection_socks5_anomalous_port_egress:
+    dest_port: 1080
+    request_method: CONNECT
+    request_host|contains:
+    - '%00'
+  condition: 1 of selection_*
+falsepositives:
+- Resolver telemetry that escapes null bytes literally as percent-encoded sequences from legitimate test harnesses (not actual attack traffic) -- correlate with downstream connection logs and connection-success indicators to filter
+- Penetration-testing harness emitting deliberately crafted hostnames with embedded null bytes for sandbox-bypass evaluation -- exclude known internal test infrastructure source identity
+- Custom application protocols that intentionally embed binary markers in hostname fields (rare; usually proprietary internal tooling) -- whitelist by source application identity
+- Pattern library v1 -- review for environment-specific tuning before deployment; environment-specific backslash-x or backslash-u serialization forms require additional detection entries
+level: high
+tags:
+- attack.t1041
+- attack.t1071
+- wrg.observed.tool.claude_code_socks5_bypass
+- wrg.observed.cve.cve_2025_66479_sister
+- wrg.observed.vector.socks5_hostname_null_byte_injection
+- wrg.observed.disclosure.silent_fix_v2_1_90_2026_04_01
+- wrg.observed.transparency_gap.anthropic_self_5_5_month_window
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.exfiltration
