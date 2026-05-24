@@ -20,8 +20,9 @@ description: 'Campaign-bound sigma detection for the s1ngularity Nx command-line
   Detection logic flags npm install events targeting the Nx package family
   followed by post-install child processes that touch credential files OR egress
   to non-developer-typical destinations. Cross-references the broader Nx
-  campaign cluster -- correlate hits with observed_mini_shai_hulud_npm_supply_chain_c2_t1071
-  and observed_nx_console_t1195_002 in the same corpus for campaign-wide
+  campaign cluster -- correlate hits with observed_mini_shai_hulud_npm_supply_chain_c2_t1071,
+  observed_nx_console_t1195_002, and observed_clawhavoc_claude_skills_t1195_002
+  (R89-06d ship; 4-vector cluster COMPLETE) in the same corpus for campaign-wide
   detection coverage.
 
   Sister context: GitGuardian 2026 report 28.65M secret-leak baseline + AI-commit
@@ -100,6 +101,7 @@ tags:
 - attack.t1059.004
 - wrg.observed.campaign.s1ngularity_nx_cli
 - wrg.observed.cluster.nx_campaign_4_vector
+- wrg.observed.cluster.nx_campaign_4_vector_complete
 - wrg.observed.source.docker_horror_stories_issue_1_2026_05
 - wrg.observed.vector.npm_post_install_hook_credential_harvest
 - wrg.observed.scale.1000_plus_tokens_exfiltrated

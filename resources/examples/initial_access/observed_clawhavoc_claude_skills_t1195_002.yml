@@ -1,0 +1,133 @@
+title: ClawHavoc Claude Code Skills malicious skill execution -- T1195.002 Nx campaign 4th vector (Docker 2026-05 horror-stories Issue 1)
+id: b0e7961a-f220-41ad-9d65-dab19c15239c
+status: experimental
+description: 'Campaign-bound sigma detection for the ClawHavoc Claude Code Skills
+  malicious skill cluster (Docker AI Coding Agent Horror Stories Issue 1 anchor,
+  May 2026; 335+ malicious skills observed across the public Claude Code skills
+  ecosystem). Fourth and final vector of the Nx campaign supply-chain cluster
+  (sister vectors already in corpus: Mini Shai-Hulud npm + s1ngularity Nx CLI +
+  nx-console VS Code extension). Attack chain:
+
+  (1) Attacker publishes a malicious Claude Code skill (`.claude/skills/<name>/SKILL.md`)
+  to a public skills ecosystem (npm-style index OR direct curl install snippet
+  in a blog post / Stack Overflow answer / AI-coding tutorial).
+  (2) Victim developer installs the skill into their workspace under
+  `.claude/skills/<malicious-name>/`. Skill content includes a `SKILL.md` with
+  high-coverage description that surfaces aggressively for many common prompts.
+  (3) Claude Code surfaces the malicious skill on a routine prompt. The skill
+  declares broad tool access (Read + Write + Bash + Edit) and executes its
+  payload during routine workflow.
+  (4) Payload sweeps credential locations (`.aws/credentials`, `.npmrc`,
+  `.ssh/`, GitHub tokens, environment variables, 1Password vault, kubeconfig),
+  bulk-exfils over HTTPS POST to attacker infrastructure, optionally pivots to
+  other tools (npm install of secondary stage). Some variants hide their
+  presence via T1564 (Hide Artifacts) by renaming themselves or backdating
+  filesystem timestamps.
+
+  Detection logic targets two surfaces: (a) suspicious Claude Code child
+  processes spawned during skill execution context (PowerShell / curl / wget
+  / node touching credential files OR egressing to non-developer-typical
+  destinations); (b) anomalous Claude skill directory write events
+  (`.claude/skills/` writes outside of the developer-initiated install
+  workflow, OR writes to skill metadata files combined with credential-file
+  read events within a short window).
+
+  Sister cluster (Nx campaign 4-vector cluster -- THIS RULE COMPLETES THE
+  CLUSTER): cross-reference observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml
+  (1st vector) + observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml (2nd
+  vector) + observed_nx_console_t1195_002.yml (3rd vector) in the same corpus.
+
+  Source: Tier 1 first-party Docker engineering blog post (docker.com/blog/
+  ai-coding-agent-horror-stories-security-risks 2026-05). Aggregated from
+  1 first-party Docker disclosure (Issue 1 of 5-issue serial roadmap);
+  0 confirmed WRG environment exposure (operator Claude Code skills footprint
+  audit clean per Pattern 18 v1.4 audit-your-dependency-chain sister review
+  2026-05-23; only first-party WRG-authored skills present at audit time).'
+references:
+- https://attack.mitre.org/techniques/T1195/002/
+- https://attack.mitre.org/techniques/T1059/001/
+- https://attack.mitre.org/techniques/T1552/001/
+- https://attack.mitre.org/techniques/T1564/
+- https://www.docker.com/blog/ai-coding-agent-horror-stories-security-risks
+author: WinstonRedGuard -- sigma plugin observed rules (derived from Docker disclosure)
+date: '2026-05-24'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_claude_skill_install_egress:
+    ParentImage|endswith:
+    - \claude.exe
+    - \claude-code.exe
+    - \cursor.exe
+    Image|endswith:
+    - \powershell.exe
+    - \pwsh.exe
+    - \curl.exe
+    - \wget.exe
+    - \node.exe
+    CommandLine|contains:
+    - .claude/skills/
+    - .claude\skills\
+    - SKILL.md
+  selection_post_install_credential_scan:
+    ParentImage|endswith:
+    - \node.exe
+    - \powershell.exe
+    - \pwsh.exe
+    CommandLine|contains:
+    - .npmrc
+    - .aws/credentials
+    - .ssh/id_
+    - GITHUB_TOKEN
+    - NPM_TOKEN
+    - AWS_ACCESS_KEY
+    - 1password
+    - kubeconfig
+  selection_post_install_bulk_egress:
+    ParentImage|endswith:
+    - \claude.exe
+    - \claude-code.exe
+    - \node.exe
+    Image|endswith:
+    - \curl.exe
+    - \wget.exe
+    - \powershell.exe
+    CommandLine|contains:
+    - -X POST
+    - Invoke-WebRequest
+    - Invoke-RestMethod
+    - POST /upload
+    - POST /collect
+  selection_hide_artifacts_indicator:
+    ParentImage|endswith:
+    - \node.exe
+    - \claude.exe
+    - \claude-code.exe
+    CommandLine|contains:
+    - touch -t
+    - Set-ItemProperty -Name LastWriteTime
+    - mv .claude/skills/
+    - rename SKILL.md
+  condition: selection_claude_skill_install_egress and (selection_post_install_credential_scan or selection_post_install_bulk_egress or selection_hide_artifacts_indicator)
+falsepositives:
+- Legitimate developer install of a public skill into `.claude/skills/` with broad tool permissions for a personal workflow (review skill provenance + publisher reputation; pin known-safe skill source) -- exclude known-trusted publisher identities
+- AI coding assistant tutorials / educational content that demonstrate skill install + credential reading (e.g., legitimate `aws sts get-caller-identity` example) -- exclude by tutorial-marker comment in SKILL.md
+- Build pipeline that legitimately reads `.npmrc` / `GITHUB_TOKEN` as part of CI workflow (exclude by source-host CI runner hostname or session-user svc-account)
+- Pattern library v1 -- review for environment-specific tuning before deployment; Claude Code product attribution and skill execution surface require environment-specific log source tuning
+level: high
+tags:
+- attack.t1195.002
+- attack.t1059.001
+- attack.t1552.001
+- attack.t1564
+- wrg.observed.campaign.clawhavoc_claude_skills
+- wrg.observed.cluster.nx_campaign_4_vector
+- wrg.observed.cluster.nx_campaign_4_vector_complete
+- wrg.observed.source.docker_horror_stories_issue_1_2026_05
+- wrg.observed.vector.claude_code_skill_supply_chain_compromise
+- wrg.observed.scale.335_plus_malicious_skills_observed
+- wrg.observed.novel.ai_coding_assistant_skill_layer_compromise
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access
