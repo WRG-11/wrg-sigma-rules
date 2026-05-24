@@ -22,8 +22,10 @@ description: 'Campaign-bound sigma detection for the nx-console VS Code extensio
 
   Sister cluster: Nx campaign 4-vector cluster -- Mini Shai-Hulud npm + s1ngularity
   CLI + ClawHavoc Claude Skills + nx-console VS Code. Cross-reference
-  observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml and
-  observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml in the same corpus.
+  observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml,
+  observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml, and
+  observed_clawhavoc_claude_skills_t1195_002.yml (R89-06d ship; 4-vector
+  cluster COMPLETE) in the same corpus.
 
   Source: Tier 1 multi-source disclosure (StepSecurity blog 2026-05-18 direct;
   amplified by industry reporting). Aggregated from 1 first-party StepSecurity
@@ -88,6 +90,7 @@ tags:
 - attack.t1071
 - wrg.observed.campaign.nx_console_supply_chain
 - wrg.observed.cluster.nx_campaign_4_vector
+- wrg.observed.cluster.nx_campaign_4_vector_complete
 - wrg.observed.source.stepsecurity_2026_05_18
 - wrg.observed.vector.vscode_extension_compromise
 - wrg.observed.novel.sigstore_provenance_bypass
