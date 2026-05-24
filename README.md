@@ -8,15 +8,16 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
-- **56 production sigma rule corpus**: 11 ATT&CK tactic categories
-- **Multi-backend conversion**: Splunk, Elastic, Wazuh, Kibana verified
-- **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud, Lazarus, LockBit, LAPSUS, AI-fingerprint)
+- **61 production sigma rule corpus**: 11 ATT&CK tactic categories (templates + observed campaign rules)
+- **Multi-backend conversion**: Splunk SPL, Elastic Lucene, Wazuh, Kibana verified (pySigma 1.x + 2 backend packages)
+- **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
+- **Live demo**: see [`DEMO.md`](DEMO.md) for end-to-end tool invocation on Mini Shai-Hulud rule (Item 10 evidence; pySigma 1.x + Splunk + Elastic real output)
 
 ## Why this plugin exists
 
 The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty** (verified 2026-05-23: 200+ plugins, 0 sigma-focused, 1 generic security plugin). SOC + threat-intel community has latent demand for fast, quality-aware rule writing tools integrated with LLM workflows.
 
-WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 52 canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
+WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 61 canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
 
 ## What's included
 
@@ -32,20 +33,20 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 - `sigma-rule-reviewer` — paste rule for quality review + improvement suggestions
 - `threat-coverage-gap-analyzer` — MITRE ATT&CK coverage analysis vs your existing corpus
 
-### Sigma rule corpus (52 production rules across 11 ATT&CK tactic categories)
+### Sigma rule corpus (61 production rules across 11 ATT&CK tactic categories)
 
 | Tactic | Coverage |
 |---|---|
-| `credential_access` | templates + observed (LAPSUS T1110 correlation + Mimikatz LSASS patterns) |
-| `command_and_control` | template T1071 + **observed Mini Shai-Hulud npm supply-chain C2 T1071** |
-| `defense_evasion` | templates |
-| `execution` | templates |
-| `exfiltration` | templates |
-| `impact` | templates + observed (Lazarus + LockBit BTC) |
-| `initial_access` | templates + observed (spearphishing link side T1566.002) |
-| `lateral_movement` | templates |
-| `resource_development` | templates |
-| `collection` | templates |
+| `credential_access` | templates + observed (LAPSUS T1110 correlation, Kali365 OAuth device-code phishing T1528, Mimikatz LSASS) |
+| `command_and_control` | template T1071 + **observed Mini Shai-Hulud npm supply-chain C2 T1071** (Nx campaign cluster) |
+| `defense_evasion` | templates + observed (AlphV T1027 obfuscation) |
+| `execution` | templates + observed (AlphV T1059.001) |
+| `exfiltration` | templates + **observed SOCKS5 hostname null-byte egress T1041** (Claude Code v2.0.24-v2.1.89 silent-fix; +backslash extension variant) |
+| `impact` | templates + observed (Lazarus + LockBit BTC + Nullsec Nigeria T1491 defacement) |
+| `initial_access` | templates + **observed Nx campaign 4-vector** (s1ngularity npm token exfil, nx-console VS Code extension compromise, ClawHavoc Claude Skills T1195.002) + LAPSUS T1078 + OWASP lab-validated (SQLi auth-bypass, XSS reflected, path traversal) |
+| `lateral_movement` | templates (RDP EventID 4624 + SMB admin shares) |
+| `resource_development` | templates (newly registered domain + lookalike domain + social media signup) |
+| `collection` | templates (archive utility staging + SharePoint access) |
 | `code_review` | 5 AI-fingerprint observed rules (ANSI-color class, decoy block, docstring density, hallucinated CVSS, prompt artifacts) |
 
 See [`resources/examples/INDEX.json`](resources/examples/INDEX.json) for full enumeration.
@@ -74,9 +75,10 @@ git clone https://github.com/WRG-11/wrg-sigma-rules.git
 
 - **4-Layer self-audit** per WRG audit methodology (Pattern 18 v1.1 trust-but-verify sister); see [`.claude-plugin/AUDIT-SELF.md`](.claude-plugin/AUDIT-SELF.md)
 - **7 Python test modules** covering rule validation + tool integration smoke
-- **pySigma 0.10+ compat** + multi-backend conversion verified
+- **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve (Pattern 34 v1.1 sister)
-- **`claude plugin validate` PASS** (verified 2026-05-23 on Claude Code 2.1.149)
+- **`claude plugin validate` PASS** (verified 2026-05-25 post-merge on Claude Code 2.1.149)
+- **Live demo evidence**: [`DEMO.md`](DEMO.md) — 3 real tool invocations on Mini Shai-Hulud rule (Item 10)
 
 ## Tested environments
 
