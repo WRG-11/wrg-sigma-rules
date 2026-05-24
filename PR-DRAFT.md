@@ -151,10 +151,10 @@ Plugin source: https://github.com/WRG-11/WinstonRedGuard/tree/main/plugins/wrg-s
 | 7 | Cross-link sister Anthropic issues | **VERIFIED** (DRAFTED above; Issue #1954 mcp-server-dev dual contribution sister) | Per-PR |
 | 8 | License compliance | **VERIFIED** (DRAFTED above; MIT compatible with marketplace ecosystem) | Per-PR |
 | 9 | Marketplace policy compliance | **VERIFIED** (Part 1 live API CONTRIBUTING.md fetch + spec audit; see Section "Marketplace spec compliance" below) | Pre-merge |
-| 10 | Plugin functionality demo | **DEFER R88-57+** (screenshot/video optional first ship; OK per brief) | Optional |
+| 10 | Plugin functionality demo | **VERIFIED** (`DEMO.md` -- 3 real tool invocations on Mini Shai-Hulud rule: validate (`valid: true` + 3 MITRE TTP) + convert Splunk SPL + convert Elasticsearch Lucene; pySigma 1.X + 2 backend captured live R89-08 Pazar gecesi) | Per-PR |
 
-**Items verified at full audit**: 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 = **9/10 PASS** (Item 10 defer-OK per brief)
-**Anti-spam gate**: 9/10 PASS >= 9 threshold; submission-ready per Pre-publish 10-item discipline.
+**Items verified at full audit**: 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 = **10/10 PASS** (R89-08 Pazar gecesi Item 10 closure -- DEMO.md captured live with pysigma 1.X + splunk + elasticsearch backends)
+**Anti-spam gate**: 10/10 PASS >= 9 threshold; submission-ready per Pre-publish 10-item discipline.
 
 ---
 
