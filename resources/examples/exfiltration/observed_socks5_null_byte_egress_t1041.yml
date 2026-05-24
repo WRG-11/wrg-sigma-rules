@@ -38,7 +38,12 @@ description: 'Tool-bound sigma detection for the SOCKS5 hostname null-byte injec
   Source: Tier 1 multi-source disclosure (Cyber Security News, TheRegister,
   SecurityWeek, ThaiCERT, Cybernews, Aonan Guan researcher blog). Aggregated
   from 1 active researcher disclosure 2026-05-20; 0 confirmed WRG environment
-  egress on current build (Pattern 39 verify discipline applied).'
+  egress on current build (Pattern 39 verify discipline applied).
+
+  Sister extension: see observed_socks5_null_byte_egress_t1041_extension.yml
+  (R89-06d ship) for the backslash-escape form coverage (backslash-x +
+  backslash-u textual representations); pair both rules for full coverage
+  across log-serialization forms.'
 references:
 - https://attack.mitre.org/techniques/T1041/
 - https://attack.mitre.org/techniques/T1071/
@@ -83,6 +88,7 @@ tags:
 - wrg.observed.tool.claude_code_socks5_bypass
 - wrg.observed.cve.cve_2025_66479_sister
 - wrg.observed.vector.socks5_hostname_null_byte_injection
+- wrg.observed.sister_extension.observed_socks5_null_byte_egress_t1041_extension
 - wrg.observed.disclosure.silent_fix_v2_1_90_2026_04_01
 - wrg.observed.transparency_gap.anthropic_self_5_5_month_window
 - wrg.severity.high

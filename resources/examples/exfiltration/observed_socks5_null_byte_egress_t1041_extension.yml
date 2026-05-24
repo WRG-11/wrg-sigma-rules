@@ -1,0 +1,96 @@
+title: SOCKS5 hostname null-byte egress (backslash-escape extension) -- T1041 Claude Code v2.0.24-v2.1.89 bypass (sister _extension to observed_socks5_null_byte_egress_t1041)
+id: dbd90156-c30e-4f78-bab1-dda3aa403ead
+status: experimental
+description: 'Sister extension rule to observed_socks5_null_byte_egress_t1041.yml
+  (R89-04d wave 1 ship, percent-encoded form). Same SOCKS5 hostname null-byte
+  injection bypass (Claude Code v2.0.24 through v2.1.89; silent fix v2.1.90 on
+  2026-04-01; HackerOne 3646509 Aonan Guan closed-duplicate; no CVE assigned;
+  Pattern 28 v1.0 FORMAL Anthropic-self transparency-gap 5.5-month silent fix
+  window). This extension covers the BACKSLASH-ESCAPE textual representation
+  forms that proxies and DNS resolvers emit when serializing a null byte to
+  text logs.
+
+  R89-04d wave 1 ship documented a YAML encoding limitation: literal null bytes
+  (0x00) are rejected by PyYAML + pySigma parsers; the original rule covered
+  only the percent-encoded form (%00 + %2500). This extension covers the
+  remaining two textual serialization forms via byte-level YAML construction:
+  the backslash-x form (4-char string emitted by libc + many C-style loggers)
+  and the backslash-u form (6-char Unicode escape emitted by JSON serializers
+  and JavaScript-side log frameworks). Double-escape variants
+  (5-char backslash-backslash-x form + 7-char backslash-backslash-u form) are
+  also matched -- some log pipelines double-escape during JSON transit.
+
+  Attack chain identical to the percent-encoded sister rule (prompt injection
+  induces request with embedded null byte; JavaScript egress filter validates
+  trailing trusted suffix; libc getaddrinfo truncates hostname at null byte
+  resolving only attacker portion). See sister rule for full chain narrative.
+
+  Source: Tier 1 multi-source disclosure (Cyber Security News, TheRegister,
+  SecurityWeek, ThaiCERT, Cybernews, Aonan Guan researcher blog). Aggregated
+  from 1 active researcher disclosure 2026-05-20; 0 confirmed WRG environment
+  egress on current build (operator post-fix Claude Code v2.1.149 + GitHub
+  OAuth rotated 2026-05-21; Pattern 39 verify discipline applied).'
+references:
+- https://attack.mitre.org/techniques/T1041/
+- https://attack.mitre.org/techniques/T1071/
+- https://nvd.nist.gov/vuln/detail/CVE-2025-66479
+- https://www.theregister.com/2026/05/21/claude_code_sandbox_bypass
+- https://www.securityweek.com/claude-code-network-sandbox-bypass
+- https://hackerone.com/reports/3646509
+author: WinstonRedGuard -- sigma plugin observed rules (derived from researcher disclosure; sister extension to socks5_null_byte_egress_t1041)
+date: '2026-05-24'
+logsource:
+  category: proxy
+  product: zeek
+detection:
+  selection_dns_backslash_x_form:
+    query|contains:
+    - '\x00'
+    - '\\x00'
+  selection_dns_backslash_u_form:
+    query|contains:
+    - '\u0000'
+    - '\\u0000'
+  selection_socks5_connect_backslash_x_form:
+    socks5_request_host|contains:
+    - '\x00'
+    - '\\x00'
+  selection_socks5_connect_backslash_u_form:
+    socks5_request_host|contains:
+    - '\u0000'
+    - '\\u0000'
+  selection_double_suffix_backslash_pattern:
+    query|contains:
+    - '.com\x00.'
+    - '.net\x00.'
+    - '.org\x00.'
+    - '.io\x00.'
+    - '.com\u0000.'
+    - '.net\u0000.'
+    - '.org\u0000.'
+    - '.io\u0000.'
+  selection_socks5_anomalous_port_egress:
+    dest_port: 1080
+    request_method: CONNECT
+    request_host|contains:
+    - '\x00'
+    - '\u0000'
+  condition: 1 of selection_*
+falsepositives:
+- Resolver telemetry that escapes null bytes literally via backslash-x or backslash-u sequences from legitimate test harnesses (not actual attack traffic) -- correlate with downstream connection logs and connection-success indicators to filter
+- Penetration-testing harness emitting deliberately crafted hostnames with embedded null bytes for sandbox-bypass evaluation (Aonan Guan disclosure PoC, replicated by red-teams) -- exclude known internal test infrastructure source identity
+- Logging framework that JSON-serializes hostnames in DNS or HTTP logs and emits backslash-u escape for any non-ASCII byte (rare but possible with some custom Bro/Zeek scripts) -- exclude by source application identity
+- Pattern library v1 -- review for environment-specific tuning before deployment; this extension complements the percent-encoded sister rule -- pair both rules for full coverage across log-serialization forms
+level: high
+tags:
+- attack.t1041
+- attack.t1071
+- wrg.observed.tool.claude_code_socks5_bypass
+- wrg.observed.cve.cve_2025_66479_sister
+- wrg.observed.vector.socks5_hostname_null_byte_injection_backslash_form
+- wrg.observed.extension_of.observed_socks5_null_byte_egress_t1041
+- wrg.observed.disclosure.silent_fix_v2_1_90_2026_04_01
+- wrg.observed.transparency_gap.anthropic_self_5_5_month_window
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.exfiltration
