@@ -1,0 +1,96 @@
+title: nx-console VS Code Extension Compromise -- T1195.002 multi-stage credential stealer (StepSecurity 2026-05-18)
+id: e8b66877-6d6f-4fee-92a6-96248e91e242
+status: experimental
+description: 'Campaign-bound sigma detection for the nx-console VS Code extension
+  supply chain compromise (StepSecurity disclosure 2026-05-18; nrwl.angular-console
+  v18.95.0 approximately 11-minute malicious window). Attack chain:
+
+  (1) Orphan commit payload published from the official nrwl/nx GitHub repository,
+  appearing legitimate at install time.
+  (2) Post-install multi-stage credential stealer harvests GitHub tokens, npm tokens,
+  AWS keys, HashiCorp Vault tokens, kubeconfig files, and 1Password vault items.
+  (3) Triple-channel exfiltration over HTTPS, GitHub API write, and DNS tunneling
+  (3 independent egress paths to defeat single-channel block lists).
+
+  NOVEL: First-of-kind Sigstore provenance bypass -- attackers used stolen npm
+  OIDC tokens to request Fulcio certificate issuance and produce SLSA provenance
+  attestations, breaking the industry-wide signature-trust assumption for the
+  ecosystem. Sigma rule flags VS Code extension install events targeting
+  nrwl.angular-console at affected versions, plus suspicious child processes
+  spawned from the extension host (PowerShell / curl / wget / node egress to
+  api.github.com or non-standard DNS resolvers after extension install).
+
+  Sister cluster: Nx campaign 4-vector cluster -- Mini Shai-Hulud npm + s1ngularity
+  CLI + ClawHavoc Claude Skills + nx-console VS Code. Cross-reference
+  observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml and
+  observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml in the same corpus.
+
+  Source: Tier 1 multi-source disclosure (StepSecurity blog 2026-05-18 direct;
+  amplified by industry reporting). Aggregated from 1 first-party StepSecurity
+  disclosure 2026-05-18; 0 confirmed WRG environment exposure (operator nx-console
+  + VS Code marketplace footprint = nil per Pattern 18 v1.4 audit-your-dependency
+  -chain sister review 2026-05-23).'
+references:
+- https://attack.mitre.org/techniques/T1195/002/
+- https://attack.mitre.org/techniques/T1041/
+- https://attack.mitre.org/techniques/T1552/
+- https://attack.mitre.org/techniques/T1071/
+- https://www.stepsecurity.io/blog/nx-console-vs-code-extension-compromised
+author: WinstonRedGuard -- sigma plugin observed rules (derived from StepSecurity disclosure)
+date: '2026-05-24'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_vscode_extension_install:
+    ParentImage|endswith:
+    - \Code.exe
+    - \Code - Insiders.exe
+    - \cursor.exe
+    CommandLine|contains:
+    - nrwl.angular-console
+    - nrwl-angular-console
+  selection_post_install_egress:
+    ParentImage|endswith:
+    - \Code.exe
+    - \Code - Insiders.exe
+    Image|endswith:
+    - \powershell.exe
+    - \pwsh.exe
+    - \curl.exe
+    - \wget.exe
+    - \node.exe
+    CommandLine|contains:
+    - api.github.com
+    - oauth/token
+    - .npmrc
+    - .aws/credentials
+    - .kube/config
+    - vault.token
+    - 1password
+  selection_sigstore_artifact_indicator:
+    CommandLine|contains:
+    - fulcio.sigstore.dev
+    - rekor.sigstore.dev
+    - --identity-token
+    - cosign sign-blob
+  condition: selection_vscode_extension_install or selection_post_install_egress or selection_sigstore_artifact_indicator
+falsepositives:
+- Legitimate developer install of nrwl.angular-console at safe versions (not v18.95.0; verify version pin against StepSecurity disclosure window) -- tune CommandLine substring to include affected version marker
+- Developer-tool egress to api.github.com is normal for project workflow -- combine parent-image VS Code filter AND credential-file substring to reduce noise
+- Legitimate Sigstore signing workflow (cosign / rekor) by your own release pipelines -- exclude known build identities from the selection_sigstore_artifact_indicator selection
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1195.002
+- attack.t1041
+- attack.t1552
+- attack.t1071
+- wrg.observed.campaign.nx_console_supply_chain
+- wrg.observed.cluster.nx_campaign_4_vector
+- wrg.observed.source.stepsecurity_2026_05_18
+- wrg.observed.vector.vscode_extension_compromise
+- wrg.observed.novel.sigstore_provenance_bypass
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access
