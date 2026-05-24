@@ -9,21 +9,30 @@
     "apps/<wrg-app>/tests/fixtures/crypto_trace/sigma_rule_*.yml (2 observed)",
     "apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml (5 detector goldens)"
   ],
-  "total_rules": 56,
+  "total_rules": 59,
   "_last_extension": {
-    "date": "2026-05-23",
+    "date": "2026-05-24",
     "added": [
-      "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
-      "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
-      "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml"
+      "exfiltration/observed_socks5_null_byte_egress_t1041.yml",
+      "initial_access/observed_nx_console_t1195_002.yml",
+      "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml"
     ],
-    "context": "R89-04+ pre-Pazartesi A direct ship dogfood + 2; OWASP Top 10 web-attack pattern templates T1190 Exploit Public-Facing Application; SQLi auth-bypass + path-traversal dot-dot + reflected XSS script-tag patterns; empirical validation OWASP Juice Shop lab 2026-05-23 (SQLi admin auth bypass kanit + traversal 403 + XSS 200); webserver category log detection; Pazartesi submit narrative bonus anchor (live OWASP lab-validated template family); SB-34 candidate 'lab-empirical sigma template generation discipline'",
+    "context": "R89-04d D wave pre-Pazartesi sigma submit narrative anchor 4-rule batch reduced to 3 (Kali365 already shipped 2026-05-23 2c4a1dc5 R89-04 pre-wave; brief overlap flagged + operator approved skip). 3 fresh observed_ rules: nx-console VS Code extension compromise (StepSecurity 2026-05-18; T1195.002 + multi-stage credential stealer + Sigstore provenance bypass novel) + s1ngularity Nx CLI 1000+ token exfil (Docker AI Coding Agent Horror Stories Issue 1 anchor; T1195.002 sister cluster) + SOCKS5 hostname null-byte egress (Claude Code v2.0.24-v2.1.89 silent fix v2.1.90 2026-04-01; T1041 + Pattern 28 v1.0 transparency-gap external sister vaka). Nx campaign 4-vector cluster (Mini Shai-Hulud + s1ngularity + ClawHavoc + nx-console) now 3/4 represented in corpus (ClawHavoc Claude Skills R89-04+ candidate).",
     "previous_extension": {
       "date": "2026-05-23",
       "added": [
-        "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
+        "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
+        "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
+        "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml"
       ],
-      "context": "R89-04+ pre-Pazartesi A direct ship; Tier 1 government PSA -> sigma rule corpus pipeline canonical (SB-33 candidate); FBI IC3 PSA 1-052126-PSA 21 May 2026 Kali365 PhaaS OAuth device code phishing kit"
+      "context": "R89-04+ pre-Pazartesi A direct ship dogfood + 2; OWASP Top 10 web-attack pattern templates T1190 Exploit Public-Facing Application; SQLi auth-bypass + path-traversal dot-dot + reflected XSS script-tag patterns; empirical validation OWASP Juice Shop lab 2026-05-23 (SQLi admin auth bypass kanit + traversal 403 + XSS 200); webserver category log detection; Pazartesi submit narrative bonus anchor (live OWASP lab-validated template family); SB-34 candidate 'lab-empirical sigma template generation discipline'",
+      "previous_extension": {
+        "date": "2026-05-23",
+        "added": [
+          "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
+        ],
+        "context": "R89-04+ pre-Pazartesi A direct ship; Tier 1 government PSA -> sigma rule corpus pipeline canonical (SB-33 candidate); FBI IC3 PSA 1-052126-PSA 21 May 2026 Kali365 PhaaS OAuth device code phishing kit"
+      }
     }
   },
   "categories": {
@@ -68,6 +77,7 @@
       "execution/template_t1204_001_user_execution_malicious_link_click_follow_through.yml"
     ],
     "exfiltration": [
+      "exfiltration/observed_socks5_null_byte_egress_t1041.yml",
       "exfiltration/template_t1567_exfiltration_over_web_service_mega_anonfiles_host.yml"
     ],
     "impact": [
@@ -82,6 +92,8 @@
     ],
     "initial_access": [
       "initial_access/observed_lapsus_t1078.yml",
+      "initial_access/observed_nx_console_t1195_002.yml",
+      "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml",
       "initial_access/template_t1078_002_domain_account_exploitation_nopac_cve_2021_42278_42287.yml",
       "initial_access/template_t1078_valid_accounts_anomalous_remote_interactive_logon.yml",
       "initial_access/template_t1133_external_remote_services_anomalous_logontype_10.yml",
@@ -156,12 +168,15 @@
       "execution/template_t1059_006_python_scripting_interpreter_spawned_by_shell.yml",
       "execution/template_t1059_command_and_scripting_interpreter_generic_shell_spawn.yml",
       "impact/template_t1490_inhibit_system_recovery_vssadmin_shadow_copy_delete.yml",
+      "initial_access/observed_nx_console_t1195_002.yml",
+      "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml",
       "initial_access/template_t1195_supply_chain_compromise_untrusted_installer_execution.yml"
     ],
     "proxy": [
       "credential_access/template_t1552_unsecured_credentials_multi_vendor_printer_admin.yml",
       "defense_evasion/template_t1656_002_impersonation_brand_or_personnel_profile_setup.yml",
       "execution/template_t1204_001_user_execution_malicious_link_click_follow_through.yml",
+      "exfiltration/observed_socks5_null_byte_egress_t1041.yml",
       "resource_development/template_t1583_001_acquire_infrastructure_domains_lookalike_domain.yml",
       "resource_development/template_t1585_001_establish_accounts_social_media_signup_hosts.yml"
     ],
@@ -211,6 +226,7 @@
       "execution/template_t1059_006_python_scripting_interpreter_spawned_by_shell.yml",
       "execution/template_t1059_command_and_scripting_interpreter_generic_shell_spawn.yml",
       "execution/template_t1204_001_user_execution_malicious_link_click_follow_through.yml",
+      "exfiltration/observed_socks5_null_byte_egress_t1041.yml",
       "exfiltration/template_t1567_exfiltration_over_web_service_mega_anonfiles_host.yml",
       "impact/observed_lockbit_t1486.yml",
       "impact/observed_nullsec_nigeria_t1491_defacement.yml",
@@ -219,6 +235,8 @@
       "impact/template_t1491_defacement_web_root_content_modification.yml",
       "impact/template_t1657_financial_theft_extortion_crypto_mixer_payout.yml",
       "initial_access/observed_lapsus_t1078.yml",
+      "initial_access/observed_nx_console_t1195_002.yml",
+      "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml",
       "initial_access/template_t1078_002_domain_account_exploitation_nopac_cve_2021_42278_42287.yml",
       "initial_access/template_t1078_valid_accounts_anomalous_remote_interactive_logon.yml",
       "initial_access/template_t1133_external_remote_services_anomalous_logontype_10.yml",
