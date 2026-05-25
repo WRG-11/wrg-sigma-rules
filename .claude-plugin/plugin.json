@@ -5,8 +5,8 @@
   "author": {
     "name": "WRG (WinstonRedGuard)"
   },
-  "homepage": "https://github.com/WRG-11/WinstonRedGuard/tree/main/plugins/wrg-sigma-rules",
-  "repository": "https://github.com/WRG-11/WinstonRedGuard",
+  "homepage": "https://github.com/WRG-11/wrg-sigma-rules",
+  "repository": "https://github.com/WRG-11/wrg-sigma-rules",
   "keywords": [
     "security",
     "sigma",
