@@ -1,0 +1,20 @@
+# Glama image only needs server.py + tools/ + requirements.txt.
+# Everything else (Claude Code plugin surface + dev artefacts) stays out.
+.git/
+.github/
+.claude-plugin/
+skills/
+prompts/
+resources/
+scripts/
+tests/
+*.md
+.gitignore
+.gitattributes
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+Dockerfile
+.dockerignore
