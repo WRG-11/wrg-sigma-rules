@@ -1,0 +1,13 @@
+# WRG-11 ecosystem sponsorship channels.
+#
+# Uncomment + fill in once each channel is approved/registered.
+# All values shown here are placeholders — replace with real usernames.
+#
+# github: [WRG-11]               # Apply at https://github.com/sponsors (US/EU residency)
+# ko_fi: wrg11                   # Sign up at https://ko-fi.com
+# buy_me_a_coffee: wrg11         # Sign up at https://buymeacoffee.com
+# open_collective: wrg-11        # Register at https://opencollective.com
+# patreon: wrg11                 # Sign up at https://patreon.com
+# tidelift: pypi/<package-name>  # Apply at https://tidelift.com (per-package)
+custom:
+  - "https://detection-frontier.kit.com/subscribe"
