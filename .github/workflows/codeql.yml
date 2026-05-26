@@ -1,0 +1,67 @@
+# CodeQL static analysis for wrg-sigma-rules
+#
+# Scans the Python source (3 MCP tools under tools/ + standalone server.py)
+# for the standard security-and-quality query suite. Findings surface in:
+#   * Repo Security tab → Code scanning alerts (auth required for read).
+#   * GitHub Action job summary (per run).
+#   * WRG-11 portfolio dashboard (wrg-portfolio reads code-scanning/alerts
+#     via auth'd API; alert count appears in the CodeQL column).
+#
+# Runs:
+#   * On every push to main (gate fresh shipped code).
+#   * On every PR targeting main (gate inbound changes).
+#   * Weekly Monday 07:00 UTC (catch newly-published CodeQL rules
+#     applied to unchanged code).
+#
+# Resource notes:
+#   * Default ubuntu-latest runner; Python 3.12 setup is implicit.
+#   * No build step needed — pySigma + PyYAML are pure-Python deps; the
+#     `autobuild` step in CodeQL handles `pip install -r requirements.txt`.
+
+name: codeql
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 7 * * 1'  # Monday 07:00 UTC
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write   # required to upload SARIF results
+
+jobs:
+  analyze:
+    name: Analyze (Python)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Use the security-extended suite for tighter sigma-rule-handling
+          # checks (untrusted input → yaml.safe_load discipline, regex
+          # injection patterns in convert_rule's backend dispatch, etc.).
+          # 'security-and-quality' would add maintainability noise.
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
