@@ -1,5 +1,7 @@
 # WRG Sigma Rules — Anthropic Claude Code Plugin
 
+> 💡 **Found this useful?** ⭐ Star the repo (helps others find it) and subscribe to weekly detection-engineering writeups at [Detection Frontier](https://detection-frontier.kit.com/subscribe).
+
 > **Status**: Production-ready. Pending submission to Anthropic community marketplace (target 2026-05-25).
 
 Production-grade sigma detection rule writing, validation, and conversion for SOC analysts, threat-intel teams, and detection engineers using Claude Code.
