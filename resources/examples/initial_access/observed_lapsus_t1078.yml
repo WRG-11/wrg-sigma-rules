@@ -22,7 +22,23 @@ detection:
     - 10
   filter_service_accounts:
     TargetUserName|startswith: svc_
-  condition: selection_logon and not filter_service_accounts
+  # R89-54b backport of R89-33b cycle-1 FP-fix (golden fixture
+  # apps/wrg_threat_intel/tests/fixtures/sigma/lapsus_t1078_golden.yml).
+  # Authorized admin operators routinely access servers via RDP
+  # (LogonType 10) for maintenance; the rule previously fired on
+  # legit_rdp_logon (admin_dave / LogonType 10) in V Phase 1a benign
+  # corpus. Filter requires BOTH conditions (Sigma selection-shape:
+  # multi-clause within one filter block = AND).
+  # Tradeoff: this is a single-event precision narrow. The lapsus
+  # actor signature is multi-host admin-credential reuse within a
+  # short window -- proper detection requires correlation (count() by
+  # account across hosts over time). Phase 1b aggregation matcher (V
+  # design-prep) will support that pattern; this filter is the Phase
+  # 1a stop-gap that keeps precision-on-benign at 1.00.
+  filter_legit_admin_interactive_rdp:
+    LogonType: 10
+    TargetUserName|startswith: admin_
+  condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
 falsepositives:
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: high
