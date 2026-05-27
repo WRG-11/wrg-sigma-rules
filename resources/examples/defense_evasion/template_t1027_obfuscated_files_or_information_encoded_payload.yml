@@ -22,7 +22,20 @@ detection:
     - ' -e '
   selection_long_base64_blob:
     CommandLine|re: '[A-Za-z0-9+/]{200,}={0,2}'
-  condition: selection_encoded_powershell or selection_long_base64_blob
+  # R89-55b cycle-3 filter add — sister to observed_alphv_t1027_obfuscation
+  # (R89-54b backport). Legit SCCM / installer / management-context
+  # PowerShell uses the `-NoProfile -EncodedCommand <short payload>`
+  # combination for system-context execution; the selection_* blocks
+  # above match on the bare `-EncodedCommand` substring and previously
+  # fired on this benign pattern (V cycle-2 finding R89-55v).
+  # Tradeoff: adversaries appending `-NoProfile` to bare encoded PS
+  # would evade this filter; Phase 2 candidate is to promote
+  # selection_long_base64_blob (200+ char payload) to the primary
+  # signal once Phase 1b 67-rule scale surfaces real-world payload
+  # length distribution.
+  filter_legit_sccm_installer_encoded_ps:
+    CommandLine|contains: ' -NoProfile -EncodedCommand '
+  condition: (selection_encoded_powershell or selection_long_base64_blob) and not filter_legit_sccm_installer_encoded_ps
 falsepositives:
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: medium
