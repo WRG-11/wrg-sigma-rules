@@ -19,7 +19,19 @@ detection:
     - ' -enc '
     - ' -EncodedCommand '
     - ' -e '
-  condition: selection_pwsh_encoded
+  # R89-54b backport of R89-33b cycle-1 FP-fix (golden fixture
+  # apps/wrg_threat_intel/tests/fixtures/sigma/alphv_t1059_001_golden.yml).
+  # Sister to the filter on observed_alphv_t1027_obfuscation: the same
+  # legit_encoded_ps_sccm benign event tripped both rules (T1027 from the
+  # obfuscated-payload side, T1059.001 from the powershell.exe Image side).
+  # Filter is duplicated per-rule rather than shared because Sigma does
+  # not have a portable shared-helper construct; each rule must
+  # self-contain its detection logic for downstream SIEM deploy
+  # portability. See V R89-54v done report for the cycle-2 corpus-
+  # publication-gap finding that triggered this backport.
+  filter_legit_sccm_installer_encoded_ps:
+    CommandLine|contains: ' -NoProfile -EncodedCommand '
+  condition: selection_pwsh_encoded and not filter_legit_sccm_installer_encoded_ps
 falsepositives:
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: high
