@@ -17,7 +17,19 @@ detection:
     - ' -enc '
     - ' -EncodedCommand '
     - ' -e '
-  condition: selection_pwsh_encoded
+  # R89-55b cycle-3 filter add — sister to observed_alphv_t1059_001
+  # (R89-54b backport). Legit SCCM / installer / management-context
+  # PowerShell uses the `-NoProfile -EncodedCommand <short payload>`
+  # combination for system-context execution; the selection_*
+  # block above previously fired on this benign pattern (V cycle-2
+  # finding R89-55v). Same tradeoff as the T1027 sister: adversaries
+  # appending `-NoProfile` to bare encoded PS would evade this filter;
+  # Phase 2 candidate is to add an entropy / length qualifier to the
+  # payload (sister T1027 has the long_base64_blob selection; this
+  # template does not, so the filter is the primary tradeoff knob).
+  filter_legit_sccm_installer_encoded_ps:
+    CommandLine|contains: ' -NoProfile -EncodedCommand '
+  condition: selection_pwsh_encoded and not filter_legit_sccm_installer_encoded_ps
 falsepositives:
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: medium
