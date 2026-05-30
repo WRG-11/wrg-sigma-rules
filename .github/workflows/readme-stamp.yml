@@ -1,0 +1,54 @@
+name: readme-stamp
+
+# Track-B README self-stamp (R89-109b). When the published rule corpus changes,
+# regenerate the README METRIC markers from ground truth and commit the result
+# back. Public repo -> FREE GitHub Actions; same-repo commit via the default
+# GITHUB_TOKEN (no PAT, no cross-repo token, no repo Settings change).
+#
+# Self-trigger loop guard (two layers, belt + suspenders):
+#   1. `paths:` triggers ONLY on rule-corpus / script changes — README.md is
+#      excluded, so the auto-commit (which touches README.md only) cannot
+#      re-trigger this workflow.
+#   2. The commit message carries `[skip ci]`.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "resources/examples/**"
+      - "readme_stamp.py"
+  workflow_dispatch:
+  schedule:
+    # Weekly safety-net (Mon 06:17 UTC) in case a corpus change ever lands
+    # without triggering the push path (e.g. history rewrite).
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  stamp:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # least-privilege: only this job may write back
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
+        with:
+          python-version: "3.12"
+
+      - name: Stamp README metrics from ground truth
+        run: python readme_stamp.py
+
+      - name: Commit if the corpus drifted the README
+        run: |
+          if [ -n "$(git status --porcelain README.md)" ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "chore(readme): auto-stamp sigma_rule_count [skip ci]"
+            git push
+          else
+            echo "README already in sync with the rule corpus — nothing to commit."
+          fi
