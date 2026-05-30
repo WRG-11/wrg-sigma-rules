@@ -1,0 +1,65 @@
+title: GitHub Token Type Confusion -- Exfiltration of Non-PAT Token Variants (T1552 H Wave 8 L3-04)
+id: 4ab3c842-ea7e-42d5-81b8-35435413f4d3
+status: experimental
+description: 'Detects exfiltration or exposure of GitHub OAuth (gho_),
+  User-to-server (ghu_), Server-to-server (ghs_), and Refresh (ghr_) tokens.
+  Scanners checking only ghs_/ghp_ (classic PAT) miss these variants.
+
+  Attack chain (H Wave 8 L3-04 + DG-W7-07):
+
+  (1) Attacker crafts malicious PR or CI workflow that exfils a GitHub
+  OAuth/user-to-server/server-to-server/refresh token via environment
+  variable echo, CommandLine argument, or process spawn.
+
+  (2) PR-time secret scanner (devguard, gitleaks, trufflehog) inspects
+  changed files for token patterns. Many implementations check only the
+  classic PAT prefix (ghp_) and fine-grained PAT (ghs_), missing the
+  OAuth (gho_), user-to-server (ghu_), server-to-server (ghs_), and
+  refresh (ghr_) variants documented at
+  docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app.
+
+  (3) Scanner returns clean; PR merges; CI step echoes the token (e.g.,
+  for debugging, in environment dump, or as part of Megalodon-style
+  base64-encoded payload). Token is captured by the attacker via log
+  scraping, public CI output, or downstream exfiltration channel.
+
+  (4) Attacker uses the variant token for downstream actions matching its
+  scope (OAuth: user-impersonating API calls; server-to-server: long-lived
+  GitHub App actions; refresh: token regeneration without re-auth). Net
+  effect = full Megalodon-style CI/CD secret exfil at scale.
+
+  Detection logic targets process_creation events where CommandLine
+  contains any of the 4 non-PAT-classic token prefixes (gho_, ghu_, ghs_,
+  ghr_) followed by the standard 36+ character base62 body. Sister to
+  observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml (npm token form)
+  and observed_clawhavoc_claude_skills_t1195_002.yml (broad credential
+  sweep).
+
+  Source: Tier 0 first-party H Wave 8 adversarial layer-3 deepdive
+  (artifacts/bug-hunts/r89-13/wave-8-layer3-adversarial-scenarios.md
+  L3-04 + Front 3 sigma coverage gap matrix; 0/27 full coverage on
+  Wave 7 + 8 findings before R89-11d). Cross-reference: DG-W7-07 PAT
+  regex gap finding (devguard Wave 7 sigma rule gap).'
+references:
+  - https://attack.mitre.org/techniques/T1552/
+  - https://attack.mitre.org/techniques/T1195/002/
+  - https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app
+  - https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github
+author: WRG-11 D R89-11d (H Wave 8 L3-04 + DG-W7-07 source)
+date: 2026/05/25
+tags:
+  - attack.credential_access
+  - attack.t1552
+  - attack.t1195.002
+logsource:
+  product: any
+  category: process_creation
+detection:
+  selection_token_leak:
+    CommandLine|re: 'gh[ousr]_[A-Za-z0-9]{36,}'
+  condition: selection_token_leak
+falsepositives:
+  - Authorized GitHub App credential configuration steps (App installation, OAuth flow setup)
+  - CI/CD setup scripts with legitimate token references for App-authenticated workflows
+  - Documentation or training materials displaying example token formats
+level: high

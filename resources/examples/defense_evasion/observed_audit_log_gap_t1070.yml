@@ -1,0 +1,79 @@
+title: Audit Log Gap via Disk Exhaustion-Induced Logger Crash -- T1070 Indicator Removal (H Wave 8 L3-07)
+id: 66852d1e-1085-4131-8646-827412b0fddf
+status: experimental
+description: 'Detects deliberate disk-exhaustion attack pattern that causes
+  audit logger crash and creates a forensic blind window.
+
+  Attack chain (H Wave 8 L3-07 adversarial scenario):
+
+  (1) Attacker (with low-privilege foothold) intentionally fills disk to
+  >95% utilization via large file write (e.g., dd if=/dev/urandom of=/
+  tmp/junk bs=1M count=99999, or repeated tmpfs allocation).
+
+  (2) Audit logger (auditd, Windows EventLog, syslog, OpenSearch journald
+  forwarder, etc.) loses ability to write new events. Depending on
+  implementation: (a) logger crashes silently; (b) logger blocks writes
+  (callers see EAGAIN/ENOSPC); (c) logger drops events silently. Either
+  way, a forensic blind window opens.
+
+  (3) During the blind window, attacker executes higher-impact
+  subsequent stages (lateral movement, credential dump, ransomware
+  deployment) that would have been logged. Detection at SIEM is
+  permanently lost for the duration.
+
+  (4) After completing primary objective, attacker (a) optionally
+  restores disk via cleanup; (b) leaves the system in degraded state.
+
+  Detection logic targets the COMPOSITE pattern, not the individual
+  signals (each is too noisy alone):
+
+  - Disk utilization >95% on a security-relevant volume (host root,
+    /var, /var/log, log retention partition)
+  - AND concurrent (within 5-min window) security tool exception logged
+    (auditd OOM, syslog rotation failure, EventLog service stop)
+  - AND audit log timestamp discontinuity > X minutes (forensic blind
+    window candidate, configurable threshold)
+
+  Multi-signal correlation prevents false positives from legitimate disk
+  pressure events (which usually trigger only signal 1 OR signal 2
+  alone, not both with timestamp gap).
+
+  Source: Tier 0 H Wave 8 L3-07 adversarial layer-3 deepdive
+  (artifacts/bug-hunts/r89-13/wave-8-layer3-adversarial-scenarios.md
+  L3-07). Sister: defense-evasion via indicator removal (T1070 base
+  technique) extends to T1070.001 (clear Windows event logs) and
+  T1070.002 (clear Linux/Mac system logs); this rule is the disk-
+  exhaustion-induced variant.'
+references:
+  - https://attack.mitre.org/techniques/T1070/
+  - https://attack.mitre.org/techniques/T1565/
+author: WRG-11 D R89-11d (H Wave 8 L3-07 source)
+date: 2026/05/25
+tags:
+  - attack.defense_evasion
+  - attack.t1070
+  - attack.t1565
+logsource:
+  product: any
+  category: host
+detection:
+  selection_disk_exhaustion:
+    # SIEM-specific metric source (Prometheus node_filesystem_avail_bytes,
+    # CloudWatch DiskUtilization, Splunk Universal Forwarder df, etc.)
+    DiskUtilizationPercent|gte: 95
+  selection_security_tool_exception:
+    # Security tool process exception or service stop in last 5min
+    EventID:
+      - 1102  # Windows Security log cleared
+      - 7036  # Windows Service state change (stopped)
+      - 'audit.*shutdown'  # auditd shutdown message pattern
+      - 'auditd:.*max_log_file'  # auditd rotation failure
+  selection_audit_gap:
+    # Timestamp discontinuity check; SIEM backend computes the delta
+    AuditTimestampGapMinutes|gte: 5
+  condition: selection_disk_exhaustion and selection_security_tool_exception and selection_audit_gap
+falsepositives:
+  - Legitimate disk pressure during large data ingest or batch backup operations (signal 1 alone)
+  - Planned service maintenance windows (signal 2 alone; correlate with change management)
+  - Time synchronization drift (signal 3 alone; correlate with NTP health)
+level: high

@@ -1,0 +1,78 @@
+title: DNS Tunneling Exfiltration -- High Volume Unique Subdomain Covert Channel (T1071.004 Megalodon Variant C)
+id: 76b0264d-225d-4f9a-b82a-ff10c32f2352
+status: experimental
+description: 'Detects potential DNS tunneling by identifying source IPs
+  generating abnormally high volumes of unique subdomain queries,
+  indicative of data encoding in DNS labels.
+
+  Detection mechanism (SIEM-side aggregation required; Sigma does not
+  natively express count/distinct, so this template documents the
+  thresholding logic in `falsepositives` and `level: high` annotations
+  for backend translation):
+
+  - source_ip generating >500 DNS queries in a 5-minute rolling window
+  - AND with >200 distinct subdomain labels (count(distinct QueryName))
+  - AND query labels exhibit high entropy (base32/base62 encoding hint)
+  - OPTIONAL enrichment: query parent domain matches a known DNS tunneling
+    C2 list (e.g., t.m-kosche.com Mini Shai-Hulud R88-56 cluster anchor
+    documented in apps/wrg_threat_intel/.../incidents/2026-mini-shai-hulud
+    -npm-supply-chain.yaml) OR matches a heuristic newly-registered domain
+    (NRD) age <30 days
+
+  Threat context (H Wave 8 Front 3 Sigma Coverage Gap Matrix MEG-C):
+
+  (1) Megalodon Variant C uses DNS exfiltration as a covert channel
+  fallback when HTTPS egress is blocked or monitored. Implementation:
+  attacker malware encodes stolen credentials in DNS query labels (e.g.,
+  `<base32-encoded-payload>.exfil.attacker-controlled.com`), and a DNS
+  resolver at the attacker side reassembles the payload from the resolver
+  query stream.
+
+  (2) Detection target = source IP query rate + unique subdomain
+  cardinality. Legitimate high-DNS-volume clients (CDN resolvers, internal
+  monitoring) produce HIGH query rate but LOW unique subdomain count;
+  exfil tunneling produces HIGH query rate AND HIGH unique subdomain
+  count = the discriminator.
+
+  (3) Current corpus (61 rules pre-R89-11d) has
+  template_t1071_application_layer_protocol_c2_over_http_https.yml (T1071
+  HTTP/HTTPS C2) but NO T1071.004 sub-technique DNS-specific rule. This
+  fills the gap.
+
+  Sister rule cluster: observed_mini_shai_hulud_npm_supply_chain_c2_t1071
+  (HTTPS C2 in Nx campaign cluster) + this rule (DNS C2 channel form).
+
+  Source: Tier 0 first-party H Wave 8 adversarial layer-3 deepdive Front
+  3 Sigma Coverage Gap Matrix (artifacts/bug-hunts/r89-13/wave-8-layer3
+  -adversarial-scenarios.md MEG-C variant; 0 DNS exfil rule in pre-R89-11d
+  corpus identified).'
+references:
+  - https://attack.mitre.org/techniques/T1071/004/
+  - https://attack.mitre.org/techniques/T1048/003/
+  - https://attack.mitre.org/techniques/T1041/
+author: WRG-11 D R89-11d (H Wave 8 Front 3 MEG-C source; Mini Shai-Hulud R88-56 DNS C2 sister anchor)
+date: 2026/05/25
+tags:
+  - attack.exfiltration
+  - attack.command_and_control
+  - attack.t1071.004
+  - attack.t1048.003
+logsource:
+  category: dns
+detection:
+  high_unique_subdomain_rate:
+    # Threshold (tune per environment baseline):
+    #   count(QueryName) by src_ip > 500 per 5-min window
+    #   AND count(distinct QueryName) by src_ip > 200 per 5-min window
+    # Sigma does not natively express count/distinct; this selection is a
+    # marker so SIEM backend (Splunk eventcount, Elastic cardinality, etc.)
+    # can wire the aggregation. EventID 1 = DNS query event in most
+    # standard DNS logsources (Sysmon, Windows DNS Analytical, Suricata).
+    EventID: 1
+  condition: high_unique_subdomain_rate
+falsepositives:
+  - CDN resolvers (LOW unique subdomain count typically; if HIGH, whitelist by ASN)
+  - Legitimate high-volume DNS clients (monitoring, telemetry, CI/CD pipeline DNS resolution)
+  - Internal DNS resolvers with many forwarder queries (whitelist by internal subnet)
+  - Public DNS-over-HTTPS (DoH) resolvers (lower priority since DoH bypasses traditional logging)
+level: high
