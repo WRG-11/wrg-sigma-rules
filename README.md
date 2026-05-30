@@ -2,7 +2,7 @@
 
 > 💡 **Found this useful?** ⭐ Star the repo (helps others find it) and subscribe to weekly detection-engineering writeups at [Detection Frontier](https://detection-frontier.kit.com/subscribe).
 
-> **Status**: Production-ready. Pending submission to Anthropic community marketplace (target 2026-05-25).
+> **Status**: Production-ready. Submitted to the Anthropic community marketplace (2026-05-25); listing pending review.
 
 Production-grade sigma detection rule writing, validation, and conversion for SOC analysts, threat-intel teams, and detection engineers using Claude Code.
 
@@ -10,7 +10,7 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
-- **61 production sigma rule corpus**: 11 ATT&CK tactic categories (templates + observed campaign rules)
+- **67 production sigma rule corpus**: 11 ATT&CK tactic categories (templates + observed campaign rules)
 - **Multi-backend conversion**: Splunk SPL, Elastic Lucene, Wazuh, Kibana verified (pySigma 1.x + 2 backend packages)
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
 - **Live demo**: see [`DEMO.md`](DEMO.md) for end-to-end tool invocation on Mini Shai-Hulud rule (Item 10 evidence; pySigma 1.x + Splunk + Elastic real output)
@@ -19,7 +19,7 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty** (verified 2026-05-23: 200+ plugins, 0 sigma-focused, 1 generic security plugin). SOC + threat-intel community has latent demand for fast, quality-aware rule writing tools integrated with LLM workflows.
 
-WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 61 canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
+WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 67 canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
 
 ## What's included
 
@@ -35,7 +35,7 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 - `sigma-rule-reviewer` — paste rule for quality review + improvement suggestions
 - `threat-coverage-gap-analyzer` — MITRE ATT&CK coverage analysis vs your existing corpus
 
-### Sigma rule corpus (61 production rules across 11 ATT&CK tactic categories)
+### Sigma rule corpus (67 production rules across 11 ATT&CK tactic categories)
 
 | Tactic | Coverage |
 |---|---|
@@ -75,10 +75,10 @@ git clone https://github.com/WRG-11/wrg-sigma-rules.git
 
 ## Quality discipline
 
-- **4-Layer self-audit** per WRG audit methodology (Pattern 18 v1.1 trust-but-verify sister); see [`.claude-plugin/AUDIT-SELF.md`](.claude-plugin/AUDIT-SELF.md)
+- **4-Layer self-audit** per WRG audit methodology (trust-but-verify self-audit); see [`.claude-plugin/AUDIT-SELF.md`](.claude-plugin/AUDIT-SELF.md)
 - **7 Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch`)
-- **LLM-safe output discipline**: ASCII-only output + error-path structure preserve (Pattern 34 v1.1 sister)
+- **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
 - **`claude plugin validate` PASS** (verified 2026-05-25 post-merge on Claude Code 2.1.149)
 - **Live demo evidence**: [`DEMO.md`](DEMO.md) — 3 real tool invocations on Mini Shai-Hulud rule (Item 10)
 
