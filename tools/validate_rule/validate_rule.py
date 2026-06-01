@@ -247,8 +247,11 @@ def _schema_checks(rule: Any) -> list[dict[str, Any]]:
     return errors
 
 
-def _linter_warnings(rule: dict[str, Any]) -> list[dict[str, Any]]:
-    """Best-practices linter -- 6 rules covering known SOC pain points."""
+def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
+    """Best-practices linter -- 6 rules covering known SOC pain points.
+
+    Returns ``(warnings, mitre_tags_found)`` -- the caller tuple-unpacks both.
+    """
     warnings: list[dict[str, Any]] = []
 
     title = rule.get("title")
