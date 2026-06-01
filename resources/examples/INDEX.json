@@ -9,36 +9,43 @@
     "apps/<wrg-app>/tests/fixtures/crypto_trace/sigma_rule_*.yml (2 observed)",
     "apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml (5 detector goldens)"
   ],
-  "total_rules": 61,
+  "total_rules": 62,
   "_last_extension": {
-    "date": "2026-05-24",
+    "date": "2026-06-01",
     "added": [
-      "exfiltration/observed_socks5_null_byte_egress_t1041_extension.yml",
-      "initial_access/observed_clawhavoc_claude_skills_t1195_002.yml"
+      "execution/observed_gogs_rebase_rce_t1059.yml"
     ],
-    "context": "R89-06d D wave 2 (sister to R89-04d wave 1). 2 fresh observed_ rules: (1) ClawHavoc Claude Code Skills T1195.002 malicious skill execution (Docker AI Coding Agent Horror Stories Issue 1 anchor; 335+ malicious skills; Nx campaign 4-vector cluster 4th and final vector -- cluster now COMPLETE). (2) SOCKS5 hostname null-byte egress backslash-escape extension (sister _extension.yml to R89-04d wave 1 percent-encoded rule; covers backslash-x + backslash-u textual representation forms via byte-level YAML construction without literal null bytes). Sister cross-link updates: 3 Nx campaign rules (mini-shai-hulud + s1ngularity + nx-console) description + cluster_complete tag added; SOCKS5 original description + sister_extension tag added; minimal-touch 5-10 LOC delta per file. R89-04d done report 5 saha bulgu 5/5 status: items 1 (ClawHavoc) + 2 (SOCKS5 backslash) shipped in this wave; items 3-5 (SB-33 pipeline canonical + Pattern 28 v1.0 FORMAL 5th vaka + YAML null-byte limitation doc) defer to E codify-combo R89-04+.",
+    "context": "R89-149d D fresh-vuln rapid-detection rule. 1 observed_ rule: Gogs authenticated argument-injection RCE (CWE-88, CVSSv4 9.4, no CVE, reported 2026-03-17, UNPATCHED at disclosure; public Metasploit multi/http/gogs_rebase_rce). Malicious PR base-branch name injects --exec into the git rebase Gogs runs during 'Rebase before merging' (no -- separator) -> sh -c as gogs server user. SigmaHQ gap CONFIRMED (no gogs / git-rebase-arg-injection rule). FIRST product:linux rule in the corpus (forward-slash Image/ParentImage paths). 0-FP design: POSITIVE scope on ParentImage endswith /gogs (not a shell-filter) -> legit dev/CI 'git rebase --exec \"make test\"' has non-gogs parent and never fires; legit gogs rebase-merge has no --exec and never fires; only the exploit (gogs parent + injected --exec) fires. FP-scenario verified (exploit FIRES; dev-shell + gogs-no-injection + CI-runner all do NOT). execution/T1059 artifact; T1190 vector in tags+description. Time-sensitive distribution (Rapid7/THN news cycle). Pending V 0-FP adversarial gate -> operator merge.",
     "previous_extension": {
       "date": "2026-05-24",
       "added": [
-        "exfiltration/observed_socks5_null_byte_egress_t1041.yml",
-        "initial_access/observed_nx_console_t1195_002.yml",
-        "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml"
+        "exfiltration/observed_socks5_null_byte_egress_t1041_extension.yml",
+        "initial_access/observed_clawhavoc_claude_skills_t1195_002.yml"
       ],
-      "context": "R89-04d D wave pre-Pazartesi sigma submit narrative anchor 4-rule batch reduced to 3 (Kali365 already shipped 2026-05-23 2c4a1dc5 R89-04 pre-wave; brief overlap flagged + operator approved skip). 3 fresh observed_ rules: nx-console VS Code extension compromise (StepSecurity 2026-05-18; T1195.002 + multi-stage credential stealer + Sigstore provenance bypass novel) + s1ngularity Nx CLI 1000+ token exfil (Docker AI Coding Agent Horror Stories Issue 1 anchor; T1195.002 sister cluster) + SOCKS5 hostname null-byte egress (Claude Code v2.0.24-v2.1.89 silent fix v2.1.90 2026-04-01; T1041 + Pattern 28 v1.0 transparency-gap external sister vaka). Nx campaign 4-vector cluster (Mini Shai-Hulud + s1ngularity + ClawHavoc + nx-console) now 3/4 represented in corpus (ClawHavoc Claude Skills R89-04+ candidate).",
+      "context": "R89-06d D wave 2 (sister to R89-04d wave 1). 2 fresh observed_ rules: (1) ClawHavoc Claude Code Skills T1195.002 malicious skill execution (Docker AI Coding Agent Horror Stories Issue 1 anchor; 335+ malicious skills; Nx campaign 4-vector cluster 4th and final vector -- cluster now COMPLETE). (2) SOCKS5 hostname null-byte egress backslash-escape extension (sister _extension.yml to R89-04d wave 1 percent-encoded rule; covers backslash-x + backslash-u textual representation forms via byte-level YAML construction without literal null bytes). Sister cross-link updates: 3 Nx campaign rules (mini-shai-hulud + s1ngularity + nx-console) description + cluster_complete tag added; SOCKS5 original description + sister_extension tag added; minimal-touch 5-10 LOC delta per file. R89-04d done report 5 saha bulgu 5/5 status: items 1 (ClawHavoc) + 2 (SOCKS5 backslash) shipped in this wave; items 3-5 (SB-33 pipeline canonical + Pattern 28 v1.0 FORMAL 5th vaka + YAML null-byte limitation doc) defer to E codify-combo R89-04+.",
       "previous_extension": {
-        "date": "2026-05-23",
+        "date": "2026-05-24",
         "added": [
-          "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
-          "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
-          "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml"
+          "exfiltration/observed_socks5_null_byte_egress_t1041.yml",
+          "initial_access/observed_nx_console_t1195_002.yml",
+          "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml"
         ],
-        "context": "R89-04+ pre-Pazartesi A direct ship dogfood + 2; OWASP Top 10 web-attack pattern templates T1190 Exploit Public-Facing Application; SQLi auth-bypass + path-traversal dot-dot + reflected XSS script-tag patterns; empirical validation OWASP Juice Shop lab 2026-05-23 (SQLi admin auth bypass kanit + traversal 403 + XSS 200); webserver category log detection; Pazartesi submit narrative bonus anchor (live OWASP lab-validated template family); SB-34 candidate 'lab-empirical sigma template generation discipline'",
+        "context": "R89-04d D wave pre-Pazartesi sigma submit narrative anchor 4-rule batch reduced to 3 (Kali365 already shipped 2026-05-23 2c4a1dc5 R89-04 pre-wave; brief overlap flagged + operator approved skip). 3 fresh observed_ rules: nx-console VS Code extension compromise (StepSecurity 2026-05-18; T1195.002 + multi-stage credential stealer + Sigstore provenance bypass novel) + s1ngularity Nx CLI 1000+ token exfil (Docker AI Coding Agent Horror Stories Issue 1 anchor; T1195.002 sister cluster) + SOCKS5 hostname null-byte egress (Claude Code v2.0.24-v2.1.89 silent fix v2.1.90 2026-04-01; T1041 + Pattern 28 v1.0 transparency-gap external sister vaka). Nx campaign 4-vector cluster (Mini Shai-Hulud + s1ngularity + ClawHavoc + nx-console) now 3/4 represented in corpus (ClawHavoc Claude Skills R89-04+ candidate).",
         "previous_extension": {
           "date": "2026-05-23",
           "added": [
-            "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
+            "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
+            "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
+            "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml"
           ],
-          "context": "R89-04+ pre-Pazartesi A direct ship; Tier 1 government PSA -> sigma rule corpus pipeline canonical (SB-33 candidate); FBI IC3 PSA 1-052126-PSA 21 May 2026 Kali365 PhaaS OAuth device code phishing kit"
+          "context": "R89-04+ pre-Pazartesi A direct ship dogfood + 2; OWASP Top 10 web-attack pattern templates T1190 Exploit Public-Facing Application; SQLi auth-bypass + path-traversal dot-dot + reflected XSS script-tag patterns; empirical validation OWASP Juice Shop lab 2026-05-23 (SQLi admin auth bypass kanit + traversal 403 + XSS 200); webserver category log detection; Pazartesi submit narrative bonus anchor (live OWASP lab-validated template family); SB-34 candidate 'lab-empirical sigma template generation discipline'",
+          "previous_extension": {
+            "date": "2026-05-23",
+            "added": [
+              "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
+            ],
+            "context": "R89-04+ pre-Pazartesi A direct ship; Tier 1 government PSA -> sigma rule corpus pipeline canonical (SB-33 candidate); FBI IC3 PSA 1-052126-PSA 21 May 2026 Kali365 PhaaS OAuth device code phishing kit"
+          }
         }
       }
     }
@@ -79,6 +86,7 @@
     ],
     "execution": [
       "execution/observed_alphv_t1059_001.yml",
+      "execution/observed_gogs_rebase_rce_t1059.yml",
       "execution/template_t1059_001_powershell_encoded_command_execution.yml",
       "execution/template_t1059_006_python_scripting_interpreter_spawned_by_shell.yml",
       "execution/template_t1059_command_and_scripting_interpreter_generic_shell_spawn.yml",
@@ -174,6 +182,7 @@
       "defense_evasion/template_t1036_005_masquerading_match_legitimate_name_anomalous_path.yml",
       "defense_evasion/template_t1656_impersonation_persona_generation_tooling_on_host.yml",
       "execution/observed_alphv_t1059_001.yml",
+      "execution/observed_gogs_rebase_rce_t1059.yml",
       "execution/template_t1059_001_powershell_encoded_command_execution.yml",
       "execution/template_t1059_006_python_scripting_interpreter_spawned_by_shell.yml",
       "execution/template_t1059_command_and_scripting_interpreter_generic_shell_spawn.yml",
@@ -214,6 +223,9 @@
       "defense_evasion/template_crypto_r2_mixer.yml",
       "impact/observed_sigma_rule_lazarus.yml",
       "impact/observed_sigma_rule_lockbit_btc.yml"
+    ],
+    "linux": [
+      "execution/observed_gogs_rebase_rce_t1059.yml"
     ],
     "unspecified": [
       "credential_access/template_t1552_001_unsecured_credentials_in_files_kyocera_kmaddrbook.yml",
