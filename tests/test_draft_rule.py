@@ -141,3 +141,35 @@ def test_logsource_platform_override() -> None:
     )
     assert result["ok"] is True
     assert "product: linux" in result["yaml"]
+
+
+def test_yaml_emit_neutralizes_reference_newline_injection() -> None:
+    # SIGMA-LM-001: a newline embedded in a reference must not break out of the
+    # YAML list context and inject a sibling top-level key. The control char is
+    # collapsed to inline whitespace instead.
+    result = draft_rule_body(
+        "Detect process spawning child",
+        references=["http://legit.example/a\n  injected_key: pwned"],
+    )
+    assert result["ok"] is True
+    lines = result["yaml"].splitlines()
+    # No emitted line may begin with the injected key (the injection vector).
+    assert not any(line.lstrip().startswith("injected_key") for line in lines)
+    # The payload survives, collapsed onto the single reference list item.
+    assert any(
+        line.lstrip().startswith("- ") and "injected_key: pwned" in line
+        for line in lines
+    )
+
+
+def test_yaml_emit_leaves_normal_url_reference_unquoted() -> None:
+    # Behaviour-neutral: a clean URL reference (which contains ':') stays an
+    # unquoted list item. The ':'-quoting rule applies to scalars, not list
+    # items, and control-char collapse never requotes.
+    result = draft_rule_body(
+        "Detect suspicious activity",
+        references=["https://attack.mitre.org/techniques/T1059/"],
+    )
+    assert result["ok"] is True
+    assert "  - https://attack.mitre.org/techniques/T1059/" in result["yaml"]
+    assert "'https://attack.mitre.org" not in result["yaml"]

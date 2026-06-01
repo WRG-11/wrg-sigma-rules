@@ -254,6 +254,19 @@ def _draft_detection_block(
     return {"selection": {"REPLACE_ME": "value"}, "condition": "selection"}
 
 
+def _yaml_inline(value: Any) -> str:
+    """Collapse control characters so an emitted value cannot break out of its
+    single YAML line.
+
+    The serializer below is hand-rolled (no PyYAML dep), so a raw newline in a
+    user-supplied value (e.g. a ``references`` URL) would otherwise escape its
+    list/scalar context and inject a sibling YAML node. Collapsing the C0/C1
+    control range to a single space neutralizes that without re-quoting --
+    behaviour-neutral for clean inputs, which contain no control characters.
+    """
+    return re.sub(r"[\x00-\x1f\x7f]+", " ", str(value)).strip()
+
+
 def _yaml_dump(payload: dict[str, Any]) -> str:
     """Serialize the rule dict to deterministic YAML.
 
@@ -286,30 +299,33 @@ def _yaml_dump(payload: dict[str, Any]) -> str:
                 continue
             lines.append(f"{key}:")
             for item in value:
-                lines.append(f"  - {item}")
+                lines.append(f"  - {_yaml_inline(item)}")
         elif isinstance(value, dict):
             lines.append(f"{key}:")
             for sub_key, sub_value in value.items():
                 if isinstance(sub_value, dict):
-                    lines.append(f"  {sub_key}:")
+                    lines.append(f"  {_yaml_inline(sub_key)}:")
                     for k2, v2 in sub_value.items():
-                        lines.append(f"    {k2}: {v2}")
+                        lines.append(f"    {_yaml_inline(k2)}: {_yaml_inline(v2)}")
                 elif isinstance(sub_value, list):
-                    lines.append(f"  {sub_key}:")
+                    lines.append(f"  {_yaml_inline(sub_key)}:")
                     for item in sub_value:
-                        lines.append(f"    - {item}")
+                        lines.append(f"    - {_yaml_inline(item)}")
                 else:
-                    lines.append(f"  {sub_key}: {sub_value}")
+                    lines.append(f"  {_yaml_inline(sub_key)}: {_yaml_inline(sub_value)}")
         else:
             # Strings with leading special chars or embedded colons get
-            # single-quoted to keep YAML deterministic.
+            # single-quoted to keep YAML deterministic. Control chars are
+            # collapsed first so a newline cannot break out of the line; the
+            # ':'-quoting logic is otherwise unchanged.
+            cleaned = _yaml_inline(value)
             if isinstance(value, str) and (
-                ":" in value or value.startswith(("'", '"', "@", "%", "!"))
+                ":" in cleaned or cleaned.startswith(("'", '"', "@", "%", "!"))
             ):
-                escaped = value.replace("'", "''")
+                escaped = cleaned.replace("'", "''")
                 lines.append(f"{key}: '{escaped}'")
             else:
-                lines.append(f"{key}: {value}")
+                lines.append(f"{key}: {cleaned}")
     body = "\n".join(lines) + "\n"
     return _ascii_safe(body)
 
