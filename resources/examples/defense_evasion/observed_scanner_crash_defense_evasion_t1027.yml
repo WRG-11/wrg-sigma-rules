@@ -56,6 +56,9 @@ tags:
   - attack.defense_evasion
   - attack.t1027
   - attack.t1562.001
+  - wrg.observed
+  - wrg.severity.high
+  - wrg.tactic.defense_evasion
 logsource:
   product: github
   service: audit
