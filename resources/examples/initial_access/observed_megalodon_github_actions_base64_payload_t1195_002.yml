@@ -60,6 +60,9 @@ tags:
   - attack.t1195.002
   - attack.t1059.004
   - attack.t1140
+  - wrg.observed
+  - wrg.severity.high
+  - wrg.tactic.initial_access
 logsource:
   product: github
   service: audit
