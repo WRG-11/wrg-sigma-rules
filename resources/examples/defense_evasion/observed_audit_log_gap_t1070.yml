@@ -53,6 +53,9 @@ tags:
   - attack.defense_evasion
   - attack.t1070
   - attack.t1565
+  - wrg.observed
+  - wrg.severity.high
+  - wrg.tactic.defense_evasion
 logsource:
   product: any
   category: host

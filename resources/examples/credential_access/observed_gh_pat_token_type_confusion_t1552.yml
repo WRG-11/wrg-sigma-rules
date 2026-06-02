@@ -51,6 +51,9 @@ tags:
   - attack.credential_access
   - attack.t1552
   - attack.t1195.002
+  - wrg.observed
+  - wrg.severity.high
+  - wrg.tactic.credential_access
 logsource:
   product: any
   category: process_creation
