@@ -1,7 +1,7 @@
 # wrg-sigma-rules plugin runtime dependencies.
 #
 # Core (always required):
-pysigma>=0.10
+pysigma>=1.3.3
 PyYAML>=6.0.3
 
 # Backend extras (lazy-imported; install per target SIEM):
