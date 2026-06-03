@@ -2,7 +2,7 @@
 #
 # Core (always required):
 pysigma>=0.10
-PyYAML>=6.0
+PyYAML>=6.0.3
 
 # Backend extras (lazy-imported; install per target SIEM):
 pysigma-backend-splunk>=2.0
