@@ -2,7 +2,7 @@
 
 > 💡 **Found this useful?** ⭐ Star the repo (helps others find it) and subscribe to weekly detection-engineering writeups at [Detection Frontier](https://detection-frontier.kit.com/subscribe).
 
-> **Status**: Production-ready. Submitted to the Anthropic community marketplace (2026-05-25); listing pending review.
+> **Status**: Production-ready. Not yet submitted to a plugin marketplace — install directly from this repo (see [Installation](#installation)).
 
 Production-grade sigma detection rule writing, validation, and conversion for SOC analysts, threat-intel teams, and detection engineers using Claude Code.
 
@@ -13,7 +13,7 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 - **<!-- METRIC:sigma_rule_count -->68<!-- /METRIC:sigma_rule_count --> production sigma rule corpus**: 11 ATT&CK tactic categories (templates + observed campaign rules)
 - **Multi-backend conversion**: Splunk SPL, Elastic Lucene, Wazuh, Kibana verified (pySigma 1.x + 2 backend packages)
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
-- **Live demo**: see [`DEMO.md`](DEMO.md) for end-to-end tool invocation on Mini Shai-Hulud rule (Item 10 evidence; pySigma 1.x + Splunk + Elastic real output)
+- **Live demo**: see [`DEMO.md`](DEMO.md) for end-to-end tool invocation on Mini Shai-Hulud rule (pySigma 1.x + Splunk + Elastic real output)
 
 ## Why this plugin exists
 
@@ -60,12 +60,6 @@ See [`resources/examples/INDEX.json`](resources/examples/INDEX.json) for full en
 
 ## Installation
 
-### Via Anthropic Claude Code community marketplace (post-merge)
-
-```bash
-/plugin install wrg-sigma-rules
-```
-
 ### Direct from this repo
 
 ```bash
@@ -75,12 +69,12 @@ git clone https://github.com/WRG-11/wrg-sigma-rules.git
 
 ## Quality discipline
 
-- **4-Layer self-audit** per WRG audit methodology (trust-but-verify self-audit); see [`.claude-plugin/AUDIT-SELF.md`](.claude-plugin/AUDIT-SELF.md)
+- **4-Layer self-audit** per WRG audit methodology (trust-but-verify self-audit)
 - **7 Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
 - **`claude plugin validate` PASS** (verified 2026-05-25 post-merge on Claude Code 2.1.149)
-- **Live demo evidence**: [`DEMO.md`](DEMO.md) — 3 real tool invocations on Mini Shai-Hulud rule (Item 10)
+- **Live demo evidence**: [`DEMO.md`](DEMO.md) — 3 real tool invocations on Mini Shai-Hulud rule
 
 ## Tested environments
 
@@ -100,9 +94,6 @@ Sigma rule contributions welcome. Submit YAML to `resources/examples/<tactic>/` 
 
 - [Anthropic Claude Code plugin marketplace](https://github.com/anthropics/claude-plugins-community)
 - [WRG monorepo](https://github.com/WRG-11/WinstonRedGuard)
-- 4-Layer self-audit: [`.claude-plugin/AUDIT-SELF.md`](.claude-plugin/AUDIT-SELF.md)
-- External validation: [`.claude-plugin/AUDIT-VERIFY.md`](.claude-plugin/AUDIT-VERIFY.md)
-- Marketplace PR draft: [`PR-DRAFT.md`](PR-DRAFT.md)
 
 ## License
 

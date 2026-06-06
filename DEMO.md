@@ -1,4 +1,4 @@
-# wrg-sigma-rules -- DEMO (Item 10)
+# wrg-sigma-rules -- DEMO
 
 End-to-end demonstration of the three MCP tools (`validate_rule`,
 `convert_rule`, `draft_rule`) using a real production rule from the
@@ -6,7 +6,7 @@ plugin's corpus: **Mini Shai-Hulud npm supply chain C2 egress**
 (MsftSecIntel 2026-05-21 disclosure; rule
 `observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml`).
 
-This is the Anthropic plugin submission Item 10 (functionality demo).
+Functionality demo for the plugin.
 Captured with pySigma 1.X stable (+ `pysigma-backend-splunk` +
 `pysigma-backend-elasticsearch`). All outputs are real tool invocations,
 not hand-edited.
@@ -187,17 +187,13 @@ print(json.dumps(convert_rule_body(rule, target='elasticsearch'), indent=2))
 
 The plugin's pytest suite covers these tool invocations end-to-end
 (`tests/test_validate_rule.py`, `tests/test_convert_rule.py`,
-`tests/test_sigma_integration_e2e.py`). Suite status: 217/217 PASS
-first-attempt (B + C + D + F coordinated ship, R88-56 wave; see
-`PR-DRAFT.md` for full provenance).
+`tests/test_sigma_integration_e2e.py`). Suite status: 217/217 PASS.
 
 ---
 
 ## See also
 
 - [`README.md`](README.md) -- installation + quick start
-- [`PR-DRAFT.md`](PR-DRAFT.md) -- submission package description
-  (Items 1-9 verified; this file fulfills Item 10)
 - [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json) -- plugin manifest
 - [`skills/sigma-rule-writer/SKILL.md`](skills/sigma-rule-writer/SKILL.md) -- guided NL -> sigma workflow
 - [`resources/examples/INDEX.json`](resources/examples/INDEX.json) -- 3-D corpus taxonomy (60+ rule)

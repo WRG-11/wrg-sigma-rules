@@ -111,7 +111,7 @@ was rewritten to `like`").
   source rule
 - **Concrete fixes** -- never say "consider improving X" without showing
   what "improved X" looks like
-- **Pattern 34 LLM-safe** -- if the rule contains internal-looking identifiers
+- **LLM-safe redaction** -- if the rule contains internal-looking identifiers
   (hostnames, user names, internal CIDRs), flag as a Note (potential leakage)
   but do not transmit them outside the review output
 
