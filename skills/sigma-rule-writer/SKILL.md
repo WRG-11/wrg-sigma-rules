@@ -97,7 +97,7 @@ Use `Write` tool with the validated YAML content.
   empty `references:` is a smell
 - **Falsepositives populated** -- at least one realistic FP scenario; "Unknown"
   is acceptable but flag for review
-- **Pattern 34 LLM-safe** -- never leak operator-internal infra: no internal
+- **LLM-safe redaction** -- never leak operator-internal infra: no internal
   hostnames, no internal IP ranges, no employee identifiers; placeholders
   like `<internal-domain>` if the user pastes context that includes them
 

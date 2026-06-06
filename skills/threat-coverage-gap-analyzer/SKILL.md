@@ -36,7 +36,7 @@ Ask the user where their sigma rules live. Accept:
   `Bash(find *)`)
 - A list of file paths
 - "Use the WRG canonical corpus" (default to the plugin's
-  `resources/examples/` directory once D R88-56d ships)
+  `resources/examples/` directory)
 
 For each discovered rule, use `Read` to load the YAML and `mcp__wrg-sigma__validate_rule`
 to extract the `tags:` block (specifically `attack.txxxx` entries).
@@ -109,7 +109,7 @@ Do not auto-launch -- operator drives.
 - **Prioritize honestly** -- top-5 gaps should be defensible (matches actor
   in scope OR matches user's stated business priority OR matches recent
   incident); do not pad with low-relevance suggestions
-- **Pattern 34 LLM-safe** -- if the user shares an internal incident brief,
+- **LLM-safe redaction** -- if the user shares an internal incident brief,
   do not transmit incident-specific identifiers in the report unless the
   user explicitly opts in
 

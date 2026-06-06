@@ -1,6 +1,6 @@
 name: readme-stamp
 
-# Track-B README self-stamp (R89-109b). When the published rule corpus changes,
+# README self-stamp. When the published rule corpus changes,
 # regenerate the README METRIC markers from ground truth and commit the result
 # back. Public repo -> FREE GitHub Actions; same-repo commit via the default
 # GITHUB_TOKEN (no PAT, no cross-repo token, no repo Settings change).

@@ -1,10 +1,8 @@
 <!--
-Companion detection note for R89-149d (Gogs rebase-RCE Sigma rule, PR #8 MERGED 2026-06-01T20:14Z).
-Accuracy source: resources/examples/execution/observed_gogs_rebase_rce_t1059.yml (merged, V-152v T1 GREEN).
-V-152v finding incorporated: shell-intermediary evasion-FN documented in "Known limitation" section.
-Status: operator-ready draft. Operator posts (Detection Frontier / dev.to); D drafts only.
-De-AI pass: no em-dashes, no symmetric-triplet padding, plain ASCII.
-Brand: WRG-11 byline. Detection/defense only, no exploit/PoC.
+Companion detection note for the Gogs rebase-RCE Sigma rule (PR #8, merged 2026-06-01).
+Accuracy source: resources/examples/execution/observed_gogs_rebase_rce_t1059.yml (merged).
+Known limitation (shell-intermediary evasion FN) is documented in the "Known limitation" section.
+Detection/defense only, no exploit/PoC.
 -->
 
 # Detecting the Gogs Rebase RCE Before a Patch Exists
