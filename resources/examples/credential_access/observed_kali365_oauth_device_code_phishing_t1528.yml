@@ -24,8 +24,7 @@ description: 'Campaign-bound sigma detection for the Kali365 Phishing-as-a-Servi
 
   Source: Tier 1 government PSA (FBI IC3 direct; via @DarkWebInformer Twitter
   aggregator 2026-05-22 14.6K view amplification). Aggregated from 1 first-party
-  source disclosure 2026-05-21; 0 confirmed WRG environment exposure (operator
-  M365 footprint review per Pattern 18 v1.4 audit-your-dependency-chain sister).'
+  source disclosure 2026-05-21.'
 references:
 - https://attack.mitre.org/techniques/T1528/
 - https://attack.mitre.org/techniques/T1566/
