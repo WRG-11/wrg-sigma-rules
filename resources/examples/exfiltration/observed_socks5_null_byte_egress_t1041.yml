@@ -28,20 +28,18 @@ description: 'Tool-bound sigma detection for the SOCKS5 hostname null-byte injec
   SOCKS5 raw connection logs (typically port 1080 CONNECT payload) are the
   primary detection surface; HTTP-level egress logs miss the bypass by design.
 
-  Sister context: Pattern 28 v1.0 FORMAL Anthropic-self transparency gap --
-  5.5-month silent fix window 2025-10-20 to 2026-04-01 coincides with WRG
-  active development period. WRG operator currently runs Claude Code v2.1.149
-  (SAFE; 59 patch versions post-fix); historical exposure window has been
-  reviewed and Anthropic API key + GitHub OAuth credential rotated 2026-05-21
-  as defense-in-depth measure.
+  Sister context: Anthropic-self transparency gap -- a 5.5-month silent
+  fix window (2025-10-20 to 2026-04-01) elapsed before public disclosure.
+  Operators on Claude Code v2.1.90 or later are not affected; environments
+  active during the window should rotate exposed Anthropic API keys and
+  GitHub OAuth credentials as defense-in-depth.
 
   Source: Tier 1 multi-source disclosure (Cyber Security News, TheRegister,
   SecurityWeek, ThaiCERT, Cybernews, Aonan Guan researcher blog). Aggregated
-  from 1 active researcher disclosure 2026-05-20; 0 confirmed WRG environment
-  egress on current build (Pattern 39 verify discipline applied).
+  from 1 active researcher disclosure 2026-05-20.
 
   Sister extension: see observed_socks5_null_byte_egress_t1041_extension.yml
-  (R89-06d ship) for the backslash-escape form coverage (backslash-x +
+  for the backslash-escape form coverage (backslash-x +
   backslash-u textual representations); pair both rules for full coverage
   across log-serialization forms.'
 references:
