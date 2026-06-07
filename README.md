@@ -73,12 +73,12 @@ git clone https://github.com/WRG-11/wrg-sigma-rules.git
 - **7 Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
-- **`claude plugin validate` PASS** (verified 2026-05-25 post-merge on Claude Code 2.1.149)
+- **`claude plugin validate` PASS** (verified 2026-05-25)
 - **Live demo evidence**: [`DEMO.md`](DEMO.md) — 3 real tool invocations on Mini Shai-Hulud rule
 
 ## Tested environments
 
-- Windows 11 + Claude Code 2.1.149
+- Windows 11 + Claude Code
 - WSL2 Ubuntu 24.04
 
 ## Contributing

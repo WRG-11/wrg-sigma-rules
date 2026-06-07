@@ -22,7 +22,7 @@ description: 'Campaign-bound sigma detection for the s1ngularity Nx command-line
   to non-developer-typical destinations. Cross-references the broader Nx
   campaign cluster -- correlate hits with observed_mini_shai_hulud_npm_supply_chain_c2_t1071,
   observed_nx_console_t1195_002, and observed_clawhavoc_claude_skills_t1195_002
-  (R89-06d ship; 4-vector cluster COMPLETE) in the same corpus for campaign-wide
+  (4-vector cluster COMPLETE) in the same corpus for campaign-wide
   detection coverage.
 
   Sister context: GitGuardian 2026 report 28.65M secret-leak baseline + AI-commit
@@ -34,8 +34,7 @@ description: 'Campaign-bound sigma detection for the s1ngularity Nx command-line
   -security-risks 2026-05).
 
   Aggregated from 1 first-party Docker disclosure (Issue 1 of 5-issue serial
-  roadmap); 0 confirmed WRG environment exposure (operator nx CLI footprint
-  audit clean per Pattern 18 v1.4 audit-your-dependency-chain sister review).'
+  roadmap).'
 references:
 - https://attack.mitre.org/techniques/T1195/002/
 - https://attack.mitre.org/techniques/T1552/001/

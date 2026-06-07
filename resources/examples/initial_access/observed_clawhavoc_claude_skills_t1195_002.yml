@@ -39,10 +39,7 @@ description: 'Campaign-bound sigma detection for the ClawHavoc Claude Code Skill
 
   Source: Tier 1 first-party Docker engineering blog post (docker.com/blog/
   ai-coding-agent-horror-stories-security-risks 2026-05). Aggregated from
-  1 first-party Docker disclosure (Issue 1 of 5-issue serial roadmap);
-  0 confirmed WRG environment exposure (operator Claude Code skills footprint
-  audit clean per Pattern 18 v1.4 audit-your-dependency-chain sister review
-  2026-05-23; only first-party WRG-authored skills present at audit time).'
+  1 first-party Docker disclosure (Issue 1 of 5-issue serial roadmap).'
 references:
 - https://attack.mitre.org/techniques/T1195/002/
 - https://attack.mitre.org/techniques/T1059/001/

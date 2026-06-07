@@ -24,14 +24,12 @@ description: 'Campaign-bound sigma detection for the nx-console VS Code extensio
   CLI + ClawHavoc Claude Skills + nx-console VS Code. Cross-reference
   observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml,
   observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml, and
-  observed_clawhavoc_claude_skills_t1195_002.yml (R89-06d ship; 4-vector
-  cluster COMPLETE) in the same corpus.
+  observed_clawhavoc_claude_skills_t1195_002.yml (4-vector cluster COMPLETE)
+  in the same corpus.
 
   Source: Tier 1 multi-source disclosure (StepSecurity blog 2026-05-18 direct;
   amplified by industry reporting). Aggregated from 1 first-party StepSecurity
-  disclosure 2026-05-18; 0 confirmed WRG environment exposure (operator nx-console
-  + VS Code marketplace footprint = nil per Pattern 18 v1.4 audit-your-dependency
-  -chain sister review 2026-05-23).'
+  disclosure 2026-05-18.'
 references:
 - https://attack.mitre.org/techniques/T1195/002/
 - https://attack.mitre.org/techniques/T1041/
