@@ -2,15 +2,15 @@ title: SOCKS5 hostname null-byte egress (backslash-escape extension) -- T1041 Cl
 id: dbd90156-c30e-4f78-bab1-dda3aa403ead
 status: experimental
 description: 'Sister extension rule to observed_socks5_null_byte_egress_t1041.yml
-  (R89-04d wave 1 ship, percent-encoded form). Same SOCKS5 hostname null-byte
+  (percent-encoded form). Same SOCKS5 hostname null-byte
   injection bypass (Claude Code v2.0.24 through v2.1.89; silent fix v2.1.90 on
   2026-04-01; HackerOne 3646509 Aonan Guan closed-duplicate; no CVE assigned;
-  Pattern 28 v1.0 FORMAL Anthropic-self transparency-gap 5.5-month silent fix
+  Anthropic-self transparency gap with a 5.5-month silent fix
   window). This extension covers the BACKSLASH-ESCAPE textual representation
   forms that proxies and DNS resolvers emit when serializing a null byte to
   text logs.
 
-  R89-04d wave 1 ship documented a YAML encoding limitation: literal null bytes
+  The base rule documented a YAML encoding limitation: literal null bytes
   (0x00) are rejected by PyYAML + pySigma parsers; the original rule covered
   only the percent-encoded form (%00 + %2500). This extension covers the
   remaining two textual serialization forms via byte-level YAML construction:
@@ -27,9 +27,7 @@ description: 'Sister extension rule to observed_socks5_null_byte_egress_t1041.ym
 
   Source: Tier 1 multi-source disclosure (Cyber Security News, TheRegister,
   SecurityWeek, ThaiCERT, Cybernews, Aonan Guan researcher blog). Aggregated
-  from 1 active researcher disclosure 2026-05-20; 0 confirmed WRG environment
-  egress on current build (operator post-fix Claude Code v2.1.149 + GitHub
-  OAuth rotated 2026-05-21; Pattern 39 verify discipline applied).'
+  from 1 active researcher disclosure 2026-05-20.'
 references:
 - https://attack.mitre.org/techniques/T1041/
 - https://attack.mitre.org/techniques/T1071/

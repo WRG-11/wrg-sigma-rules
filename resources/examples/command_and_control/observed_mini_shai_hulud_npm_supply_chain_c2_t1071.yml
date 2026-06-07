@@ -13,12 +13,9 @@ description: 'Campaign-bound sigma detection for Mini Shai-Hulud npm supply chai
   retrospective hunt.
 
   Aggregated from 1 active campaign disclosure 2026-05-21 (Microsoft Threat
-  Intelligence); 0 confirmed WRG environment infection (GREEN-CLEAN 11-check
-  audit verified 2026-05-22 -- Cursor + mcp-mermaid + antv + Bun + IOC + GitHub
-  PAT + SSH all clean).
+  Intelligence).
 
-  Sister cluster: Nx campaign 4-vector cluster (R89-06d ship -- 4-vector
-  cluster COMPLETE). Mini Shai-Hulud is the 1st vector (npm package compromise);
+  Sister cluster: Nx campaign 4-vector cluster (COMPLETE). Mini Shai-Hulud is the 1st vector (npm package compromise);
   cross-reference observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml (2nd
   vector; CLI installer), observed_nx_console_t1195_002.yml (3rd vector; VS
   Code extension), and observed_clawhavoc_claude_skills_t1195_002.yml (4th
