@@ -11,16 +11,54 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [Unreleased]
+
+Commits that have landed on `main` after the `v1.1.0` tag. The corpus rule-file
+count is unchanged at **68** — no detection rules were added or removed. These
+are tag/metadata and description refreshes on existing rules, repository-hygiene
+removals of internal-only docs, plus CI security and dependency maintenance.
+
+### Changed
+
+- **`wrg.observed` tag added to 4 `observed_*` rules** — token type-confusion,
+  audit-log-gap, scanner-crash defense-evasion, and a GitHub Actions base64
+  payload rule now carry the consistent `wrg.observed` tag. Tag/metadata only;
+  the detection logic is unchanged. (`f245f46`, #12)
+- **Rule-description + INDEX context refresh** — refreshed the human-readable
+  descriptions on seven existing `observed_*` rules and the README/index
+  context for accuracy. No `detection:` / `logsource:` changes. (`dbb70a6`, #22)
+
+### Removed
+
+- Removed internal-only draft and self-audit documents (`.claude-plugin/`
+  audit notes and `PR-DRAFT.md`) from the public corpus and corrected the
+  documented marketplace status. Detection content untouched. (`5c96c1e`, #21)
+
+### Added
+
+- `SECURITY.md` — private vulnerability disclosure via GitHub Security
+  Advisories. (`7e5c26c`, #19)
+- `dependabot.yml` — dependency monitoring (GitHub Actions + pip). (`cc8835c`)
+
+### Maintenance
+
+- ci(security): pinned `codeql-action` / `checkout` workflow refs to commit
+  SHAs. (`1489f7c`, #20)
+- ci(deps): `pysigma` `>=0.10` -> `>=1.3.3` (#17); `pyyaml` `>=6.0` -> `>=6.0.3`
+  (#15); `actions/checkout` 4.3.1 -> 6.0.3 (#13); `github/codeql-action` 3 -> 4
+  (#14); plus pysigma Splunk / Elasticsearch backend requirement bumps
+  (#18, #16).
+
 ## [1.1.0] - 2026-06-02
 
 Twelve commits past `v1.0.0`. The published corpus grew from 61 to 68 rule
-files (6 R89-11d rules plus the Gogs rebase-RCE rule), and the index field was
+files (6 detection rules plus the Gogs rebase-RCE rule), and the index field was
 resynced to match. Disk rule-file count, `INDEX.json` `total_rules`, and the
 README `sigma_rule_count` self-stamp are all in sync at **68**.
 
 ### Added
 
-- **6 R89-11d detection rules** synced to the public corpus, raising the
+- **6 detection rules** synced to the public corpus, raising the
   rule-file count 61 → 67. (`3b2b6c2`, #4)
 - **Gogs rebase-RCE rule** — `observed` detection for the authenticated
   argument-injection RCE (CWE-88, CVSSv4 9.4) in which a malicious `--exec`
@@ -38,9 +76,9 @@ README `sigma_rule_count` self-stamp are all in sync at **68**.
   added across all three index dimensions (categories / detection type /
   target platform). This is an index-*field* resync, not new detection logic.
   (`7962f1e`, #10)
-- **R89-54b corpus publication gap** — backported 3 published-rule environment
+- **corpus publication gap** — backported 3 published-rule environment
   filters that were missing from the public corpus. (`b17f8af`, #1)
-- **R89-55b corpus full-clean** — 4 `template_*` SCCM + RDP environment
+- **corpus full-clean** — 4 `template_*` SCCM + RDP environment
   filters. (`16e9b1f`, #3)
 - **`draft_rule` control-character collapse** — collapse control characters in
   YAML emit and correct the linter return type. (`54612d6`, #7)
