@@ -1,0 +1,35 @@
+# Coverage configuration for wrg-sigma-rules.
+#
+# This repo uses a FLAT layout (no src/, no pyproject.toml): the Python under
+# test is the tools/ package (convert_rule, draft_rule, validate_rule,
+# resources) plus the standalone modules readme_stamp.py and server.py. The
+# tests/ suite exercises these.
+#
+# Source roots are listed explicitly so coverage measures the toolchain code
+# and not the YAML rule corpus under resources/.
+#
+# fail_under is a conservative first-pass floor; ratchet up once measured.
+#
+# NOTE: as of writing, this repo's only workflows are codeql.yml and
+# readme-stamp.yml — neither runs pytest — so this config is consumed by
+# local test runs. Add a CI test job (see _APPLY.md) for it to gate in CI.
+
+[run]
+source =
+    tools
+    readme_stamp.py
+    server.py
+branch = True
+omit =
+    tests/*
+    scripts/*
+
+[report]
+show_missing = True
+skip_covered = False
+fail_under = 70
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise NotImplementedError
+    if TYPE_CHECKING:
