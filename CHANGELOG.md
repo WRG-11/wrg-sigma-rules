@@ -13,9 +13,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Commits that have landed on `main` after the `v1.1.0` tag. The corpus rule-file
-count is unchanged at **68** — no detection rules were added or removed. These
-are tag/metadata and description refreshes on existing rules, repository-hygiene
+## [1.1.1] - 2026-06-10
+
+Corpus rule-file count unchanged at **68** — no detection rules added or
+removed. Tag/metadata refreshes on existing rules, repository-hygiene
 removals of internal-only docs, plus CI security and dependency maintenance.
 
 ### Changed
