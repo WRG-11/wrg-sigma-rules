@@ -170,7 +170,7 @@ To regenerate these outputs locally:
 
 ```bash
 pip install pysigma pysigma-backend-splunk pysigma-backend-elasticsearch
-cd plugins/wrg-sigma-rules
+cd wrg-sigma-rules
 python -c "
 import sys, json
 sys.path.insert(0, '.')
