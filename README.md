@@ -2,7 +2,9 @@
 
 > 💡 **Found this useful?** ⭐ Star the repo (helps others find it) and subscribe to weekly detection-engineering writeups at [Detection Frontier](https://detection-frontier.kit.com/subscribe).
 
-> **Status**: Production-ready. Not yet submitted to a plugin marketplace — install directly from this repo (see [Installation](#installation)).
+## Status
+
+Production — actively maintained rule corpus. Not yet submitted to a plugin marketplace — install directly from this repo (see [Installation](#installation)).
 
 Production-grade sigma detection rule writing, validation, and conversion for SOC analysts, threat-intel teams, and detection engineers using Claude Code.
 
@@ -67,6 +69,28 @@ git clone https://github.com/WRG-11/wrg-sigma-rules.git
 # Follow Claude Code plugin install path per https://code.claude.com/docs/en/plugins
 ```
 
+## Quick example
+
+Validate + convert a corpus rule end-to-end, from the repo root (commands from [`DEMO.md`](DEMO.md), captured against pySigma 1.x + the Splunk and Elasticsearch backends):
+
+```bash
+pip install pysigma pysigma-backend-splunk pysigma-backend-elasticsearch
+python -c "
+import sys, json
+sys.path.insert(0, '.')
+from tools.validate_rule.validate_rule import validate_rule_body
+from tools.convert_rule.convert_rule import convert_rule_body
+
+rule = open('resources/examples/command_and_control/observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml', encoding='utf-8').read()
+
+print(json.dumps(validate_rule_body(rule), indent=2))
+print(json.dumps(convert_rule_body(rule, target='splunk'), indent=2))
+print(json.dumps(convert_rule_body(rule, target='elasticsearch'), indent=2))
+"
+```
+
+Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in [`DEMO.md`](DEMO.md).
+
 ## Quality discipline
 
 - **4-Layer self-audit** per WRG audit methodology (trust-but-verify self-audit)
@@ -98,3 +122,12 @@ Sigma rule contributions welcome. Submit YAML to `resources/examples/<tactic>/` 
 ## License
 
 MIT — see [`LICENSE`](LICENSE) file.
+
+---
+
+## Part of the WRG-11 ecosystem
+
+- [wrg-mcp-server](https://github.com/WRG-11/wrg-mcp-server) — WRG tools as an MCP server
+- [ai-security-toolkit](https://github.com/WRG-11/ai-security-toolkit) — AI/LLM security tools, labs, research
+
+Full index → [github.com/WRG-11](https://github.com/WRG-11)
