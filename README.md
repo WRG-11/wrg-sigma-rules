@@ -117,7 +117,6 @@ Sigma rule contributions welcome. Submit YAML to `resources/examples/<tactic>/` 
 ## References
 
 - [Anthropic Claude Code plugin marketplace](https://github.com/anthropics/claude-plugins-community)
-- [WRG monorepo](https://github.com/WRG-11/WinstonRedGuard)
 
 ## License
 
@@ -127,7 +126,7 @@ MIT — see [`LICENSE`](LICENSE) file.
 
 ## Part of the WRG-11 ecosystem
 
-- [wrg-mcp-server](https://github.com/WRG-11/wrg-mcp-server) — WRG tools as an MCP server
-- [ai-security-toolkit](https://github.com/WRG-11/ai-security-toolkit) — AI/LLM security tools, labs, research
+- [mcp-objauthz-lab](https://github.com/WRG-11/mcp-objauthz-lab) — vulnerable-by-design MCP server for learning BOLA/IDOR
+- [osint-trust-envelope](https://github.com/WRG-11/osint-trust-envelope) — honest trust envelopes for OSINT results
 
 Full index → [github.com/WRG-11](https://github.com/WRG-11)
