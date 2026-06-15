@@ -60,7 +60,7 @@ layer at:
 - `wrg-sigma://patterns/canonical-5/<pattern_id>` -- Individual
   pattern markdown (`01` through `05`)
 
-See `plugins/wrg-sigma-rules/tools/resources/canonical_patterns_resource.py`
+See `internal
 for the URI resource implementation.
 
 ## Source attribution

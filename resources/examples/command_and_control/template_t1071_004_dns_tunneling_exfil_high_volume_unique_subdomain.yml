@@ -15,8 +15,7 @@ description: 'Detects potential DNS tunneling by identifying source IPs
   - AND query labels exhibit high entropy (base32/base62 encoding hint)
   - OPTIONAL enrichment: query parent domain matches a known DNS tunneling
     C2 list (e.g., t.m-kosche.com Mini Shai-Hulud R88-56 cluster anchor
-    documented in apps/wrg_threat_intel/.../incidents/2026-mini-shai-hulud
-    -npm-supply-chain.yaml) OR matches a heuristic newly-registered domain
+    documented in internal) OR matches a heuristic newly-registered domain
     (NRD) age <30 days
 
   Threat context (H Wave 8 Front 3 Sigma Coverage Gap Matrix MEG-C):
@@ -43,14 +42,13 @@ description: 'Detects potential DNS tunneling by identifying source IPs
   (HTTPS C2 in Nx campaign cluster) + this rule (DNS C2 channel form).
 
   Source: Tier 0 first-party H Wave 8 adversarial layer-3 deepdive Front
-  3 Sigma Coverage Gap Matrix (artifacts/bug-hunts/r89-13/wave-8-layer3
-  -adversarial-scenarios.md MEG-C variant; 0 DNS exfil rule in pre-R89-11d
+  3 Sigma Coverage Gap Matrix (internal MEG-C variant; 0 DNS exfil rule in pre-R89-11d
   corpus identified).'
 references:
   - https://attack.mitre.org/techniques/T1071/004/
   - https://attack.mitre.org/techniques/T1048/003/
   - https://attack.mitre.org/techniques/T1041/
-author: WRG-11 D R89-11d (H Wave 8 Front 3 MEG-C source; Mini Shai-Hulud R88-56 DNS C2 sister anchor)
+author: WRG-11
 date: 2026/05/25
 tags:
   - attack.exfiltration

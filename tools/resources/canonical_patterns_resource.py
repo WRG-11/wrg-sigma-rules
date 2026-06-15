@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Any
 
 
-# Pattern files live in plugins/wrg-sigma-rules/resources/canonical-patterns/
+# Pattern files live in internal
 # relative to this module: ../../resources/canonical-patterns/
 _PATTERNS_DIR = (
     Path(__file__).resolve().parent.parent.parent

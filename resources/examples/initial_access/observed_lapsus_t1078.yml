@@ -23,7 +23,7 @@ detection:
   filter_service_accounts:
     TargetUserName|startswith: svc_
   # R89-54b backport of R89-33b cycle-1 FP-fix (golden fixture
-  # apps/wrg_threat_intel/tests/fixtures/sigma/lapsus_t1078_golden.yml).
+  # internal).
   # Authorized admin operators routinely access servers via RDP
   # (LogonType 10) for maintenance; the rule previously fired on
   # legit_rdp_logon (admin_dave / LogonType 10) in V Phase 1a benign

@@ -36,8 +36,7 @@ description: 'Detects exfiltration or exposure of GitHub OAuth (gho_),
   sweep).
 
   Source: Tier 0 first-party H Wave 8 adversarial layer-3 deepdive
-  (artifacts/bug-hunts/r89-13/wave-8-layer3-adversarial-scenarios.md
-  L3-04 + Front 3 sigma coverage gap matrix; 0/27 full coverage on
+  (internal + Front 3 sigma coverage gap matrix; 0/27 full coverage on
   Wave 7 + 8 findings before R89-11d). Cross-reference: DG-W7-07 PAT
   regex gap finding (devguard Wave 7 sigma rule gap).'
 references:
@@ -45,7 +44,7 @@ references:
   - https://attack.mitre.org/techniques/T1195/002/
   - https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app
   - https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github
-author: WRG-11 D R89-11d (H Wave 8 L3-04 + DG-W7-07 source)
+author: WRG-11
 date: 2026/05/25
 tags:
   - attack.credential_access

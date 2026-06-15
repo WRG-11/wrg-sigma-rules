@@ -39,15 +39,14 @@ description: 'Detects deliberate disk-exhaustion attack pattern that causes
   alone, not both with timestamp gap).
 
   Source: Tier 0 H Wave 8 L3-07 adversarial layer-3 deepdive
-  (artifacts/bug-hunts/r89-13/wave-8-layer3-adversarial-scenarios.md
-  L3-07). Sister: defense-evasion via indicator removal (T1070 base
+  (internal). Sister: defense-evasion via indicator removal (T1070 base
   technique) extends to T1070.001 (clear Windows event logs) and
   T1070.002 (clear Linux/Mac system logs); this rule is the disk-
   exhaustion-induced variant.'
 references:
   - https://attack.mitre.org/techniques/T1070/
   - https://attack.mitre.org/techniques/T1565/
-author: WRG-11 D R89-11d (H Wave 8 L3-07 source)
+author: WRG-11
 date: 2026/05/25
 tags:
   - attack.defense_evasion

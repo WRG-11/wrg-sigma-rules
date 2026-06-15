@@ -43,14 +43,13 @@ description: 'Detects malicious PR pattern designed to crash or
   this rule covers control-flow-disruption form.
 
   Source: Tier 0 H Wave 8 L3-04 + DG-W7-01 adversarial layer-3 deepdive
-  (artifacts/bug-hunts/r89-13/wave-8-layer3-adversarial-scenarios.md
-  L3-04). Sister cross-link: observed_gh_pat_token_type_confusion_t1552
+  (internal). Sister cross-link: observed_gh_pat_token_type_confusion_t1552
   (this rule covers the evasion mechanism; the PAT-confusion rule covers
   the credential vector enabled by the evasion).'
 references:
   - https://attack.mitre.org/techniques/T1027/
   - https://attack.mitre.org/techniques/T1562/001/
-author: WRG-11 D R89-11d (H Wave 8 L3-04 + DG-W7-01 source)
+author: WRG-11
 date: 2026/05/25
 tags:
   - attack.defense_evasion
