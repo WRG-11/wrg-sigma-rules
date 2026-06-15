@@ -9,7 +9,7 @@ description: 'Detects the Megalodon supply-chain composite TTP burst pattern:
   Attack chain (H Wave 8 Front 4 Megalodon profile):
 
   (1) Threat actor (TeamPCP / UNC6780 cluster per
-  apps/wrg_threat_intel/.../actors/teampcp_unc6780.yaml) bulk-registers
+  internal) bulk-registers
   50+ GitHub accounts using throwaway/disposable email providers
   (10minutemail, mailinator, guerrillamail, temp-mail style addresses)
   within a 6-hour window.
@@ -27,8 +27,7 @@ description: 'Detects the Megalodon supply-chain composite TTP burst pattern:
 
   (4) Net effect = mass supply-chain compromise across many OSS repos in
   a single burst window. Sister incident:
-  apps/wrg_threat_intel/.../incidents/2026-teampcp-megalodon-github-mass
-  -supply-chain.yaml (composite burst + throwaway-email-account cluster).
+  internal (composite burst + throwaway-email-account cluster).
 
   Detection logic (SIEM aggregation required for full burst window
   composite):
@@ -47,12 +46,12 @@ description: 'Detects the Megalodon supply-chain composite TTP burst pattern:
   Megalodon GitHub Actions branch).
 
   Source: Tier 0 H Wave 8 Front 4 Megalodon profile
-  (artifacts/bug-hunts/r89-13/wave-8-layer3-adversarial-scenarios.md Front 4).'
+  (internal Front 4).'
 references:
   - https://attack.mitre.org/techniques/T1195/002/
   - https://attack.mitre.org/techniques/T1059/004/
   - https://attack.mitre.org/techniques/T1140/
-author: WRG-11 D R89-11d (H Wave 8 Front 4 Megalodon source)
+author: WRG-11
 date: 2026/05/25
 tags:
   - attack.initial_access

@@ -24,7 +24,7 @@ detection:
   selection_long_base64_blob:
     CommandLine|re: '[A-Za-z0-9+/]{200,}={0,2}'
   # R89-54b backport of R89-33b cycle-1 FP-fix (golden fixture
-  # apps/wrg_threat_intel/tests/fixtures/sigma/alphv_t1027_obfuscation_golden.yml).
+  # internal).
   # Legit SCCM / installer / management-context PowerShell uses the
   # `-NoProfile -EncodedCommand <short payload>` combination for
   # system-context execution; the selection_* blocks above match on the

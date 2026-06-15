@@ -20,7 +20,7 @@ detection:
     - ' -EncodedCommand '
     - ' -e '
   # R89-54b backport of R89-33b cycle-1 FP-fix (golden fixture
-  # apps/wrg_threat_intel/tests/fixtures/sigma/alphv_t1059_001_golden.yml).
+  # internal).
   # Sister to the filter on observed_alphv_t1027_obfuscation: the same
   # legit_encoded_ps_sccm benign event tripped both rules (T1027 from the
   # obfuscated-payload side, T1059.001 from the powershell.exe Image side).

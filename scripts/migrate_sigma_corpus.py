@@ -2,19 +2,19 @@
 
 One-shot helper for R88-56d ship. Reads WRG threat-intel sigma sources
 and renders ~50 canonical sigma example rules into
-``plugins/wrg-sigma-rules/resources/examples/<category>/`` plus an
+``internal plus an
 INDEX.json with 3-dimensional indexing (MITRE ATT&CK tactic +
 detection_type + target_platform).
 
 Sources (V_api_shape Rule 2 pre-write reads):
 
-* ``apps/wrg_threat_intel/src/wrg_threat_intel/breach/sigma/templates.py``
+* ``internal
   -- ``TECHNIQUE_PATTERN_LIBRARY`` (37 technique-keyed curated patterns).
   Rendered as synthetic exemplars (no actor binding; status experimental).
-* ``apps/wrg_threat_intel/tests/fixtures/sigma/*.yml``
+* ``internal
   -- 6 observed actor-bound goldens (alphv + lapsus + lockbit +
   nullsec_nigeria).
-* ``apps/wrg_threat_intel/tests/fixtures/crypto_trace/sigma_rule_*.yml``
+* ``internal
   -- 2 observed OFAC sanction goldens.
 * ``apps/wrg_ai_fingerprint_sigma/tests/fixtures/expected_sigma_output.yml``
   -- 5 detector goldens (multi-doc YAML).
@@ -36,10 +36,8 @@ namespaces match the source modules so rule IDs stay stable).
 Usage::
 
     cd D:/wrg-d-r88-56d
-    py -3 plugins/wrg-sigma-rules/scripts/migrate_sigma_corpus.py
-
-The script writes to
-``plugins/wrg-sigma-rules/resources/examples/<category>/*.yml`` plus
+    py -3 internal script writes to
+``internal plus
 ``resources/examples/INDEX.json``; canonical pattern catalog is
 written separately (see ``scripts/render_canonical_patterns.py``).
 """
@@ -538,7 +536,7 @@ def build_index(rendered: list[tuple[str, str, dict[str, Any]]]) -> dict[str, An
             d[k] = sorted(d[k])
     return {
         "_schema_version": 1,
-        "_generated_by": "plugins/wrg-sigma-rules/scripts/migrate_sigma_corpus.py",
+        "_generated_by": "internal",
         "_generated_at": "2026-05-21",
         "_pattern_34_v1_1_redaction_applied": True,
         "_source_module_refs": [
