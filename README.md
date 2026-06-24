@@ -1,6 +1,5 @@
 # WRG Sigma Rules — Anthropic Claude Code Plugin
 
-> 💡 **Found this useful?** ⭐ Star the repo (helps others find it) and subscribe to weekly detection-engineering writeups at [Detection Frontier](https://detection-frontier.kit.com/subscribe).
 
 ## Status
 
