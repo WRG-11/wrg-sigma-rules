@@ -1,7 +1,7 @@
 {
   "name": "wrg-sigma-rules",
-  "version": "0.1.0",
-  "description": "Production-grade sigma detection rule writing, validation, and conversion for SOC analysts and threat-intel teams. LLM-assisted draft + pySigma validation + multi-backend conversion (Splunk, Elastic, Wazuh). Built on 6+ months WRG threat-intel corpus (50+ existing rules + 100+ actor TTP corpus).",
+  "version": "1.1.1",
+  "description": "Production-grade sigma detection rule writing, validation, and conversion for SOC analysts and threat-intel teams. LLM-assisted draft + pySigma validation + multi-backend conversion (Splunk, Elastic, Wazuh). Built on 6+ months WRG threat-intel corpus (68-rule corpus + 100+ actor TTP corpus).",
   "author": {
     "name": "WRG (WinstonRedGuard)"
   },
