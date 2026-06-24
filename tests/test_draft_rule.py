@@ -1,4 +1,4 @@
-"""Unit tests for ``mcp__wrg-sigma__draft_rule`` tool.
+"""Unit tests for ``mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__draft_rule`` tool.
 
 Layer 4 gate coverage:
 * G1 (pySigma missing) -- ``test_pysigma_missing_returns_actionable_envelope``

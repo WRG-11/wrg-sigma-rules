@@ -27,9 +27,9 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 
 ### MCP tools (3)
 
-- `wrg__sigma__draft_rule` — NL description → sigma YAML scaffold
-- `wrg__sigma__validate_rule` — YAML schema + pySigma compat + best-practice linter
-- `wrg__sigma__convert_rule` — sigma → Splunk/Elastic/Wazuh/Kibana query
+- `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__draft_rule` — NL description → sigma YAML scaffold
+- `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule` — YAML schema + pySigma compat + best-practice linter
+- `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule` — sigma → Splunk/Elastic/Wazuh/Kibana query
 
 ### Claude Code skills (3)
 
@@ -94,7 +94,7 @@ Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in
 ## Quality discipline
 
 - **4-Layer self-audit** per WRG audit methodology (trust-but-verify self-audit)
-- **7 Python test modules** covering rule validation + tool integration smoke
+- **8 Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
 - **`claude plugin validate` PASS** (verified 2026-05-25)
@@ -112,7 +112,7 @@ Sigma rule contributions welcome. Submit YAML to `resources/examples/<tactic>/` 
 - ATT&CK TTP mapping in `tags:` field (e.g., `attack.t1071`)
 - `observed_*` prefix for incident-specific rules
 - `template_*` prefix for canonical pattern templates
-- pySigma validation passing via `wrg__sigma__validate_rule`
+- pySigma validation passing via `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`
 
 ## References
 

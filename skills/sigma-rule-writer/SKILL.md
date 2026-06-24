@@ -1,14 +1,14 @@
 ---
 name: sigma-rule-writer
-description: Guided sigma detection rule writing from a natural language threat description. Use when the user asks to write a sigma rule, SIEM detection rule, EDR alert logic, or any "detect when X happens" question. Asks clarifying questions (logsource, MITRE ATT&CK TTP, severity), drafts YAML via wrg__sigma__draft_rule, validates via wrg__sigma__validate_rule, and offers backend conversion.
+description: Guided sigma detection rule writing from a natural language threat description. Use when the user asks to write a sigma rule, SIEM detection rule, EDR alert logic, or any "detect when X happens" question. Asks clarifying questions (logsource, MITRE ATT&CK TTP, severity), drafts YAML via mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__draft_rule, validates via mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule, and offers backend conversion.
 user-invocable: true
 allowed-tools:
   - Read
   - Write
   - Bash(ls *)
-  - mcp__wrg-sigma__draft_rule
-  - mcp__wrg-sigma__validate_rule
-  - mcp__wrg-sigma__convert_rule
+  - mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__draft_rule
+  - mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule
+  - mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule
 ---
 
 # Sigma Rule Writer
@@ -47,7 +47,7 @@ form on the user.
 Skip questions the user already answered. Inferring from context is fine;
 asking the same thing twice is not.
 
-### Step 2 -- Draft via `mcp__wrg-sigma__draft_rule`
+### Step 2 -- Draft via `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__draft_rule`
 
 Pass the collected inputs as a structured payload. The tool returns a YAML
 scaffold conforming to the sigma spec (https://github.com/SigmaHQ/sigma-specification).
@@ -55,7 +55,7 @@ scaffold conforming to the sigma spec (https://github.com/SigmaHQ/sigma-specific
 Show the YAML to the user. Highlight the `detection:` block specifically and
 explain the selection / filter / condition logic in 1-2 sentences.
 
-### Step 3 -- Validate via `mcp__wrg-sigma__validate_rule`
+### Step 3 -- Validate via `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`
 
 Run validation immediately on the drafted YAML. Surface ALL warnings to the
 user, not just errors:
@@ -72,7 +72,7 @@ If validation fails, offer to revise. Do not silently accept warnings.
 
 Ask whether the user wants the rule converted to their SIEM query language:
 
-- Splunk SPL (`mcp__wrg-sigma__convert_rule` backend=splunk)
+- Splunk SPL (`mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule` backend=splunk)
 - Elastic ESQL / KQL (backend=elastic / kibana)
 - Wazuh XML (backend=wazuh)
 
