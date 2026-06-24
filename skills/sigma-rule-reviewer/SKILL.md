@@ -5,8 +5,8 @@ user-invocable: true
 allowed-tools:
   - Read
   - Bash(ls *)
-  - mcp__wrg-sigma__validate_rule
-  - mcp__wrg-sigma__convert_rule
+  - mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule
+  - mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule
 ---
 
 # Sigma Rule Reviewer
@@ -38,7 +38,7 @@ Echo the rule back to the user verbatim before review. This confirms what
 will be reviewed and surfaces any paste-mangling issues (e.g. tab vs space
 indentation drift).
 
-### Step 2 -- Validate via `mcp__wrg-sigma__validate_rule`
+### Step 2 -- Validate via `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`
 
 Run validation and capture the full output. Categorize findings into three
 buckets:
@@ -93,12 +93,12 @@ If errors or actionable warnings exist, offer to produce a revised version:
 
 - Show side-by-side diff (or unified diff for long rules)
 - Annotate each change with the warning it addresses
-- Re-run `mcp__wrg-sigma__validate_rule` on the revised version to confirm
+- Re-run `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule` on the revised version to confirm
   the issue is closed
 
 ### Step 5 -- Optional backend conversion
 
-If the user asks for SIEM-specific output, use `mcp__wrg-sigma__convert_rule`
+If the user asks for SIEM-specific output, use `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule`
 to convert to Splunk / Elastic / Wazuh. Mention any conversion-specific
 caveats (e.g. "Wazuh does not support `re|contains` modifiers; this clause
 was rewritten to `like`").

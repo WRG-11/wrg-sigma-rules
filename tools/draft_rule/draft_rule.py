@@ -1,4 +1,4 @@
-"""MCP tool: ``mcp__wrg-sigma__draft_rule``.
+"""MCP tool: ``mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__draft_rule``.
 
 Builds a sigma YAML detection rule scaffold from a natural-language threat
 description plus structured hints (rule_type, target_platform, references,

@@ -1,4 +1,4 @@
-"""Unit tests for ``mcp__wrg-sigma__convert_rule`` tool.
+"""Unit tests for ``mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule`` tool.
 
 Layer 4 gate coverage:
 * G1 -- pySigma missing path simulated.
