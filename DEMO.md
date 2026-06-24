@@ -187,7 +187,7 @@ print(json.dumps(convert_rule_body(rule, target='elasticsearch'), indent=2))
 
 The plugin's pytest suite covers these tool invocations end-to-end
 (`tests/test_validate_rule.py`, `tests/test_convert_rule.py`,
-`tests/test_sigma_integration_e2e.py`). Suite status: 217/217 PASS.
+`tests/test_sigma_integration_e2e.py`). Suite status: 262/262 PASS.
 
 ---
 
@@ -196,4 +196,4 @@ The plugin's pytest suite covers these tool invocations end-to-end
 - [`README.md`](README.md) -- installation + quick start
 - [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json) -- plugin manifest
 - [`skills/sigma-rule-writer/SKILL.md`](skills/sigma-rule-writer/SKILL.md) -- guided NL -> sigma workflow
-- [`resources/examples/INDEX.json`](resources/examples/INDEX.json) -- 3-D corpus taxonomy (60+ rule)
+- [`resources/examples/INDEX.json`](resources/examples/INDEX.json) -- 3-D corpus taxonomy (68 rules)

@@ -1,4 +1,4 @@
-"""Unit tests for ``mcp__wrg-sigma__validate_rule`` tool.
+"""Unit tests for ``mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`` tool.
 
 Layer 4 gate coverage:
 * G1 -- pySigma missing path simulated via monkeypatch.

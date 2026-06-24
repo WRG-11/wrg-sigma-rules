@@ -1,4 +1,4 @@
-"""MCP tool: ``mcp__wrg-sigma__validate_rule``.
+"""MCP tool: ``mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule``.
 
 Two-tier validation:
 

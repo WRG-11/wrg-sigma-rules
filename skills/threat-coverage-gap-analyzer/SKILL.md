@@ -6,7 +6,7 @@ allowed-tools:
   - Read
   - Bash(ls *)
   - Bash(find *)
-  - mcp__wrg-sigma__validate_rule
+  - mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule
 ---
 
 # Threat Coverage Gap Analyzer
@@ -38,7 +38,7 @@ Ask the user where their sigma rules live. Accept:
 - "Use the WRG canonical corpus" (default to the plugin's
   `resources/examples/` directory)
 
-For each discovered rule, use `Read` to load the YAML and `mcp__wrg-sigma__validate_rule`
+For each discovered rule, use `Read` to load the YAML and `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`
 to extract the `tags:` block (specifically `attack.txxxx` entries).
 
 ### Step 2 -- Build the coverage map
@@ -116,7 +116,7 @@ Do not auto-launch -- operator drives.
 ## Anti-patterns (do not do)
 
 - Claiming coverage based on rule existence without validating that the rule
-  actually loads and tags ATT&CK techniques (use `mcp__wrg-sigma__validate_rule`
+  actually loads and tags ATT&CK techniques (use `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`
   to extract `tags:` cleanly)
 - Recommending detection for techniques the user's environment cannot
   generate telemetry for (e.g. recommending Linux audit rules for a

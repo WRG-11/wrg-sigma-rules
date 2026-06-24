@@ -1,4 +1,4 @@
-"""MCP tool: ``mcp__wrg-sigma__convert_rule``.
+"""MCP tool: ``mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule``.
 
 Sigma YAML -> SIEM-native query string via pySigma backends. Supported
 backends (matches the pySigma ecosystem packages declared in the plugin

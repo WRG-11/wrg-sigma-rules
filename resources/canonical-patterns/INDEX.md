@@ -60,8 +60,7 @@ layer at:
 - `wrg-sigma://patterns/canonical-5/<pattern_id>` -- Individual
   pattern markdown (`01` through `05`)
 
-See `internal
-for the URI resource implementation.
+See `tools/resources/canonical_patterns_resource.py` for the URI resource implementation.
 
 ## Source attribution
 
@@ -75,7 +74,9 @@ These patterns are distilled from:
 - 2 OFAC crypto sanctions goldens (Lazarus + LockBit BTC operator).
 - 5 wrg_ai_fingerprint code-review detector goldens.
 
-Total source corpus: 51 sigma rules across 11 ATT&CK tactics.
+Total internal distillation corpus: 51 sigma rules across 11 ATT&CK
+tactics. (This is the source set these 5 patterns were distilled from; the
+published plugin corpus is 68 rules -- see `resources/examples/INDEX.json`.)
 
 ## License
 
