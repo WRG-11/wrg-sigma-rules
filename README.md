@@ -1,4 +1,4 @@
-# WRG Sigma Rules — Anthropic Claude Code Plugin
+# WRG Sigma Rules — Claude Code Plugin
 
 
 ## Status
@@ -11,7 +11,7 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
-- **<!-- METRIC:sigma_rule_count -->69<!-- /METRIC:sigma_rule_count --> production sigma rule corpus**: 11 ATT&CK tactic categories (templates + observed campaign rules)
+- **<!-- METRIC:sigma_rule_count -->69<!-- /METRIC:sigma_rule_count --> production sigma rule corpus**: 12 ATT&CK tactic categories (templates + observed campaign rules)
 - **Multi-backend conversion**: Splunk SPL, Elastic Lucene, Wazuh, Kibana verified (pySigma 1.x + 2 backend packages)
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
 - **Live demo**: see [`DEMO.md`](DEMO.md) for end-to-end tool invocation on Mini Shai-Hulud rule (pySigma 1.x + Splunk + Elastic real output)
@@ -36,7 +36,7 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 - `sigma-rule-reviewer` — paste rule for quality review + improvement suggestions
 - `threat-coverage-gap-analyzer` — MITRE ATT&CK coverage analysis vs your existing corpus
 
-### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->69<!-- /METRIC:sigma_rule_count --> production rules across 11 ATT&CK tactic categories)
+### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->69<!-- /METRIC:sigma_rule_count --> production rules across 12 ATT&CK tactic categories)
 
 | Tactic | Coverage |
 |---|---|
@@ -44,6 +44,7 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 | `command_and_control` | template T1071 + **observed Mini Shai-Hulud npm supply-chain C2 T1071** (Nx campaign cluster) |
 | `defense_evasion` | templates + observed (AlphV T1027 obfuscation) |
 | `execution` | templates + observed (AlphV T1059.001) |
+| `persistence` | observed (Photo ZIP campaign, Node.js HKCU Run-key persistence T1547.001) |
 | `exfiltration` | templates + **observed SOCKS5 hostname null-byte egress T1041** (Claude Code v2.0.24-v2.1.89 silent-fix; +backslash extension variant) |
 | `impact` | templates + observed (Lazarus + LockBit BTC + Nullsec Nigeria T1491 defacement) |
 | `initial_access` | templates + **observed Nx campaign 4-vector** (s1ngularity npm token exfil, nx-console VS Code extension compromise, ClawHavoc Claude Skills T1195.002) + LAPSUS T1078 + OWASP lab-validated (SQLi auth-bypass, XSS reflected, path traversal) |
