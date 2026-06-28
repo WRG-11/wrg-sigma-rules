@@ -1,11 +1,11 @@
-title: GitHub Token Type Confusion -- Exfiltration of Non-PAT Token Variants (T1552 H Wave 8 L3-04)
+title: GitHub Token Type Confusion -- Exfiltration of Non-PAT Token Variants (T1552)
 id: 4ab3c842-ea7e-42d5-81b8-35435413f4d3
 status: experimental
 description: 'Detects exfiltration or exposure of GitHub OAuth (gho_),
   User-to-server (ghu_), Server-to-server (ghs_), and Refresh (ghr_) tokens.
   Scanners checking only ghs_/ghp_ (classic PAT) miss these variants.
 
-  Attack chain (H Wave 8 L3-04 + DG-W7-07):
+  Attack chain:
 
   (1) Attacker crafts malicious PR or CI workflow that exfils a GitHub
   OAuth/user-to-server/server-to-server/refresh token via environment
@@ -33,12 +33,8 @@ description: 'Detects exfiltration or exposure of GitHub OAuth (gho_),
   ghr_) followed by the standard 36+ character base62 body. Sister to
   observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml (npm token form)
   and observed_clawhavoc_claude_skills_t1195_002.yml (broad credential
-  sweep).
-
-  Source: Tier 0 first-party H Wave 8 adversarial layer-3 deepdive
-  (internal + Front 3 sigma coverage gap matrix; 0/27 full coverage on
-  Wave 7 + 8 findings before R89-11d). Cross-reference: DG-W7-07 PAT
-  regex gap finding (devguard Wave 7 sigma rule gap).'
+  sweep). This rule fills the non-classic-PAT token-prefix coverage gap:
+  secret scanners matching only ghp_/ghs_ miss the gho_/ghu_/ghr_ variants.'
 references:
   - https://attack.mitre.org/techniques/T1552/
   - https://attack.mitre.org/techniques/T1195/002/
@@ -50,8 +46,7 @@ tags:
   - attack.credential_access
   - attack.t1552
   - attack.t1195.002
-  - wrg.observed
-  - wrg.severity.high
+  - wrg.template
   - wrg.tactic.credential_access
 logsource:
   product: any
