@@ -1,4 +1,4 @@
-title: Secret Scanner Crash as Deliberate Defense Evasion Vector -- T1027 (H Wave 8 L3-04 + DG-W7-01)
+title: Secret Scanner Crash as Deliberate Defense Evasion Vector -- T1027
 id: 1f73044a-d9da-4855-a56c-60448a8fb61f
 status: experimental
 description: 'Detects malicious PR pattern designed to crash or
@@ -6,18 +6,18 @@ description: 'Detects malicious PR pattern designed to crash or
   trufflehog) so the scan reports PASS without actually scanning content
   that contains a credential.
 
-  Attack chain (H Wave 8 L3-04 + DG-W7-01 adversarial path):
+  Attack chain:
 
   (1) Attacker crafts a PR containing (a) a large binary or
   pathologically-structured input file designed to trigger scanner
   timeout / OOM / parser exception, AND (b) a credential (gho_/ghu_/ghs_
-  PAT variant; sister to observed_gh_pat_token_type_confusion_t1552.yml).
+  PAT variant; sister to template_gh_pat_token_type_confusion_t1552.yml).
 
   (2) CI invokes scanner against changed files. Scanner crashes early
   (parser exception, timeout, OOM) and the wrapping check_run completes
   with `success` status because the wrapper script does not differentiate
-  scanner-clean-exit from scanner-crash-exit (DG-W7-01: TimeoutExpired
-  not propagated as a failure signal).
+  scanner-clean-exit from scanner-crash-exit (the wrapper does not
+  propagate TimeoutExpired as a failure signal).
 
   (3) PR merges. Credential exposed in repo or downstream CI logs.
 
@@ -31,9 +31,8 @@ description: 'Detects malicious PR pattern designed to crash or
 
   Detection logic targets github.audit / CI pipeline events with the
   composite (short-runtime + success-conclusion + size-mismatch) profile.
-  Sister to DG-W7-01 (B R89-16b fix: TimeoutExpired propagation) and
-  observed_gh_pat_token_type_confusion_t1552.yml (the credential surface
-  that survives the evasion).
+  Sister to template_gh_pat_token_type_confusion_t1552.yml (the credential
+  surface that survives the evasion).
 
   Threat intel context: T1027 (Obfuscated Files / Information) typically
   covers payload obfuscation; this rule extends T1027 to cover
@@ -42,10 +41,9 @@ description: 'Detects malicious PR pattern designed to crash or
   (observed_alphv_t1027_obfuscation.yml) covers payload-encoding form;
   this rule covers control-flow-disruption form.
 
-  Source: Tier 0 H Wave 8 L3-04 + DG-W7-01 adversarial layer-3 deepdive
-  (internal). Sister cross-link: observed_gh_pat_token_type_confusion_t1552
-  (this rule covers the evasion mechanism; the PAT-confusion rule covers
-  the credential vector enabled by the evasion).'
+  Cross-link: template_gh_pat_token_type_confusion_t1552 (this rule covers
+  the evasion mechanism; the PAT-confusion rule covers the credential
+  vector enabled by the evasion).'
 references:
   - https://attack.mitre.org/techniques/T1027/
   - https://attack.mitre.org/techniques/T1562/001/
@@ -55,8 +53,7 @@ tags:
   - attack.defense_evasion
   - attack.t1027
   - attack.t1562.001
-  - wrg.observed
-  - wrg.severity.high
+  - wrg.template
   - wrg.tactic.defense_evasion
 logsource:
   product: github
