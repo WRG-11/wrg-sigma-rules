@@ -1,0 +1,105 @@
+title: MCP DB-Server SQL Abuse -- SSRF to Internal / Cloud-Metadata Target via DuckDB httpfs (T1552.005)
+id: e251d3b8-b631-4288-934e-3ad853e362cc
+status: experimental
+description: 'Detects server-side request forgery (SSRF) through an MCP database
+  server that passes SQL straight to a DuckDB engine. DuckDB ships the httpfs
+  extension; "LOAD httpfs;" succeeds even under --read-only, after which
+  read_json() / read_csv() / read_text() / read_parquet() / ATTACH over an
+  http(s) URL make outbound requests FROM the server host. A prompt-injected or
+  misbehaving LLM agent can reach cloud metadata services
+  (169.254.169.254 -> AWS/GCP/Azure credential theft), loopback admin services,
+  and other hosts on the server private network.
+
+  DISCRIMINATOR (FP-control): a remote-fetch function is matched ONLY in
+  combination with an INTERNAL / metadata target (169.254.169.254, link-local
+  169.254/16, metadata.google / metadata.azure, 127.0.0.1 / localhost / [::1] /
+  0.0.0.0, RFC1918 10.0.0.0/8 + 192.168.0.0/16, *.internal). Legitimate ETL
+  pulls PUBLIC https data, not internal/metadata endpoints, so this combination
+  is high-fidelity -- a naive "LOAD httpfs" or read_json("http...") match alone
+  would be an FP-storm.
+
+  NOTE: RFC1918 172.16.0.0/12 (172.16-172.31) is omitted from the literal list
+  to avoid loose-substring false matches; add the specific 172.16.-172.31.
+  prefixes in environments that use that range.
+
+  ENCODED TARGETS: selection_internal_target_encoded also catches loopback/metadata
+  written in decimal (2130706433 / 2852039166), hex (0x7f000001 / 0xa9fea9fe), octal
+  (0177. / 0251.0376) and IPv6 short forms ([::], [::ffff:...]) -- standard SSRF
+  filter-bypass encodings that evade a literal dotted-quad allow/deny list. These are
+  paired with a remote-fetch function, so they stay high-fidelity (a benign fetch URL
+  does not contain the decimal/hex form of a loopback or metadata address).
+
+  Generalises to the MCP DB-server class (motherduck / dbhub / any DuckDB or
+  SQL-passthrough MCP DB server). OWASP LLM Top 10 2025: LLM06 (Excessive Agency).
+
+  TELEMETRY PREREQUISITE: requires the executed SQL string to be logged -- by
+  the MCP server (query / audit log) or a body-logging reverse proxy / WAF (the
+  JSON-RPC tools/call "sql" argument). Map that field to QueryText below. Most
+  default deployments do NOT log executed SQL -> prerequisite-gated detection,
+  NOT universal coverage.'
+references:
+  - https://genai.owasp.org/llmrisk/llm062025-excessive-agency/
+  - https://duckdb.org/docs/extensions/httpfs/overview
+  - https://attack.mitre.org/techniques/T1552/005/
+  - https://attack.mitre.org/techniques/T1090/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-06-08'
+tags:
+  - attack.credential_access
+  - attack.t1552.005
+  - attack.command_and_control
+  - attack.t1090
+  - owasp.llm06.2025
+  - wrg.template
+  - wrg.tactic.credential_access
+logsource:
+  category: application
+  product: mcp_db_server
+detection:
+  selection_remote_fetch:
+    QueryText|contains:
+      - 'read_json('
+      - 'read_csv('
+      - 'read_text('
+      - 'read_parquet('
+      - 'read_blob('
+      - 'LOAD httpfs'
+      - 'INSTALL httpfs'
+      - 'ATTACH '
+      - 'CREATE SECRET'
+  selection_internal_target:
+    QueryText|contains:
+      - '169.254.169.254'
+      - '169.254.'
+      - 'metadata.google'
+      - 'metadata.azure'
+      - 'computeMetadata'
+      - '127.0.0.1'
+      - 'localhost'
+      - '[::1]'
+      - '0.0.0.0'
+      - '://10.'
+      - '://192.168.'
+      - '.internal'
+  selection_internal_target_encoded:
+    # Encoded loopback (127.0.0.1) + link-local metadata (169.254.169.254) that evade the
+    # literal dotted-quad list above -- standard SSRF filter-bypass: decimal / hex / octal / IPv6.
+    QueryText|contains:
+      - '://2130706433'
+      - '@2130706433'
+      - '://2852039166'
+      - '@2852039166'
+      - '0x7f000001'
+      - '0xa9fea9fe'
+      - '://0x7f'
+      - '://0xa9fe'
+      - '://0177.'
+      - '://0251.0376'
+      - '[::]'
+      - '[::ffff:'
+      - '0000::1'
+  condition: selection_remote_fetch and (selection_internal_target or selection_internal_target_encoded)
+falsepositives:
+  - Legitimate internal data integration that intentionally reads from a private API or internal object store via the MCP server. Uncommon for a read-only analytics MCP; allowlist the specific known-good internal hostnames.
+  - Health checks or monitoring that query localhost through the MCP server. Correlate with the calling MCP-client identity.
+level: high

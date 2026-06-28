@@ -1,10 +1,10 @@
-title: Audit Log Gap via Disk Exhaustion-Induced Logger Crash -- T1070 Indicator Removal (H Wave 8 L3-07)
+title: Audit Log Gap via Disk Exhaustion-Induced Logger Crash -- T1070 Indicator Removal
 id: 66852d1e-1085-4131-8646-827412b0fddf
 status: experimental
 description: 'Detects deliberate disk-exhaustion attack pattern that causes
   audit logger crash and creates a forensic blind window.
 
-  Attack chain (H Wave 8 L3-07 adversarial scenario):
+  Attack chain:
 
   (1) Attacker (with low-privilege foothold) intentionally fills disk to
   >95% utilization via large file write (e.g., dd if=/dev/urandom of=/
@@ -38,8 +38,7 @@ description: 'Detects deliberate disk-exhaustion attack pattern that causes
   pressure events (which usually trigger only signal 1 OR signal 2
   alone, not both with timestamp gap).
 
-  Source: Tier 0 H Wave 8 L3-07 adversarial layer-3 deepdive
-  (internal). Sister: defense-evasion via indicator removal (T1070 base
+  Sister: defense-evasion via indicator removal (T1070 base
   technique) extends to T1070.001 (clear Windows event logs) and
   T1070.002 (clear Linux/Mac system logs); this rule is the disk-
   exhaustion-induced variant.'
@@ -52,8 +51,7 @@ tags:
   - attack.defense_evasion
   - attack.t1070
   - attack.t1565
-  - wrg.observed
-  - wrg.severity.high
+  - wrg.template
   - wrg.tactic.defense_evasion
 logsource:
   product: any

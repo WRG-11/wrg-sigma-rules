@@ -1,0 +1,76 @@
+title: MCP DB-Server SQL Abuse -- Local File Read via DuckDB read_text/read_blob to Sensitive Path (T1005)
+id: 6762c99f-81ad-44ca-bce4-a6ee09f0e1ed
+status: experimental
+description: 'Detects local file disclosure (LFI) through an MCP database server
+  that passes SQL straight to a DuckDB (or DuckDB-compatible) engine. DuckDB
+  table functions read_text(), read_blob() and glob() read arbitrary local file
+  paths; an MCP execute_query / query tool with no SQL filtering lets a
+  prompt-injected or misbehaving LLM agent exfiltrate host files (SSH keys,
+  .env, cloud credentials, /etc/passwd, /etc/shadow). The DuckDB --read-only
+  flag does NOT restrict OS-level file reads.
+
+  DISCRIMINATOR (FP-control): read_text / read_blob / glob are matched ONLY in
+  combination with a sensitive-path or remote-scheme target (/etc/, /root/,
+  /proc/, .ssh, id_rsa, .env, .aws, credentials, shadow, passwd, .pem,
+  Windows system path, file://). A legitimate analytics query does not read raw
+  OS files from these locations, so the combination is high-fidelity -- a naive
+  read_text() match alone would be an FP-storm (read_text is a legitimate DuckDB
+  feature for ingesting text data).
+
+  Generalises to the MCP DB-server class (motherduck / dbhub / any DuckDB or
+  SQL-passthrough MCP DB server). OWASP LLM Top 10 2025: LLM06 (Excessive
+  Agency) + LLM02 (Sensitive Information Disclosure).
+
+  TELEMETRY PREREQUISITE: requires the executed SQL string to be logged --
+  either by the MCP server itself (query / audit log) or by a body-logging
+  reverse proxy / WAF in front of the HTTP transport (the JSON-RPC tools/call
+  "sql" argument). Map that SQL field to QueryText below. Most default
+  deployments do NOT log executed SQL, so this is prerequisite-gated detection,
+  NOT universal coverage.'
+references:
+  - https://genai.owasp.org/llmrisk/llm062025-excessive-agency/
+  - https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/
+  - https://attack.mitre.org/techniques/T1005/
+  - https://attack.mitre.org/techniques/T1552/001/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-06-08'
+tags:
+  - attack.collection
+  - attack.t1005
+  - attack.credential_access
+  - attack.t1552.001
+  - owasp.llm06.2025
+  - owasp.llm02.2025
+  - wrg.template
+  - wrg.tactic.credential_access
+logsource:
+  category: application
+  product: mcp_db_server
+detection:
+  selection_raw_file_func:
+    QueryText|contains:
+      - 'read_text('
+      - 'read_blob('
+      - 'glob('
+  selection_sensitive_target:
+    QueryText|contains:
+      - '/etc/'
+      - '/root/'
+      - '/proc/'
+      - '.ssh'
+      - 'id_rsa'
+      - 'id_dsa'
+      - '.env'
+      - '.aws'
+      - 'credentials'
+      - 'shadow'
+      - 'passwd'
+      - '.pem'
+      - '.key'
+      - '\Windows\'
+      - 'file://'
+  condition: selection_raw_file_func and selection_sensitive_target
+falsepositives:
+  - Legitimate analytics that genuinely read a project data file located under a path that happens to contain a sensitive-looking token (e.g. a data file under a directory named ".env"). Rare; tune the sensitive-path list to the environment.
+  - Administrative or diagnostic queries deliberately reading config files via the MCP server. Correlate with the calling MCP-client identity and expected query patterns.
+level: high
