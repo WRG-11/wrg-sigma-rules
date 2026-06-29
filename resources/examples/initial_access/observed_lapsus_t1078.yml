@@ -6,7 +6,8 @@ description: Breach intel signature for actor lapsus, MITRE technique T1078. Der
 references:
 - https://attack.mitre.org/techniques/T1078/
 - https://attack.mitre.org/groups/G1004/
-- https://example.test/lapsus-vodafone
+- https://www.bleepingcomputer.com/news/security/vodafone-portugal-confirms-cyberattack-disrupted-services-nationwide/
+- https://www.theregister.com/2022/02/08/vodafone_portugal_cyberattack/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-05-10'
 logsource:
@@ -22,19 +23,15 @@ detection:
     - 10
   filter_service_accounts:
     TargetUserName|startswith: svc_
-  # R89-54b backport of R89-33b cycle-1 FP-fix (golden fixture
-  # internal).
-  # Authorized admin operators routinely access servers via RDP
-  # (LogonType 10) for maintenance; the rule previously fired on
-  # legit_rdp_logon (admin_dave / LogonType 10) in V Phase 1a benign
-  # corpus. Filter requires BOTH conditions (Sigma selection-shape:
-  # multi-clause within one filter block = AND).
-  # Tradeoff: this is a single-event precision narrow. The lapsus
+  # FP-fix: authorized admin operators routinely access servers via RDP
+  # (LogonType 10) for maintenance; without this filter the rule fires on
+  # legitimate admin RDP logons. Filter requires BOTH conditions (Sigma
+  # selection-shape: multi-clause within one filter block = AND).
+  # Tradeoff: this is a single-event precision narrow. The LAPSUS$
   # actor signature is multi-host admin-credential reuse within a
   # short window -- proper detection requires correlation (count() by
-  # account across hosts over time). Phase 1b aggregation matcher (V
-  # design-prep) will support that pattern; this filter is the Phase
-  # 1a stop-gap that keeps precision-on-benign at 1.00.
+  # account across hosts over time). A future aggregation matcher will
+  # support that pattern; this filter is the stop-gap.
   filter_legit_admin_interactive_rdp:
     LogonType: 10
     TargetUserName|startswith: admin_

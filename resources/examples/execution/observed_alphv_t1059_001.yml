@@ -5,8 +5,9 @@ description: Breach intel signature for actor alphv, MITRE technique T1059.001. 
   WRG breach catalog.
 references:
 - https://attack.mitre.org/techniques/T1059/001/
-- https://attack.mitre.org/groups/G1015/
-- https://example.test/mgm
+- https://attack.mitre.org/software/S1068/
+- https://www.mgmresorts.com/en/news/mgm-resorts-cybersecurity-issue.html
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-353a
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2023-09-10'
 logsource:
@@ -19,16 +20,13 @@ detection:
     - ' -enc '
     - ' -EncodedCommand '
     - ' -e '
-  # R89-54b backport of R89-33b cycle-1 FP-fix (golden fixture
-  # internal).
-  # Sister to the filter on observed_alphv_t1027_obfuscation: the same
-  # legit_encoded_ps_sccm benign event tripped both rules (T1027 from the
-  # obfuscated-payload side, T1059.001 from the powershell.exe Image side).
-  # Filter is duplicated per-rule rather than shared because Sigma does
-  # not have a portable shared-helper construct; each rule must
+  # FP-fix sister to the filter on observed_alphv_t1027_obfuscation: the
+  # same legit encoded-PS SCCM benign event tripped both rules (T1027 from
+  # the obfuscated-payload side, T1059.001 from the powershell.exe Image
+  # side). Filter is duplicated per-rule rather than shared because Sigma
+  # does not have a portable shared-helper construct; each rule must
   # self-contain its detection logic for downstream SIEM deploy
-  # portability. See V R89-54v done report for the cycle-2 corpus-
-  # publication-gap finding that triggered this backport.
+  # portability.
   filter_legit_sccm_installer_encoded_ps:
     CommandLine|contains: ' -NoProfile -EncodedCommand '
   condition: selection_pwsh_encoded and not filter_legit_sccm_installer_encoded_ps

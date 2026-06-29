@@ -6,7 +6,8 @@ description: Breach intel signature for actor lapsus, MITRE technique T1110. Der
 references:
 - https://attack.mitre.org/techniques/T1110/
 - https://attack.mitre.org/groups/G1004/
-- https://example.test/lapsus-vodafone
+- https://www.bleepingcomputer.com/news/security/vodafone-portugal-confirms-cyberattack-disrupted-services-nationwide/
+- https://www.theregister.com/2022/02/08/vodafone_portugal_cyberattack/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-05-10'
 logsource:

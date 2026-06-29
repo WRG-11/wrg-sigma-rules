@@ -5,8 +5,9 @@ description: Breach intel signature for actor lockbit, MITRE technique T1486. De
   breach catalog.
 references:
 - https://attack.mitre.org/techniques/T1486/
-- https://attack.mitre.org/groups/G0140/
-- https://example.test/royal-mail
+- https://attack.mitre.org/software/S1202/
+- https://www.bbc.co.uk/news/business-64239653
+- https://www.bleepingcomputer.com/news/security/royal-mail-confirms-lockbit-ransomware-attack/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2023-02-23'
 logsource:
