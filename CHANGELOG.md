@@ -13,6 +13,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+Corpus grew from 68 to 73 rules (net +5) alongside a public MCP-server
+integration and an honesty relabel of synthetic rules.
+
+### Added
+
+- Photo ZIP campaign Node.js Run-key persistence rule (count 68 to 69):
+  real-incident-grounded detection for registry Run-key persistence.
+- Four rules via corpus sync (69 to 73): Jellyfin CVE-2026-35033 FFmpeg
+  argument-injection LFI (real observed) plus three MCP database-server
+  SQL-abuse templates (local-file-read, SSRF-to-metadata, read-only
+  write-bypass).
+- MCP server wired into the plugin (.mcp.json) with naming, version and
+  rule-count consistency plus a pytest CI gate.
+
+### Changed
+
+- Relabeled three synthetic rules from observed_ to template_: these are
+  internal-adversarial-derived scenarios, not real-world-observed incidents,
+  so the template_ prefix and wrg.template tag remove the prior over-claim.
+- README: added the persistence tactic (12th ATT&CK category) and corrected
+  the title to "Claude Code Plugin" (a third-party plugin, not an Anthropic
+  product).
+  
 ## [1.1.1] - 2026-06-10
 
 Corpus rule-file count unchanged at **68** — no detection rules added or
