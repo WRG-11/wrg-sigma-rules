@@ -5,7 +5,8 @@ description: Breach intel signature for actor nullsec_nigeria, MITRE technique T
   in the WRG breach catalog.
 references:
 - https://attack.mitre.org/techniques/T1491/
-- https://example.test/opnigeria
+- https://attack.mitre.org/techniques/T1190/
+- https://x.com/DarkWebInformer/status/2053566951088103805
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-05-10'
 logsource:

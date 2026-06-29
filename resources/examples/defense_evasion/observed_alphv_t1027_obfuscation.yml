@@ -5,8 +5,9 @@ description: Breach intel signature for actor alphv, MITRE technique T1027. Deri
   breach catalog.
 references:
 - https://attack.mitre.org/techniques/T1027/
-- https://attack.mitre.org/groups/G1015/
-- https://example.test/mgm
+- https://attack.mitre.org/software/S1068/
+- https://www.mgmresorts.com/en/news/mgm-resorts-cybersecurity-issue.html
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-353a
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2023-09-10'
 logsource:
@@ -23,18 +24,14 @@ detection:
     - ' -e '
   selection_long_base64_blob:
     CommandLine|re: '[A-Za-z0-9+/]{200,}={0,2}'
-  # R89-54b backport of R89-33b cycle-1 FP-fix (golden fixture
-  # internal).
-  # Legit SCCM / installer / management-context PowerShell uses the
-  # `-NoProfile -EncodedCommand <short payload>` combination for
+  # FP-fix: legit SCCM / installer / management-context PowerShell uses
+  # the `-NoProfile -EncodedCommand <short payload>` combination for
   # system-context execution; the selection_* blocks above match on the
   # bare `-EncodedCommand` substring and fire on this benign pattern.
   # Tradeoff: adversaries appending `-NoProfile` to bare encoded PS
-  # would evade this filter; Phase 2 candidate is to promote
+  # would evade this filter; a future refinement is to promote
   # selection_long_base64_blob (200+ char payload) to the primary
-  # signal once Phase 1b 67-rule scale surfaces real-world payload
-  # length distribution. See V R89-54v done report for the cycle-2
-  # corpus-publication-gap finding that triggered this backport.
+  # signal once real-world payload length distribution is characterised.
   filter_legit_sccm_installer_encoded_ps:
     CommandLine|contains: ' -NoProfile -EncodedCommand '
   condition: (selection_encoded_powershell or selection_long_base64_blob) and not filter_legit_sccm_installer_encoded_ps
