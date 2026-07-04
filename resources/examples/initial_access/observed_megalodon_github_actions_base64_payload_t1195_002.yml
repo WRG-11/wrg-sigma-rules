@@ -1,4 +1,4 @@
-title: Megalodon GitHub Actions Base64-Encoded Workflow Payload Burst -- T1195.002 (H Wave 8 Front 4)
+title: Megalodon GitHub Actions Base64-Encoded Workflow Payload Burst -- T1195.002
 id: 4133ef67-73f3-4b48-94db-b5489422b0cc
 status: experimental
 description: 'Detects the Megalodon supply-chain composite TTP burst pattern:
@@ -6,7 +6,7 @@ description: 'Detects the Megalodon supply-chain composite TTP burst pattern:
   encoded GitHub Actions workflow payload + mass push/PR to victim
   repositories.
 
-  Attack chain (H Wave 8 Front 4 Megalodon profile):
+  Attack chain (Megalodon profile):
 
   (1) Threat actor (TeamPCP / UNC6780 cluster per
   internal) bulk-registers
@@ -45,8 +45,8 @@ description: 'Detects the Megalodon supply-chain composite TTP burst pattern:
   t1071.yml (4-vector Nx campaign cluster; this rule = 5th sister vector
   Megalodon GitHub Actions branch).
 
-  Source: Tier 0 H Wave 8 Front 4 Megalodon profile
-  (internal Front 4).'
+  Source: Megalodon profile
+  (internal).'
 references:
   - https://attack.mitre.org/techniques/T1195/002/
   - https://attack.mitre.org/techniques/T1059/004/

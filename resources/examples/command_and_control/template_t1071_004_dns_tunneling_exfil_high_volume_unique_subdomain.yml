@@ -14,11 +14,11 @@ description: 'Detects potential DNS tunneling by identifying source IPs
   - AND with >200 distinct subdomain labels (count(distinct QueryName))
   - AND query labels exhibit high entropy (base32/base62 encoding hint)
   - OPTIONAL enrichment: query parent domain matches a known DNS tunneling
-    C2 list (e.g., t.m-kosche.com Mini Shai-Hulud R88-56 cluster anchor
-    documented in internal) OR matches a heuristic newly-registered domain
+    C2 list (e.g., t.m-kosche.com Mini Shai-Hulud cluster anchor
+    documented internally) OR matches a heuristic newly-registered domain
     (NRD) age <30 days
 
-  Threat context (H Wave 8 Front 3 Sigma Coverage Gap Matrix MEG-C):
+  Threat context (internal coverage-gap analysis):
 
   (1) Megalodon Variant C uses DNS exfiltration as a covert channel
   fallback when HTTPS egress is blocked or monitored. Implementation:
@@ -33,7 +33,7 @@ description: 'Detects potential DNS tunneling by identifying source IPs
   exfil tunneling produces HIGH query rate AND HIGH unique subdomain
   count = the discriminator.
 
-  (3) Current corpus (61 rules pre-R89-11d) has
+  (3) Current corpus (61 rules prior to this addition) has
   template_t1071_application_layer_protocol_c2_over_http_https.yml (T1071
   HTTP/HTTPS C2) but NO T1071.004 sub-technique DNS-specific rule. This
   fills the gap.
@@ -41,9 +41,8 @@ description: 'Detects potential DNS tunneling by identifying source IPs
   Sister rule cluster: observed_mini_shai_hulud_npm_supply_chain_c2_t1071
   (HTTPS C2 in Nx campaign cluster) + this rule (DNS C2 channel form).
 
-  Source: Tier 0 first-party H Wave 8 adversarial layer-3 deepdive Front
-  3 Sigma Coverage Gap Matrix (internal MEG-C variant; 0 DNS exfil rule in pre-R89-11d
-  corpus identified).'
+  Source: internal adversarial deep-dive coverage-gap analysis (0 DNS
+  exfil rule identified in the corpus prior to this addition).'
 references:
   - https://attack.mitre.org/techniques/T1071/004/
   - https://attack.mitre.org/techniques/T1048/003/
