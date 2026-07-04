@@ -1,7 +1,7 @@
 """Smoke + content tests for the canonical sigma pattern URI resource.
 
 Sister convention to ``apps/wrg_mcp_server/tests/test_resources.py``
-(D R88-52d 1st canonical Resource layer test surface; this file is the
+(1st canonical Resource layer test surface; this file is the
 2nd application of Pattern 33 Rule 6 Resources extension lifecycle).
 
 Test surface covers:

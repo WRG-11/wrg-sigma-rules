@@ -1,6 +1,6 @@
 """MCP Resource module exposing the 5 canonical sigma detection patterns.
 
-Sister to ``wrg_mcp_server.tools.resources`` (D R88-52d 1st canonical
+Sister to ``wrg_mcp_server.tools.resources`` (1st canonical
 Resource layer for WRG core; this module is the 2nd application of
 Pattern 33 Rule 6 Resources extension lifecycle).
 
@@ -122,11 +122,11 @@ def register_canonical_pattern_resources(mcp: Any) -> None:
     construction).
 
     Sister to ``wrg_mcp_server.tools.resources.register_corpus_resources``
-    (D R88-52d 1st canonical; this is the 2nd Pattern 33 Rule 6
+    (1st canonical; this is the 2nd Pattern 33 Rule 6
     application).
 
-    Note: the plugin's MCP server entry point (which B / F will wire
-    up in R88-56b / R88-56f) is responsible for calling this function.
+    Note: the plugin's MCP server entry point (wired up in a follow-on
+    change) is responsible for calling this function.
     The resource module itself is decoupled from the MCP runtime.
     """
 

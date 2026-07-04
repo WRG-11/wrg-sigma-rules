@@ -15,12 +15,12 @@ detection:
   selection_rdp:
     EventID: 4624
     LogonType: 10
-  # R89-55b cycle-3 filter add — sister to observed_lapsus_t1078
-  # (R89-54b backport) and template_t1078_valid_accounts (this PR
-  # template 3). Authorized admin operators routinely access servers
+  # Filter add — sister to observed_lapsus_t1078
+  # (cross-corpus backport) and template_t1078_valid_accounts (this
+  # rule family). Authorized admin operators routinely access servers
   # via RDP (LogonType 10) for maintenance; the rule previously fired
-  # on legit_rdp_logon (admin_dave / LogonType 10) in V cycle-2
-  # (R89-55v). Filter requires BOTH conditions (Sigma selection-shape:
+  # on legit_rdp_logon (admin_dave / LogonType 10) in
+  # a prior false-positive review. Filter requires BOTH conditions (Sigma selection-shape:
   # multi-clause within one filter block = AND).
   # Tradeoff: this is a single-event precision narrow. T1021.001 RDP
   # lateral movement in the wild is multi-host admin-credential reuse

@@ -5,14 +5,14 @@
   defense_evasion / execution / exfiltration / impact / initial_access /
   lateral_movement / resource_development
 
-Import-guard discipline (ss15.14 v1.2 7th realisation; sister R88-49c +
-R88-52c + R88-54c + R88-56c = 4-vaka MATURE cluster):
+Import-guard discipline (ss15.14 v1.2 7th realisation; cross-corpus
+sister pattern, MATURE cluster):
   pytest.importorskip("sigma") ensures ALL 51 tests SKIP when pySigma is
   not installed, and ALL 51 PASS when it is -- scaffold-cross-validation.
 
 Delta-1: brief targeted apps/wrg_actor_watch/sigma_rules/*.yml (path
   absent in repo); actual corpus lives in resources/examples/**/*.yml
-  (D R88-56d migration artifact). 51 rules discovered at collection time.
+  (migration artifact). 51 rules discovered at collection time.
 """
 from __future__ import annotations
 
@@ -40,12 +40,12 @@ def _collect_corpus_rules() -> list[Path]:
 _CORPUS_RULES = _collect_corpus_rules()
 
 # Known corpus quality issues: rules with structural anomalies that pre-date
-# C R88-56c test scaffold. These are KNOWN and ACCEPTED; each entry documents
-# the known schema defect. These should be fixed in a future D/E pass.
+# this test scaffold. These are KNOWN and ACCEPTED; each entry documents
+# the known schema defect. These should be fixed in a future pass.
 # Keyed by file stem -> list of allowed schema error field values.
 _KNOWN_SCHEMA_QUALITY_ISSUES: dict[str, list[str]] = {
     # Crypto-trace rule migrated from wrg_threat_intel fixtures; original ID
-    # was a zero-UUID placeholder. Fix: generate a stable UUIDv5 in D R88-57+.
+    # was a zero-UUID placeholder. Fix: generate a stable UUIDv5 in a future pass.
     "observed_sigma_rule_lockbit_btc": ["id"],
 }
 
@@ -112,7 +112,7 @@ def test_corpus_rule_ascii_output(rule_path: Path) -> None:
 
 
 def test_corpus_rule_count_meets_minimum() -> None:
-    """Corpus must contain at least 51 rules (D R88-56d migration baseline)."""
+    """Corpus must contain at least 51 rules (migration baseline)."""
     assert len(_CORPUS_RULES) >= 51, (
         f"Expected >= 51 corpus rules, found {len(_CORPUS_RULES)}"
     )

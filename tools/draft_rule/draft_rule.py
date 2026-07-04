@@ -24,8 +24,8 @@ Design discipline:
   re-encoded through ``ascii`` with ``replace`` errors handler before
   return.
 
-Sister R88-52b ``breach_corpus.py`` module-level register pattern;
-canonical_patterns_resource.py 2nd application; D R88-52d helper-impl
+Sister ``breach_corpus.py`` module-level register pattern;
+canonical_patterns_resource.py 2nd application; helper-impl
 first-attempt PASS reference.
 """
 from __future__ import annotations
@@ -68,7 +68,7 @@ _REDACT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
 )
 
 # Pattern 34 v1.1 cap. Mirrors the 800-char ceiling used by other WRG
-# OPSEC LLM-safe consumers (sister R88-51d llm_incident_draft summary cap).
+# OPSEC LLM-safe consumers (sister llm_incident_draft summary cap).
 _DESCRIPTION_CAP = 800
 
 # Severity vocabulary -- matches sigma spec ``level:`` field.
@@ -440,7 +440,7 @@ def draft_rule_body(
     detection = _draft_detection_block(rule_type, target_platform)
 
     # Tags: MITRE TTPs + severity convention used by the WRG corpus
-    # (sister: ``wrg.severity.<level>`` tag in D R88-56d examples).
+    # (sister: ``wrg.severity.<level>`` tag in migrated examples).
     tags: list[str] = []
     for ttp in inferred_ttps:
         tags.append(f"attack.{ttp.lower()}")
@@ -498,8 +498,8 @@ def draft_rule_body(
 def register_draft_rule_tool(mcp: Any) -> None:
     """Register the ``draft_rule`` tool on an MCP server.
 
-    Sister to ``register_canonical_pattern_resources`` (D R88-52d Resources
-    layer; B R88-56b Tools layer 1st application).
+    Sister to ``register_canonical_pattern_resources`` (Resources
+    layer; Tools layer 1st application).
     """
 
     @mcp.tool()
