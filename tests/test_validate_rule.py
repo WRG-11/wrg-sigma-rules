@@ -6,7 +6,7 @@ Layer 4 gate coverage:
 * G4 -- internal-looking identifiers redacted in the rule preview echo.
 * G5 -- output strings ASCII-only.
 
-Sister R88-52d first-attempt PASS discipline.
+Sister first-attempt PASS discipline.
 """
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Unit tests for readme_stamp.py (R89-109b Track-B self-stamp).
+"""Unit tests for readme_stamp.py (README self-stamp).
 
 stdlib + pytest only; no network, no repo mutation (pure-function + tmp_path).
 """

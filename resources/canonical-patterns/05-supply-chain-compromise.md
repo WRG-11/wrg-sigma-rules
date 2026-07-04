@@ -113,8 +113,8 @@ detection:
   VSCode extension install path + post-install scripted command
   execution.
 - **IoT/printer firmware supply chain**: pivot to printer-vendor
-  firmware download + post-install configuration mutation (R88-53f
-  IoT sister).
+  firmware download + post-install configuration mutation (IoT
+  sister pattern).
 
 ## Severity guidance
 
@@ -129,7 +129,7 @@ file-event signal).
 The 2020-2026 window has seen supply chain compromise climb from
 fringe-tactic to top-3-attack-vector. WRG's Pattern 18 (trust-but-
 verify endpoint-supply-chain) v1.1 5-vaka super-cluster documents
-TeamPCP NPM + Cengaver browser + TeamPCP VSCode + IoT printer +
+TeamPCP NPM + browser-extension supply-chain + TeamPCP VSCode + IoT printer +
 Anthropic resmi marketplace plugin drift -- "even resmi vendor not
 exempt" critical observation. Pattern 5 here is the detection-side
 sister to Pattern 18's operational discipline.

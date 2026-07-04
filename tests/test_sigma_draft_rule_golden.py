@@ -9,8 +9,8 @@ skill layer may vary description wording.
 No pySigma importorskip here: draft_rule_body gracefully degrades without
 pySigma (Layer 4 G1). Tests assert on the G1 envelope when pySigma is absent.
 
-Sister R88-52b breach_corpus test design; V_api_shape Rule 2 pre-read
-discipline applied (B done report + draft_rule.py read BEFORE writing).
+Sister breach_corpus test design; pre-read
+discipline applied (prior done report + draft_rule.py read BEFORE writing).
 """
 from __future__ import annotations
 

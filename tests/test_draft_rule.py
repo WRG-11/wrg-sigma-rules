@@ -9,7 +9,7 @@ Layer 4 gate coverage:
   ``test_pattern_34_internal_domain_redacted``.
 * G5 (ASCII-only) -- ``test_ascii_only_output``.
 
-Sister R88-52d helper-impl first-attempt PASS pattern; 10-case happy +
+Sister helper-impl first-attempt PASS pattern; 10-case happy +
 edge + error.
 """
 from __future__ import annotations

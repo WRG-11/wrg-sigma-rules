@@ -107,5 +107,4 @@ Use `Write` tool with the validated YAML content.
 - Inventing TTP IDs (always cite a real `Txxxx` or omit the tag)
 - Wrapping in code comments instead of producing a parseable YAML document
 - Adding closure cues ("Hope this helps!", "Let me know if...") -- operator
-  drives next step (see `feedback_no_premature_closure.md` sister
-  discipline)
+  drives next step

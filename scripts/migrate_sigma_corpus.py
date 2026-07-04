@@ -1,6 +1,6 @@
 """Migrate WRG sigma rule corpus to plugin resources/examples.
 
-One-shot helper for R88-56d ship. Reads WRG threat-intel sigma sources
+One-shot helper for the sigma-corpus migration ship. Reads WRG threat-intel sigma sources
 and renders ~50 canonical sigma example rules into
 ``internal plus an
 INDEX.json with 3-dimensional indexing (MITRE ATT&CK tactic +
@@ -35,7 +35,7 @@ namespaces match the source modules so rule IDs stay stable).
 
 Usage::
 
-    cd D:/wrg-d-r88-56d
+    cd <repo-clone-path>
     py -3 internal script writes to
 ``internal plus
 ``resources/examples/INDEX.json``; canonical pattern catalog is
