@@ -1,8 +1,8 @@
 """MCP Resource module exposing the 5 canonical sigma detection patterns.
 
-Sister to ``wrg_mcp_server.tools.resources`` (1st canonical
+Sister to an internal MCP-server resources module (1st canonical
 Resource layer for WRG core; this module is the 2nd application of
-Pattern 33 Rule 6 Resources extension lifecycle).
+the Resources extension lifecycle).
 
 Resources exposed:
 
@@ -121,9 +121,8 @@ def register_canonical_pattern_resources(mcp: Any) -> None:
     MCP shim). Idempotent on import (decorator runs once per server
     construction).
 
-    Sister to ``wrg_mcp_server.tools.resources.register_corpus_resources``
-    (1st canonical; this is the 2nd Pattern 33 Rule 6
-    application).
+    Sister to an internal MCP-server corpus-resources registration helper
+    (1st canonical; this is the 2nd application).
 
     Note: the plugin's MCP server entry point (wired up in a follow-on
     change) is responsible for calling this function.

@@ -1,11 +1,11 @@
 """Unit tests for ``mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule`` tool.
 
-Layer 4 gate coverage:
-* G1 -- pySigma missing path simulated.
-* G2 -- backend missing path simulated (Splunk + Elastic).
-* G3 -- malformed YAML pre-conversion surfaces line + column.
-* G4 -- query string redacts internal identifiers if present.
-* G5 -- query / metadata strings ASCII-only.
+Design-discipline coverage:
+* pySigma missing path simulated.
+* Backend missing path simulated (Splunk + Elastic).
+* Malformed YAML pre-conversion surfaces line + column.
+* Query string redacts internal identifiers if present.
+* Query / metadata strings ASCII-only.
 """
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ def test_convert_empty_yaml_returns_input_missing() -> None:
 
 
 def test_convert_malformed_yaml_surfaces_parse_error() -> None:
-    # Layer 4 G3 -- pre-conversion parse error.
+    # Parse-error surfacing -- pre-conversion parse error.
     result = convert_rule_body(
         "title: only\nmalformed:::", target="splunk"
     )
@@ -80,7 +80,7 @@ def test_convert_malformed_yaml_surfaces_parse_error() -> None:
 
 
 def test_convert_redacts_internal_identifiers_in_query() -> None:
-    # Layer 4 G4 -- redact internal IPs that appear in the rule body.
+    # Always-redact -- redact internal IPs that appear in the rule body.
     yaml_str = (
         "title: Detect internal beacon\n"
         "id: 11111111-2222-3333-4444-555555555555\n"
@@ -100,7 +100,7 @@ def test_convert_redacts_internal_identifiers_in_query() -> None:
 
 
 def test_convert_ascii_only_query() -> None:
-    # Layer 4 G5 -- output query ASCII-only.
+    # ASCII-only -- output query ASCII-only.
     result = convert_rule_body(_good_yaml(), target="splunk")
     assert all(ord(c) < 128 for c in result["query"])
 
@@ -108,7 +108,7 @@ def test_convert_ascii_only_query() -> None:
 def test_convert_pysigma_missing_returns_actionable_envelope(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Layer 4 G1 -- pySigma core missing.
+    # pySigma-missing envelope -- pySigma core missing.
     import builtins
     original_import = builtins.__import__
 
@@ -128,7 +128,7 @@ def test_convert_pysigma_missing_returns_actionable_envelope(
 def test_convert_backend_missing_returns_actionable_envelope(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Layer 4 G2 -- backend extra missing.
+    # backend-missing envelope -- backend extra missing.
     import builtins
     original_import = builtins.__import__
 

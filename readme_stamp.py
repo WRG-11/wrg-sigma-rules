@@ -5,8 +5,8 @@ Counts the published sigma rule corpus and rewrites the in-place
 ``<!-- METRIC:sigma_rule_count -->N<!-- /METRIC:sigma_rule_count -->`` marker
 block(s) in README.md from ground truth.
 
-Marker convention is reused verbatim from the WinstonRedGuard monorepo helper
-``tools/update_readme_metrics.ps1`` (Pattern 47: reuse > reinvent) — the value
+Marker convention is reused verbatim from a companion WinstonRedGuard
+README-metrics helper (reuse > reinvent) — the value
 *between* the markers is replaced; surrounding Markdown is untouched, and a
 re-run with no corpus change is a no-op.
 
@@ -49,7 +49,7 @@ def count_rules(root: Path) -> int:
     return len(files)
 
 
-# marker name -> resolver(root) -> scalar value. Mirrors the monorepo metric
+# marker name -> resolver(root) -> scalar value. Mirrors a shared metric
 # registry shape so the on-disk marker format stays byte-identical.
 METRICS = {
     "sigma_rule_count": count_rules,
