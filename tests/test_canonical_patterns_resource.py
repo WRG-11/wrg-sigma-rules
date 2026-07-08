@@ -1,8 +1,8 @@
 """Smoke + content tests for the canonical sigma pattern URI resource.
 
-Sister convention to ``apps/wrg_mcp_server/tests/test_resources.py``
-(1st canonical Resource layer test surface; this file is the
-2nd application of Pattern 33 Rule 6 Resources extension lifecycle).
+Sister convention reused from an internal MCP-server resource test
+surface (1st canonical Resource layer test surface; this file is the
+2nd application of the Resources extension lifecycle).
 
 Test surface covers:
 
@@ -21,7 +21,7 @@ from pathlib import Path
 
 # Add the plugin's tools/ directory to sys.path so the resource module is
 # importable without installing the plugin as a package. Mirrors the
-# scaffolding convention used by wrg_mcp_server tests.
+# scaffolding convention used by an internal MCP-server test suite.
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PLUGIN_ROOT))
 

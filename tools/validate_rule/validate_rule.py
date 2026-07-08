@@ -6,7 +6,7 @@ Two-tier validation:
   shapes, sigma spec vocabulary). Runs without pySigma installed so the
   tool is useful for first-pass review even on a fresh checkout.
 * **pySigma layer** -- ``SigmaRule.from_yaml()`` round-trip. Surfaces line
-  + column where the parser exposes them (Layer 4 G3).
+  + column where the parser exposes them.
 
 Plus a small linter producing actionable warnings: missing references,
 empty falsepositives block, vague title, MITRE tag shape drift, condition
@@ -63,7 +63,7 @@ _UUID_RE = re.compile(
     r"[0-9a-f]{12}$"
 )
 
-# Layer 4 G4 -- same redaction pattern set as draft_rule, applied to
+# Always-redact -- same redaction pattern set as draft_rule, applied to
 # rule body strings before they are echoed back to the caller. Imported
 # duplication is intentional: validate_rule MUST be runnable independently.
 _REDACT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
@@ -416,7 +416,7 @@ def _redact_rule_dict(rule: dict[str, Any]) -> tuple[dict[str, Any], bool]:
     """Walk the rule dict and redact internal-looking identifiers in values.
 
     Returns ``(redacted_rule, was_redacted)``. Used to keep operator
-    infrastructure out of the response payload (Layer 4 G4).
+    infrastructure out of the response payload (always-redact discipline).
     """
     flagged = False
 

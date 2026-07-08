@@ -7,10 +7,10 @@ match -- the tool is deterministic but LLM-assisted enrichment at the
 skill layer may vary description wording.
 
 No pySigma importorskip here: draft_rule_body gracefully degrades without
-pySigma (Layer 4 G1). Tests assert on the G1 envelope when pySigma is absent.
+pySigma. Tests assert on the pySigma-missing envelope when pySigma is absent.
 
-Sister breach_corpus test design; pre-read
-discipline applied (prior done report + draft_rule.py read BEFORE writing).
+Pre-read discipline applied (prior done report + draft_rule.py read BEFORE
+writing).
 """
 from __future__ import annotations
 

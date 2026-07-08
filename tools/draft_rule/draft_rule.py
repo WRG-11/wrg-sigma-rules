@@ -8,25 +8,22 @@ LLM-assisted enrichment is the calling skill's responsibility
 
 Design discipline:
 
-* **Layer 4 G1** -- pySigma missing returns an actionable envelope including
-  the exact ``pip install`` command. The tool still produces a YAML draft
-  (best-effort) so the user can iterate without pySigma installed; only the
-  round-trip ``validation`` block is omitted.
-* **Layer 4 G3** -- YAML parse failures (post-draft pySigma round-trip)
-  surface line + column when the underlying parser exposes them.
-* **Layer 4 G4** -- Pattern 34 v1.1 always-redact: the user-supplied
-  ``description`` is char-capped + scrubbed for common operator-internal
-  identifier shapes (RFC1918 IPs, internal-style hostnames, simple email
-  patterns) before being baked into the rule. Replacement placeholders are
-  bracketed (``<internal-domain>``) so the operator can clearly see what was
-  redacted.
-* **Layer 4 G5** -- ASCII-only output (Pattern 33 Rule 5). YAML body is
-  re-encoded through ``ascii`` with ``replace`` errors handler before
-  return.
+* **pySigma-missing envelope** -- pySigma missing returns an actionable
+  envelope including the exact ``pip install`` command. The tool still
+  produces a YAML draft (best-effort) so the user can iterate without
+  pySigma installed; only the round-trip ``validation`` block is omitted.
+* **Parse-error surfacing** -- YAML parse failures (post-draft pySigma
+  round-trip) surface line + column when the underlying parser exposes them.
+* **Always-redact description** -- the user-supplied ``description`` is
+  char-capped + scrubbed for common operator-internal identifier shapes
+  (RFC1918 IPs, internal-style hostnames, simple email patterns) before
+  being baked into the rule. Replacement placeholders are bracketed
+  (``<internal-domain>``) so the operator can clearly see what was redacted.
+* **ASCII-only output** -- YAML body is re-encoded through ``ascii`` with
+  ``replace`` errors handler before return.
 
-Sister ``breach_corpus.py`` module-level register pattern;
-canonical_patterns_resource.py 2nd application; helper-impl
-first-attempt PASS reference.
+Sibling-module register pattern reused from elsewhere in the corpus
+tooling; first-attempt PASS reference.
 """
 from __future__ import annotations
 
@@ -36,7 +33,7 @@ import uuid
 from datetime import date
 from typing import Any
 
-# Layer 4 G4 -- redaction patterns. Applied to the user-supplied description
+# Always-redact patterns. Applied to the user-supplied description
 # BEFORE it is embedded in the YAML body. Kept conservative: only redact
 # shapes that look like operator-internal identifiers.
 _REDACT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
@@ -67,8 +64,8 @@ _REDACT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     ),
 )
 
-# Pattern 34 v1.1 cap. Mirrors the 800-char ceiling used by other WRG
-# OPSEC LLM-safe consumers (sister llm_incident_draft summary cap).
+# Always-redact cap. Mirrors the 800-char ceiling used by other WRG
+# OPSEC LLM-safe consumers elsewhere in the corpus tooling.
 _DESCRIPTION_CAP = 800
 
 # Severity vocabulary -- matches sigma spec ``level:`` field.
@@ -114,12 +111,12 @@ _PYSIGMA_INSTALL_HINT = (
 
 
 def _ascii_safe(text: str) -> str:
-    """Return text re-encoded as ASCII (Pattern 33 Rule 5 / Layer 4 G5)."""
+    """Return text re-encoded as ASCII (always-applied output normalisation)."""
     return text.encode("ascii", errors="replace").decode("ascii")
 
 
 def _redact_description(description: str) -> tuple[str, list[str]]:
-    """Apply Pattern 34 v1.1 always-redact + char cap to user description.
+    """Apply always-redact + char cap to user description.
 
     Returns ``(redacted_text, applied_redactions)``. ``applied_redactions``
     is a list of placeholder labels that were actually substituted at least
@@ -271,7 +268,8 @@ def _yaml_dump(payload: dict[str, Any]) -> str:
     """Serialize the rule dict to deterministic YAML.
 
     Avoids PyYAML's ``default_flow_style`` quirks by hand-emitting a stable
-    field order. ASCII-coerced before return (Layer 4 G5).
+    field order. ASCII-coerced before return (always-applied output
+    normalisation).
     """
     lines: list[str] = []
     # Stable, sigma-spec field order.
@@ -334,9 +332,9 @@ def _pysigma_validation(yaml_text: str) -> dict[str, Any]:
     """Round-trip the drafted YAML through pySigma when available.
 
     Returns ``{"available": bool, "valid": bool, "errors": [...], "hint": ...}``.
-    On ImportError: ``available=False`` + actionable G1 envelope. On parse
-    failure: ``valid=False`` + structured error (with line + column when the
-    parser exposes them; Layer 4 G3).
+    On ImportError: ``available=False`` + actionable pySigma-missing envelope.
+    On parse failure: ``valid=False`` + structured error (with line + column
+    when the parser exposes them).
     """
     try:
         from sigma.rule import SigmaRule
@@ -389,8 +387,8 @@ def draft_rule_body(
 
     Returns the schema described in ``skills/sigma-rule-writer/SKILL.md``:
     ``{yaml, validation, mitre_mapping, draft_notes}``. Every string field
-    is ASCII-coerced (Layer 4 G5). User-supplied ``description`` runs through
-    Pattern 34 v1.1 always-redact + cap (G4).
+    is ASCII-coerced. User-supplied ``description`` runs through the
+    always-redact + cap discipline described above.
 
     Public for testability; do not call MCP machinery here.
     """
@@ -419,7 +417,7 @@ def draft_rule_body(
     safe_description, applied_redactions = _redact_description(description)
     if applied_redactions:
         notes.append(
-            "Pattern 34 v1.1 redactions applied: "
+            "OPSEC redactions applied: "
             + ", ".join(applied_redactions)
         )
 
