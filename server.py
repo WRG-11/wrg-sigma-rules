@@ -2,9 +2,10 @@
 
 Glama runs this entry-point in a Docker container to perform automated
 safety/quality checks. The 3 MCP tools (draft_rule, validate_rule,
-convert_rule) are registered against a FastMCP instance and exposed
-over stdio — matching the transport Claude Code uses internally so the
-tool surface is identical across runtimes.
+convert_rule) plus the canonical-patterns resource are registered
+against a FastMCP instance and exposed over stdio — matching the
+transport Claude Code uses internally so the tool surface is identical
+across runtimes.
 
 This is the standalone counterpart to the Claude Code plugin runtime,
 which mounts the same ``tools/`` package via ``.claude-plugin/plugin.json``.
@@ -26,6 +27,9 @@ from mcp.server.fastmcp import FastMCP
 
 from tools.convert_rule import register_convert_rule_tool
 from tools.draft_rule import register_draft_rule_tool
+from tools.resources.canonical_patterns_resource import (
+    register_canonical_pattern_resources,
+)
 from tools.validate_rule import register_validate_rule_tool
 
 # Server name surfaces in MCP client tool catalogs; mirror the Claude Code
@@ -35,6 +39,7 @@ mcp = FastMCP("wrg-sigma-rules")
 register_draft_rule_tool(mcp)
 register_validate_rule_tool(mcp)
 register_convert_rule_tool(mcp)
+register_canonical_pattern_resources(mcp)
 
 
 def main() -> int:

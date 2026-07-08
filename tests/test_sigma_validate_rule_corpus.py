@@ -43,11 +43,12 @@ _CORPUS_RULES = _collect_corpus_rules()
 # this test scaffold. These are KNOWN and ACCEPTED; each entry documents
 # the known schema defect. These should be fixed in a future pass.
 # Keyed by file stem -> list of allowed schema error field values.
-_KNOWN_SCHEMA_QUALITY_ISSUES: dict[str, list[str]] = {
-    # Crypto-trace rule migrated from wrg_threat_intel fixtures; original ID
-    # was a zero-UUID placeholder. Fix: generate a stable UUIDv5 in a future pass.
-    "observed_sigma_rule_lockbit_btc": ["id"],
-}
+#
+# R89-568h: the nil-UUID entry for observed_sigma_rule_lockbit_btc was
+# removed here -- _UUID_RE now accepts the nil UUID as a valid RFC 4122
+# special case, so that rule's zero-UUID id no longer produces a schema
+# error and needs no allowlisting.
+_KNOWN_SCHEMA_QUALITY_ISSUES: dict[str, list[str]] = {}
 
 
 @pytest.mark.parametrize(

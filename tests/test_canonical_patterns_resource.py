@@ -127,3 +127,27 @@ def test_canonical_pattern_by_id_includes_reference_rules() -> None:
         assert "Reference rules from corpus" in body, (
             f"pattern {pid} missing reference rules"
         )
+
+
+def test_canonical_pattern_resources_wired_into_server() -> None:
+    # R89-568h #9: every test above calls the *_body() functions directly,
+    # bypassing the MCP machinery entirely -- they would all still pass even
+    # if register_canonical_pattern_resources() were never called by any
+    # real server (which was the case until this fix: server.py registered
+    # the 3 tools but not this resource module, so a real MCP client could
+    # never actually reach wrg-sigma://patterns/canonical-5). Import the
+    # real server module and assert the resource + template are genuinely
+    # registered on it, closing that gap.
+    import asyncio
+
+    import server as server_module
+
+    resource_uris = {
+        str(r.uri) for r in asyncio.run(server_module.mcp.list_resources())
+    }
+    template_uris = {
+        t.uriTemplate
+        for t in asyncio.run(server_module.mcp.list_resource_templates())
+    }
+    assert "wrg-sigma://patterns/canonical-5" in resource_uris
+    assert "wrg-sigma://patterns/canonical-5/{pattern_id}" in template_uris

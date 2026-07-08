@@ -27,11 +27,12 @@ tooling; first-attempt PASS reference.
 """
 from __future__ import annotations
 
-import json
 import re
 import uuid
 from datetime import date
 from typing import Any
+
+import yaml
 
 # Always-redact patterns. Applied to the user-supplied description
 # BEFORE it is embedded in the YAML body. Kept conservative: only redact
@@ -251,80 +252,45 @@ def _draft_detection_block(
     return {"selection": {"REPLACE_ME": "value"}, "condition": "selection"}
 
 
-def _yaml_inline(value: Any) -> str:
-    """Collapse control characters so an emitted value cannot break out of its
-    single YAML line.
-
-    The serializer below is hand-rolled (no PyYAML dep), so a raw newline in a
-    user-supplied value (e.g. a ``references`` URL) would otherwise escape its
-    list/scalar context and inject a sibling YAML node. Collapsing the C0/C1
-    control range to a single space neutralizes that without re-quoting --
-    behaviour-neutral for clean inputs, which contain no control characters.
-    """
-    return re.sub(r"[\x00-\x1f\x7f]+", " ", str(value)).strip()
+# Stable, sigma-spec field order for the emitted YAML.
+_FIELD_ORDER: tuple[str, ...] = (
+    "title",
+    "id",
+    "status",
+    "description",
+    "references",
+    "author",
+    "date",
+    "logsource",
+    "detection",
+    "falsepositives",
+    "level",
+    "tags",
+)
 
 
 def _yaml_dump(payload: dict[str, Any]) -> str:
     """Serialize the rule dict to deterministic YAML.
 
-    Avoids PyYAML's ``default_flow_style`` quirks by hand-emitting a stable
-    field order. ASCII-coerced before return (always-applied output
-    normalisation).
+    Uses ``yaml.safe_dump`` rather than a hand-rolled emitter: the prior
+    hand-rolled version only quoted top-level scalars (for a leading
+    special char or an embedded ``:``) and never quoted list items or
+    nested dict values -- a ``references`` URL containing `` #`` (inline
+    comment start) or a nested ``detection`` value containing ``:`` would
+    silently corrupt the rule on re-parse instead of erroring. safe_dump
+    quotes correctly in every position. ``sort_keys=False`` preserves
+    ``_FIELD_ORDER`` (payload is filtered into that order below);
+    ``allow_unicode=False`` keeps this tool's always-ASCII contract at
+    the YAML-escaping level, on top of the ``_ascii_safe`` pass below.
     """
-    lines: list[str] = []
-    # Stable, sigma-spec field order.
-    field_order = (
-        "title",
-        "id",
-        "status",
-        "description",
-        "references",
-        "author",
-        "date",
-        "logsource",
-        "detection",
-        "falsepositives",
-        "level",
-        "tags",
+    ordered = {key: payload[key] for key in _FIELD_ORDER if key in payload}
+    body = yaml.safe_dump(
+        ordered,
+        sort_keys=False,
+        allow_unicode=False,
+        default_flow_style=False,
+        width=120,
     )
-    for key in field_order:
-        if key not in payload:
-            continue
-        value = payload[key]
-        if isinstance(value, list):
-            if not value:
-                lines.append(f"{key}: []")
-                continue
-            lines.append(f"{key}:")
-            for item in value:
-                lines.append(f"  - {_yaml_inline(item)}")
-        elif isinstance(value, dict):
-            lines.append(f"{key}:")
-            for sub_key, sub_value in value.items():
-                if isinstance(sub_value, dict):
-                    lines.append(f"  {_yaml_inline(sub_key)}:")
-                    for k2, v2 in sub_value.items():
-                        lines.append(f"    {_yaml_inline(k2)}: {_yaml_inline(v2)}")
-                elif isinstance(sub_value, list):
-                    lines.append(f"  {_yaml_inline(sub_key)}:")
-                    for item in sub_value:
-                        lines.append(f"    - {_yaml_inline(item)}")
-                else:
-                    lines.append(f"  {_yaml_inline(sub_key)}: {_yaml_inline(sub_value)}")
-        else:
-            # Strings with leading special chars or embedded colons get
-            # single-quoted to keep YAML deterministic. Control chars are
-            # collapsed first so a newline cannot break out of the line; the
-            # ':'-quoting logic is otherwise unchanged.
-            cleaned = _yaml_inline(value)
-            if isinstance(value, str) and (
-                ":" in cleaned or cleaned.startswith(("'", '"', "@", "%", "!"))
-            ):
-                escaped = cleaned.replace("'", "''")
-                lines.append(f"{key}: '{escaped}'")
-            else:
-                lines.append(f"{key}: {cleaned}")
-    body = "\n".join(lines) + "\n"
     return _ascii_safe(body)
 
 

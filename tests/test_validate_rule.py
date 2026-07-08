@@ -89,7 +89,7 @@ def test_validate_invalid_level_flagged() -> None:
 def test_validate_linter_flags_empty_references() -> None:
     yaml_str = (
         "title: A short title\n"
-        "id: 11111111-2222-3333-4444-555555555555\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
         "description: a real description over ten characters\n"
         "logsource: {category: process_creation}\n"
         "detection:\n  selection: {Image|endswith: bad.exe}\n"
@@ -106,7 +106,7 @@ def test_validate_linter_flags_empty_references() -> None:
 def test_validate_linter_passes_clean_rule_no_warnings_except_default() -> None:
     yaml_str = (
         "title: PowerShell encoded payload via -enc flag\n"
-        "id: 11111111-2222-3333-4444-555555555555\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
         "description: a real description over ten characters\n"
         "references:\n  - https://attack.mitre.org/T1059.001/\n"
         "falsepositives:\n  - Legit admin scripts\n"
@@ -141,7 +141,7 @@ def test_validate_pattern_34_redacts_internal_identifiers() -> None:
 def test_validate_strict_mode_promotes_warnings() -> None:
     yaml_str = (
         "title: A short title\n"
-        "id: 11111111-2222-3333-4444-555555555555\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
         "description: a real description over ten characters\n"
         "logsource: {category: process_creation}\n"
         "detection:\n  selection: {Image|endswith: bad.exe}\n"
@@ -155,6 +155,124 @@ def test_validate_strict_mode_promotes_warnings() -> None:
     assert any(
         e.get("kind") == "linter_strict" for e in strict["schema_errors"]
     )
+
+
+def test_validate_oversized_input_rejected_before_parse() -> None:
+    # DoS guard -- input over the byte cap is rejected before any YAML
+    # parsing happens.
+    oversized = "title: " + ("A" * (300 * 1024)) + "\n"
+    result = validate_rule_body(oversized)
+    assert result["valid"] is False
+    assert any(
+        e.get("kind") == "input_too_large" for e in result["schema_errors"]
+    )
+
+
+def test_validate_yaml_alias_bomb_rejected_not_expanded() -> None:
+    # Classic "billion laughs": 12 levels of 10-way fan-out is a <1KB
+    # source but ~10^12 logical elements if naively expanded. PyYAML
+    # resolves aliases to shared object references so raw parsing alone
+    # would stay fast -- the real risk is downstream code (this module's
+    # own redaction walk, JSON serialization) walking that shared graph
+    # without reference-awareness. Anchors/aliases are rejected outright
+    # rather than trusted to be "small enough".
+    lines = ['a0: &a0 ["x","x","x","x","x","x","x","x","x","x"]']
+    for i in range(1, 12):
+        prev = f"a{i - 1}"
+        lines.append(
+            f"a{i}: &a{i} [*{prev},*{prev},*{prev},*{prev},*{prev},"
+            f"*{prev},*{prev},*{prev},*{prev},*{prev}]"
+        )
+    bomb = (
+        "\n".join(lines) + "\n"
+        "title: bomb\nid: 11111111-2222-3333-4444-555555555555\n"
+        "logsource: {category: x}\n"
+        "detection:\n  selection:\n    field: *a11\n  condition: selection\n"
+    )
+    assert len(bomb.encode("utf-8")) < 1024  # confirms this isn't caught by the size cap
+
+    result = validate_rule_body(bomb)
+    assert result["ok"] is True  # completes promptly, does not hang/crash
+    assert result["valid"] is False
+    assert any(
+        e.get("kind") == "yaml_alias_rejected" for e in result["schema_errors"]
+    )
+
+
+def test_validate_deeply_nested_yaml_recursion_error_caught() -> None:
+    # #14a -- deep-but-alias-free nesting must not escape as an uncaught
+    # RecursionError; it should surface as a clean error envelope instead.
+    # Flow-style nested brackets genuinely deepen the parser's call stack
+    # (unlike repeating a block-style key at constant indent, which is
+    # just a flat mapping with a duplicate key).
+    deep_value = "[" * 2000 + "]" * 2000
+    yaml_str = (
+        "title: deep\nid: 11111111-2222-3333-8444-555555555555\n"
+        "logsource: {category: x}\n"
+        f"detection:\n  selection:\n    a: {deep_value}\n  condition: selection\n"
+    )
+    result = validate_rule_body(yaml_str)
+    assert result["ok"] is True  # no uncaught RecursionError crash
+    assert result["valid"] is False
+    assert any(e.get("kind") == "yaml_parse" for e in result["schema_errors"])
+
+
+def test_validate_uuid_v6_v7_v8_and_nil_accepted() -> None:
+    # #14b -- UUIDv6/v7/v8 (RFC 9562) and the nil UUID must not be flagged;
+    # only the version/variant nibbles matter, not the exact bytes.
+    ids = [
+        "1ec9414c-232a-6b00-b3c8-9e6bdeced846",  # v6
+        "017f22e2-79b0-7cc3-98c4-dc0c0c07398f",  # v7
+        "0d8f23a0-697f-83ae-802e-0129e73c7263",  # v8
+        "00000000-0000-0000-0000-000000000000",  # nil
+    ]
+    for rule_id in ids:
+        yaml_str = (
+            f"title: id test\nid: {rule_id}\n"
+            "logsource: {category: x}\n"
+            "detection:\n  selection: {a: 1}\n  condition: selection\n"
+        )
+        result = validate_rule_body(yaml_str)
+        id_errors = [e for e in result["schema_errors"] if e.get("field") == "id"]
+        assert id_errors == [], f"{rule_id} unexpectedly flagged: {id_errors}"
+
+
+def test_validate_multi_doc_first_doc_valid_does_not_force_invalid() -> None:
+    # #14c -- a multi-document YAML whose first document is otherwise
+    # clean must stay valid=True; the multi-doc notice is informational.
+    yaml_str = (
+        "title: A clean first document over five chars\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1059.001/\n"
+        "falsepositives:\n  - Legit admin scripts\n"
+        "logsource: {category: process_creation}\n"
+        "detection:\n  selection: {CommandLine|contains: bad}\n"
+        "  condition: selection\n"
+        "level: high\ntags:\n  - attack.t1059.001\n"
+        "---\n"
+        "title: second document\nid: 22222222-3333-4444-5555-666666666666\n"
+    )
+    result = validate_rule_body(yaml_str)
+    assert any(
+        e.get("kind") == "multi_doc" for e in result["schema_errors"]
+    )
+    assert result["valid"] is True
+
+
+def test_validate_multi_doc_with_real_error_still_invalid() -> None:
+    # multi_doc must not mask a GENUINE schema error in the first document.
+    yaml_str = (
+        "title: foo\nid: 11111111-2222-3333-4444-555555555555\n"
+        "logsource: {category: x}\n"  # detection missing -> real error
+        "---\n"
+        "title: second document\n"
+    )
+    result = validate_rule_body(yaml_str)
+    assert result["valid"] is False
+    kinds = {e.get("kind") for e in result["schema_errors"]}
+    assert "multi_doc" in kinds
+    assert "schema" in kinds
 
 
 def test_validate_pysigma_missing_returns_actionable_envelope(

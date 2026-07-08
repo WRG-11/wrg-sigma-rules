@@ -23,12 +23,9 @@ RUN groupadd --system mcp && useradd --system --gid mcp --create-home mcp
 WORKDIR /app
 
 # Install plugin runtime deps (cache layer; rebuild only when reqs change).
-# `mcp` SDK is installed inline rather than baked into requirements.txt so
-# the Claude Code plugin runtime (which already provides MCP) is not forced
-# to install a redundant copy.
+# `mcp` SDK is pinned in requirements.txt like every other runtime dep.
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
- && pip install --no-cache-dir "mcp>=1.0"
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy server entrypoint + tool source. Skills/rules/tests/scripts excluded
 # via .dockerignore — Glama runs the MCP server, not the Claude Code
