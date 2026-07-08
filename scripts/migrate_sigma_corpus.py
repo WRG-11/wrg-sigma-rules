@@ -19,7 +19,7 @@ Sources (V_api_shape Rule 2 pre-write reads):
 * ``apps/wrg_ai_fingerprint_sigma/tests/fixtures/expected_sigma_output.yml``
   -- 5 detector goldens (multi-doc YAML).
 
-LLM-safe redaction discipline (Pattern 34 v1.1 sister application):
+LLM-safe redaction discipline (OPSEC redactions applied):
 
 1. ``WRG-[A-Z0-9-]+`` -> ``WRG-INTERNAL`` (actor catalog ID redact).
 2. ``apps/wrg_[a-z_]+`` -> ``apps/<wrg-app>`` (internal path redact).
@@ -27,6 +27,10 @@ LLM-safe redaction discipline (Pattern 34 v1.1 sister application):
    ``sk-[A-Za-z0-9]{20,}`` -> ``<PII_REDACTED>`` (key regex sweep).
 4. Non-ASCII chars normalised (em-dash -> ``--``, smart quotes ->
    straight quotes); final ``encode('ascii')`` round-trip verify.
+5. Internal delivery-gate names, pattern-catalog version tags, and
+   sibling-module identifiers -> genericised (taxonomy redact, added
+   after a 2026-07-08 public-repo content audit found these leaking
+   into rendered rule text).
 
 Char cap per rule <= 2000 (verbose rules truncated with warning).
 
@@ -69,7 +73,7 @@ sys.path.insert(0, str(WRG_AI_FP_SIGMA_SRC))
 
 
 # ---------------------------------------------------------------------------
-# LLM-safe redaction discipline (Pattern 34 v1.1 sister)
+# LLM-safe redaction discipline (OPSEC redactions applied)
 # ---------------------------------------------------------------------------
 
 # WRG-NN (pure digits) is the public GitHub org name (WRG-11) -- legitimate
@@ -80,6 +84,12 @@ _INTERNAL_PATH_RE = re.compile(r"apps/wrg_[a-z_]+")
 _AWS_KEY_RE = re.compile(r"AKIA[0-9A-Z]{16}")
 _GITHUB_PAT_RE = re.compile(r"gh[ps]_[A-Za-z0-9]{36,}")
 _OPENAI_KEY_RE = re.compile(r"sk-[A-Za-z0-9]{20,}")
+# R89-567f content-audit follow-up: internal delivery-gate naming, the
+# pattern-catalog internal version tag, and sibling monorepo module names
+# leak into rendered rule text same as secrets/IDs above -- redact them too.
+_DELIVERY_GATE_RE = re.compile(r"Layer 4 G\d")
+_PATTERN_VERSION_RE = re.compile(r"Pattern \d+ v\d(?:\.\d+)?")
+_SIBLING_MODULE_RE = re.compile(r"\b(?:breach_corpus|llm_incident\w*|wrg_mcp_server)\b")
 
 _ASCII_NORMALISE = {
     "—": "--",   # em-dash
@@ -102,6 +112,9 @@ def redact_llm_safe(text: str) -> str:
     out = _AWS_KEY_RE.sub("<PII_REDACTED>", out)
     out = _GITHUB_PAT_RE.sub("<PII_REDACTED>", out)
     out = _OPENAI_KEY_RE.sub("<PII_REDACTED>", out)
+    out = _DELIVERY_GATE_RE.sub("detection layer", out)
+    out = _PATTERN_VERSION_RE.sub("OPSEC redaction applied", out)
+    out = _SIBLING_MODULE_RE.sub("<wrg-sibling-module>", out)
     for src, dst in _ASCII_NORMALISE.items():
         out = out.replace(src, dst)
     # Final encoding round-trip verify (strip remaining non-ASCII)

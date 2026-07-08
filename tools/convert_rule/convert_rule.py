@@ -11,16 +11,16 @@ requirements):
   Elasticsearch under the hood; same Lucene output is operational with
   caveats noted in the warnings array).
 
-Each backend ships separately on PyPI. Layer 4 G2 -- missing backend
-returns an actionable envelope including the exact ``pip install`` command.
+Each backend ships separately on PyPI. Missing backend returns an
+actionable envelope including the exact ``pip install`` command.
 
-Layer 4 gate coverage:
-* G1 -- pySigma missing returns an actionable envelope.
-* G2 -- backend missing returns an actionable envelope with the specific
+Design-discipline coverage:
+* pySigma missing returns an actionable envelope.
+* Backend missing returns an actionable envelope with the specific
   ``pip install`` hint.
-* G3 -- pre-conversion YAML parse failure surfaces line + column.
-* G4 -- output redacts internal-looking identifiers before echo.
-* G5 -- ASCII-only output.
+* Pre-conversion YAML parse failure surfaces line + column.
+* Output redacts internal-looking identifiers before echo.
+* ASCII-only output.
 """
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ _PYSIGMA_INSTALL_HINT = (
 # Backend registry: ``key -> (loader, install_hint, query_hint)``.
 # ``loader`` is a thin callable that imports + constructs the backend on
 # demand so missing extras only blow up for the specific call that needs
-# them (Layer 4 G2). Each entry returns a (backend_instance, target_label)
+# them. Each entry returns a (backend_instance, target_label)
 # tuple.
 _BACKEND_KEYS: tuple[str, ...] = (
     "splunk",
@@ -49,7 +49,7 @@ def _ascii_safe(text: str) -> str:
 
 
 def _redact_string(value: str) -> tuple[str, bool]:
-    """Layer 4 G4 -- redact operator-internal identifier shapes in a string."""
+    """Always-redact -- redact operator-internal identifier shapes in a string."""
     if not isinstance(value, str):
         return value, False
     redacted = value
@@ -92,7 +92,7 @@ _REDACT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
 
 
 def _missing_pysigma_envelope() -> dict[str, Any]:
-    """Layer 4 G1 envelope -- pySigma core missing."""
+    """pySigma-missing envelope -- pySigma core missing."""
     return {
         "ok": False,
         "error": "pySigma not installed",
@@ -106,7 +106,7 @@ def _missing_pysigma_envelope() -> dict[str, Any]:
 def _missing_backend_envelope(
     target: str, package: str
 ) -> dict[str, Any]:
-    """Layer 4 G2 envelope -- specific backend missing, actionable hint."""
+    """Backend-missing envelope -- specific backend missing, actionable hint."""
     return {
         "ok": False,
         "error": f"backend '{target}' not installed",

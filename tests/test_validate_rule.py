@@ -1,12 +1,12 @@
 """Unit tests for ``mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`` tool.
 
-Layer 4 gate coverage:
-* G1 -- pySigma missing path simulated via monkeypatch.
-* G3 -- malformed YAML triggers ``line`` + ``column`` in schema_errors.
-* G4 -- internal-looking identifiers redacted in the rule preview echo.
-* G5 -- output strings ASCII-only.
+Design-discipline coverage:
+* pySigma missing path simulated via monkeypatch.
+* Malformed YAML triggers ``line`` + ``column`` in schema_errors.
+* Internal-looking identifiers redacted in the rule preview echo.
+* Output strings ASCII-only.
 
-Sister first-attempt PASS discipline.
+First-attempt PASS discipline.
 """
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ def test_validate_empty_input_returns_error_envelope() -> None:
 
 
 def test_validate_malformed_yaml_surfaces_line_and_column() -> None:
-    # Layer 4 G3 -- parse error must include line + column.
+    # Parse-error surfacing -- parse error must include line + column.
     bad = "title: foo\nbad indent\n  detection:"
     result = validate_rule_body(bad)
     assert result["valid"] is False
@@ -125,7 +125,7 @@ def test_validate_linter_passes_clean_rule_no_warnings_except_default() -> None:
 
 
 def test_validate_pattern_34_redacts_internal_identifiers() -> None:
-    # Layer 4 G4 -- internal IP / corp domain redacted in echo.
+    # Always-redact -- internal IP / corp domain redacted in echo.
     yaml_str = _good_yaml().replace(
         "Unknown",
         "see acme.corp host 10.10.5.42 user joe@example.com",
@@ -160,7 +160,7 @@ def test_validate_strict_mode_promotes_warnings() -> None:
 def test_validate_pysigma_missing_returns_actionable_envelope(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Layer 4 G1 -- simulate ImportError.
+    # pySigma-missing envelope -- simulate ImportError.
     import builtins
     original_import = builtins.__import__
 

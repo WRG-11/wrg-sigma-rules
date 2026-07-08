@@ -1,16 +1,15 @@
 """Unit tests for ``mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__draft_rule`` tool.
 
-Layer 4 gate coverage:
-* G1 (pySigma missing) -- ``test_pysigma_missing_returns_actionable_envelope``
+Design-discipline coverage:
+* pySigma-missing envelope -- ``test_pysigma_missing_returns_actionable_envelope``
   uses monkeypatch to simulate ImportError.
-* G3 (YAML line + column) -- covered via the validate_rule tests; draft
+* YAML line + column -- covered via the validate_rule tests; draft
   itself produces parseable YAML by construction.
-* G4 (Pattern 34 redact) -- ``test_pattern_34_redaction_applied`` /
+* Always-redact -- ``test_pattern_34_redaction_applied`` /
   ``test_pattern_34_internal_domain_redacted``.
-* G5 (ASCII-only) -- ``test_ascii_only_output``.
+* ASCII-only -- ``test_ascii_only_output``.
 
-Sister helper-impl first-attempt PASS pattern; 10-case happy +
-edge + error.
+10-case happy + edge + error coverage pattern.
 """
 from __future__ import annotations
 
@@ -55,7 +54,7 @@ def test_draft_rule_invalid_severity_returns_error() -> None:
 
 
 def test_pattern_34_redaction_applied() -> None:
-    # Layer 4 G4 -- internal IP must be replaced with placeholder.
+    # Always-redact -- internal IP must be replaced with placeholder.
     result = draft_rule_body(
         "C2 beaconing from 10.10.5.42 to attacker server",
         rule_type="network_connection",
@@ -69,7 +68,7 @@ def test_pattern_34_redaction_applied() -> None:
 
 
 def test_pattern_34_internal_domain_redacted() -> None:
-    # Layer 4 G4 -- ``.corp`` / ``.internal`` suffixes redacted.
+    # Always-redact -- ``.corp`` / ``.internal`` suffixes redacted.
     result = draft_rule_body(
         "User joe@acme.corp received phishing link from finance.lan",
         rule_type="authentication",
@@ -80,7 +79,7 @@ def test_pattern_34_internal_domain_redacted() -> None:
 
 
 def test_ascii_only_output() -> None:
-    # Layer 4 G5 -- em-dashes + non-ASCII inputs scrubbed in YAML body.
+    # ASCII-only -- em-dashes + non-ASCII inputs scrubbed in YAML body.
     result = draft_rule_body(
         "Detect command-line encoded payload — T1027",
         rule_type="process_creation",
@@ -90,7 +89,7 @@ def test_ascii_only_output() -> None:
 
 
 def test_pysigma_missing_returns_actionable_envelope(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Layer 4 G1 -- simulate pySigma not installed.
+    # pySigma-missing envelope -- simulate pySigma not installed.
     import builtins
     original_import = builtins.__import__
 
