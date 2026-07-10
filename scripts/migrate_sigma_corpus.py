@@ -84,7 +84,7 @@ _INTERNAL_PATH_RE = re.compile(r"apps/wrg_[a-z_]+")
 _AWS_KEY_RE = re.compile(r"AKIA[0-9A-Z]{16}")
 _GITHUB_PAT_RE = re.compile(r"gh[ps]_[A-Za-z0-9]{36,}")
 _OPENAI_KEY_RE = re.compile(r"sk-[A-Za-z0-9]{20,}")
-# R89-567f content-audit follow-up: internal delivery-gate naming, the
+# Content-audit follow-up: internal delivery-gate naming, the
 # pattern-catalog internal version tag, and sibling monorepo module names
 # leak into rendered rule text same as secrets/IDs above -- redact them too.
 _DELIVERY_GATE_RE = re.compile(r"Layer 4 G\d")

@@ -1,7 +1,7 @@
 # opsec_jargon scanner allowlist (one regex per line, matched against the
 # full source line; see the scanning tool's local-ignore convention).
 #
-# R89-567f (2026-07-08): the sibling-module redaction pattern below must
+# The sibling-module redaction pattern below must
 # name the module identifiers it redacts to function at all -- same as a
 # profanity filter's source necessarily lists the words it blocks. This is
 # the redaction rule itself, not a jargon leak into prose/output.
