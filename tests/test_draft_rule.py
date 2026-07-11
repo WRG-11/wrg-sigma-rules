@@ -163,12 +163,35 @@ def test_yaml_emit_neutralizes_reference_newline_injection() -> None:
 
 def test_yaml_emit_leaves_normal_url_reference_unquoted() -> None:
     # Behaviour-neutral: a clean URL reference (which contains ':') stays an
-    # unquoted list item. The ':'-quoting rule applies to scalars, not list
-    # items, and control-char collapse never requotes.
+    # unquoted list item -- YAML's plain-scalar rule only requires quoting
+    # a colon followed by whitespace, which "https://..." never is.
     result = draft_rule_body(
         "Detect suspicious activity",
         references=["https://attack.mitre.org/techniques/T1059/"],
     )
     assert result["ok"] is True
-    assert "  - https://attack.mitre.org/techniques/T1059/" in result["yaml"]
+    lines = result["yaml"].splitlines()
+    assert any(
+        line.lstrip() == "- https://attack.mitre.org/techniques/T1059/"
+        for line in lines
+    )
     assert "'https://attack.mitre.org" not in result["yaml"]
+
+
+def test_yaml_emit_round_trips_reference_with_colon_and_hash() -> None:
+    # Round-trip property (R89-568h #12): the prior hand-rolled emitter only
+    # quoted problem characters in TOP-LEVEL scalars -- a list item
+    # containing ':' re-parsed as a nested one-key mapping instead of a
+    # plain string, and an inline ' #' anywhere silently truncated the rest
+    # of the value as a YAML comment. safe_dump quotes correctly in every
+    # position, so the parsed rule must reproduce the input exactly.
+    import yaml
+
+    tricky_refs = [
+        "Note: see section 3:15 for details",
+        "http://example.com/path #not-a-comment",
+    ]
+    result = draft_rule_body("Detect suspicious activity", references=tricky_refs)
+    assert result["ok"] is True
+    parsed = yaml.safe_load(result["yaml"])
+    assert parsed["references"] == tricky_refs

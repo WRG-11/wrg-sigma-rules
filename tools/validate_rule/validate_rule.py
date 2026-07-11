@@ -58,9 +58,12 @@ _VALID_STATUSES: frozenset[str] = frozenset(
 )
 
 _MITRE_TAG_RE = re.compile(r"^attack\.t\d{4}(?:\.\d{3})?$")
+# Versions 1-8 (RFC 4122 + RFC 9562 UUIDv6/v7/v8) share the same variant
+# nibble encoding; the nil UUID (all zeros) is RFC 4122's one explicit
+# exception and is accepted as an alternate branch.
 _UUID_RE = re.compile(
-    r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-"
-    r"[0-9a-f]{12}$"
+    r"^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-"
+    r"[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$"
 )
 
 # Always-redact -- same redaction pattern set as draft_rule, applied to
@@ -109,16 +112,107 @@ def _redact_string(value: str) -> tuple[str, bool]:
     return redacted, flagged
 
 
+_MAX_YAML_INPUT_BYTES = 256 * 1024  # plain-oversized-input guard
+
+
+class _AnchorAliasDetectingLoader(yaml.SafeLoader):
+    """SafeLoader that records whether the document used any ``&anchor``
+    or ``*alias``, without altering parse behaviour.
+
+    ``Composer.compose_document`` resets ``self.anchors`` back to ``{}``
+    once a document finishes composing (anchors are per-document scope),
+    so checking ``loader.anchors`` after the fact always reads empty --
+    the sighting has to be recorded as it happens via this hook instead.
+    """
+
+    def __init__(self, stream: Any) -> None:
+        super().__init__(stream)
+        self.saw_anchor_or_alias = False
+
+    def compose_node(self, parent: Any, index: Any) -> Any:
+        event = self.peek_event()
+        if getattr(event, "anchor", None) or isinstance(event, yaml.events.AliasEvent):
+            self.saw_anchor_or_alias = True
+        return super().compose_node(parent, index)
+
+
+def _contains_yaml_anchor_or_alias(yaml_content: str) -> bool:
+    """Return True if any YAML document in ``yaml_content`` uses anchors/aliases.
+
+    Sigma rules have no legitimate need for YAML anchors/aliases. PyYAML
+    resolves an alias to the SAME constructed Python object as its anchor
+    (reference-sharing, not a copy) -- parsing itself stays fast even at
+    absurd logical nesting depth (empirically: a <1KB document expressing
+    10^12 logical list elements parses in under a millisecond). The
+    exponential blowup instead hits ANY code that later walks/serializes
+    that graph without reference-awareness (this module's own redaction
+    walk, JSON serialization of the response, etc.) -- a byte-size cap on
+    the source text does not bound that at all. Rejecting anchor/alias
+    syntax outright avoids the whole downstream risk class.
+    """
+    loader = _AnchorAliasDetectingLoader(yaml_content)
+    try:
+        while loader.check_data():
+            loader.get_data()
+    finally:
+        loader.dispose()
+    return loader.saw_anchor_or_alias
+
+
 def _parse_yaml(yaml_content: str) -> tuple[Any, list[dict[str, Any]]]:
     """Parse YAML; return ``(doc_or_None, schema_errors)``.
 
     Schema errors include line + column when PyYAML exposes them. Multi-doc
     YAML (``---`` separated) is supported -- only the first document is
-    returned; subsequent documents produce a warning-class schema error.
+    returned; subsequent documents produce a ``multi_doc`` notice that does
+    not by itself flip the caller's ``valid`` flag to False.
+
+    Two DoS guards run before the real parse: a byte-size cap (plain
+    oversized input) and an anchor/alias rejection (billion-laughs --
+    see ``_contains_yaml_anchor_or_alias``). Deeply-nested-but-alias-free
+    documents can still blow Python's recursion limit inside the YAML
+    parser itself; that is caught separately as ``RecursionError`` below.
     """
     errors: list[dict[str, Any]] = []
+    content_bytes = len(yaml_content.encode("utf-8", errors="replace"))
+    if content_bytes > _MAX_YAML_INPUT_BYTES:
+        errors.append(
+            {
+                "message": (
+                    f"YAML input too large ({content_bytes} bytes > "
+                    f"{_MAX_YAML_INPUT_BYTES} byte cap); rejected before parsing"
+                ),
+                "kind": "input_too_large",
+            }
+        )
+        return None, errors
+    # Both the anchor/alias scan and the real parse below walk the document
+    # via PyYAML's (recursive) composer, so a deeply-nested-but-alias-free
+    # document can raise RecursionError from EITHER call -- one shared
+    # handler covers both rather than duplicating the except-clause.
     try:
+        if _contains_yaml_anchor_or_alias(yaml_content):
+            errors.append(
+                {
+                    "message": (
+                        "YAML anchors/aliases (&name / *name) are not "
+                        "accepted -- sigma rules have no legitimate use for "
+                        "them and they enable alias-expansion "
+                        "('billion laughs') DoS"
+                    ),
+                    "kind": "yaml_alias_rejected",
+                }
+            )
+            return None, errors
         docs = list(yaml.safe_load_all(yaml_content))
+    except RecursionError:
+        errors.append(
+            {
+                "message": "YAML nesting too deep to parse safely (RecursionError)",
+                "kind": "yaml_parse",
+            }
+        )
+        return None, errors
     except yaml.YAMLError as exc:
         err: dict[str, Any] = {
             "message": _ascii_safe(str(exc)),
@@ -143,7 +237,7 @@ def _parse_yaml(yaml_content: str) -> tuple[Any, list[dict[str, Any]]]:
                     "multi-document YAML detected; only the first "
                     "document is validated"
                 ),
-                "kind": "schema",
+                "kind": "multi_doc",
             }
         )
     return docs[0], errors
@@ -474,11 +568,26 @@ def validate_rule_body(
         mitre_coverage = _detect_mitre_coverage(parsed, mitre_tags_found)
         redacted_rule, redaction_applied = _redact_rule_dict(parsed)
 
-    pysigma_result = _pysigma_validate(yaml_content)
+    # pySigma's own YAML loading rejects multi-document streams outright
+    # ("expected a single document"), independent of _parse_yaml's notice
+    # above. Since only doc[0] is being validated, re-serialize just that
+    # document for the pySigma round-trip so a multi-doc input doesn't
+    # force pysigma_errors non-empty for a reason unrelated to doc[0]'s
+    # own validity.
+    pysigma_input = yaml_content
+    if isinstance(parsed, dict) and any(
+        e.get("kind") == "multi_doc" for e in schema_parse_errors
+    ):
+        pysigma_input = yaml.safe_dump(parsed, sort_keys=False)
+    pysigma_result = _pysigma_validate(pysigma_input)
     pysigma_errors = pysigma_result.get("errors", [])
     pysigma_available = pysigma_result.get("available", False)
 
-    has_errors = bool(schema_errors) or any(
+    # "multi_doc" is a notice, not a hard error: doc[0] can still be valid
+    # even though the input contained trailing YAML documents.
+    has_errors = any(
+        e.get("kind") != "multi_doc" for e in schema_errors
+    ) or any(
         e.get("kind") == "pysigma_parse" for e in pysigma_errors
     )
 
