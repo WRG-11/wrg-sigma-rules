@@ -124,9 +124,9 @@ def register_canonical_pattern_resources(mcp: Any) -> None:
     Sister to an internal MCP-server corpus-resources registration helper
     (1st canonical; this is the 2nd application).
 
-    Note: the plugin's MCP server entry point (wired up in a follow-on
-    change) is responsible for calling this function.
-    The resource module itself is decoupled from the MCP runtime.
+    Called from ``server.py`` alongside the 3 tool registrations. The
+    resource module itself stays decoupled from the MCP runtime so its
+    ``*_body()`` functions remain directly unit-testable.
     """
 
     @mcp.resource(

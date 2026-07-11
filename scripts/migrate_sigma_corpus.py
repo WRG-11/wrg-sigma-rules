@@ -566,6 +566,99 @@ def build_index(rendered: list[tuple[str, str, dict[str, Any]]]) -> dict[str, An
 
 
 # ---------------------------------------------------------------------------
+# Disk-based INDEX regeneration (R89-568h) -- independent of the
+# monorepo-only migration flow above. Ad-hoc rule additions/renames over
+# time (e.g. observed->template relabels, one-off new-rule commits) bypass
+# ``main()`` and drift INDEX.json out of sync with what's actually on disk.
+# These helpers rebuild the 3-dimensional index straight from the YAML
+# files, so they work standalone in the public repo (no wrg_threat_intel
+# import needed).
+# ---------------------------------------------------------------------------
+
+def scan_disk_rules(examples_dir: Path) -> list[tuple[str, str, dict[str, Any]]]:
+    """Scan on-disk rule YAMLs; return ``(category, filename, doc)`` tuples.
+
+    ``category`` is the immediate parent directory name under
+    ``examples_dir`` (MITRE tactic). Read-only -- rule YAML files
+    themselves are never modified.
+    """
+    rendered: list[tuple[str, str, dict[str, Any]]] = []
+    for path in sorted(examples_dir.rglob("*.yml")):
+        category = path.relative_to(examples_dir).parts[0]
+        doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+        rendered.append((category, path.name, doc))
+    return rendered
+
+
+def regenerate_index_from_disk(examples_dir: Path, generated_at: str) -> dict[str, Any]:
+    """Rebuild INDEX.json from on-disk rule YAMLs.
+
+    Preserves provenance metadata (``_generated_by``, redaction flag,
+    ``_source_module_refs``) from the existing INDEX.json and prepends a
+    new ``_last_extension`` entry recording exactly which relpaths were
+    newly indexed by this regeneration (drift-fix visibility).
+    """
+    index_path = examples_dir / "INDEX.json"
+    existing: dict[str, Any] = (
+        json.loads(index_path.read_text(encoding="utf-8")) if index_path.exists() else {}
+    )
+
+    rendered = scan_disk_rules(examples_dir)
+    index = build_index(rendered)
+    index["_generated_by"] = existing.get("_generated_by", index["_generated_by"])
+    index["_generated_at"] = generated_at
+    index["_pattern_34_v1_1_redaction_applied"] = existing.get(
+        "_pattern_34_v1_1_redaction_applied",
+        index["_pattern_34_v1_1_redaction_applied"],
+    )
+    index["_source_module_refs"] = existing.get(
+        "_source_module_refs", index["_source_module_refs"]
+    )
+
+    old_files = {f for files in existing.get("categories", {}).values() for f in files}
+    new_files = {f"{c}/{fn}" for c, fn, _ in rendered}
+    newly_indexed = sorted(new_files - old_files)
+    if "_last_extension" in existing:
+        if newly_indexed:
+            index["_last_extension"] = {
+                "date": generated_at,
+                "added": newly_indexed,
+                "context": (
+                    "INDEX regenerated from disk (R89-568h drift-fix): "
+                    f"total_rules {existing.get('total_rules')} -> "
+                    f"{index['total_rules']}"
+                ),
+                "previous_extension": existing["_last_extension"],
+            }
+        else:
+            index["_last_extension"] = existing["_last_extension"]
+
+    return index
+
+
+def main_regenerate_index() -> int:
+    """CLI entrypoint: regenerate INDEX.json from on-disk YAMLs.
+
+    Unlike ``main()``, this has no monorepo/wrg_threat_intel dependency --
+    runnable standalone from a plain public-repo checkout.
+    """
+    examples_dir = Path(__file__).resolve().parent.parent / "resources" / "examples"
+    index = regenerate_index_from_disk(examples_dir, generated_at="2026-07-08")
+    index_path = examples_dir / "INDEX.json"
+    index_path.write_text(
+        json.dumps(index, indent=2, sort_keys=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    print("[regenerate_index] DONE")
+    print(f"  total_rules: {index['total_rules']}")
+    print(f"  categories: {list(index['categories'].keys())}")
+    print(f"  by_detection_type keys: {list(index['by_detection_type'].keys())}")
+    print(f"  by_target_platform keys: {list(index['by_target_platform'].keys())}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -611,4 +704,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if "--regenerate-index" in sys.argv:
+        raise SystemExit(main_regenerate_index())
     raise SystemExit(main())
