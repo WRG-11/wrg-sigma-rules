@@ -44,7 +44,7 @@ _CORPUS_RULES = _collect_corpus_rules()
 # the known schema defect. These should be fixed in a future pass.
 # Keyed by file stem -> list of allowed schema error field values.
 #
-# R89-568h: the nil-UUID entry for observed_sigma_rule_lockbit_btc was
+# Note: the nil-UUID entry for observed_sigma_rule_lockbit_btc was
 # removed here -- _UUID_RE now accepts the nil UUID as a valid RFC 4122
 # special case, so that rule's zero-UUID id no longer produces a schema
 # error and needs no allowlisting.

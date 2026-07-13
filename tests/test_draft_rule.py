@@ -179,7 +179,7 @@ def test_yaml_emit_leaves_normal_url_reference_unquoted() -> None:
 
 
 def test_yaml_emit_round_trips_reference_with_colon_and_hash() -> None:
-    # Round-trip property (R89-568h #12): the prior hand-rolled emitter only
+    # Round-trip property: the prior hand-rolled emitter only
     # quoted problem characters in TOP-LEVEL scalars -- a list item
     # containing ':' re-parsed as a nested one-key mapping instead of a
     # plain string, and an inline ' #' anywhere silently truncated the rest

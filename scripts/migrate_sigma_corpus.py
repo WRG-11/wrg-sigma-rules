@@ -566,7 +566,7 @@ def build_index(rendered: list[tuple[str, str, dict[str, Any]]]) -> dict[str, An
 
 
 # ---------------------------------------------------------------------------
-# Disk-based INDEX regeneration (R89-568h) -- independent of the
+# Disk-based INDEX regeneration -- independent of the
 # monorepo-only migration flow above. Ad-hoc rule additions/renames over
 # time (e.g. observed->template relabels, one-off new-rule commits) bypass
 # ``main()`` and drift INDEX.json out of sync with what's actually on disk.
@@ -624,7 +624,7 @@ def regenerate_index_from_disk(examples_dir: Path, generated_at: str) -> dict[st
                 "date": generated_at,
                 "added": newly_indexed,
                 "context": (
-                    "INDEX regenerated from disk (R89-568h drift-fix): "
+                    "INDEX regenerated from disk (drift-fix): "
                     f"total_rules {existing.get('total_rules')} -> "
                     f"{index['total_rules']}"
                 ),
