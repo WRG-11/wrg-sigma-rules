@@ -319,7 +319,7 @@
       "initial_access/observed_jellyfin_ffmpeg_arg_injection_lfi_t1190.yml",
       "persistence/observed_photo_zip_nodejs_run_key_persistence_t1547_001.yml"
     ],
-    "context": "INDEX regenerated from disk (R89-568h drift-fix): total_rules 68 -> 73",
+    "context": "INDEX regenerated from disk (drift-fix): total_rules 68 -> 73",
     "previous_extension": {
       "date": "2026-06-02",
       "added": [

@@ -1,4 +1,4 @@
-"""INDEX.json <-> on-disk rule-corpus consistency (R89-568h drift-fix).
+"""INDEX.json <-> on-disk rule-corpus consistency (drift-fix).
 
 INDEX.json drifted from disk repeatedly (observed->template relabels, one-off
 new-rule additions) because nothing asserted the two stay in sync: total_rules
@@ -70,7 +70,7 @@ def test_no_stale_index_entries() -> None:
 def test_persistence_tactic_indexed() -> None:
     """Regression guard: 'persistence' (12th ATT&CK tactic) must be indexed.
 
-    R89-568h found this tactic dir present on disk but completely absent
+    This tactic dir was present on disk but completely absent
     from INDEX.categories -- the total_rules drift masked it.
     """
     index = _load_index()

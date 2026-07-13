@@ -130,7 +130,7 @@ def test_canonical_pattern_by_id_includes_reference_rules() -> None:
 
 
 def test_canonical_pattern_resources_wired_into_server() -> None:
-    # R89-568h #9: every test above calls the *_body() functions directly,
+    # Note: every test above calls the *_body() functions directly,
     # bypassing the MCP machinery entirely -- they would all still pass even
     # if register_canonical_pattern_resources() were never called by any
     # real server (which was the case until this fix: server.py registered
