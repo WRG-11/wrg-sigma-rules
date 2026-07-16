@@ -187,7 +187,7 @@ print(json.dumps(convert_rule_body(rule, target='elasticsearch'), indent=2))
 
 The plugin's pytest suite covers these tool invocations end-to-end
 (`tests/test_validate_rule.py`, `tests/test_convert_rule.py`,
-`tests/test_sigma_integration_e2e.py`). Suite status: 286/286 PASS.
+`tests/test_sigma_integration_e2e.py`). Suite status: 287/287 PASS.
 
 ---
 

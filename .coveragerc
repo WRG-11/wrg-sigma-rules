@@ -10,9 +10,22 @@
 #
 # fail_under is a conservative first-pass floor; ratchet up once measured.
 #
-# NOTE: as of writing, this repo's only workflows are codeql.yml and
-# readme-stamp.yml — neither runs pytest — so this config is consumed by
-# local test runs. Add a CI test job (see _APPLY.md) for it to gate in CI.
+# DO NOT wire `coverage run -m pytest` into CI (tests.yml) as-is. Confirmed
+# (2026-07-17, Python 3.12 -- matching CI): running the suite under coverage
+# produces 94/287 FALSE failures, all "could not determine a constructor for
+# the tag None" -- pysigma's SigmaYAMLLoader(yaml.CSafeLoader) (site-packages
+# sigma/rule/base.py, not this repo's code) breaks specifically under
+# coverage.py's tracer. Reproduced with core=ctrace forced and with
+# branch=False (avoids a hang under branch=True, but the parse failure
+# persists); a bare no-op sys.settrace does NOT reproduce it, so this is
+# coverage.py-specific, not "any active Python trace function." Root cause is
+# upstream (pysigma + coverage.py interaction), not fixable in this repo.
+# Any test that calls SigmaRule.from_yaml() -- validate_rule, convert_rule,
+# the corpus-wide test_sigma_validate_rule_corpus.py, test_sigma_integration_
+# e2e.py -- is affected. `tests.yml` intentionally runs plain `pytest`, not
+# `coverage run -m pytest`; this .coveragerc is for local `coverage run`
+# BEFORE calling any of the affected tools (or after confirming upstream has
+# fixed the interaction), not as a CI gate today.
 
 [run]
 source =
