@@ -49,10 +49,21 @@ def count_rules(root: Path) -> int:
     return len(files)
 
 
+def count_test_modules(root: Path) -> int:
+    """Number of pytest test modules under tests/ (test_*.py files).
+
+    Added after README's "8 Python test modules" claim drifted to a stale
+    number (actual: 10) with nothing catching it -- sigma_rule_count was the
+    only self-stamped metric.
+    """
+    return len(list((root / "tests").glob("test_*.py")))
+
+
 # marker name -> resolver(root) -> scalar value. Mirrors a shared metric
 # registry shape so the on-disk marker format stays byte-identical.
 METRICS = {
     "sigma_rule_count": count_rules,
+    "test_module_count": count_test_modules,
 }
 
 
@@ -116,7 +127,7 @@ def main(argv: list[str] | None = None) -> int:
 
     original = _read(README)
     rewritten, drift = stamp_text(original, REPO_ROOT)
-    count = count_rules(REPO_ROOT)
+    summary = ", ".join(f"{name}={resolver(REPO_ROOT)}" for name, resolver in METRICS.items())
 
     if args.check:
         if drift:
@@ -124,14 +135,14 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"DRIFT {name}: README has {old!r}, ground truth is {new!r}")
             print(f"{len(drift)} marker(s) drifted — run `python readme_stamp.py`.")
             return 1
-        print(f"README metrics in sync (sigma_rule_count={count}).")
+        print(f"README metrics in sync ({summary}).")
         return 0
 
     if rewritten != original:
         _write(README, rewritten)
-        print(f"stamped README: sigma_rule_count={count} ({len(drift)} block(s) updated)")
+        print(f"stamped README: {summary} ({len(drift)} block(s) updated)")
     else:
-        print(f"README already in sync (sigma_rule_count={count}).")
+        print(f"README already in sync ({summary}).")
     return 0
 
 
