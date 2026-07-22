@@ -10,7 +10,7 @@ leaves open -- silent drift between the 3 copies over time, so a future edit
 to one tool's redaction rules quietly stops applying to a sibling tool.
 
 This exact failure class has already happened once in a sibling WRG project
-(apps/wrg_project_osint/validate.py's own docstring: two independent copies
+(apps/<wrg-app>/validate.py's own docstring: two independent copies
 of a domain-shape gate drifted, one kept embedding a raw tab into a live
 RDAP URL for weeks after the other was fixed). Cheap prevention here: fail
 loudly the moment the 3 copies disagree, before it ships.

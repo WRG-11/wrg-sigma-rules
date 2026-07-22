@@ -14,7 +14,7 @@ Sources (V_api_shape Rule 2 pre-write reads):
   (alphv + lapsus + lockbit + nullsec_nigeria).
 * ``apps/<wrg-app>`` OFAC sanctions data -- 2 observed OFAC sanction
   goldens.
-* ``apps/wrg_ai_fingerprint_sigma/tests/fixtures/expected_sigma_output.yml``
+* ``apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml``
   -- 5 detector goldens (multi-doc YAML).
 
 LLM-safe redaction discipline (OPSEC redactions applied):
