@@ -171,6 +171,22 @@ def test_convert_ascii_only_query() -> None:
     assert all(ord(c) < 128 for c in result["query"])
 
 
+def test_convert_unused_config_is_flagged_not_silently_dropped() -> None:
+    """Regression: passing a non-empty config must warn that it isn't
+    applied yet, instead of silently ignoring it."""
+    result = convert_rule_body(
+        _good_yaml(), target="splunk", config={"index": "main"}
+    )
+    assert result["ok"] is True
+    assert result["config_used"] == {"index": "main"}
+    assert any("config parameter is currently accepted but not applied" in w for w in result["warnings"])
+
+
+def test_convert_no_config_has_no_config_warning() -> None:
+    result = convert_rule_body(_good_yaml(), target="splunk")
+    assert not any("config parameter" in w for w in result["warnings"])
+
+
 def test_convert_pysigma_missing_returns_actionable_envelope(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -220,6 +220,11 @@ def convert_rule_body(
     block preserves source rule title + id + level so the caller can
     correlate the query back to the rule (sister convention used by
     the WRG corpus ``observed_*`` rules).
+
+    ``config`` is reserved for future backend-specific options (index name,
+    field mappings, etc.) and is currently NOT applied to conversion -- a
+    non-empty value is echoed in ``config_used`` and flagged in ``warnings``
+    rather than silently dropped.
     """
     if not isinstance(yaml_content, str) or not yaml_content.strip():
         return {
@@ -308,6 +313,18 @@ def convert_rule_body(
         alternate.append(q_redacted)
         if q_flagged:
             redaction_applied = True
+
+    # `config` is not yet wired into backend construction (no backend here
+    # takes index names, field mappings, etc. at instantiation time) -- a
+    # caller passing a non-empty config would otherwise have it silently
+    # ignored, which is exactly the kind of unflagged behavior this corpus's
+    # own quality discipline exists to prevent. Surface it honestly instead.
+    if config:
+        warnings.append(
+            "config parameter is currently accepted but not applied to "
+            "backend conversion (reserved for future use); the query below "
+            "reflects backend defaults only"
+        )
 
     # Pull metadata so callers can correlate query <-> source rule. The
     # LAST rule in the collection is the "primary"/user-facing one: for a

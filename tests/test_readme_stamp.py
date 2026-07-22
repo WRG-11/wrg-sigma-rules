@@ -91,3 +91,21 @@ def test_real_readme_markers_in_sync() -> None:
     text = rs._read(rs.README)
     _, drift = rs.stamp_text(text, rs.REPO_ROOT)
     assert drift == [], f"README markers out of sync with corpus: {drift}"
+
+
+# --- count_test_modules -----------------------------------------------------
+
+def test_count_test_modules_counts_test_prefixed_files(tmp_path: Path) -> None:
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    for name in ("test_a.py", "test_b.py", "conftest.py", "helpers.py"):
+        (tests_dir / name).write_text("", encoding="utf-8")
+    assert rs.count_test_modules(tmp_path) == 2
+
+
+def test_count_test_modules_matches_real_repo_tests_dir() -> None:
+    # Deliberately not hard-coded -- would itself be the exact drift this
+    # metric exists to prevent.
+    real_count = len(list((rs.REPO_ROOT / "tests").glob("test_*.py")))
+    assert rs.count_test_modules(rs.REPO_ROOT) == real_count
+    assert real_count > 0
