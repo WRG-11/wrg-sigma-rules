@@ -1,10 +1,9 @@
-title: Template -- Brute Force (high-volume failed logons)
-id: 7db69aef-0d9d-5fc3-882e-3e683d7320bf
+title: Template -- Brute Force (high-volume failed logons) -- failed logon (base)
+name: t1110_brute_force_failed_logon_base
+id: ee155817-8757-517f-bae1-1fddbbf58e1e
 status: experimental
-description: Canonical sigma detection template for MITRE ATT&CK T1110 (Brute Force (high-volume failed logons)). Synthetic
-  exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment before deployment.
-references:
-- https://attack.mitre.org/techniques/T1110/
+description: Base event match for the T1110 brute-force burst correlation below --
+  a single failed logon, on its own, is not the alert.
 author: WinstonRedGuard -- sigma plugin canonical templates
 date: '2026-05-21'
 logsource:
@@ -17,7 +16,29 @@ detection:
     - 2
     - 3
     - 10
-  condition: selection_failed_logon | count() by SourceIP > 10 in 10m
+  condition: selection_failed_logon
+level: informational
+tags:
+- attack.t1110
+---
+title: Template -- Brute Force (high-volume failed logons)
+id: 7db69aef-0d9d-5fc3-882e-3e683d7320bf
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1110 (Brute Force (high-volume failed logons)). Synthetic
+  exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1110/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+correlation:
+  type: event_count
+  rules:
+  - t1110_brute_force_failed_logon_base
+  group-by:
+  - SourceIP
+  timespan: 10m
+  condition:
+    gt: 10
 falsepositives:
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: medium

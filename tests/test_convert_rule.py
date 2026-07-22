@@ -57,6 +57,72 @@ def test_convert_wazuh_emits_caveat_warning() -> None:
     assert any("wazuh" in w.lower() for w in result["warnings"])
 
 
+_CORRELATION_YAML = """\
+title: LSASS access burst (base)
+name: lsass_access_burst_base
+id: 22222222-2222-3222-8222-222222222222
+status: test
+logsource:
+  category: process_access
+  product: windows
+detection:
+  selection:
+    TargetImage|endswith: lsass.exe
+  condition: selection
+level: medium
+---
+title: LSASS access burst correlation
+id: 11111111-1111-3111-8111-111111111111
+status: test
+correlation:
+  type: event_count
+  rules:
+    - lsass_access_burst_base
+  group-by:
+    - SourceImage
+  timespan: 5m
+  condition:
+    gt: 5
+level: high
+"""
+
+
+def test_convert_correlation_rule_splunk_happy_path() -> None:
+    """G: a base-rule + correlation-rule 2-document YAML (the modern
+    replacement for the deprecated `condition: selection | count() by X > N
+    in Ym` pipe syntax) must convert successfully -- this previously failed
+    outright because convert_rule_body used SigmaRule.from_yaml (single-rule
+    only), which cannot parse a `correlation:` block at all."""
+    result = convert_rule_body(_CORRELATION_YAML, target="splunk")
+    assert result["ok"] is True
+    assert "lsass" in result["query"].lower()
+    assert "stats count" in result["query"]
+    assert "5m" in result["query"] or "300" in result["query"]
+
+
+def test_convert_correlation_rule_metadata_is_the_correlation_not_base() -> None:
+    result = convert_rule_body(_CORRELATION_YAML, target="splunk")
+    assert result["ok"] is True
+    assert result["metadata"]["title"] == "LSASS access burst correlation"
+    assert result["metadata"]["id"] == "11111111-1111-3111-8111-111111111111"
+    assert result["metadata"]["level"] == "high"
+
+
+def test_convert_correlation_rule_elastic_fails_gracefully() -> None:
+    """The installed pysigma-backend-elasticsearch (LuceneBackend, also
+    used for kibana/wazuh) does not implement Sigma correlation-rule
+    support at all -- confirmed live. This is a genuine backend capability
+    gap, not something convert_rule_body can paper over; the fix here is
+    only that the failure is now an accurate, actionable pySigma message
+    ("Backend does not support correlation rules") instead of the
+    confusing "pipe syntax ... deprecated" error the OLD single-rule
+    parser produced for every backend indiscriminately."""
+    result = convert_rule_body(_CORRELATION_YAML, target="elastic")
+    assert result["ok"] is False
+    assert result["kind"] == "backend_conversion"
+    assert "correlation" in result["error"].lower()
+
+
 def test_convert_unknown_target_returns_actionable_error() -> None:
     result = convert_rule_body(_good_yaml(), target="qradar")
     assert result["ok"] is False

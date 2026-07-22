@@ -159,6 +159,25 @@ def _contains_yaml_anchor_or_alias(yaml_content: str) -> bool:
     return loader.saw_anchor_or_alias
 
 
+_CORRELATION_KEY_RE = re.compile(r"^correlation\s*:", re.MULTILINE)
+
+
+def _looks_like_correlation_collection(yaml_content: str) -> bool:
+    """Cheap heuristic: does *yaml_content* contain a top-level
+    ``correlation:`` key anywhere (i.e. a Sigma correlation rule document)?
+
+    Used to decide whether a multi-document YAML is a genuine base-rule +
+    correlation-rule pairing (every document matters, must all reach
+    pySigma) versus generic multi-doc noise (only doc[0] matters, see
+    ``_parse_yaml``'s ``multi_doc`` notice). A false positive here just
+    means the full ``yaml_content`` reaches ``SigmaCollection.from_yaml``
+    instead of a doc[0]-only re-serialization -- SigmaCollection parses a
+    plain multi-doc, non-correlation stream fine too, so this is safe to
+    over-trigger, never unsafe.
+    """
+    return bool(_CORRELATION_KEY_RE.search(yaml_content))
+
+
 def _parse_yaml(yaml_content: str) -> tuple[Any, list[dict[str, Any]]]:
     """Parse YAML; return ``(doc_or_None, schema_errors)``.
 
@@ -267,8 +286,19 @@ def _schema_checks(rule: Any) -> list[dict[str, Any]]:
                 }
             )
 
-    if "id" in rule and isinstance(rule["id"], str):
-        if not _UUID_RE.match(rule["id"].lower()):
+    if "id" in rule:
+        if not isinstance(rule["id"], str):
+            errors.append(
+                {
+                    "message": (
+                        "'id' must be a string UUID per sigma spec (got "
+                        f"{type(rule['id']).__name__})"
+                    ),
+                    "kind": "schema",
+                    "field": "id",
+                }
+            )
+        elif not _UUID_RE.match(rule["id"].lower()):
             errors.append(
                 {
                     "message": (
@@ -442,19 +472,54 @@ def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
                     ),
                 }
             )
+        if isinstance(condition, str) and "|" in condition:
+            # A literal pipe INSIDE the condition string (not a field
+            # modifier like ``Image|endswith``, which lives in the
+            # selection block, never in ``condition:``) is the
+            # pre-correlation-rule aggregation syntax, e.g.
+            # ``selection | count() by Image > 20 in 5m``. SigmaRule.
+            # from_yaml() parses it without complaint, so validate_rule
+            # otherwise reports valid=true -- but every pySigma backend
+            # rejects it at conversion time ("pipe syntax ... deprecated
+            # ... replaced by Sigma correlations"), live-verified against
+            # 8 real corpus rules using exactly this pattern. Warn here so
+            # a schema-valid rule isn't silently unconvertible.
+            warnings.append(
+                {
+                    "rule": "deprecated_pipe_condition",
+                    "message": (
+                        "condition contains a '|' aggregation pipe "
+                        "(pre-correlation-rule syntax); every pySigma "
+                        "backend (Splunk/Elastic/...) rejects this at "
+                        "conversion time even though it parses -- migrate "
+                        "the count()/aggregation logic to a separate "
+                        "Sigma correlation rule (see the sigma spec's "
+                        "'correlations' feature)"
+                    ),
+                }
+            )
 
     return warnings, mitre_found
 
 
 def _pysigma_validate(yaml_content: str) -> dict[str, Any]:
-    """Run pySigma ``SigmaRule.from_yaml`` round-trip.
+    """Run a pySigma ``SigmaCollection.from_yaml`` round-trip.
+
+    SigmaCollection (not SigmaRule) so a multi-document YAML pairing a base
+    detection rule with a Sigma correlation rule -- the modern replacement
+    for the deprecated ``condition: X | count() by Y > N in Zm`` pipe
+    syntax (see ``deprecated_pipe_condition`` linter warning above) --
+    parses correctly. ``SigmaRule.from_yaml`` rejects a ``correlation:``
+    block outright ("Sigma rule must have a log source"). Backward
+    compatible: a plain single-document rule collects into a 1-rule
+    collection and validates identically to before.
 
     On ImportError: returns ``available=False`` envelope (G1). On parse
     failure: surfaces line + column when the underlying exception carries
     them (G3).
     """
     try:
-        from sigma.rule import SigmaRule
+        from sigma.collection import SigmaCollection
     except ImportError:
         return {
             "available": False,
@@ -471,7 +536,7 @@ def _pysigma_validate(yaml_content: str) -> dict[str, Any]:
         }
     errors: list[dict[str, Any]] = []
     try:
-        SigmaRule.from_yaml(yaml_content)
+        SigmaCollection.from_yaml(yaml_content)
     except Exception as exc:
         err: dict[str, Any] = {
             "message": _ascii_safe(str(exc)),
@@ -568,15 +633,21 @@ def validate_rule_body(
         mitre_coverage = _detect_mitre_coverage(parsed, mitre_tags_found)
         redacted_rule, redaction_applied = _redact_rule_dict(parsed)
 
-    # pySigma's own YAML loading rejects multi-document streams outright
-    # ("expected a single document"), independent of _parse_yaml's notice
-    # above. Since only doc[0] is being validated, re-serialize just that
-    # document for the pySigma round-trip so a multi-doc input doesn't
-    # force pysigma_errors non-empty for a reason unrelated to doc[0]'s
-    # own validity.
+    # _pysigma_validate now uses SigmaCollection (multi-doc-aware), so a
+    # genuine base-rule + correlation-rule pairing gets the FULL original
+    # yaml_content -- every document matters, the correlation rule (often
+    # doc[1]) must actually reach pySigma, not just doc[0]. Generic
+    # multi-doc noise (no correlation: block; e.g. a stray/incomplete
+    # second document) keeps the established, tested behaviour: only
+    # doc[0] is re-serialized and validated, consistent with
+    # _parse_yaml's own "only the first document is validated" schema-
+    # layer notice above -- so a broken/irrelevant trailing document can't
+    # force pysigma_errors non-empty for a reason unrelated to doc[0].
     pysigma_input = yaml_content
-    if isinstance(parsed, dict) and any(
-        e.get("kind") == "multi_doc" for e in schema_parse_errors
+    if (
+        isinstance(parsed, dict)
+        and any(e.get("kind") == "multi_doc" for e in schema_parse_errors)
+        and not _looks_like_correlation_collection(yaml_content)
     ):
         pysigma_input = yaml.safe_dump(parsed, sort_keys=False)
     pysigma_result = _pysigma_validate(pysigma_input)

@@ -76,6 +76,24 @@ def test_validate_invalid_uuid_flagged() -> None:
     assert any(e.get("field") == "id" for e in result["schema_errors"])
 
 
+def test_validate_non_string_id_flagged_cleanly() -> None:
+    """G dogfood-audit: a bare (unquoted) numeric id -- e.g. ``id: 12345`` --
+    used to skip the schema-level id check entirely (it was gated behind
+    ``isinstance(rule["id"], str)``, same as the format check), so the only
+    signal was pysigma's raw internal crash message ("'int' object has no
+    attribute 'replace'") instead of the tool's own clean, actionable
+    vocabulary every other type-mismatch field uses (logsource/detection)."""
+    yaml_str = (
+        "title: foo\nid: 12345\nlogsource: {category: x}\n"
+        "detection:\n  selection: {a: 1}\n  condition: selection\n"
+    )
+    result = validate_rule_body(yaml_str)
+    assert result["valid"] is False
+    id_errors = [e for e in result["schema_errors"] if e.get("field") == "id"]
+    assert id_errors, "non-string id must be flagged at the schema-check layer"
+    assert "string" in id_errors[0]["message"].lower()
+
+
 def test_validate_invalid_level_flagged() -> None:
     yaml_str = (
         "title: foo\nid: 11111111-2222-3333-4444-555555555555\n"
@@ -122,6 +140,53 @@ def test_validate_linter_passes_clean_rule_no_warnings_except_default() -> None:
     assert "references_empty" not in rules_hit
     assert "falsepositives_empty" not in rules_hit
     assert "mitre_tag_missing" not in rules_hit
+
+
+def test_validate_flags_deprecated_pipe_aggregation_condition() -> None:
+    """G dogfood-audit: `condition: selection | count() by X > N in Ym` (the
+    pre-correlation-rule aggregation pipe syntax) parses fine under pySigma's
+    SigmaRule.from_yaml -- validate_rule reported valid=true for all 8 real
+    corpus rules using this pattern -- but EVERY backend (Splunk, Elastic)
+    rejects it at conversion time ("pipe syntax ... deprecated ... replaced
+    by Sigma correlations"), live-verified. validate_rule must warn about
+    this convertibility gap instead of giving false confidence."""
+    yaml_str = (
+        "title: Ransomware extension burst\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1486/\n"
+        "falsepositives:\n  - none\n"
+        "logsource:\n  category: file_event\n  product: windows\n"
+        "detection:\n  selection:\n    TargetFilename|endswith: '.locked'\n"
+        "  condition: selection | count() by Image > 20 in 5m\n"
+        "level: high\n"
+        "tags:\n  - attack.t1486\n"
+    )
+    result = validate_rule_body(yaml_str)
+    rules_hit = {w["rule"] for w in result["linter_warnings"]}
+    assert "deprecated_pipe_condition" in rules_hit
+
+
+def test_validate_field_modifier_pipe_is_not_flagged_as_deprecated_condition() -> None:
+    """The field-modifier pipe (``CommandLine|contains``) is normal, current
+    sigma syntax -- must not be confused with a pipe INSIDE the condition
+    string. Reuses the same rule as the "clean" happy-path test above."""
+    yaml_str = (
+        "title: PowerShell encoded payload via -enc flag\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1059.001/\n"
+        "falsepositives:\n  - Legit admin scripts\n"
+        "logsource:\n  category: process_creation\n  product: windows\n"
+        "detection:\n  selection:\n    CommandLine|contains: ' -enc '\n"
+        "  filter:\n    Image|endswith: bad.exe\n"
+        "  condition: selection and filter\n"
+        "level: high\n"
+        "tags:\n  - attack.t1059.001\n"
+    )
+    result = validate_rule_body(yaml_str)
+    rules_hit = {w["rule"] for w in result["linter_warnings"]}
+    assert "deprecated_pipe_condition" not in rules_hit
 
 
 def test_validate_pattern_34_redacts_internal_identifiers() -> None:
@@ -257,6 +322,123 @@ def test_validate_multi_doc_first_doc_valid_does_not_force_invalid() -> None:
     assert any(
         e.get("kind") == "multi_doc" for e in result["schema_errors"]
     )
+    assert result["valid"] is True
+
+
+_CORRELATION_YAML = """\
+title: LSASS access burst (base)
+name: lsass_access_burst_base
+id: 22222222-2222-3222-8222-222222222222
+status: test
+description: a real description over ten characters
+references:
+  - https://attack.mitre.org/T1003/
+falsepositives:
+  - Legit admin scripts
+logsource:
+  category: process_access
+  product: windows
+detection:
+  selection:
+    TargetImage|endswith: lsass.exe
+  condition: selection
+level: medium
+tags:
+  - attack.t1003
+---
+title: LSASS access burst correlation
+id: 11111111-1111-3111-8111-111111111111
+status: test
+description: a real description over ten characters
+references:
+  - https://attack.mitre.org/T1003/
+falsepositives:
+  - Legit admin scripts
+correlation:
+  type: event_count
+  rules:
+    - lsass_access_burst_base
+  group-by:
+    - SourceImage
+  timespan: 5m
+  condition:
+    gt: 5
+level: high
+tags:
+  - attack.t1003
+"""
+
+
+def test_validate_correlation_rule_pair_is_pysigma_valid() -> None:
+    """Smoke test: a well-formed base-rule + correlation-rule 2-document
+    YAML must report valid=True. On its own this does not discriminate the
+    fix (see test_validate_broken_correlation_document_is_actually_checked
+    below for the version that does) -- doc[0] alone is a self-sufficient
+    valid rule by construction, so this passed even before the fix."""
+    result = validate_rule_body(_CORRELATION_YAML)
+    assert result["pysigma_errors"] == []
+    assert result["valid"] is True
+
+
+def test_validate_broken_correlation_document_is_actually_checked() -> None:
+    """G: THE discriminating test. Same base rule as _CORRELATION_YAML
+    (independently valid), but the correlation document itself is broken
+    (invalid timespan, no rules: reference). Before the fix,
+    _pysigma_validate reduced EVERY multi-doc input down to doc[0] alone --
+    so this silently reported valid=True, never having looked at the
+    correlation document at all. Live-verified pre-fix: pysigma_errors=[],
+    valid=True even with a nonsense timespan and a missing rule reference."""
+    yaml_str = (
+        "title: LSASS access burst (base)\n"
+        "name: lsass_access_burst_base\n"
+        "id: 22222222-2222-3222-8222-222222222222\n"
+        "status: test\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1003/\n"
+        "falsepositives:\n  - Legit admin scripts\n"
+        "logsource:\n  category: process_access\n  product: windows\n"
+        "detection:\n  selection:\n    TargetImage|endswith: lsass.exe\n"
+        "  condition: selection\n"
+        "level: medium\ntags:\n  - attack.t1003\n"
+        "---\n"
+        "title: LSASS access burst correlation\n"
+        "id: 11111111-1111-3111-8111-111111111111\n"
+        "status: test\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1003/\n"
+        "falsepositives:\n  - Legit admin scripts\n"
+        "correlation:\n"
+        "  type: event_count\n"
+        "  timespan: not-a-valid-timespan\n"
+        "  group-by:\n    - SourceImage\n"
+        "  condition:\n    gt: 5\n"
+        "level: high\ntags:\n  - attack.t1003\n"
+    )
+    result = validate_rule_body(yaml_str)
+    assert result["pysigma_errors"] != []
+    assert result["valid"] is False
+
+
+def test_validate_generic_multi_doc_still_reduces_to_first_doc_only() -> None:
+    """Regression guard: ORDINARY multi-doc input (no correlation: block --
+    e.g. a stray/incomplete second document) must keep the existing,
+    tested behaviour of validating doc[0] alone. Only a genuine
+    correlation-rule pair gets the full-collection pysigma parse."""
+    yaml_str = (
+        "title: A clean first document over five chars\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1059.001/\n"
+        "falsepositives:\n  - Legit admin scripts\n"
+        "logsource: {category: process_creation}\n"
+        "detection:\n  selection: {CommandLine|contains: bad}\n"
+        "  condition: selection\n"
+        "level: high\ntags:\n  - attack.t1059.001\n"
+        "---\n"
+        "title: second document\nid: 22222222-3333-4444-5555-666666666666\n"
+    )
+    result = validate_rule_body(yaml_str)
+    assert result["pysigma_errors"] == []
     assert result["valid"] is True
 
 
