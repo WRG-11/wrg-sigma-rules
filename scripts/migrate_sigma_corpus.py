@@ -1,21 +1,19 @@
 """Migrate WRG sigma rule corpus to plugin resources/examples.
 
 One-shot helper for the sigma-corpus migration ship. Reads WRG threat-intel sigma sources
-and renders ~50 canonical sigma example rules into
-``internal plus an
-INDEX.json with 3-dimensional indexing (MITRE ATT&CK tactic +
+and renders ~50 canonical sigma example rules into ``resources/examples/``
+plus an INDEX.json with 3-dimensional indexing (MITRE ATT&CK tactic +
 detection_type + target_platform).
 
 Sources (V_api_shape Rule 2 pre-write reads):
 
-* ``internal
-  -- ``TECHNIQUE_PATTERN_LIBRARY`` (37 technique-keyed curated patterns).
-  Rendered as synthetic exemplars (no actor binding; status experimental).
-* ``internal
-  -- 6 observed actor-bound goldens (alphv + lapsus + lockbit +
-  nullsec_nigeria).
-* ``internal
-  -- 2 observed OFAC sanction goldens.
+* ``apps/<wrg-app>`` TECHNIQUE_PATTERN_LIBRARY (37 technique-keyed curated
+  patterns). Rendered as synthetic exemplars (no actor binding; status
+  experimental).
+* ``apps/<wrg-app>`` breach corpus -- 6 observed actor-bound goldens
+  (alphv + lapsus + lockbit + nullsec_nigeria).
+* ``apps/<wrg-app>`` OFAC sanctions data -- 2 observed OFAC sanction
+  goldens.
 * ``apps/wrg_ai_fingerprint_sigma/tests/fixtures/expected_sigma_output.yml``
   -- 5 detector goldens (multi-doc YAML).
 
@@ -40,10 +38,12 @@ namespaces match the source modules so rule IDs stay stable).
 Usage::
 
     cd <repo-clone-path>
-    py -3 internal script writes to
-``internal plus
-``resources/examples/INDEX.json``; canonical pattern catalog is
-written separately (see ``scripts/render_canonical_patterns.py``).
+    py -3 scripts/migrate_sigma_corpus.py
+
+Writes rendered rules to ``resources/examples/`` plus
+``resources/examples/INDEX.json``. The canonical pattern catalog
+(``resources/canonical-patterns/``) is authored separately and is not
+touched by this script.
 """
 from __future__ import annotations
 
