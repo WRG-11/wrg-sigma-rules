@@ -238,12 +238,19 @@ def convert_rule_body(
         }
 
     # Pre-parse via pySigma -- gives the cleanest error envelope (G1+G3).
+    # SigmaCollection (not SigmaRule) so a multi-document YAML pairing a
+    # base detection rule with a Sigma correlation rule (the modern
+    # replacement for the deprecated `condition: X | count() by Y > N in
+    # Zm` pipe-aggregation syntax) parses correctly -- SigmaRule.from_yaml
+    # rejects a `correlation:` block outright ("Sigma rule must have a log
+    # source"). Backward compatible: a plain single-document rule collects
+    # into a 1-rule collection and converts identically to before.
     try:
-        from sigma.rule import SigmaRule
+        from sigma.collection import SigmaCollection
     except ImportError:
         return _missing_pysigma_envelope()
     try:
-        rule = SigmaRule.from_yaml(yaml_content)
+        collection = SigmaCollection.from_yaml(yaml_content)
     except Exception as exc:
         err: dict[str, Any] = {
             "ok": False,
@@ -267,7 +274,7 @@ def convert_rule_body(
         return backend_err
 
     try:
-        queries = backend.convert_rule(rule)
+        queries = backend.convert(collection)
     except Exception as exc:
         return {
             "ok": False,
@@ -302,18 +309,27 @@ def convert_rule_body(
         if q_flagged:
             redaction_applied = True
 
-    # Pull metadata so callers can correlate query <-> source rule.
+    # Pull metadata so callers can correlate query <-> source rule. The
+    # LAST rule in the collection is the "primary"/user-facing one: for a
+    # plain single-document rule it's the only rule; for a base-rule +
+    # correlation-rule pair, sigma convention writes the base rule(s)
+    # first and the correlation rule last (it references them by name),
+    # so this naturally picks the correlation rule's own title/id/level --
+    # not the base rule it merely reuses. SigmaCorrelationRule has no
+    # logsource attribute; getattr's default keeps that field absent
+    # rather than erroring.
+    primary_rule = collection.rules[-1] if collection.rules else None
     metadata: dict[str, Any] = {}
-    title = getattr(rule, "title", None)
+    title = getattr(primary_rule, "title", None)
     if title:
         metadata["title"] = _ascii_safe(str(title))
-    rule_id = getattr(rule, "id", None)
+    rule_id = getattr(primary_rule, "id", None)
     if rule_id:
         metadata["id"] = _ascii_safe(str(rule_id))
-    level = getattr(rule, "level", None)
+    level = getattr(primary_rule, "level", None)
     if level is not None:
         metadata["level"] = _ascii_safe(str(level))
-    logsource = getattr(rule, "logsource", None)
+    logsource = getattr(primary_rule, "logsource", None)
     if logsource is not None:
         metadata["logsource"] = _ascii_safe(str(logsource))
 

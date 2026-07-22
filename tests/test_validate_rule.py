@@ -325,6 +325,123 @@ def test_validate_multi_doc_first_doc_valid_does_not_force_invalid() -> None:
     assert result["valid"] is True
 
 
+_CORRELATION_YAML = """\
+title: LSASS access burst (base)
+name: lsass_access_burst_base
+id: 22222222-2222-3222-8222-222222222222
+status: test
+description: a real description over ten characters
+references:
+  - https://attack.mitre.org/T1003/
+falsepositives:
+  - Legit admin scripts
+logsource:
+  category: process_access
+  product: windows
+detection:
+  selection:
+    TargetImage|endswith: lsass.exe
+  condition: selection
+level: medium
+tags:
+  - attack.t1003
+---
+title: LSASS access burst correlation
+id: 11111111-1111-3111-8111-111111111111
+status: test
+description: a real description over ten characters
+references:
+  - https://attack.mitre.org/T1003/
+falsepositives:
+  - Legit admin scripts
+correlation:
+  type: event_count
+  rules:
+    - lsass_access_burst_base
+  group-by:
+    - SourceImage
+  timespan: 5m
+  condition:
+    gt: 5
+level: high
+tags:
+  - attack.t1003
+"""
+
+
+def test_validate_correlation_rule_pair_is_pysigma_valid() -> None:
+    """Smoke test: a well-formed base-rule + correlation-rule 2-document
+    YAML must report valid=True. On its own this does not discriminate the
+    fix (see test_validate_broken_correlation_document_is_actually_checked
+    below for the version that does) -- doc[0] alone is a self-sufficient
+    valid rule by construction, so this passed even before the fix."""
+    result = validate_rule_body(_CORRELATION_YAML)
+    assert result["pysigma_errors"] == []
+    assert result["valid"] is True
+
+
+def test_validate_broken_correlation_document_is_actually_checked() -> None:
+    """G: THE discriminating test. Same base rule as _CORRELATION_YAML
+    (independently valid), but the correlation document itself is broken
+    (invalid timespan, no rules: reference). Before the fix,
+    _pysigma_validate reduced EVERY multi-doc input down to doc[0] alone --
+    so this silently reported valid=True, never having looked at the
+    correlation document at all. Live-verified pre-fix: pysigma_errors=[],
+    valid=True even with a nonsense timespan and a missing rule reference."""
+    yaml_str = (
+        "title: LSASS access burst (base)\n"
+        "name: lsass_access_burst_base\n"
+        "id: 22222222-2222-3222-8222-222222222222\n"
+        "status: test\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1003/\n"
+        "falsepositives:\n  - Legit admin scripts\n"
+        "logsource:\n  category: process_access\n  product: windows\n"
+        "detection:\n  selection:\n    TargetImage|endswith: lsass.exe\n"
+        "  condition: selection\n"
+        "level: medium\ntags:\n  - attack.t1003\n"
+        "---\n"
+        "title: LSASS access burst correlation\n"
+        "id: 11111111-1111-3111-8111-111111111111\n"
+        "status: test\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1003/\n"
+        "falsepositives:\n  - Legit admin scripts\n"
+        "correlation:\n"
+        "  type: event_count\n"
+        "  timespan: not-a-valid-timespan\n"
+        "  group-by:\n    - SourceImage\n"
+        "  condition:\n    gt: 5\n"
+        "level: high\ntags:\n  - attack.t1003\n"
+    )
+    result = validate_rule_body(yaml_str)
+    assert result["pysigma_errors"] != []
+    assert result["valid"] is False
+
+
+def test_validate_generic_multi_doc_still_reduces_to_first_doc_only() -> None:
+    """Regression guard: ORDINARY multi-doc input (no correlation: block --
+    e.g. a stray/incomplete second document) must keep the existing,
+    tested behaviour of validating doc[0] alone. Only a genuine
+    correlation-rule pair gets the full-collection pysigma parse."""
+    yaml_str = (
+        "title: A clean first document over five chars\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1059.001/\n"
+        "falsepositives:\n  - Legit admin scripts\n"
+        "logsource: {category: process_creation}\n"
+        "detection:\n  selection: {CommandLine|contains: bad}\n"
+        "  condition: selection\n"
+        "level: high\ntags:\n  - attack.t1059.001\n"
+        "---\n"
+        "title: second document\nid: 22222222-3333-4444-5555-666666666666\n"
+    )
+    result = validate_rule_body(yaml_str)
+    assert result["pysigma_errors"] == []
+    assert result["valid"] is True
+
+
 def test_validate_multi_doc_with_real_error_still_invalid() -> None:
     # multi_doc must not mask a GENUINE schema error in the first document.
     yaml_str = (
