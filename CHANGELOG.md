@@ -26,6 +26,12 @@ integration and an honesty relabel of synthetic rules.
   write-bypass).
 - MCP server wired into the plugin (.mcp.json) with naming, version and
   rule-count consistency plus a pytest CI gate.
+- `deprecated_pipe_condition` linter in `validate_rule`: flags
+  `condition: X | count() by Y > N in Zm` (schema-valid but rejected by every
+  pySigma backend at convert time). (#44)
+- Sigma correlation-rule support in `convert_rule` / `validate_rule` via
+  `SigmaCollection` — base-rule + correlation-rule two-document pairs now parse
+  and convert; single-document rules unchanged. (#44)
 
 ### Changed
 
@@ -35,6 +41,18 @@ integration and an honesty relabel of synthetic rules.
 - README: added the persistence tactic (12th ATT&CK category) and corrected
   the title to "Claude Code Plugin" (a third-party plugin, not an Anthropic
   product).
+- Migrated the 8 remaining rules using the deprecated pipe-aggregation
+  condition to correlation-rule syntax (a base document plus an `event_count`
+  correlation document; original `id`/`title`/`references`/`tags` preserved so
+  id-based consumers do not break). Splunk convert verified per rule; Elastic
+  correctly reports it does not support correlation rules. (#44)
+
+### Fixed
+
+- `draft_rule`: 80-char title truncation cut mid-word with no ellipsis when the
+  description had no period (silent data loss). (#44)
+- `validate_rule`: a non-string `id` field skipped the schema check entirely;
+  now flagged with a distinct error. (#44)
   
 ## [1.1.1] - 2026-06-10
 
