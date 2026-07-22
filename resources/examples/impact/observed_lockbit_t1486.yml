@@ -1,13 +1,9 @@
-title: LockBit -- T1486
-id: dfaa58ce-d357-5dc6-abe8-ed9d0f379843
+title: LockBit -- T1486 -- extension write (base)
+name: lockbit_t1486_extension_base
+id: c08cdd5b-b7e4-5ac8-b398-91d6d5ec544c
 status: test
-description: Breach intel signature for actor lockbit, MITRE technique T1486. Derived from 1 observed incident(s) in the WRG
-  breach catalog.
-references:
-- https://attack.mitre.org/techniques/T1486/
-- https://attack.mitre.org/software/S1202/
-- https://www.bbc.co.uk/news/business-64239653
-- https://www.bleepingcomputer.com/news/security/royal-mail-confirms-lockbit-ransomware-attack/
+description: Base event match for the LockBit T1486 burst correlation below --
+  a single known-ransomware-extension write, on its own, is not the alert.
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2023-02-23'
 logsource:
@@ -24,7 +20,32 @@ detection:
     - .alphv
     - .akira
     - .clop
-  condition: selection_extension | count() by Image > 20 in 5m
+  condition: selection_extension
+level: informational
+tags:
+- attack.t1486
+---
+title: LockBit -- T1486
+id: dfaa58ce-d357-5dc6-abe8-ed9d0f379843
+status: test
+description: Breach intel signature for actor lockbit, MITRE technique T1486. Derived from 1 observed incident(s) in the WRG
+  breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1486/
+- https://attack.mitre.org/software/S1202/
+- https://www.bbc.co.uk/news/business-64239653
+- https://www.bleepingcomputer.com/news/security/royal-mail-confirms-lockbit-ransomware-attack/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2023-02-23'
+correlation:
+  type: event_count
+  rules:
+  - lockbit_t1486_extension_base
+  group-by:
+  - Image
+  timespan: 5m
+  condition:
+    gt: 20
 falsepositives:
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: high

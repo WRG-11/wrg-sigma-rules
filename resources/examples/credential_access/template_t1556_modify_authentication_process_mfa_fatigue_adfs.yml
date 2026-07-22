@@ -1,11 +1,9 @@
-title: Template -- Modify Authentication Process (MFA fatigue / ADFS)
-id: cb7a28a8-78f0-52c6-bc9d-0bbfc44bc05b
+title: Template -- Modify Authentication Process (MFA fatigue / ADFS) -- auth object change (base)
+name: t1556_mfa_auth_mod_base
+id: 1013ba3d-c827-5ee3-8604-3c73daad1ed1
 status: experimental
-description: Canonical sigma detection template for MITRE ATT&CK T1556 (Modify Authentication Process (MFA fatigue / ADFS)).
-  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
-  before deployment.
-references:
-- https://attack.mitre.org/techniques/T1556/
+description: Base event match for the T1556 MFA-fatigue burst correlation below --
+  a single MFA/auth object modification, on its own, is not the alert.
 author: WinstonRedGuard -- sigma plugin canonical templates
 date: '2026-05-21'
 logsource:
@@ -21,7 +19,30 @@ detection:
     - MFA
     - MultiFactor
     - Authenticator
-  condition: selection_auth_mod | count() by ObjectName > 3 in 1m
+  condition: selection_auth_mod
+level: informational
+tags:
+- attack.t1556
+---
+title: Template -- Modify Authentication Process (MFA fatigue / ADFS)
+id: cb7a28a8-78f0-52c6-bc9d-0bbfc44bc05b
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1556 (Modify Authentication Process (MFA fatigue / ADFS)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1556/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+correlation:
+  type: event_count
+  rules:
+  - t1556_mfa_auth_mod_base
+  group-by:
+  - ObjectName
+  timespan: 1m
+  condition:
+    gt: 3
 falsepositives:
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: medium

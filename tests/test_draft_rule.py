@@ -44,6 +44,34 @@ def test_draft_rule_empty_description_returns_error() -> None:
     assert "description" in result["error"].lower()
 
 
+def test_draft_rule_long_no_period_description_title_not_cut_mid_word() -> None:
+    """G dogfood-audit: no caller-supplied title + a description with no
+    period (common for a short one-liner) used to hard-slice the raw
+    description at exactly 80 chars via first_sentence[:80] -- no ellipsis,
+    no word-boundary awareness, silently dropping the tail (e.g. cutting
+    "...via IEX (Invoke-Expression), common initial-access loader pattern"
+    down to "...via IEX (Invoke-Expr"). The title must never end mid-word."""
+    import yaml
+
+    description = (
+        "Detect PowerShell downloading and executing a remote script via IEX "
+        "(Invoke-Expression), common initial-access loader pattern"
+    )
+    assert len(description) > 80  # sanity: truncation is actually exercised
+
+    result = draft_rule_body(description, rule_type="process_creation")
+    assert result["ok"] is True
+    parsed = yaml.safe_load(result["yaml"])
+    title = parsed["title"]
+
+    assert title != description[:80]  # not a raw mid-word slice
+    assert title.endswith("...")  # truncation must be visible to the reader
+    stem = title[:-3].rstrip()
+    assert description[: len(stem)] == stem  # stem is an exact prefix
+    next_idx = len(stem)
+    assert next_idx == len(description) or description[next_idx] == " "  # cut at a word boundary
+
+
 def test_draft_rule_invalid_severity_returns_error() -> None:
     result = draft_rule_body(
         "Some threat", severity="extreme"

@@ -1,11 +1,9 @@
-title: Template -- Establish Accounts (anomalous account creation burst)
-id: feb5d2c9-944a-518f-ac82-03392c1f7769
+title: Template -- Establish Accounts (anomalous account creation burst) -- account creation (base)
+name: t1585_anomalous_account_creation_base
+id: 555480a7-c3ce-5eaa-9d97-c72491f267d4
 status: experimental
-description: Canonical sigma detection template for MITRE ATT&CK T1585 (Establish Accounts (anomalous account creation burst)).
-  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
-  before deployment.
-references:
-- https://attack.mitre.org/techniques/T1585/
+description: Base event match for the T1585 anomalous-account-creation burst correlation
+  below -- a single account creation event, on its own, is not the alert.
 author: WinstonRedGuard -- sigma plugin canonical templates
 date: '2026-05-21'
 logsource:
@@ -17,7 +15,30 @@ detection:
     - 4720
     - 4722
     - 4738
-  condition: selection_anomalous_account_creation_burst | count() by SubjectUserName > 5 in 1h
+  condition: selection_anomalous_account_creation_burst
+level: informational
+tags:
+- attack.t1585
+---
+title: Template -- Establish Accounts (anomalous account creation burst)
+id: feb5d2c9-944a-518f-ac82-03392c1f7769
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1585 (Establish Accounts (anomalous account creation burst)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1585/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+correlation:
+  type: event_count
+  rules:
+  - t1585_anomalous_account_creation_base
+  group-by:
+  - SubjectUserName
+  timespan: 1h
+  condition:
+    gt: 5
 falsepositives:
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: medium

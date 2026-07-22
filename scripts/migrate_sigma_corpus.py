@@ -1,22 +1,20 @@
 """Migrate WRG sigma rule corpus to plugin resources/examples.
 
 One-shot helper for the sigma-corpus migration ship. Reads WRG threat-intel sigma sources
-and renders ~50 canonical sigma example rules into
-``internal plus an
-INDEX.json with 3-dimensional indexing (MITRE ATT&CK tactic +
+and renders ~50 canonical sigma example rules into ``resources/examples/``
+plus an INDEX.json with 3-dimensional indexing (MITRE ATT&CK tactic +
 detection_type + target_platform).
 
 Sources (V_api_shape Rule 2 pre-write reads):
 
-* ``internal
-  -- ``TECHNIQUE_PATTERN_LIBRARY`` (37 technique-keyed curated patterns).
-  Rendered as synthetic exemplars (no actor binding; status experimental).
-* ``internal
-  -- 6 observed actor-bound goldens (alphv + lapsus + lockbit +
-  nullsec_nigeria).
-* ``internal
-  -- 2 observed OFAC sanction goldens.
-* ``apps/wrg_ai_fingerprint_sigma/tests/fixtures/expected_sigma_output.yml``
+* ``apps/<wrg-app>`` TECHNIQUE_PATTERN_LIBRARY (37 technique-keyed curated
+  patterns). Rendered as synthetic exemplars (no actor binding; status
+  experimental).
+* ``apps/<wrg-app>`` breach corpus -- 6 observed actor-bound goldens
+  (alphv + lapsus + lockbit + nullsec_nigeria).
+* ``apps/<wrg-app>`` OFAC sanctions data -- 2 observed OFAC sanction
+  goldens.
+* ``apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml``
   -- 5 detector goldens (multi-doc YAML).
 
 LLM-safe redaction discipline (OPSEC redactions applied):
@@ -40,10 +38,12 @@ namespaces match the source modules so rule IDs stay stable).
 Usage::
 
     cd <repo-clone-path>
-    py -3 internal script writes to
-``internal plus
-``resources/examples/INDEX.json``; canonical pattern catalog is
-written separately (see ``scripts/render_canonical_patterns.py``).
+    py -3 scripts/migrate_sigma_corpus.py
+
+Writes rendered rules to ``resources/examples/`` plus
+``resources/examples/INDEX.json``. The canonical pattern catalog
+(``resources/canonical-patterns/``) is authored separately and is not
+touched by this script.
 """
 from __future__ import annotations
 
@@ -581,11 +581,18 @@ def scan_disk_rules(examples_dir: Path) -> list[tuple[str, str, dict[str, Any]]]
     ``category`` is the immediate parent directory name under
     ``examples_dir`` (MITRE tactic). Read-only -- rule YAML files
     themselves are never modified.
+
+    A base-rule + correlation-rule pair is 2 YAML documents in one file
+    (``---``-separated); the base document (first) carries the real
+    ``logsource``, so indexing keys off it the same way a plain single-
+    document rule always has -- ``safe_load_all`` + first doc, not
+    ``safe_load``, which raises ``ComposerError`` on multi-document input.
     """
     rendered: list[tuple[str, str, dict[str, Any]]] = []
     for path in sorted(examples_dir.rglob("*.yml")):
         category = path.relative_to(examples_dir).parts[0]
-        doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+        docs = [d for d in yaml.safe_load_all(path.read_text(encoding="utf-8")) if d]
+        doc = docs[0] if docs else {}
         rendered.append((category, path.name, doc))
     return rendered
 
