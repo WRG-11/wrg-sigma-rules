@@ -453,6 +453,32 @@ def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
                     ),
                 }
             )
+        if isinstance(condition, str) and "|" in condition:
+            # A literal pipe INSIDE the condition string (not a field
+            # modifier like ``Image|endswith``, which lives in the
+            # selection block, never in ``condition:``) is the
+            # pre-correlation-rule aggregation syntax, e.g.
+            # ``selection | count() by Image > 20 in 5m``. SigmaRule.
+            # from_yaml() parses it without complaint, so validate_rule
+            # otherwise reports valid=true -- but every pySigma backend
+            # rejects it at conversion time ("pipe syntax ... deprecated
+            # ... replaced by Sigma correlations"), live-verified against
+            # 8 real corpus rules using exactly this pattern. Warn here so
+            # a schema-valid rule isn't silently unconvertible.
+            warnings.append(
+                {
+                    "rule": "deprecated_pipe_condition",
+                    "message": (
+                        "condition contains a '|' aggregation pipe "
+                        "(pre-correlation-rule syntax); every pySigma "
+                        "backend (Splunk/Elastic/...) rejects this at "
+                        "conversion time even though it parses -- migrate "
+                        "the count()/aggregation logic to a separate "
+                        "Sigma correlation rule (see the sigma spec's "
+                        "'correlations' feature)"
+                    ),
+                }
+            )
 
     return warnings, mitre_found
 

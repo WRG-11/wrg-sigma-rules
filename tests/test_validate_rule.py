@@ -142,6 +142,53 @@ def test_validate_linter_passes_clean_rule_no_warnings_except_default() -> None:
     assert "mitre_tag_missing" not in rules_hit
 
 
+def test_validate_flags_deprecated_pipe_aggregation_condition() -> None:
+    """G dogfood-audit: `condition: selection | count() by X > N in Ym` (the
+    pre-correlation-rule aggregation pipe syntax) parses fine under pySigma's
+    SigmaRule.from_yaml -- validate_rule reported valid=true for all 8 real
+    corpus rules using this pattern -- but EVERY backend (Splunk, Elastic)
+    rejects it at conversion time ("pipe syntax ... deprecated ... replaced
+    by Sigma correlations"), live-verified. validate_rule must warn about
+    this convertibility gap instead of giving false confidence."""
+    yaml_str = (
+        "title: Ransomware extension burst\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1486/\n"
+        "falsepositives:\n  - none\n"
+        "logsource:\n  category: file_event\n  product: windows\n"
+        "detection:\n  selection:\n    TargetFilename|endswith: '.locked'\n"
+        "  condition: selection | count() by Image > 20 in 5m\n"
+        "level: high\n"
+        "tags:\n  - attack.t1486\n"
+    )
+    result = validate_rule_body(yaml_str)
+    rules_hit = {w["rule"] for w in result["linter_warnings"]}
+    assert "deprecated_pipe_condition" in rules_hit
+
+
+def test_validate_field_modifier_pipe_is_not_flagged_as_deprecated_condition() -> None:
+    """The field-modifier pipe (``CommandLine|contains``) is normal, current
+    sigma syntax -- must not be confused with a pipe INSIDE the condition
+    string. Reuses the same rule as the "clean" happy-path test above."""
+    yaml_str = (
+        "title: PowerShell encoded payload via -enc flag\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
+        "description: a real description over ten characters\n"
+        "references:\n  - https://attack.mitre.org/T1059.001/\n"
+        "falsepositives:\n  - Legit admin scripts\n"
+        "logsource:\n  category: process_creation\n  product: windows\n"
+        "detection:\n  selection:\n    CommandLine|contains: ' -enc '\n"
+        "  filter:\n    Image|endswith: bad.exe\n"
+        "  condition: selection and filter\n"
+        "level: high\n"
+        "tags:\n  - attack.t1059.001\n"
+    )
+    result = validate_rule_body(yaml_str)
+    rules_hit = {w["rule"] for w in result["linter_warnings"]}
+    assert "deprecated_pipe_condition" not in rules_hit
+
+
 def test_validate_pattern_34_redacts_internal_identifiers() -> None:
     # Always-redact -- internal IP / corp domain redacted in echo.
     yaml_str = _good_yaml().replace(
