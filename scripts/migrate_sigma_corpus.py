@@ -581,11 +581,18 @@ def scan_disk_rules(examples_dir: Path) -> list[tuple[str, str, dict[str, Any]]]
     ``category`` is the immediate parent directory name under
     ``examples_dir`` (MITRE tactic). Read-only -- rule YAML files
     themselves are never modified.
+
+    A base-rule + correlation-rule pair is 2 YAML documents in one file
+    (``---``-separated); the base document (first) carries the real
+    ``logsource``, so indexing keys off it the same way a plain single-
+    document rule always has -- ``safe_load_all`` + first doc, not
+    ``safe_load``, which raises ``ComposerError`` on multi-document input.
     """
     rendered: list[tuple[str, str, dict[str, Any]]] = []
     for path in sorted(examples_dir.rglob("*.yml")):
         category = path.relative_to(examples_dir).parts[0]
-        doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+        docs = [d for d in yaml.safe_load_all(path.read_text(encoding="utf-8")) if d]
+        doc = docs[0] if docs else {}
         rendered.append((category, path.name, doc))
     return rendered
 

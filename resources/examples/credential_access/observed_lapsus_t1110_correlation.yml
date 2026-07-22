@@ -1,13 +1,9 @@
-title: LAPSUS$ -- T1110
-id: b782545c-7b35-5e55-97fd-4f30d360c765
+title: LAPSUS$ -- T1110 -- failed logon (base)
+name: lapsus_t1110_failed_logon_base
+id: 2bd35f5e-b1da-5004-958f-b5f615190092
 status: test
-description: Breach intel signature for actor lapsus, MITRE technique T1110. Derived from 1 observed incident(s) in the WRG
-  breach catalog.
-references:
-- https://attack.mitre.org/techniques/T1110/
-- https://attack.mitre.org/groups/G1004/
-- https://www.bleepingcomputer.com/news/security/vodafone-portugal-confirms-cyberattack-disrupted-services-nationwide/
-- https://www.theregister.com/2022/02/08/vodafone_portugal_cyberattack/
+description: Base event match for the LAPSUS$ T1110 brute-force burst correlation
+  below -- a single failed logon, on its own, is not the alert.
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-05-10'
 logsource:
@@ -20,7 +16,32 @@ detection:
     - 2
     - 3
     - 10
-  condition: selection_failed_logon | count() by SourceIP > 10 in 10m
+  condition: selection_failed_logon
+level: informational
+tags:
+- attack.t1110
+---
+title: LAPSUS$ -- T1110
+id: b782545c-7b35-5e55-97fd-4f30d360c765
+status: test
+description: Breach intel signature for actor lapsus, MITRE technique T1110. Derived from 1 observed incident(s) in the WRG
+  breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1110/
+- https://attack.mitre.org/groups/G1004/
+- https://www.bleepingcomputer.com/news/security/vodafone-portugal-confirms-cyberattack-disrupted-services-nationwide/
+- https://www.theregister.com/2022/02/08/vodafone_portugal_cyberattack/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-05-10'
+correlation:
+  type: event_count
+  rules:
+  - lapsus_t1110_failed_logon_base
+  group-by:
+  - SourceIP
+  timespan: 10m
+  condition:
+    gt: 10
 falsepositives:
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: high

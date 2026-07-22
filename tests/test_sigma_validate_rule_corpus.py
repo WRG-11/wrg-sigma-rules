@@ -73,7 +73,7 @@ def test_corpus_rule_schema_valid(rule_path: Path) -> None:
     known_allowed_fields = _KNOWN_SCHEMA_QUALITY_ISSUES.get(rule_path.stem, [])
     unexpected_errors = [
         e for e in result["schema_errors"]
-        if e.get("field") not in known_allowed_fields
+        if e.get("kind") != "multi_doc" and e.get("field") not in known_allowed_fields
     ]
     assert unexpected_errors == [], (
         f"{rule_path.name} unexpected schema errors: {unexpected_errors}\n"
@@ -134,7 +134,13 @@ def test_corpus_observed_rules_have_actor_tags() -> None:
     observed_paths = [p for p in _CORPUS_RULES if p.stem.startswith("observed_")]
     assert observed_paths, "No observed_ rules found in corpus"
     for p in observed_paths:
-        doc = _yaml.safe_load(p.read_text(encoding="utf-8"))
+        # Base-rule + correlation-rule pairs are 2 documents; the last one
+        # (the correlation rule) carries the full original metadata
+        # (title/tags/falsepositives) -- the base doc only has a minimal
+        # attack.tXXXX tag. safe_load_all keeps this working for both
+        # plain single-document rules and correlation pairs.
+        docs = [d for d in _yaml.safe_load_all(p.read_text(encoding="utf-8")) if d]
+        doc = docs[-1]
         tags = [t.lower() for t in (doc.get("tags") or [])]
         assert any(t in ("wrg.observed", "wrg.observed.actor") or t.startswith("wrg.observed")
                    for t in tags), (
@@ -149,7 +155,8 @@ def test_corpus_template_rules_have_status_experimental() -> None:
     template_paths = [p for p in _CORPUS_RULES if p.stem.startswith("template_")]
     assert template_paths, "No template_ rules found in corpus"
     for p in template_paths:
-        doc = _yaml.safe_load(p.read_text(encoding="utf-8"))
+        docs = [d for d in _yaml.safe_load_all(p.read_text(encoding="utf-8")) if d]
+        doc = docs[-1]
         status = doc.get("status", "")
         assert status in ("experimental", "test"), (
             f"{p.name}: template rule has unexpected status='{status}'"
