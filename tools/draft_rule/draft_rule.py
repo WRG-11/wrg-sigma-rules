@@ -116,6 +116,21 @@ def _ascii_safe(text: str) -> str:
     return text.encode("ascii", errors="replace").decode("ascii")
 
 
+def _truncate_title(text: str, limit: int = 80) -> str:
+    """Cut *text* to at most *limit* chars at a word boundary, with a visible
+    ``...`` marker when truncated. A raw ``text[:limit]`` slice can land
+    mid-word (e.g. "...via IEX (Invoke-Expr") and silently drop the rest of
+    the sentence with no indication anything was cut."""
+    text = text.strip()
+    if len(text) <= limit:
+        return text
+    cut = text[: limit - 3].rstrip()
+    last_space = cut.rfind(" ")
+    if last_space > 0:
+        cut = cut[:last_space]
+    return cut.rstrip() + "..."
+
+
 def _redact_description(description: str) -> tuple[str, list[str]]:
     """Apply always-redact + char cap to user description.
 
@@ -394,7 +409,7 @@ def draft_rule_body(
         rule_title = title
     else:
         first_sentence = safe_description.split(".")[0].strip()
-        rule_title = first_sentence[:80] or "Untitled sigma rule"
+        rule_title = _truncate_title(first_sentence) or "Untitled sigma rule"
 
     slug = _slugify(rule_title)
     rule_id = _deterministic_uuid(slug)
