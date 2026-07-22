@@ -267,8 +267,19 @@ def _schema_checks(rule: Any) -> list[dict[str, Any]]:
                 }
             )
 
-    if "id" in rule and isinstance(rule["id"], str):
-        if not _UUID_RE.match(rule["id"].lower()):
+    if "id" in rule:
+        if not isinstance(rule["id"], str):
+            errors.append(
+                {
+                    "message": (
+                        "'id' must be a string UUID per sigma spec (got "
+                        f"{type(rule['id']).__name__})"
+                    ),
+                    "kind": "schema",
+                    "field": "id",
+                }
+            )
+        elif not _UUID_RE.match(rule["id"].lower()):
             errors.append(
                 {
                     "message": (

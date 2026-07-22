@@ -76,6 +76,24 @@ def test_validate_invalid_uuid_flagged() -> None:
     assert any(e.get("field") == "id" for e in result["schema_errors"])
 
 
+def test_validate_non_string_id_flagged_cleanly() -> None:
+    """G dogfood-audit: a bare (unquoted) numeric id -- e.g. ``id: 12345`` --
+    used to skip the schema-level id check entirely (it was gated behind
+    ``isinstance(rule["id"], str)``, same as the format check), so the only
+    signal was pysigma's raw internal crash message ("'int' object has no
+    attribute 'replace'") instead of the tool's own clean, actionable
+    vocabulary every other type-mismatch field uses (logsource/detection)."""
+    yaml_str = (
+        "title: foo\nid: 12345\nlogsource: {category: x}\n"
+        "detection:\n  selection: {a: 1}\n  condition: selection\n"
+    )
+    result = validate_rule_body(yaml_str)
+    assert result["valid"] is False
+    id_errors = [e for e in result["schema_errors"] if e.get("field") == "id"]
+    assert id_errors, "non-string id must be flagged at the schema-check layer"
+    assert "string" in id_errors[0]["message"].lower()
+
+
 def test_validate_invalid_level_flagged() -> None:
     yaml_str = (
         "title: foo\nid: 11111111-2222-3333-4444-555555555555\n"
