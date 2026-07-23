@@ -431,7 +431,7 @@ def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
                 "rule": "falsepositives_empty",
                 "message": (
                     "falsepositives block empty; top-3 cause of SOC "
-                    "alert fatigue per WRG corpus"
+                    "alert fatigue observed across this corpus"
                 ),
             }
         )

@@ -57,7 +57,7 @@ _KNOWN_SCHEMA_QUALITY_ISSUES: dict[str, list[str]] = {}
     ids=[p.stem for p in _CORPUS_RULES],
 )
 def test_corpus_rule_schema_valid(rule_path: Path) -> None:
-    """Every WRG corpus rule must pass schema + pySigma validation.
+    """Every published corpus rule must pass schema + pySigma validation.
 
     Rules listed in _KNOWN_SCHEMA_QUALITY_ISSUES are allowed to have the
     specific schema defects documented there (zero-UUID placeholder etc.).
