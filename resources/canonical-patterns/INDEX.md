@@ -1,7 +1,7 @@
 # WRG Canonical Sigma Detection Patterns
 
 5 canonical detection pattern shape definitions distilled from
-6+ months of WRG threat-intel corpus + 50+ sigma rule operations.
+the published rule corpus and 50+ sigma rule operations.
 Each pattern captures a recurring detection shape that recurs across
 multiple actors and incidents -- they are the "design patterns" of
 sigma rule writing.
@@ -31,7 +31,7 @@ Use these patterns when:
 the distinct shapes that warrant separate rule scaffolding); >=7
 patterns over-fragment (rule writers cannot remember the catalog
 without referencing it every time). The 5-pattern surface captures
-~80% of the WRG corpus rule distribution while staying memorable.
+~80% of the published corpus rule distribution while staying memorable.
 
 ## Pattern selection heuristic
 

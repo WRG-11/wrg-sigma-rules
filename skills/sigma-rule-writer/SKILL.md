@@ -63,7 +63,7 @@ user, not just errors:
 - pySigma parser errors (hard fail)
 - best-practices linter warnings (e.g. missing `falsepositives:` block,
   overly broad selection, `condition` ambiguity)
-- WRG corpus deviations (e.g. logsource format drift vs canonical 50+ rule
+- published-corpus deviations (e.g. logsource format drift vs canonical 50+ rule
   reference set)
 
 If validation fails, offer to revise. Do not silently accept warnings.

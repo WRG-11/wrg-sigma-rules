@@ -253,7 +253,7 @@ def write_rule_yaml(category: str, filename: str, rule_doc: dict[str, Any]) -> P
         # Truncate with discipline warning embedded.
         yaml_text = (
             yaml_text[: CHAR_CAP_PER_RULE - 200]
-            + "\n# WARNING: Rule truncated to char cap; see full source in WRG corpus.\n"
+            + "\n# WARNING: Rule truncated to char cap; the untruncated rule is not published.\n"
         )
     path.write_text(yaml_text, encoding="utf-8", newline="\n")
     return path

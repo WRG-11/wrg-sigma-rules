@@ -219,7 +219,7 @@ def convert_rule_body(
     failure returns ``{ok: False, error, hint, kind}``. The ``metadata``
     block preserves source rule title + id + level so the caller can
     correlate the query back to the rule (sister convention used by
-    the WRG corpus ``observed_*`` rules).
+    this corpus's ``observed_*`` rules).
 
     ``config`` is reserved for future backend-specific options (index name,
     field mappings, etc.) and is currently NOT applied to conversion -- a

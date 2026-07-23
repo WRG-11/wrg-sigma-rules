@@ -11,6 +11,30 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [1.2.1] - 2026-07-23
+
+Wording only — no detection rule, tool logic or schema changed. Eleven places in
+published content named an **internal** corpus that is not part of this
+repository. (The removed term is deliberately not reprinted here: this repo
+scans its own published content for exactly that name, and quoting it in the
+changelog would reintroduce what the release removes.)
+
+### Changed
+
+- Three of them claimed provenance from a private asset a reader cannot inspect
+  or verify — the plugin marketplace description, the `canonical-patterns`
+  index, and the description of the `wrg-sigma://patterns/canonical-5` MCP
+  resource. They now describe what is actually published: a 73-rule corpus
+  across 12 MITRE ATT&CK tactics.
+- The other eight used that internal name where they meant *this* corpus — the
+  73 published rules — in a validation message, a skill instruction, two
+  docstrings, a code comment, a test docstring and the pattern index. They now
+  say "this corpus" / "the published corpus", which is both accurate and
+  unambiguous to a reader outside the project.
+- `migrate_sigma_corpus.py`'s truncation warning pointed readers at a full
+  source that is not published. It now states plainly that the untruncated rule
+  is not published.
+
 ## [1.2.0] - 2026-07-23
 
 Corpus grew from 68 to 73 rules (net +5) alongside a public MCP-server
@@ -221,3 +245,4 @@ README `sigma_rule_count` self-stamp are all in sync at **68**.
 [1.1.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.0.0...v1.1.0
 [1.1.1]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.1.0...v1.1.1
 [1.2.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.1.1...v1.2.0
+[1.2.1]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.2.0...v1.2.1
