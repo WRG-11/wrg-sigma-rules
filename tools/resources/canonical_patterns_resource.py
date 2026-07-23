@@ -134,8 +134,8 @@ def register_canonical_pattern_resources(mcp: Any) -> None:
         name="wrg-sigma-canonical-patterns",
         description=(
             "5 canonical sigma detection pattern shape definitions "
-            "distilled from 6+ months of WRG threat-intel corpus + "
-            "50+ sigma rule operations. Use as a starting point for "
+            "distilled from the published rule corpus and 50+ sigma "
+            "rule operations. Use as a starting point for "
             "drafting new rules. Pattern selection heuristic + MITRE "
             "coverage matrix + per-pattern shape definitions inline. "
             "ASCII-only markdown body."

@@ -121,5 +121,5 @@ was rewritten to `like`").
   decision authority)
 - Marking a rule PASS when warnings exist (warnings matter)
 - Ignoring `falsepositives:` block emptiness (top-3 cause of SOC alert
-  fatigue per WRG corpus observation)
+  fatigue observed across this corpus)
 - Adding closure cues ("Hope this is helpful!") -- operator drives next step

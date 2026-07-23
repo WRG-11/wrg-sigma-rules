@@ -418,7 +418,7 @@ def draft_rule_body(
     logsource = _build_logsource(rule_type, target_platform)
     detection = _draft_detection_block(rule_type, target_platform)
 
-    # Tags: MITRE TTPs + severity convention used by the WRG corpus
+    # Tags: MITRE TTPs + severity convention used by this corpus
     # (sister: ``wrg.severity.<level>`` tag in migrated examples).
     tags: list[str] = []
     for ttp in inferred_ttps:
