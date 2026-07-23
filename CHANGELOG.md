@@ -11,10 +11,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
-## [Unreleased]
+## [1.2.0] - 2026-07-23
 
 Corpus grew from 68 to 73 rules (net +5) alongside a public MCP-server
-integration and an honesty relabel of synthetic rules.
+integration, an honesty relabel of synthetic rules, a correlation-rule
+migration for the 8 rules still on the deprecated pipe-aggregation syntax,
+and a YAML alias-bomb hardening pass on `validate_rule`.
 
 ### Added
 
@@ -32,6 +34,15 @@ integration and an honesty relabel of synthetic rules.
 - Sigma correlation-rule support in `convert_rule` / `validate_rule` via
   `SigmaCollection` — base-rule + correlation-rule two-document pairs now parse
   and convert; single-document rules unchanged. (#44)
+- `--regenerate-index` in `scripts/migrate_sigma_corpus.py`: rebuilds
+  `INDEX.json` by scanning the rule files on disk (no monorepo dependency),
+  with `tests/test_index_consistency.py` asserting a regenerate-vs-committed
+  snapshot diff so index drift cannot re-accumulate silently. (#42)
+- `test_module_count` as a second self-stamped README metric alongside
+  `sigma_rule_count`, closing the doc-drift class that the existing stamp
+  marker did not cover.
+- `.gitignore` — this repository previously had none, leaving `__pycache__/`,
+  `.coverage` and `.pytest_cache/` untracked-but-not-ignored.
 
 ### Changed
 
@@ -46,6 +57,13 @@ integration and an honesty relabel of synthetic rules.
   correlation document; original `id`/`title`/`references`/`tags` preserved so
   id-based consumers do not break). Splunk convert verified per rule; Elastic
   correctly reports it does not support correlation rules. (#44)
+- `convert_rule`: a non-empty `config` argument was accepted and echoed back in
+  `config_used` but never applied to backend construction. It now raises a
+  warning instead of silently pretending the config took effect.
+- `draft_rule` now emits YAML through `yaml.safe_dump` instead of a
+  hand-rolled emitter. The hand-rolled version only quoted problem characters
+  in top-level scalars, so a `references` entry containing `:` silently
+  re-parsed as a one-key mapping rather than a string. (#42)
 
 ### Fixed
 
@@ -53,7 +71,71 @@ integration and an honesty relabel of synthetic rules.
   description had no period (silent data loss). (#44)
 - `validate_rule`: a non-string `id` field skipped the schema check entirely;
   now flagged with a distinct error. (#44)
-  
+- `INDEX.json` drift: regenerated from disk (`total_rules` 68 to 73). The
+  `persistence` tactic — the 12th ATT&CK category — was completely unindexed,
+  3 stale `observed_` to `template_` renames were still listed under their old
+  names, and 5 new rules were missing. The three stale rule-count siblings
+  (`plugin.json`, `resources/canonical-patterns/INDEX.md`, `DEMO.md`) were
+  corrected in the same pass. (#42)
+- `canonical_patterns_resource`: `register_canonical_pattern_resources()` was
+  fully implemented and covered by 12 tests, but `server.py` never called it —
+  so the resource URI that `canonical-patterns/INDEX.md` documented as a
+  working feature was unreachable from any real MCP client. Now wired into
+  `server.py`, with a test that imports the real server module and asserts the
+  resource and template are registered. (#42)
+- `validate_rule`: a multi-document YAML file no longer forces `valid=False`
+  when the first document is otherwise clean (fixed on the separate
+  `_pysigma_validate` path as well, which re-parses the raw multi-doc text
+  independently). (#42)
+- `validate_rule`: the UUID regex now accepts v6/v7/v8 (RFC 9562) and the nil
+  UUID, which removed the need for the `lockbit_btc` schema-quality allowlist
+  entry. (#42)
+- Rule references corrected across six `observed_*` rules — real sources and
+  accurate MITRE ATT&CK attribution replacing the prior placeholders. (#33)
+- Doc drift: README claimed "8 Python test modules" against an actual 10. That
+  metric is now self-stamped and has since auto-tracked to 11 on its own.
+- `DEMO.md` no longer carries a hard-coded suite pass count. The hand-corrected
+  286 to 287 fix rotted again within this same release cycle (actual: 302), so
+  the line now points at the CI workflow instead. The count cannot be
+  self-stamped the way the rule and module counts are — deriving it requires
+  invoking pytest, and `readme_stamp.py` is deliberately stdlib-only.
+
+### Security
+
+- `validate_rule` YAML denial-of-service: the byte-size cap alone does not stop
+  an alias bomb (billion-laughs). PyYAML resolves aliases to shared object
+  references, so parsing itself stays fast at any nesting depth and the
+  exponential blowup instead hits downstream code that walks the parsed graph
+  without reference-awareness. Anchor/alias syntax is now rejected outright via
+  a PyYAML composer event hook (not a regex) — Sigma rules have no legitimate
+  use for `&anchor`/`*alias`. `RecursionError` is handled for deep but
+  alias-free nesting, and the byte-size cap is retained as a separate guard
+  against plain oversized input. (#42)
+- Internal wave-dispatch identifiers and fleet-topology metadata were removed
+  from public content, and a regression test now blocks them from reaching the
+  public surface. (#37, #38, #43)
+
+### Known limitations
+
+- `coverage run -m pytest` produces **false** failures on this repository — 94
+  of 287 when the effect was characterised on Python 3.12, matching CI. Root
+  cause is upstream: pysigma's
+  `SigmaYAMLLoader(yaml.CSafeLoader)` — a C-extension YAML loader subclass in
+  the dependency, not in this repo's code — breaks specifically under
+  coverage.py's tracer (reproduces with `core=ctrace` forced, does not
+  reproduce under a bare no-op `sys.settrace`; `branch=True` additionally
+  hangs). CI therefore stays on plain `pytest` deliberately; wiring in
+  `coverage run` as-is would make CI red for reasons unrelated to code quality.
+
+### Maintenance
+
+- ci(deps): `actions/checkout` 6.0.3 -> 7.0.1 (#28, #46); `actions/setup-python`
+  6.2.0 -> 7.0.0 (#27, #49); `github/codeql-action` 4.36.2 -> 4.37.3
+  (#39, #40, #41, #47, #48, #50); `pysigma` `>=1.3.3` -> `>=1.4.0` (#34);
+  `mcp` `>=1.2.0` -> `>=1.28.1` (#29, #36); plus a
+  `pysigma-backend-elasticsearch` requirement bump (#35).
+
+
 ## [1.1.1] - 2026-06-10
 
 Corpus rule-file count unchanged at **68** — no detection rules added or
@@ -137,3 +219,5 @@ README `sigma_rule_count` self-stamp are all in sync at **68**.
 - README — Detection Frontier subscribe CTA and star nudge. (`67519ff`)
 
 [1.1.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.0.0...v1.1.0
+[1.1.1]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.1.0...v1.1.1
+[1.2.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.1.1...v1.2.0
