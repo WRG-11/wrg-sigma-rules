@@ -40,7 +40,8 @@ correlation:
   condition:
     gt: 5
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Bulk onboarding -- a hiring intake, student enrolment or acquisition adding many accounts at once
+- IAM migration tooling provisioning accounts in batches
 level: medium
 tags:
 - attack.t1585

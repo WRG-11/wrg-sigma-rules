@@ -35,7 +35,8 @@ detection:
     - HRTooling
   condition: selection_brand_persona_profile_edit and not filter_corporate_brand_tooling
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Marketing or comms staff creating official brand profiles on those platforms
+- An agency managing social accounts on the organisation's behalf
 level: medium
 tags:
 - attack.t1656.002

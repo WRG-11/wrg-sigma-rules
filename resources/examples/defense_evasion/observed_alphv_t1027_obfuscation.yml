@@ -36,7 +36,7 @@ detection:
     CommandLine|contains: ' -NoProfile -EncodedCommand '
   condition: (selection_encoded_powershell or selection_long_base64_blob) and not filter_legit_sccm_installer_encoded_ps
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Commercial installers and licensing wrappers that ship packed or obfuscated payloads
 level: high
 tags:
 - attack.t1027

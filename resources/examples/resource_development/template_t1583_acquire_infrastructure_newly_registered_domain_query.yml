@@ -17,7 +17,8 @@ detection:
     QueryName|re: .*(newly-registered|just-registered|reg-\d{4}-\d{2}|typo-domain).*
   condition: selection_newly_registered_domain_query
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Newly onboarded suppliers and SaaS vendors, whose domains are genuinely young
+- CDN, marketing and tracking subdomains that rotate frequently by design
 level: medium
 tags:
 - attack.t1583

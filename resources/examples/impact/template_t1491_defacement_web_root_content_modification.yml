@@ -32,7 +32,8 @@ detection:
     - \nginx.exe
   condition: selection_web_root_write and not filter_legit_webserver_writes
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- A CI/CD pipeline deploying to the web root during a release
+- CMS updates and plugin installs rewriting files in place
 level: medium
 tags:
 - attack.t1491

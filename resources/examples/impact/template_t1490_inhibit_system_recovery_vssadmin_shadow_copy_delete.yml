@@ -23,7 +23,9 @@ detection:
     - delete catalog
   condition: selection_vss_delete
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Backup software pruning old shadow copies at the end of a job, which is its documented behaviour
+- Disk-space maintenance scripts clearing shadow storage on constrained volumes
+- Imaging and sysprep workflows during machine build
 level: medium
 tags:
 - attack.t1490

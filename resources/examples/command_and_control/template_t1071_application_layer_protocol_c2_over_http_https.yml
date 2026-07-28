@@ -47,7 +47,9 @@ correlation:
   condition:
     gt: 30
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- PowerShell-based software deployment and patching (Intune, Chocolatey, WSUS wrappers) fetching packages over 443
+- Monitoring or licence-check scripts that call a vendor API from a scripting host
+- rundll32 loading a legitimate COM component that performs its own HTTP update check
 level: medium
 tags:
 - attack.t1071

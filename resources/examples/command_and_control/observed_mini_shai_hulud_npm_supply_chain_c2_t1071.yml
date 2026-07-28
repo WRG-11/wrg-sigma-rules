@@ -52,8 +52,8 @@ detection:
     - \pnpm.exe
   condition: 1 of selection_dns_* or selection_network_ip_c2 or (selection_npm_process_parent and 1 of selection_dns_*)
 falsepositives:
-- None expected -- the m-kosche.com domain family + IP 185.95.159.32 are campaign-specific IOCs (MsftSecIntel disclosure 2026-05-21); no legitimate use case anticipated. Tune retention window per environment SOC SLA.
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Threat-intel enrichment tooling or a sandbox resolving the indicator domain during analysis
+- The security team's own verification lookups after this rule fires
 level: high
 tags:
 - attack.t1071

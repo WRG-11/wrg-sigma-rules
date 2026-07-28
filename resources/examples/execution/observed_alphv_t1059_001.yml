@@ -31,7 +31,7 @@ detection:
     CommandLine|contains: ' -NoProfile -EncodedCommand '
   condition: selection_pwsh_encoded and not filter_legit_sccm_installer_encoded_ps
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Administrative automation that legitimately passes encoded commands through PowerShell
 level: high
 tags:
 - attack.t1059.001

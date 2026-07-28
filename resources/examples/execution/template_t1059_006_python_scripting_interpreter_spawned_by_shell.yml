@@ -25,7 +25,9 @@ detection:
     - \mshta.exe
   condition: selection_python_shell_parent
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- CI runners and build scripts invoking Python from a shell step
+- Developer and data-science workstations, where this is the normal working pattern
+- Vendor tooling that ships an embedded Python interpreter and drives it from a wrapper
 level: medium
 tags:
 - attack.t1059.006

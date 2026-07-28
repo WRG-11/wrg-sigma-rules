@@ -34,7 +34,7 @@ detection:
     - \nginx.exe
   condition: selection_web_root_write and not filter_legit_webserver_writes
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- A legitimate site deployment replacing web-root content during a release window
 level: medium
 tags:
 - attack.t1491

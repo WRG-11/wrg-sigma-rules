@@ -40,7 +40,9 @@ correlation:
   condition:
     gt: 10
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- A service account with a rotated password still configured in a scheduled task, retrying on every run
+- Shared egress (VPN concentrator, NAT gateway) putting many users behind one source address
+- A misconfigured client or mapped drive reconnecting in a tight loop after a password change
 level: medium
 tags:
 - attack.t1110

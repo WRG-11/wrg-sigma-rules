@@ -44,7 +44,8 @@ correlation:
   condition:
     gt: 3
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- A user on a poor connection retrying authentication repeatedly within a short window
+- A misconfigured client (mail app, VPN) re-authenticating in a loop after a token expiry
 level: medium
 tags:
 - attack.t1556

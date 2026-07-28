@@ -23,7 +23,9 @@ detection:
     - 206
   condition: selection_repo_access
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- OneDrive and Teams sync clients, which poll /_api/ continuously for every user
+- Enterprise search indexers and backup connectors, which walk every site by design
+- Migration or reporting tooling enumerating sites during a planned move
 level: medium
 tags:
 - attack.t1213

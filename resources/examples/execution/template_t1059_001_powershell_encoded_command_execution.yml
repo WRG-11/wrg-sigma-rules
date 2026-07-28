@@ -31,7 +31,8 @@ detection:
     CommandLine|contains: ' -NoProfile -EncodedCommand '
   condition: selection_pwsh_encoded and not filter_legit_sccm_installer_encoded_ps
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Configuration-management and deployment tooling (SCCM, Intune, GPO startup scripts), which routinely invokes PowerShell with -EncodedCommand
+- Scheduled administrative jobs that encode their command line to survive quoting
 level: medium
 tags:
 - attack.t1059.001

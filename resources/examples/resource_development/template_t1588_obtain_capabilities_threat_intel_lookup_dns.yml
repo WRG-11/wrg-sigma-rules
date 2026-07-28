@@ -27,7 +27,8 @@ detection:
     - \firefox.exe
   condition: selection_threat_intel_lookup and not filter_security_tooling_host
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- The security team's own enrichment tooling, which performs exactly these lookups as its normal function
+- Sandbox and malware-analysis systems resolving indicators during detonation
 level: medium
 tags:
 - attack.t1588

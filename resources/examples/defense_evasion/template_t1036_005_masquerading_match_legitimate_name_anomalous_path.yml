@@ -27,7 +27,9 @@ detection:
     - C:\Windows\SysWOW64\
   condition: selection_legit_name_anomalous_path and not filter_canonical_path
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Portable applications run from a user profile or removable media by design
+- Developer build output producing binaries with common system names in a project directory
+- Vendor software that legitimately self-installs per-user (some chat and conferencing clients)
 level: medium
 tags:
 - attack.t1036.005
