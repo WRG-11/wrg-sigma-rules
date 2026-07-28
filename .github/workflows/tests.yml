@@ -96,3 +96,28 @@ jobs:
 
       - name: Report coverage against the floor
         run: python -m coverage report
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+
+      # The Dockerfile has shipped since the Glama deployment work without
+      # anything ever building it, so a change to requirements.txt or
+      # server.py could break the image with nothing to notice.
+      - name: Build the MCP server image
+        run: docker build -t wrg-sigma-rules-mcp .
+
+      # Building is not evidence that it serves. Speak MCP to the container
+      # over stdio and require it to announce the tools and resources the
+      # plugin promises -- a server that starts and announces nothing would
+      # pass a build check and fail this one.
+      - name: Smoke the container over stdio MCP
+        run: python scripts/mcp_stdio_smoke.py docker run -i --rm wrg-sigma-rules-mcp
