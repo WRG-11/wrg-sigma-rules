@@ -58,6 +58,47 @@ _VALID_STATUSES: frozenset[str] = frozenset(
 )
 
 _MITRE_TAG_RE = re.compile(r"^attack\.t\d{4}(?:\.\d{3})?$")
+
+# `falsepositives:` text that is present but says nothing an analyst can tune
+# on. The empty-block check above cannot see these: the field is populated, so
+# it passes, and the rule ships looking complete. Measured on this corpus,
+# 56 of 76 published rules carried an entry of one of these shapes.
+#
+# Matched on the whole entry, not as a substring search, so a real scenario
+# that happens to contain the word "unknown" ("...when the parent process is
+# unknown to the asset inventory") is not flagged. Only entries that are
+# ENTIRELY placeholder count, and only when every entry in the list is one --
+# a rule listing two real scenarios plus a leftover TODO has already done the
+# work being asked for here.
+_PLACEHOLDER_FALSEPOSITIVE_RES: tuple[re.Pattern[str], ...] = (
+    re.compile(r"^\s*unknown\.?\s*$", re.IGNORECASE),
+    re.compile(r"^\s*(none|n/?a|tbd|todo)\b.*$", re.IGNORECASE),
+    re.compile(r"^\s*pattern library v\d+\b.*$", re.IGNORECASE),
+    re.compile(r"^\s*review for environment-specific tuning\b.*$", re.IGNORECASE),
+)
+
+# Placeholder that draft_rule writes into detection values the author must
+# fill in. A shipped rule containing it matches the literal string.
+_SCAFFOLD_MARKER = "REPLACE_ME"
+
+
+def _is_placeholder_falsepositive(entry: str) -> bool:
+    """True if *entry* is placeholder text rather than a real scenario."""
+    return any(pattern.match(entry) for pattern in _PLACEHOLDER_FALSEPOSITIVE_RES)
+
+
+def _find_scaffold_markers(node: Any, path: str = "") -> list[str]:
+    """Return dotted paths of any value still holding draft scaffolding."""
+    hits: list[str] = []
+    if isinstance(node, dict):
+        for key, value in node.items():
+            hits.extend(_find_scaffold_markers(value, f"{path}.{key}" if path else str(key)))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            hits.extend(_find_scaffold_markers(value, f"{path}[{index}]"))
+    elif isinstance(node, str) and _SCAFFOLD_MARKER in node:
+        hits.append(path or "(root)")
+    return hits
 # Versions 1-8 (RFC 4122 + RFC 9562 UUIDv6/v7/v8) share the same variant
 # nibble encoding; the nil UUID (all zeros) is RFC 4122's one explicit
 # exception and is accepted as an alternate branch.
@@ -432,6 +473,41 @@ def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
                 "message": (
                     "falsepositives block empty; top-3 cause of SOC "
                     "alert fatigue observed across this corpus"
+                ),
+            }
+        )
+    else:
+        placeholder_entries = [
+            entry
+            for entry in falsepositives
+            if isinstance(entry, str) and _is_placeholder_falsepositive(entry)
+        ]
+        if placeholder_entries and len(placeholder_entries) == len(falsepositives):
+            warnings.append(
+                {
+                    "rule": "falsepositives_placeholder",
+                    "message": (
+                        "falsepositives contains only placeholder text "
+                        f"({placeholder_entries[0][:60]!r}); name a concrete "
+                        "benign scenario that produces this same telemetry. "
+                        "A filled-but-meaningless block passes the empty "
+                        "check while giving an analyst nothing to tune on"
+                    ),
+                }
+            )
+
+    # Draft scaffolding that reached a shipped rule. `REPLACE_ME` is what
+    # draft_rule emits for detection values the author must supply, so its
+    # presence means the draft was never finished.
+    scaffold_hits = _find_scaffold_markers(rule)
+    if scaffold_hits:
+        warnings.append(
+            {
+                "rule": "draft_scaffold_left_in",
+                "message": (
+                    "unreplaced draft scaffolding in "
+                    f"{', '.join(scaffold_hits[:3])}; the rule matches the "
+                    "literal placeholder, not the behaviour it describes"
                 ),
             }
         )

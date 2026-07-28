@@ -106,6 +106,41 @@ _RULE_TYPE_TO_LOGSOURCE: dict[str, dict[str, str]] = {
 # MITRE technique ID shape -- ``Txxxx`` or ``Txxxx.yyy``.
 _MITRE_TTP_RE = re.compile(r"^T\d{4}(?:\.\d{3})?$")
 
+# Emitted into `falsepositives:` on every draft.
+#
+# This used to be "Unknown", which CONTRIBUTING.md explicitly rules out --
+# and it is the worse kind of placeholder because it reads as a completed
+# field. A rule carrying it parses, validates, and looks finished, so it
+# survives review and ships; 56 of the 76 rules in this corpus reached
+# publication carrying a placeholder of exactly that shape. The wording
+# below is deliberately not valid-looking: it names itself as unfinished so
+# both the linter and a human reviewer trip over it.
+_FALSEPOSITIVE_PLACEHOLDER = (
+    "TODO -- replace with a concrete benign scenario that produces this "
+    "exact telemetry"
+)
+
+# Per-logsource starting points for that TODO, surfaced in draft_notes
+# rather than written into the YAML. Writing a generic scenario into the
+# rule would recreate the problem this placeholder exists to prevent: the
+# tool does not know what the rule actually matches, so any text it invents
+# would be plausible-sounding filler. A hint the author has to act on is
+# honest; a sentence in the shipped rule is not.
+_FALSEPOSITIVE_HINTS: dict[str, str] = {
+    "process_creation": "administrative or deployment scripts invoking the same binary",
+    "file_event": "backup, archival or sync software writing those paths",
+    "registry_event": "software installers and configuration-management agents",
+    "network_connection": "monitoring agents, update checks and backup tooling",
+    "authentication": "service accounts with stale credentials; shared egress "
+                      "(VPN/NAT) aggregating many users behind one address",
+    "dns": "security tooling that resolves indicator domains for enrichment",
+    "proxy": "vulnerability scanners and automated crawlers",
+    "webserver": "vulnerability scanners and uptime monitors",
+    "linux_audit": "configuration-management runs and package upgrades",
+    "macos": "MDM tooling and OS update flows",
+    "cloud_audit": "infrastructure-as-code bootstrap and authorised break-glass access",
+}
+
 _PYSIGMA_INSTALL_HINT = (
     "pip install pysigma pysigma-backend-splunk"
 )
@@ -435,6 +470,16 @@ def draft_rule_body(
     # so pySigma still parses; the skill nudges the user to populate.
     refs = [r for r in (references or []) if r]
 
+    # The falsepositives placeholder is a TODO, so say so here rather than
+    # letting the author discover it at review time (or not at all).
+    hint = _FALSEPOSITIVE_HINTS.get(rule_type.strip().lower())
+    notes.append(
+        "falsepositives is a TODO placeholder, not a finished field -- name "
+        "a benign scenario that produces this same telemetry"
+        + (f" (for this logsource, typically: {hint})" if hint else "")
+        + ". validate_rule flags the placeholder until it is replaced."
+    )
+
     payload: dict[str, Any] = {
         "title": _ascii_safe(rule_title),
         "id": rule_id,
@@ -445,7 +490,7 @@ def draft_rule_body(
         "date": today,
         "logsource": logsource,
         "detection": detection,
-        "falsepositives": ["Unknown"],
+        "falsepositives": [_FALSEPOSITIVE_PLACEHOLDER],
         "level": sev,
         "tags": tags,
     }

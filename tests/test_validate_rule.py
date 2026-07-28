@@ -190,11 +190,20 @@ def test_validate_field_modifier_pipe_is_not_flagged_as_deprecated_condition() -
 
 
 def test_validate_pattern_34_redacts_internal_identifiers() -> None:
-    # Always-redact -- internal IP / corp domain redacted in echo.
-    yaml_str = _good_yaml().replace(
-        "Unknown",
-        "see acme.corp host 10.10.5.42 user joe@example.com",
-    )
+    """Always-redact -- internal IP / corp domain redacted in echo.
+
+    The identifiers are injected into `description` rather than by
+    string-replacing a word out of the draft output. This test used to
+    replace the literal "Unknown" that draft_rule wrote into
+    `falsepositives`; when that placeholder was changed, the replace
+    silently matched nothing and the test asserted redaction on a rule
+    that contained no identifiers to redact.
+    """
+    import yaml
+
+    doc = yaml.safe_load(_good_yaml())
+    doc["description"] = "see acme.corp host 10.10.5.42 user joe@example.com"
+    yaml_str = yaml.safe_dump(doc, sort_keys=False)
     result = validate_rule_body(yaml_str)
     assert result.get("redaction_applied") is True
     # Walk the preview -- no raw internal identifier should remain.
@@ -479,3 +488,104 @@ def test_validate_pysigma_missing_returns_actionable_envelope(
         "pip install pysigma" in e.get("hint", "")
         for e in result["pysigma_errors"]
     )
+
+
+def _rule_with_falsepositives(entries: list[str]) -> str:
+    import yaml
+
+    return yaml.safe_dump(
+        {
+            "title": "Encoded PowerShell execution",
+            "id": "11111111-1111-4111-8111-111111111111",
+            "status": "experimental",
+            "description": "Detects encoded PowerShell command execution",
+            "references": ["https://attack.mitre.org/techniques/T1059/001/"],
+            "logsource": {"category": "process_creation", "product": "windows"},
+            "detection": {
+                "selection": {"Image|endswith": r"\powershell.exe"},
+                "filter": {"CommandLine|contains": "-NoProfile"},
+                "condition": "selection and not filter",
+            },
+            "falsepositives": entries,
+            "level": "high",
+            "tags": ["attack.t1059.001"],
+        },
+        sort_keys=False,
+    )
+
+
+def _lint_rules(yaml_text: str) -> list[str]:
+    result = validate_rule_body(yaml_text)
+    return [
+        w.get("rule")
+        for w in (result.get("linter_warnings") or [])
+        if isinstance(w, dict)
+    ]
+
+
+def test_placeholder_falsepositives_are_flagged() -> None:
+    """A populated-but-meaningless block passes the empty check while giving
+    an analyst nothing to tune on, so it needs its own warning."""
+    for placeholder in (
+        "Unknown",
+        "N/A",
+        "TODO -- replace with a concrete benign scenario",
+        "Pattern library v1 -- review for environment-specific tuning before deployment",
+    ):
+        rules = _lint_rules(_rule_with_falsepositives([placeholder]))
+        assert "falsepositives_placeholder" in rules, (
+            f"not flagged: {placeholder!r}"
+        )
+        assert "falsepositives_empty" not in rules, (
+            "the block is populated; the empty warning would be wrong"
+        )
+
+
+def test_real_falsepositive_scenario_is_not_flagged() -> None:
+    rules = _lint_rules(
+        _rule_with_falsepositives(
+            ["Administrative deployment scripts invoking powershell.exe with -enc"]
+        )
+    )
+    assert "falsepositives_placeholder" not in rules
+
+
+def test_scenario_containing_the_word_unknown_is_not_flagged() -> None:
+    """Matched on the whole entry, not as a substring search -- otherwise a
+    real scenario mentioning an unknown parent process trips the rule."""
+    rules = _lint_rules(
+        _rule_with_falsepositives(
+            ["Legitimate tooling whose parent process is unknown to the asset inventory"]
+        )
+    )
+    assert "falsepositives_placeholder" not in rules
+
+
+def test_mixed_list_with_one_real_scenario_is_not_flagged() -> None:
+    """A rule listing a real scenario plus a leftover TODO has already done
+    the work the warning asks for."""
+    rules = _lint_rules(
+        _rule_with_falsepositives(
+            ["Backup software writing those paths nightly", "TODO -- add more"]
+        )
+    )
+    assert "falsepositives_placeholder" not in rules
+
+
+def test_draft_scaffolding_left_in_detection_is_flagged() -> None:
+    """draft_rule emits REPLACE_ME for values the author must supply; a
+    shipped rule containing it matches the literal placeholder string."""
+    import yaml
+
+    doc = yaml.safe_load(_rule_with_falsepositives(["Real benign scenario here"]))
+    doc["detection"]["selection"]["Image|endswith"] = "REPLACE_ME.exe"
+    rules = _lint_rules(yaml.safe_dump(doc, sort_keys=False))
+    assert "draft_scaffold_left_in" in rules
+
+
+def test_clean_rule_has_neither_falsepositive_warning() -> None:
+    rules = _lint_rules(
+        _rule_with_falsepositives(["Administrative deployment scripts"])
+    )
+    assert "falsepositives_placeholder" not in rules
+    assert "falsepositives_empty" not in rules
