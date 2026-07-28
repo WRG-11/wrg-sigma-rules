@@ -81,9 +81,19 @@ _INTERNAL_PATH_RE = re.compile(r"apps/wrg_[a-z_]+")
 _AWS_KEY_RE = re.compile(r"AKIA[0-9A-Z]{16}")
 _GITHUB_PAT_RE = re.compile(r"gh[ps]_[A-Za-z0-9]{36,}")
 _OPENAI_KEY_RE = re.compile(r"sk-[A-Za-z0-9]{20,}")
-# Content-audit follow-up: internal delivery-gate naming, the
-# pattern-catalog internal version tag, and sibling monorepo module names
-# leak into rendered rule text same as secrets/IDs above -- redact them too.
+# Content-audit follow-up: internal delivery-gate naming, the pattern-catalog
+# internal version tag, and sibling monorepo module names reach rendered rule
+# text the same way the identifiers above do, so they are redacted too.
+#
+# Phrasing note: an earlier version of this comment paired a data-loss verb
+# with a credential noun on one line, which is the shape the monorepo's
+# exfiltration-intent policy rule matches. Describing a redaction step is the
+# opposite of that intent, but the rule cannot tell, and it blocked this file
+# from being mirrored. Reworded rather than allowlisted -- widening a security
+# control to accommodate a comment is the wrong trade.
+#
+# The trigger phrasing is deliberately not reproduced here: the first attempt
+# at this note quoted it while explaining it, and tripped the same rule again.
 _DELIVERY_GATE_RE = re.compile(r"Layer 4 G\d")
 _PATTERN_VERSION_RE = re.compile(r"Pattern \d+ v\d(?:\.\d+)?")
 _SIBLING_MODULE_RE = re.compile(r"\b(?:breach_corpus|llm_incident\w*|wrg_mcp_server)\b")
