@@ -53,11 +53,14 @@ omit =
 [report]
 show_missing = True
 skip_covered = False
-# Measured 87% on 2026-07-29 (763 statements, 99 missed). The floor sits
-# below that so a normal PR adding a lightly-covered path does not fail the
-# build, but close enough that a real regression does. Ratchet upward as
-# coverage improves; do not lower it to accommodate new untested code.
-fail_under = 80
+# Measured 91% on 2026-07-29 (815 statements, 76 missed), up from 87% when
+# this gate was introduced earlier the same day -- readme_stamp.py went from
+# 62% to 99% once its --check and main() paths were covered. The floor sits
+# below the real number so a normal PR adding a lightly-covered path does not
+# fail the build, but close enough that a real regression does. Ratchet
+# upward as coverage improves; do not lower it to accommodate new untested
+# code.
+fail_under = 85
 exclude_lines =
     pragma: no cover
     if __name__ == .__main__.:

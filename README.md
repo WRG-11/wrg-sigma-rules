@@ -13,7 +13,7 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/OpenSearch/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
-- **<!-- METRIC:sigma_rule_count -->76<!-- /METRIC:sigma_rule_count --> production sigma rule corpus**: 13 ATT&CK tactic categories (templates + observed campaign rules)
+- **<!-- METRIC:sigma_rule_count -->76<!-- /METRIC:sigma_rule_count --> published sigma rule corpus**: 13 ATT&CK tactic categories (templates + observed campaign rules). Every rule carries a sigma `status:` — 8 `test`, 68 `experimental`, none `stable` — see [rule status](#rule-status) for what that means before you deploy one
 - **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages). Measured against the full corpus on 2026-07-29: Splunk and OpenSearch-PPL convert all 76 rules; the Lucene-family targets (Elastic, Kibana, Wazuh, OpenSearch) convert 66, because that backend cannot express sigma correlation rules — `convert_rule` reports this as a capability gap and names the targets that can
 - **Logsource-aware output**: `config={"pipeline": "sysmon"}` maps Sigma's abstract logsource to the product's real event selection — without it a `process_creation` rule converts to a query that matches events of every type
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
@@ -41,7 +41,7 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 - `sigma-rule-reviewer` — paste rule for quality review + improvement suggestions
 - `threat-coverage-gap-analyzer` — MITRE ATT&CK coverage analysis vs your existing corpus
 
-### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->76<!-- /METRIC:sigma_rule_count --> production rules across 13 ATT&CK tactic categories)
+### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->76<!-- /METRIC:sigma_rule_count --> rules across 13 ATT&CK tactic categories)
 
 | Tactic | Coverage |
 |---|---|
@@ -60,6 +60,28 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 | `code_review` | 5 AI-fingerprint observed rules (ANSI-color class, decoy block, docstring density, hallucinated CVSS, prompt artifacts) |
 
 See [`resources/examples/INDEX.json`](resources/examples/INDEX.json) for full enumeration.
+
+### Rule status
+
+Sigma's `status:` field says how far a rule has been proven, and this corpus
+uses it literally rather than aspirationally:
+
+| `status:` | Count | What it means here |
+|---|---|---|
+| `test` | <!-- METRIC:status_test_count -->8<!-- /METRIC:status_test_count --> | Derived from a real, cited incident — the `observed_*` campaign rules |
+| `experimental` | <!-- METRIC:status_experimental_count -->68<!-- /METRIC:status_experimental_count --> | Canonical detection shapes; many describe themselves as synthetic exemplars in their own `description:` |
+| `stable` | <!-- METRIC:status_stable_count -->0<!-- /METRIC:status_stable_count --> | Deliberately unused |
+
+`stable` in the sigma specification means a rule is running in production and
+well tested. Nothing here has earned that: the template layer is pattern
+material to adapt, not detections that have been validated against a real
+environment's telemetry. Marking them `stable` would make the corpus look
+more finished than it is, which is the same failure as writing "Unknown" in
+`falsepositives:`.
+
+Treat any rule here as a starting point to bind to your own logsource and
+tune — the `falsepositives:` block on each one names the benign activity to
+expect first.
 
 ### Resources
 
