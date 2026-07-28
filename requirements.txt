@@ -1,7 +1,11 @@
 # wrg-sigma-rules plugin runtime dependencies.
 #
 # Core (always required):
-mcp>=1.28.1            # FastMCP server runtime (server.py plugin MCP entry-point)
+# Upper-bounded on purpose: mcp 2.0.0 removed `mcp.server.fastmcp`, which
+# server.py imports, so an unbounded `>=1.28.1` silently installs an SDK the
+# entry-point cannot import. Lift this bound only together with the server.py
+# migration to the 2.x server API.
+mcp>=1.28.1,<2         # FastMCP server runtime (server.py plugin MCP entry-point)
 pysigma>=1.4.0
 PyYAML>=6.0.3
 

@@ -2,7 +2,14 @@ name: tests
 
 # Runs the pytest suite (rule validation + tool integration) on every push/PR
 # to main so detection-logic or tool regressions are caught in CI, not just
-# locally. Companion to codeql.yml (static analysis) and readme-stamp.yml.
+# locally. Companion to readme-stamp.yml.
+#
+# The weekly run is not redundant with push/PR. Dependencies are installed
+# unpinned from requirements.txt, so a new release of pysigma, PyYAML or the
+# MCP SDK can break a clone of this repo while every recorded run stays green
+# -- nothing re-ran after the release. That is exactly how the mcp 2.0.0
+# breakage stayed invisible: the last push predated it by four days. The cron
+# bounds how long such a break can hide to one week.
 
 on:
   push:
@@ -10,6 +17,10 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Weekly (Mon 05:23 UTC) -- ahead of readme-stamp's 06:17 slot so a
+    # dependency break surfaces before the corpus-stamp job runs.
+    - cron: "23 5 * * 1"
 
 permissions:
   contents: read
