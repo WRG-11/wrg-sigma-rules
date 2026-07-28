@@ -45,6 +45,7 @@ from tools.draft_rule import register_draft_rule_tool
 from tools.resources.canonical_patterns_resource import (
     register_canonical_pattern_resources,
 )
+from tools.resources.coverage_resource import register_coverage_resources
 from tools.validate_rule import register_validate_rule_tool
 
 # Server name surfaces in MCP client tool catalogs; mirror the Claude Code
@@ -55,6 +56,7 @@ register_draft_rule_tool(mcp)
 register_validate_rule_tool(mcp)
 register_convert_rule_tool(mcp)
 register_canonical_pattern_resources(mcp)
+register_coverage_resources(mcp)
 
 
 def main() -> int:

@@ -59,7 +59,8 @@ See [`resources/examples/INDEX.json`](resources/examples/INDEX.json) for full en
 ### Resources
 
 - `wrg-sigma://patterns/canonical-5` — canonical detection-pattern definitions
-- `wrg-sigma://coverage/mitre-attack-matrix` — corpus coverage state
+- `wrg-sigma://patterns/canonical-5/{pattern_id}` — individual pattern by ID (`01`–`05`)
+- `wrg-sigma://coverage/mitre-attack-matrix` — corpus ATT&CK coverage state (technique-by-tactic rollup, observed/template split, rules contributing no coverage), computed from the corpus at read time
 
 ## Installation
 
@@ -95,7 +96,7 @@ Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in
 ## Quality discipline
 
 - **4-Layer self-audit** per WRG audit methodology (trust-but-verify self-audit)
-- **<!-- METRIC:test_module_count -->11<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
+- **<!-- METRIC:test_module_count -->12<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch` + `pysigma-backend-opensearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
 - **`claude plugin validate` PASS** (verified 2026-05-25)
