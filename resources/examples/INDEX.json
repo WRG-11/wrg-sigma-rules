@@ -9,7 +9,7 @@
     "apps/<wrg-app>/tests/fixtures/crypto_trace/sigma_rule_*.yml (2 observed)",
     "apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml (5 detector goldens)"
   ],
-  "total_rules": 76,
+  "total_rules": 80,
   "categories": {
     "code_review": [
       "code_review/observed_ai_fingerprint_ansi_color_class.yml",
@@ -20,6 +20,7 @@
     ],
     "collection": [
       "collection/template_t1005_data_from_local_system_archive_utility_staging.yml",
+      "collection/template_t1114_001_local_email_collection_ost_pst_access.yml",
       "collection/template_t1213_data_from_information_repositories_sharepoint_access.yml"
     ],
     "command_and_control": [
@@ -98,13 +99,16 @@
     ],
     "lateral_movement": [
       "lateral_movement/template_t1021_001_remote_services_rdp_eventid_4624_logontype_10.yml",
-      "lateral_movement/template_t1021_002_remote_services_smb_admin_shares_admin_c_ipc.yml"
+      "lateral_movement/template_t1021_002_remote_services_smb_admin_shares_admin_c_ipc.yml",
+      "lateral_movement/template_t1021_006_remote_services_winrm_remote_command_execution.yml"
     ],
     "persistence": [
-      "persistence/observed_photo_zip_nodejs_run_key_persistence_t1547_001.yml"
+      "persistence/observed_photo_zip_nodejs_run_key_persistence_t1547_001.yml",
+      "persistence/template_t1053_005_scheduled_task_creation_from_scripting_host.yml"
     ],
     "privilege_escalation": [
-      "privilege_escalation/template_t1098_003_account_manipulation_aws_iam_wildcard_admin_policy_created.yml"
+      "privilege_escalation/template_t1098_003_account_manipulation_aws_iam_wildcard_admin_policy_created.yml",
+      "privilege_escalation/template_t1548_002_uac_bypass_via_auto_elevating_binary.yml"
     ],
     "resource_development": [
       "resource_development/template_t1583_001_acquire_infrastructure_domains_lookalike_domain.yml",
@@ -150,6 +154,7 @@
     ],
     "file_event": [
       "collection/template_t1005_data_from_local_system_archive_utility_staging.yml",
+      "collection/template_t1114_001_local_email_collection_ost_pst_access.yml",
       "defense_evasion/observed_alphv_t1027_obfuscation.yml",
       "defense_evasion/template_t1027_obfuscated_files_or_information_encoded_payload.yml",
       "impact/observed_lockbit_t1486.yml",
@@ -185,7 +190,10 @@
       "initial_access/observed_jellyfin_ffmpeg_arg_injection_lfi_t1190.yml",
       "initial_access/observed_nx_console_t1195_002.yml",
       "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml",
-      "initial_access/template_t1195_supply_chain_compromise_untrusted_installer_execution.yml"
+      "initial_access/template_t1195_supply_chain_compromise_untrusted_installer_execution.yml",
+      "lateral_movement/template_t1021_006_remote_services_winrm_remote_command_execution.yml",
+      "persistence/template_t1053_005_scheduled_task_creation_from_scripting_host.yml",
+      "privilege_escalation/template_t1548_002_uac_bypass_via_auto_elevating_binary.yml"
     ],
     "proxy": [
       "credential_access/template_t1552_unsecured_credentials_multi_vendor_printer_admin.yml",
@@ -260,6 +268,7 @@
     ],
     "windows": [
       "collection/template_t1005_data_from_local_system_archive_utility_staging.yml",
+      "collection/template_t1114_001_local_email_collection_ost_pst_access.yml",
       "collection/template_t1213_data_from_information_repositories_sharepoint_access.yml",
       "command_and_control/observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml",
       "command_and_control/template_t1071_application_layer_protocol_c2_over_http_https.yml",
@@ -301,7 +310,10 @@
       "initial_access/template_t1566_002_spearphishing_link_proxy_side_suspicious_link.yml",
       "lateral_movement/template_t1021_001_remote_services_rdp_eventid_4624_logontype_10.yml",
       "lateral_movement/template_t1021_002_remote_services_smb_admin_shares_admin_c_ipc.yml",
+      "lateral_movement/template_t1021_006_remote_services_winrm_remote_command_execution.yml",
       "persistence/observed_photo_zip_nodejs_run_key_persistence_t1547_001.yml",
+      "persistence/template_t1053_005_scheduled_task_creation_from_scripting_host.yml",
+      "privilege_escalation/template_t1548_002_uac_bypass_via_auto_elevating_binary.yml",
       "resource_development/template_t1583_001_acquire_infrastructure_domains_lookalike_domain.yml",
       "resource_development/template_t1583_acquire_infrastructure_newly_registered_domain_query.yml",
       "resource_development/template_t1585_001_establish_accounts_social_media_signup_hosts.yml",
@@ -323,75 +335,85 @@
   "_last_extension": {
     "date": "2026-07-08",
     "added": [
-      "privilege_escalation/template_t1098_003_account_manipulation_aws_iam_wildcard_admin_policy_created.yml"
+      "collection/template_t1114_001_local_email_collection_ost_pst_access.yml",
+      "lateral_movement/template_t1021_006_remote_services_winrm_remote_command_execution.yml",
+      "persistence/template_t1053_005_scheduled_task_creation_from_scripting_host.yml",
+      "privilege_escalation/template_t1548_002_uac_bypass_via_auto_elevating_binary.yml"
     ],
-    "context": "INDEX regenerated from disk (drift-fix): total_rules 75 -> 76",
+    "context": "INDEX regenerated from disk (drift-fix): total_rules 76 -> 80",
     "previous_extension": {
       "date": "2026-07-08",
       "added": [
-        "credential_access/template_t1110_003_password_spraying_distinct_account_count.yml",
-        "impact/template_t1486_t1490_ransomware_chain_temporal.yml"
+        "privilege_escalation/template_t1098_003_account_manipulation_aws_iam_wildcard_admin_policy_created.yml"
       ],
-      "context": "INDEX regenerated from disk (drift-fix): total_rules 73 -> 75",
+      "context": "INDEX regenerated from disk (drift-fix): total_rules 75 -> 76",
       "previous_extension": {
         "date": "2026-07-08",
         "added": [
-          "credential_access/template_gh_pat_token_type_confusion_t1552.yml",
-          "credential_access/template_t1005_mcp_db_sql_lfi_local_file_read.yml",
-          "credential_access/template_t1552_005_mcp_db_sql_ssrf_internal_metadata_target.yml",
-          "defense_evasion/template_audit_log_gap_t1070.yml",
-          "defense_evasion/template_scanner_crash_defense_evasion_t1027.yml",
-          "impact/template_t1565_mcp_db_sql_readonly_write_bypass.yml",
-          "initial_access/observed_jellyfin_ffmpeg_arg_injection_lfi_t1190.yml",
-          "persistence/observed_photo_zip_nodejs_run_key_persistence_t1547_001.yml"
+          "credential_access/template_t1110_003_password_spraying_distinct_account_count.yml",
+          "impact/template_t1486_t1490_ransomware_chain_temporal.yml"
         ],
-        "context": "INDEX regenerated from disk (drift-fix): total_rules 68 -> 73",
+        "context": "INDEX regenerated from disk (drift-fix): total_rules 73 -> 75",
         "previous_extension": {
-          "date": "2026-06-02",
+          "date": "2026-07-08",
           "added": [
-            "command_and_control/template_t1071_004_dns_tunneling_exfil_high_volume_unique_subdomain.yml",
-            "credential_access/observed_gh_pat_token_type_confusion_t1552.yml",
-            "credential_access/template_t1078_infostealer_credential_replay_burst.yml",
-            "defense_evasion/observed_audit_log_gap_t1070.yml",
-            "defense_evasion/observed_scanner_crash_defense_evasion_t1027.yml",
-            "initial_access/observed_megalodon_github_actions_base64_payload_t1195_002.yml"
+            "credential_access/template_gh_pat_token_type_confusion_t1552.yml",
+            "credential_access/template_t1005_mcp_db_sql_lfi_local_file_read.yml",
+            "credential_access/template_t1552_005_mcp_db_sql_ssrf_internal_metadata_target.yml",
+            "defense_evasion/template_audit_log_gap_t1070.yml",
+            "defense_evasion/template_scanner_crash_defense_evasion_t1027.yml",
+            "impact/template_t1565_mcp_db_sql_readonly_write_bypass.yml",
+            "initial_access/observed_jellyfin_ffmpeg_arg_injection_lfi_t1190.yml",
+            "persistence/observed_photo_zip_nodejs_run_key_persistence_t1547_001.yml"
           ],
-          "context": "",
+          "context": "INDEX regenerated from disk (drift-fix): total_rules 68 -> 73",
           "previous_extension": {
-            "date": "2026-06-01",
+            "date": "2026-06-02",
             "added": [
-              "execution/observed_gogs_rebase_rce_t1059.yml"
+              "command_and_control/template_t1071_004_dns_tunneling_exfil_high_volume_unique_subdomain.yml",
+              "credential_access/observed_gh_pat_token_type_confusion_t1552.yml",
+              "credential_access/template_t1078_infostealer_credential_replay_burst.yml",
+              "defense_evasion/observed_audit_log_gap_t1070.yml",
+              "defense_evasion/observed_scanner_crash_defense_evasion_t1027.yml",
+              "initial_access/observed_megalodon_github_actions_base64_payload_t1195_002.yml"
             ],
             "context": "",
             "previous_extension": {
-              "date": "2026-05-24",
+              "date": "2026-06-01",
               "added": [
-                "exfiltration/observed_socks5_null_byte_egress_t1041_extension.yml",
-                "initial_access/observed_clawhavoc_claude_skills_t1195_002.yml"
+                "execution/observed_gogs_rebase_rce_t1059.yml"
               ],
               "context": "",
               "previous_extension": {
                 "date": "2026-05-24",
                 "added": [
-                  "exfiltration/observed_socks5_null_byte_egress_t1041.yml",
-                  "initial_access/observed_nx_console_t1195_002.yml",
-                  "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml"
+                  "exfiltration/observed_socks5_null_byte_egress_t1041_extension.yml",
+                  "initial_access/observed_clawhavoc_claude_skills_t1195_002.yml"
                 ],
                 "context": "",
                 "previous_extension": {
-                  "date": "2026-05-23",
+                  "date": "2026-05-24",
                   "added": [
-                    "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
-                    "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
-                    "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml"
+                    "exfiltration/observed_socks5_null_byte_egress_t1041.yml",
+                    "initial_access/observed_nx_console_t1195_002.yml",
+                    "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml"
                   ],
                   "context": "",
                   "previous_extension": {
                     "date": "2026-05-23",
                     "added": [
-                      "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
+                      "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
+                      "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
+                      "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml"
                     ],
-                    "context": ""
+                    "context": "",
+                    "previous_extension": {
+                      "date": "2026-05-23",
+                      "added": [
+                        "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
+                      ],
+                      "context": ""
+                    }
                   }
                 }
               }

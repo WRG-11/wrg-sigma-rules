@@ -13,8 +13,8 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/OpenSearch/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
-- **<!-- METRIC:sigma_rule_count -->76<!-- /METRIC:sigma_rule_count --> published sigma rule corpus**: 13 ATT&CK tactic categories (templates + observed campaign rules). Every rule carries a sigma `status:` — 8 `test`, 68 `experimental`, none `stable` — see [rule status](#rule-status) for what that means before you deploy one
-- **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages). Measured against the full corpus on 2026-07-29: Splunk and OpenSearch-PPL convert all 76 rules; the Lucene-family targets (Elastic, Kibana, Wazuh, OpenSearch) convert 66, because that backend cannot express sigma correlation rules — `convert_rule` reports this as a capability gap and names the targets that can
+- **<!-- METRIC:sigma_rule_count -->80<!-- /METRIC:sigma_rule_count --> published sigma rule corpus**: 13 ATT&CK tactic categories (templates + observed campaign rules). Every rule carries a sigma `status:` — none of them `stable`; see [rule status](#rule-status) for the breakdown and what it means before you deploy one
+- **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages). Measured against the full corpus on 2026-07-29: Splunk and OpenSearch-PPL convert every rule; the Lucene-family targets (Elastic, Kibana, Wazuh, OpenSearch) fail on the 10 correlation rules, because that backend cannot express them — `convert_rule` reports this as a capability gap and names the targets that can
 - **Logsource-aware output**: `config={"pipeline": "sysmon"}` maps Sigma's abstract logsource to the product's real event selection — without it a `process_creation` rule converts to a query that matches events of every type
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
 - **Live demo**: see [`DEMO.md`](DEMO.md) for end-to-end tool invocation on Mini Shai-Hulud rule (pySigma 1.x + Splunk + Elastic real output)
@@ -25,7 +25,7 @@ The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty*
 
 (For scale, the same count on 2026-05-23 found 200+ plugins and one security plugin. The marketplace grew roughly tenfold in two months; the sigma count stayed at zero.)
 
-WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: <!-- METRIC:sigma_rule_count -->76<!-- /METRIC:sigma_rule_count --> canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
+WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: <!-- METRIC:sigma_rule_count -->80<!-- /METRIC:sigma_rule_count --> canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
 
 ## What's included
 
@@ -41,7 +41,7 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 - `sigma-rule-reviewer` — paste rule for quality review + improvement suggestions
 - `threat-coverage-gap-analyzer` — MITRE ATT&CK coverage analysis vs your existing corpus
 
-### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->76<!-- /METRIC:sigma_rule_count --> rules across 13 ATT&CK tactic categories)
+### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->80<!-- /METRIC:sigma_rule_count --> rules across 13 ATT&CK tactic categories)
 
 | Tactic | Coverage |
 |---|---|
@@ -49,14 +49,14 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 | `command_and_control` | template T1071 + **observed Mini Shai-Hulud npm supply-chain C2 T1071** (Nx campaign cluster) |
 | `defense_evasion` | templates + observed (AlphV T1027 obfuscation) |
 | `execution` | templates + observed (AlphV T1059.001) |
-| `persistence` | observed (Photo ZIP campaign, Node.js HKCU Run-key persistence T1547.001) |
+| `persistence` | template T1053.005 (scheduled task created by a scripting host) + observed (Photo ZIP campaign, Node.js HKCU Run-key persistence T1547.001) |
 | `exfiltration` | templates + **observed SOCKS5 hostname null-byte egress T1041** (Claude Code v2.0.24-v2.1.89 silent-fix; +backslash extension variant) |
 | `impact` | templates + observed (Lazarus + LockBit BTC + Nullsec Nigeria T1491 defacement) |
 | `initial_access` | templates + **observed Nx campaign 4-vector** (s1ngularity npm token exfil, nx-console VS Code extension compromise, ClawHavoc Claude Skills T1195.002) + LAPSUS T1078 + OWASP lab-validated (SQLi auth-bypass, XSS reflected, path traversal) |
-| `lateral_movement` | templates (RDP EventID 4624 + SMB admin shares) |
-| `privilege_escalation` | template T1098.003 (AWS IAM wildcard-admin policy creation via CloudTrail) |
+| `lateral_movement` | templates (RDP EventID 4624 + SMB admin shares + WinRM remote execution T1021.006) |
+| `privilege_escalation` | templates (AWS IAM wildcard-admin policy creation T1098.003 + UAC bypass via auto-elevating binary T1548.002) |
 | `resource_development` | templates (newly registered domain + lookalike domain + social media signup) |
-| `collection` | templates (archive utility staging + SharePoint access) |
+| `collection` | templates (archive utility staging + SharePoint access + local email collection T1114.001) |
 | `code_review` | 5 AI-fingerprint observed rules (ANSI-color class, decoy block, docstring density, hallucinated CVSS, prompt artifacts) |
 
 See [`resources/examples/INDEX.json`](resources/examples/INDEX.json) for full enumeration.
@@ -69,7 +69,7 @@ uses it literally rather than aspirationally:
 | `status:` | Count | What it means here |
 |---|---|---|
 | `test` | <!-- METRIC:status_test_count -->8<!-- /METRIC:status_test_count --> | Derived from a real, cited incident — the `observed_*` campaign rules |
-| `experimental` | <!-- METRIC:status_experimental_count -->68<!-- /METRIC:status_experimental_count --> | Canonical detection shapes; many describe themselves as synthetic exemplars in their own `description:` |
+| `experimental` | <!-- METRIC:status_experimental_count -->72<!-- /METRIC:status_experimental_count --> | Canonical detection shapes; many describe themselves as synthetic exemplars in their own `description:` |
 | `stable` | <!-- METRIC:status_stable_count -->0<!-- /METRIC:status_stable_count --> | Deliberately unused |
 
 `stable` in the sigma specification means a rule is running in production and
