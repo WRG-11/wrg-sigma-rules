@@ -578,6 +578,35 @@ def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
     return warnings, mitre_found
 
 
+def _lint_target(yaml_content: str, first_doc: dict[str, Any]) -> dict[str, Any]:
+    """Return the document the quality linter should judge.
+
+    For a plain single-document rule that is the document itself. For a
+    base-rule + correlation-rule pairing it is the LAST document, following
+    the sigma convention that the correlation rule (the thing that actually
+    alerts) is written last and references the base rules by name -- the same
+    convention ``convert_rule`` already uses when picking metadata.
+
+    Linting doc[0] instead produced false warnings on every correlation rule
+    in this corpus: the base document is deliberately `level: informational`
+    and carries no `falsepositives:` or `references:`, because on its own it
+    is not an alert and has nothing to tune. The linter was demanding tuning
+    notes from the half of the rule that explicitly is not the alert, while
+    never reading the half that is.
+    """
+    if not _looks_like_correlation_collection(yaml_content):
+        return first_doc
+    try:
+        docs = [
+            doc
+            for doc in yaml.safe_load_all(yaml_content)
+            if isinstance(doc, dict)
+        ]
+    except yaml.YAMLError:
+        return first_doc
+    return docs[-1] if docs else first_doc
+
+
 def _pysigma_validate(yaml_content: str) -> dict[str, Any]:
     """Run a pySigma ``SigmaCollection.from_yaml`` round-trip.
 
@@ -705,8 +734,9 @@ def validate_rule_body(
 
     if isinstance(parsed, dict):
         schema_errors.extend(_schema_checks(parsed))
-        linter_warnings, mitre_tags_found = _linter_warnings(parsed)
-        mitre_coverage = _detect_mitre_coverage(parsed, mitre_tags_found)
+        lint_target = _lint_target(yaml_content, parsed)
+        linter_warnings, mitre_tags_found = _linter_warnings(lint_target)
+        mitre_coverage = _detect_mitre_coverage(lint_target, mitre_tags_found)
         redacted_rule, redaction_applied = _redact_rule_dict(parsed)
 
     # _pysigma_validate now uses SigmaCollection (multi-doc-aware), so a

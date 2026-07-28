@@ -589,3 +589,61 @@ def test_clean_rule_has_neither_falsepositive_warning() -> None:
     )
     assert "falsepositives_placeholder" not in rules
     assert "falsepositives_empty" not in rules
+
+
+_BASE_PLUS_CORRELATION = """\
+title: Failed logon (base)
+name: failed_logon_base
+id: 66666666-6666-4666-8666-666666666666
+status: test
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4625
+  condition: selection
+level: informational
+---
+title: Failed logon burst
+id: 77777777-7777-4777-8777-777777777777
+status: test
+references:
+  - https://attack.mitre.org/techniques/T1110/
+correlation:
+  type: event_count
+  rules:
+    - failed_logon_base
+  group-by:
+    - IpAddress
+  timespan: 10m
+  condition:
+    gt: 10
+falsepositives:
+  - Shared egress address aggregating many users behind one NAT gateway
+level: high
+tags:
+  - attack.t1110
+"""
+
+
+def test_correlation_rule_is_linted_on_the_alerting_document() -> None:
+    """The base document is deliberately informational and carries no
+    falsepositives or references -- on its own it is not an alert and has
+    nothing to tune. Linting it demanded tuning notes from the half of the
+    rule that explicitly is not the alert, while never reading the half
+    that is, so every correlation rule in the corpus drew false warnings.
+    """
+    rules = _lint_rules(_BASE_PLUS_CORRELATION)
+    assert "falsepositives_empty" not in rules
+    assert "falsepositives_placeholder" not in rules
+    assert "references_empty" not in rules
+
+
+def test_correlation_rule_placeholder_is_still_caught() -> None:
+    """Reading the last document must not mean skipping the check."""
+    weakened = _BASE_PLUS_CORRELATION.replace(
+        "  - Shared egress address aggregating many users behind one NAT gateway",
+        "  - Unknown",
+    )
+    assert "falsepositives_placeholder" in _lint_rules(weakened)
