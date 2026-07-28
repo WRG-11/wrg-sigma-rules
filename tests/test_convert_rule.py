@@ -119,7 +119,10 @@ def test_convert_correlation_rule_elastic_fails_gracefully() -> None:
     parser produced for every backend indiscriminately."""
     result = convert_rule_body(_CORRELATION_YAML, target="elastic")
     assert result["ok"] is False
-    assert result["kind"] == "backend_conversion"
+    # Classified as a capability gap rather than a generic conversion error:
+    # the rule is valid and the backend simply cannot express correlations,
+    # so the caller's next move is a different target, not a rule edit.
+    assert result["kind"] == "backend_capability_gap"
     assert "correlation" in result["error"].lower()
 
 
@@ -352,3 +355,52 @@ def test_convert_backend_missing_returns_actionable_envelope(
     assert result["ok"] is False
     assert result["kind"] == "backend_missing"
     assert "pip install pysigma-backend-splunk" in result["hint"]
+
+
+def test_correlation_on_lucene_backend_reports_a_capability_gap() -> None:
+    """A backend that cannot express correlations at all is a capability gap,
+    not a broken rule -- and the distinction changes what the caller does
+    next. The rule needs no edit; it needs a different target.
+    """
+    for target in ("elastic", "kibana", "wazuh", "opensearch"):
+        result = convert_rule_body(_CORRELATION_YAML, target=target)
+        assert result["ok"] is False, target
+        assert result["kind"] == "backend_capability_gap", target
+        assert result["capability"] == "correlation_rules"
+        # The hint must name a target that actually works, so the caller does
+        # not have to discover the set by trying each one.
+        assert "splunk" in result["hint"]
+
+
+def test_correlation_capable_targets_really_are_capable() -> None:
+    """Guard against the hint naming a target that cannot do the job -- the
+    list is a measurement, so it has to keep matching reality."""
+    from tools.convert_rule.convert_rule import _CORRELATION_CAPABLE_TARGETS
+
+    for target in _CORRELATION_CAPABLE_TARGETS:
+        result = convert_rule_body(_CORRELATION_YAML, target=target)
+        assert result["ok"] is True, (
+            f"{target} is advertised as correlation-capable but failed: "
+            f"{result.get('error')}"
+        )
+
+
+def test_deprecated_pipe_syntax_is_not_a_capability_gap() -> None:
+    """The deprecated aggregation-pipe error also contains the word
+    "correlations" ("...replaced by Sigma correlations"), but it is a defect
+    in the rule, not a limit of the backend -- so it must keep the generic
+    classification. A substring match on "correlation" got this wrong.
+    """
+    result = convert_rule_body(
+        "title: Aggregation pipe rule\n"
+        "id: 88888888-8888-4888-8888-888888888888\n"
+        "status: test\n"
+        "logsource:\n  category: process_creation\n  product: windows\n"
+        "detection:\n"
+        "  selection:\n    Image|endswith: '\\\\bad.exe'\n"
+        "  condition: selection | count() by Image > 5\n"
+        "level: low\n",
+        target="splunk",
+    )
+    assert result["ok"] is False
+    assert result["kind"] != "backend_capability_gap"

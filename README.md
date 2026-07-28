@@ -14,7 +14,7 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/OpenSearch/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
 - **<!-- METRIC:sigma_rule_count -->76<!-- /METRIC:sigma_rule_count --> production sigma rule corpus**: 13 ATT&CK tactic categories (templates + observed campaign rules)
-- **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages)
+- **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages). Measured against the full corpus on 2026-07-29: Splunk and OpenSearch-PPL convert all 76 rules; the Lucene-family targets (Elastic, Kibana, Wazuh, OpenSearch) convert 66, because that backend cannot express sigma correlation rules — `convert_rule` reports this as a capability gap and names the targets that can
 - **Logsource-aware output**: `config={"pipeline": "sysmon"}` maps Sigma's abstract logsource to the product's real event selection — without it a `process_creation` rule converts to a query that matches events of every type
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
 - **Live demo**: see [`DEMO.md`](DEMO.md) for end-to-end tool invocation on Mini Shai-Hulud rule (pySigma 1.x + Splunk + Elastic real output)

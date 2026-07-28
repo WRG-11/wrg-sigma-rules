@@ -130,6 +130,15 @@ _PIPELINE_SPECS: dict[str, tuple[str, str, str]] = {
 
 _PIPELINE_KEYS: tuple[str, ...] = tuple(_PIPELINE_SPECS)
 
+# Targets that can express sigma correlation rules, measured against the
+# installed backends on 2026-07-29 by converting all 76 corpus rules to each:
+# splunk and opensearch-ppl succeeded on all 76; elastic and opensearch
+# (Lucene) failed on the same 10 -- every correlation rule in the corpus.
+# kibana and wazuh route through the elasticsearch Lucene backend, so they
+# share that limit. Re-measure rather than trust this list if a backend
+# package is upgraded; it is a snapshot of what those versions could do.
+_CORRELATION_CAPABLE_TARGETS: tuple[str, ...] = ("splunk", "opensearch-ppl")
+
 # Config keys convert_rule actually acts on. Anything else is echoed back
 # and flagged rather than silently ignored.
 _RECOGNISED_CONFIG_KEYS: frozenset[str] = frozenset({"pipeline"})
@@ -398,6 +407,36 @@ def convert_rule_body(
     try:
         queries = backend.convert(collection)
     except Exception as exc:
+        message = str(exc)
+        # A backend that cannot express correlation rules at all is a
+        # capability gap, not a defect in the rule -- and it is worth
+        # distinguishing, because the caller's next move is different. The
+        # rule needs no edit; it needs a backend that supports correlations.
+        # Naming those backends here saves the caller discovering the set by
+        # trying each one, which is how this gap went unnoticed: 10 of the 76
+        # corpus rules fail on every Lucene-family target (elastic, kibana,
+        # wazuh and opensearch all route through the same backend), while
+        # converting cleanly on splunk and opensearch-ppl.
+        # Matched narrowly on the backend's own capability wording. A bare
+        # "correlation" substring also appears in the deprecated-pipe-syntax
+        # error ("...replaced by Sigma correlations"), which is a rule defect
+        # and must keep the generic classification.
+        if "does not support correlation" in message.lower():
+            return {
+                "ok": False,
+                "error": _ascii_safe(
+                    f"backend '{target}' does not support sigma correlation "
+                    f"rules: {message}"
+                ),
+                "hint": (
+                    "the rule is valid -- this backend cannot express "
+                    "correlations. Targets in this plugin that can: "
+                    + ", ".join(_CORRELATION_CAPABLE_TARGETS)
+                ),
+                "kind": "backend_capability_gap",
+                "target": target.lower(),
+                "capability": "correlation_rules",
+            }
         return {
             "ok": False,
             "error": _ascii_safe(
