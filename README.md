@@ -11,7 +11,7 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/OpenSearch/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
-- **<!-- METRIC:sigma_rule_count -->73<!-- /METRIC:sigma_rule_count --> production sigma rule corpus**: 12 ATT&CK tactic categories (templates + observed campaign rules)
+- **<!-- METRIC:sigma_rule_count -->75<!-- /METRIC:sigma_rule_count --> production sigma rule corpus**: 12 ATT&CK tactic categories (templates + observed campaign rules)
 - **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages)
 - **Logsource-aware output**: `config={"pipeline": "sysmon"}` maps Sigma's abstract logsource to the product's real event selection — without it a `process_creation` rule converts to a query that matches events of every type
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
@@ -21,7 +21,7 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty** (verified 2026-05-23: 200+ plugins, 0 sigma-focused, 1 generic security plugin). SOC + threat-intel community has latent demand for fast, quality-aware rule writing tools integrated with LLM workflows.
 
-WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: <!-- METRIC:sigma_rule_count -->73<!-- /METRIC:sigma_rule_count --> canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
+WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: <!-- METRIC:sigma_rule_count -->75<!-- /METRIC:sigma_rule_count --> canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
 
 ## What's included
 
@@ -37,7 +37,7 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 - `sigma-rule-reviewer` — paste rule for quality review + improvement suggestions
 - `threat-coverage-gap-analyzer` — MITRE ATT&CK coverage analysis vs your existing corpus
 
-### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->73<!-- /METRIC:sigma_rule_count --> production rules across 12 ATT&CK tactic categories)
+### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->75<!-- /METRIC:sigma_rule_count --> production rules across 12 ATT&CK tactic categories)
 
 | Tactic | Coverage |
 |---|---|

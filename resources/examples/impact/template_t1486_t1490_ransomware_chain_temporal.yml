@@ -1,0 +1,88 @@
+title: Template -- Ransomware execution chain -- shadow copy deletion (base)
+name: t1490_shadow_copy_deletion_base
+id: 331ca6e3-720a-5896-bf12-0f3d70e68bd9
+status: experimental
+description: Base event match for the ransomware-chain correlation below -- shadow
+  copy deletion alone is noisy (backup software and imaging tools do it legitimately)
+  and is not the alert on its own.
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-07-29'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_vssadmin:
+    Image|endswith:
+    - \vssadmin.exe
+    - \wmic.exe
+    CommandLine|contains|all:
+    - delete
+    - shadow
+  selection_wbadmin:
+    Image|endswith: \wbadmin.exe
+    CommandLine|contains: 'delete catalog'
+  condition: selection_vssadmin or selection_wbadmin
+level: informational
+tags:
+- attack.t1490
+---
+title: Template -- Ransomware execution chain -- mass file rename (base)
+name: t1486_mass_file_rename_base
+id: 96994bf5-0e59-5023-8b73-f47ed9fcabc3
+status: experimental
+description: Base event match for the ransomware-chain correlation below -- a file
+  rename to an unusual extension alone is not the alert.
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-07-29'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_encrypted_extension:
+    TargetFilename|endswith:
+    - .locked
+    - .encrypted
+    - .crypt
+    - .enc
+  condition: selection_encrypted_extension
+level: informational
+tags:
+- attack.t1486
+---
+title: Template -- Ransomware execution chain (recovery inhibition then encryption)
+id: b17853bc-e614-5256-82ca-ad070d8ba48c
+status: experimental
+description: Canonical sigma detection template correlating MITRE ATT&CK T1490 (Inhibit
+  System Recovery) with T1486 (Data Encrypted for Impact) on the same host inside one
+  window. Each half fires on its own for benign reasons -- backup tooling deletes
+  shadow copies, and legitimate archive or crypto software writes those extensions --
+  so either alone is a poor alert. Their co-occurrence on one host within thirty
+  minutes is the ransomware playbook order, which is what makes the pair worth
+  alerting on when neither member is. This is the case sigma correlation type
+  `temporal` exists for. Synthetic exemplar from the WinstonRedGuard threat-intel
+  corpus -- no actor binding; review and bind to your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1486/
+- https://attack.mitre.org/techniques/T1490/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-07-29'
+correlation:
+  type: temporal
+  rules:
+  - t1490_shadow_copy_deletion_base
+  - t1486_mass_file_rename_base
+  group-by:
+  - Computer
+  timespan: 30m
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+- Backup or disaster-recovery maintenance window that prunes shadow copies while an
+  archival job writes encrypted containers on the same host
+- Security testing or tabletop exercise replaying ransomware behaviour
+level: high
+tags:
+- attack.t1486
+- attack.t1490
+- wrg.template
+- wrg.tactic.impact
+- wrg.correlation
