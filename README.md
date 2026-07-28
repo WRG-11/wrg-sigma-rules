@@ -3,7 +3,9 @@
 
 ## Status
 
-Production — actively maintained rule corpus. Not yet submitted to a plugin marketplace — install directly from this repo (see [Installation](#installation)).
+Production — actively maintained rule corpus. Not yet listed in the community plugin marketplace; install directly from this repo (see [Installation](#installation)).
+
+Listing is submitted through [clau.de/plugin-directory-submission](https://clau.de/plugin-directory-submission), which feeds Anthropic's review pipeline. `anthropics/claude-plugins-community` is a read-only mirror of the approved list and closes pull requests opened against it automatically, so a PR there is not the route.
 
 Production-grade sigma detection rule writing, validation, and conversion for SOC analysts, threat-intel teams, and detection engineers using Claude Code.
 
@@ -19,7 +21,9 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 ## Why this plugin exists
 
-The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty** (verified 2026-05-23: 200+ plugins, 0 sigma-focused, 1 generic security plugin). SOC + threat-intel community has latent demand for fast, quality-aware rule writing tools integrated with LLM workflows.
+The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty**: re-counted against `anthropics/claude-plugins-community` on 2026-07-29, 0 of 2283 community plugins mention sigma. That niche being empty is not the same as the area being empty — 315 of those plugins are security-themed — so the claim here is specific: nobody is doing sigma rule authoring, validation and multi-backend conversion, not "nobody is doing security".
+
+(For scale, the same count on 2026-05-23 found 200+ plugins and one security plugin. The marketplace grew roughly tenfold in two months; the sigma count stayed at zero.)
 
 WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: <!-- METRIC:sigma_rule_count -->75<!-- /METRIC:sigma_rule_count --> canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
 
@@ -99,7 +103,7 @@ Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in
 - **<!-- METRIC:test_module_count -->12<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch` + `pysigma-backend-opensearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
-- **`claude plugin validate` PASS** (verified 2026-05-25)
+- **`claude plugin validate` PASS** (re-verified 2026-07-29)
 - **Live demo evidence**: [`DEMO.md`](DEMO.md) — 3 real tool invocations on Mini Shai-Hulud rule
 
 ## Tested environments
