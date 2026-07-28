@@ -11,6 +11,77 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [1.3.0] - 2026-07-29
+
+Corpus 73 → 75 rules. The larger part of this release is not the two new
+rules: it is that several things this repo claimed were either untrue or
+unmeasured, and are now one or the other.
+
+### Fixed
+
+- **The plugin did not import.** `mcp` 2.0.0, released 2026-07-28, removed
+  `mcp.server.fastmcp`, which `server.py` imports. `requirements.txt` had no
+  upper bound, so a fresh clone installed an SDK the entry-point could not
+  load. Every recorded CI run was green because the last push predated the
+  release by four days and nothing re-ran.
+- **`convert_rule` applied no processing pipeline.** A Sigma rule is written
+  against abstract logsource taxonomy; mapping it to a product's real event
+  selection is a pipeline's job. Without one, a `process_creation` rule
+  converted to a Splunk query that kept the field names and dropped the event
+  selection — matching `Image` on any event carrying that field, with no
+  `EventID=1`. 46 of the 73 rules were `product: windows`, so this was the
+  common case. `config={"pipeline": "sysmon"}` now applies one, and an
+  unknown or uninstalled pipeline is an error rather than a silent fallback.
+- **`elasticsearch` was a working target that the tool denied having.** The
+  loader accepted it; the advertised target list omitted it, so the
+  unknown-target hint hid a target `DEMO.md` itself uses. The backend
+  registry is now a data table, so the two cannot disagree again.
+- **`wrg-sigma://coverage/mitre-attack-matrix` did not exist.** It was listed
+  under Resources in the README and referenced by the gap-analyzer skill's
+  description, but nothing registered it — a client following the README hit
+  an unresolvable URI.
+
+### Added
+
+- `wrg-sigma://coverage/mitre-attack-matrix`, implemented: technique-by-tactic
+  rollup, per-technique rule counts, observed/template split, and any rule
+  contributing no coverage. Computed from the corpus at read time so it
+  cannot go stale. It does not vendor the ATT&CK matrix and says so — it is
+  the "what we have" half, not a gap analysis.
+- OpenSearch conversion targets (`opensearch` Lucene, `opensearch-ppl` PPL).
+- Support for `mcp` 1.x and 2.x through an import shim, with CI running the
+  suite against both majors.
+- Docker image build in CI plus `scripts/mcp_stdio_smoke.py`, which speaks
+  real JSON-RPC to the server over stdio and requires it to announce the
+  tools and resources the plugin promises. The Dockerfile had never been
+  built by anything.
+- Coverage measurement in CI against an 80% floor. It had been documented as
+  impossible here (pysigma's YAML loader corrupts under coverage.py's C
+  tracer, 94/287 false failures in 2026-07); re-measured on Python 3.12's
+  `sys.monitoring` backend it is 319/319 clean at 87%.
+- `CONTRIBUTING.md`, setting out the sourcing bar for rules claiming
+  real-world observation — attribution, platform and manifestation each
+  matched against the cited source — derived from three upstream SigmaHQ
+  submissions that closed without merging.
+- Two correlation templates covering the types the corpus never used: password
+  spraying via `value_count` (T1110.003) and a ransomware execution chain via
+  `temporal` (T1490 + T1486). All 8 prior correlation rules were
+  `event_count`. `temporal_ordered` is deliberately absent — the Splunk
+  backend does not support it.
+- Weekly scheduled test run, so a break originating outside the repo can hide
+  for at most a week rather than indefinitely.
+
+### Changed
+
+- Every dependency carries an upper bound at the next major. An unbounded
+  `>=` is satisfied by every future release, so Dependabot proposes nothing
+  and a breaking major arrives silently — which is exactly how the mcp 2.0.0
+  break happened.
+- README marketplace claims re-counted: 0 of 2283 community plugins mention
+  sigma (the niche claim holds), but 315 are security-themed, against the
+  "1 generic security plugin" the README had asserted since May. The
+  submission route is now named correctly — a form, not a pull request.
+
 ## [1.2.1] - 2026-07-23
 
 Wording only — no detection rule, tool logic or schema changed. Eleven places in
