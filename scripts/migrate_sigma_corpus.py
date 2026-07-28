@@ -1,23 +1,20 @@
 """Migrate WRG sigma rule corpus to plugin resources/examples.
 
-One-shot helper for the sigma-corpus migration ship. Reads WRG threat-intel sigma sources
-and renders ~50 canonical sigma example rules into ``resources/examples/``
-plus an INDEX.json with 3-dimensional indexing (MITRE ATT&CK tactic +
+One-shot migration helper. Reads WRG threat-intel sigma sources and renders
+~50 canonical sigma example rules into ``resources/examples/`` plus an
+INDEX.json with 3-dimensional indexing (MITRE ATT&CK tactic +
 detection_type + target_platform).
 
-Sources (V_api_shape Rule 2 pre-write reads):
+Sources (internal threat-intel + AI-fingerprint corpora; exact paths omitted):
 
-* ``apps/<wrg-app>`` TECHNIQUE_PATTERN_LIBRARY (37 technique-keyed curated
-  patterns). Rendered as synthetic exemplars (no actor binding; status
-  experimental).
-* ``apps/<wrg-app>`` breach corpus -- 6 observed actor-bound goldens
-  (alphv + lapsus + lockbit + nullsec_nigeria).
-* ``apps/<wrg-app>`` OFAC sanctions data -- 2 observed OFAC sanction
-  goldens.
-* ``apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml``
-  -- 5 detector goldens (multi-doc YAML).
+* curated technique pattern library -- ``TECHNIQUE_PATTERN_LIBRARY`` (37
+  technique-keyed patterns). Rendered as synthetic exemplars (no actor
+  binding; status experimental).
+* observed actor-bound sigma goldens (alphv + lapsus + lockbit + nullsec).
+* observed OFAC sanction goldens (crypto-trace).
+* AI-fingerprint detector goldens (multi-doc YAML).
 
-LLM-safe redaction discipline (OPSEC redactions applied):
+LLM-safe redaction discipline:
 
 1. ``WRG-[A-Z0-9-]+`` -> ``WRG-INTERNAL`` (actor catalog ID redact).
 2. ``apps/wrg_[a-z_]+`` -> ``apps/<wrg-app>`` (internal path redact).
