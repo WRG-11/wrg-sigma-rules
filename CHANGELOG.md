@@ -13,9 +13,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.3.0] - 2026-07-29
 
-Corpus 73 → 75 rules. The larger part of this release is not the two new
-rules: it is that several things this repo claimed were either untrue or
-unmeasured, and are now one or the other.
+Corpus 73 → 76 rules, and 12 → 13 tactic categories. The larger part of this
+release is not the new rules: it is that several things this repo claimed
+were either untrue or unmeasured, and are now one or the other.
 
 ### Fixed
 
@@ -68,6 +68,10 @@ unmeasured, and are now one or the other.
   `temporal` (T1490 + T1486). All 8 prior correlation rules were
   `event_count`. `temporal_ordered` is deliberately absent — the Splunk
   backend does not support it.
+- `privilege_escalation` tactic coverage (T1098.003, AWS IAM wildcard-admin
+  policy creation via CloudTrail), the corpus's first rule in that tactic and
+  its first `aws`/`cloudtrail` logsource. The rule existed unpublished in the
+  monorepo mirror and is published here as part of closing that drift.
 - Weekly scheduled test run, so a break originating outside the repo can hide
   for at most a week rather than indefinitely.
 

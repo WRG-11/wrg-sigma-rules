@@ -1,0 +1,55 @@
+title: Template -- Account Manipulation (AWS IAM wildcard-admin policy created)
+id: 667a05d2-d9c0-41b0-838e-73a32638a776
+status: experimental
+description: |
+  Detects creation of an AWS IAM policy granting unrestricted administrative
+  access (Effect=Allow, Action=*, Resource=*) via CloudTrail CreatePolicy /
+  CreatePolicyVersion events. This is stage 1 of a well-known cloud
+  privilege-escalation pattern: create a wildcard-admin policy, then attach
+  it (AttachUserPolicy / AttachRolePolicy / AttachGroupPolicy) to a
+  low-privilege role, user, or group to elevate access -- T1098.003
+  (Account Manipulation: Additional Cloud Roles).
+
+  Wildcard-admin policy creation is genuinely rare in legitimate
+  operations -- AWS best practice is least-privilege, scoped policies -- so
+  the creation event alone is a strong, low-noise indicator; treat as HIGH
+  priority if followed within the same lookback window by an attach event
+  for the same PolicyName.
+
+  Method-transfer note: this rule's detection LOGIC is derived
+  from Microsoft Azure-Sentinel's public analytic-rule content
+  (Detections/AWSCloudTrail -> Solutions/Amazon Web Services, MIT licensed),
+  re-authored natively as Sigma (no KQL retained) per WRG's
+  method-transfer-not-code-copy convention. Fills a genuine corpus gap:
+  prior to this rule the WRG sigma corpus had ZERO privilege_escalation
+  tactic coverage and ZERO aws/cloudtrail logsource coverage.
+references:
+  - https://attack.mitre.org/techniques/T1098/003/
+  - https://github.com/Azure/Azure-Sentinel/blob/master/Solutions/Amazon%20Web%20Services/Analytic%20Rules/AWS_FullAdminPolicyAttachedToRolesUsersGroups.yaml
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-07-17'
+logsource:
+  product: aws
+  service: cloudtrail
+detection:
+  selection_policy_create:
+    eventSource: iam.amazonaws.com
+    eventName:
+      - CreatePolicy
+      - CreatePolicyVersion
+  selection_wildcard_effect:
+    requestParameters|contains|all:
+      - '"Effect":"Allow"'
+      - '"Action":"*"'
+      - '"Resource":"*"'
+  condition: selection_policy_create and selection_wildcard_effect
+falsepositives:
+  - Legitimate break-glass / emergency-access IAM policy provisioning by authorized cloud admins (should still be reviewed/ticketed)
+  - Infrastructure-as-code bootstrap of a genuinely admin-scoped service role during initial account setup
+  - requestParameters JSON key/value spacing varies by CloudTrail log-delivery pipeline; tune the contains-literal to match your ingested field format before deployment
+level: high
+tags:
+  - attack.privilege_escalation
+  - attack.t1098.003
+  - wrg.template
+  - wrg.tactic.privilege_escalation
