@@ -5,25 +5,44 @@ backends (matches the pySigma ecosystem packages declared in the plugin
 requirements):
 
 * ``splunk`` -- via ``pysigma-backend-splunk``
-* ``elastic`` / ``kibana`` -- via ``pysigma-backend-elasticsearch``
-  (Lucene query syntax). Kibana is an alias for the same Lucene backend.
+* ``elastic`` / ``elasticsearch`` / ``kibana`` -- via
+  ``pysigma-backend-elasticsearch`` (Lucene query syntax). Kibana is an
+  alias for the same Lucene backend.
 * ``wazuh`` -- via ``pysigma-backend-elasticsearch`` (Wazuh ships with
   Elasticsearch under the hood; same Lucene output is operational with
   caveats noted in the warnings array).
+* ``opensearch`` / ``opensearch-ppl`` -- via ``pysigma-backend-opensearch``
+  (Lucene and Piped Processing Language respectively).
 
 Each backend ships separately on PyPI. Missing backend returns an
 actionable envelope including the exact ``pip install`` command.
+
+**Processing pipelines.** A Sigma rule is written against abstract
+logsource taxonomy (``category: process_creation``), not against a
+specific product's field names or event ids. Translating that taxonomy to
+what a SIEM actually stores is the job of a pySigma *processing
+pipeline*. Without one, the emitted query keeps the field names but drops
+the event selection entirely -- a ``process_creation`` rule converts to a
+query matching ``Image`` on *any* event carrying that field, not just
+process-creation events. Pass ``config={"pipeline": "sysmon"}`` (or a
+list) to apply one; the difference is visible in the output (``EventID=1``
+appears only with the sysmon pipeline). Pipelines ship as their own PyPI
+packages and are imported lazily, so a missing one fails only the call
+that asked for it.
 
 Design-discipline coverage:
 * pySigma missing returns an actionable envelope.
 * Backend missing returns an actionable envelope with the specific
   ``pip install`` hint.
+* Pipeline missing / unknown returns its own actionable envelope rather
+  than silently converting without the pipeline the caller asked for.
 * Pre-conversion YAML parse failure surfaces line + column.
 * Output redacts internal-looking identifiers before echo.
 * ASCII-only output.
 """
 from __future__ import annotations
 
+import importlib
 import re
 from typing import Any
 
@@ -31,17 +50,89 @@ _PYSIGMA_INSTALL_HINT = (
     "pip install pysigma pysigma-backend-splunk"
 )
 
-# Backend registry: ``key -> (loader, install_hint, query_hint)``.
-# ``loader`` is a thin callable that imports + constructs the backend on
-# demand so missing extras only blow up for the specific call that needs
-# them. Each entry returns a (backend_instance, target_label)
-# tuple.
-_BACKEND_KEYS: tuple[str, ...] = (
-    "splunk",
-    "elastic",
-    "kibana",
-    "wazuh",
-)
+# Backend registry: ``key -> (module, attribute, pip package, caveat)``.
+# Declared as data rather than an if-chain so adding a backend is one row
+# and the supported-target list cannot drift from what _load_backend
+# actually accepts -- 'elasticsearch' used to be accepted by the chain but
+# missing from the advertised keys, so the error hint hid a working target.
+# The module/attribute pair is imported lazily (see _load_backend), so a
+# missing extra only fails the call that asked for that specific backend.
+_BACKEND_SPECS: dict[str, tuple[str, str, str, str | None]] = {
+    "splunk": (
+        "sigma.backends.splunk",
+        "SplunkBackend",
+        "pysigma-backend-splunk",
+        None,
+    ),
+    "elastic": (
+        "sigma.backends.elasticsearch",
+        "LuceneBackend",
+        "pysigma-backend-elasticsearch",
+        None,
+    ),
+    "elasticsearch": (
+        "sigma.backends.elasticsearch",
+        "LuceneBackend",
+        "pysigma-backend-elasticsearch",
+        None,
+    ),
+    "kibana": (
+        "sigma.backends.elasticsearch",
+        "LuceneBackend",
+        "pysigma-backend-elasticsearch",
+        "kibana target uses the elasticsearch Lucene backend; "
+        "wrap the query in Kibana's saved-search UI",
+    ),
+    "wazuh": (
+        "sigma.backends.elasticsearch",
+        "LuceneBackend",
+        "pysigma-backend-elasticsearch",
+        "wazuh target routed through the elasticsearch Lucene "
+        "backend; review the output against Wazuh decoders before "
+        "deploying (no native pySigma wazuh backend yet)",
+    ),
+    "opensearch": (
+        "sigma.backends.opensearch",
+        "OpensearchLuceneBackend",
+        "pysigma-backend-opensearch",
+        None,
+    ),
+    "opensearch-ppl": (
+        "sigma.backends.opensearch",
+        "OpenSearchPPLBackend",
+        "pysigma-backend-opensearch",
+        "opensearch-ppl emits Piped Processing Language, not Lucene; "
+        "it is not interchangeable with the 'opensearch' target",
+    ),
+}
+
+_BACKEND_KEYS: tuple[str, ...] = tuple(_BACKEND_SPECS)
+
+# Processing-pipeline registry: ``key -> (module, factory, pip package)``.
+# The factory is a zero-argument callable returning a ProcessingPipeline.
+_PIPELINE_SPECS: dict[str, tuple[str, str, str]] = {
+    "sysmon": (
+        "sigma.pipelines.sysmon",
+        "sysmon_pipeline",
+        "pysigma-pipeline-sysmon",
+    ),
+    "windows": (
+        "sigma.pipelines.windows",
+        "windows_logsource_pipeline",
+        "pysigma-pipeline-windows",
+    ),
+    "windows-audit": (
+        "sigma.pipelines.windows",
+        "windows_audit_pipeline",
+        "pysigma-pipeline-windows",
+    ),
+}
+
+_PIPELINE_KEYS: tuple[str, ...] = tuple(_PIPELINE_SPECS)
+
+# Config keys convert_rule actually acts on. Anything else is echoed back
+# and flagged rather than silently ignored.
+_RECOGNISED_CONFIG_KEYS: frozenset[str] = frozenset({"pipeline"})
 
 
 def _ascii_safe(text: str) -> str:
@@ -117,89 +208,101 @@ def _missing_backend_envelope(
     }
 
 
-def _load_backend(target: str) -> tuple[Any, list[str], dict[str, Any] | None]:
+def _normalise_pipelines(raw: Any) -> tuple[list[str], dict[str, Any] | None]:
+    """Normalise a ``config["pipeline"]`` value to a list of pipeline keys.
+
+    Accepts a single string or a list of strings; anything else is a
+    caller error and returns an envelope rather than being coerced.
+    """
+    if raw is None:
+        return [], None
+    names = [raw] if isinstance(raw, str) else raw
+    if not isinstance(names, (list, tuple)) or not all(
+        isinstance(n, str) for n in names
+    ):
+        return [], {
+            "ok": False,
+            "error": "config['pipeline'] must be a string or list of strings",
+            "hint": "known pipelines: " + ", ".join(_PIPELINE_KEYS),
+            "kind": "invalid_pipeline",
+        }
+    return [n.strip().lower() for n in names if n.strip()], None
+
+
+def _load_pipeline(names: list[str]) -> tuple[Any, dict[str, Any] | None]:
+    """Build a combined ProcessingPipeline from ``names``.
+
+    Returns ``(pipeline_or_None, error_envelope_or_None)``. Multiple
+    pipelines are combined with pySigma's own ``+`` operator, which
+    concatenates their processing items in the given order.
+    """
+    combined: Any = None
+    for name in names:
+        spec = _PIPELINE_SPECS.get(name)
+        if spec is None:
+            return None, {
+                "ok": False,
+                "error": f"unknown processing pipeline '{name}'",
+                "hint": "known pipelines: " + ", ".join(_PIPELINE_KEYS),
+                "kind": "unknown_pipeline",
+            }
+        module_name, factory_name, package = spec
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError:
+            return None, {
+                "ok": False,
+                "error": f"processing pipeline '{name}' not installed",
+                "hint": f"pip install {package}",
+                "kind": "pipeline_missing",
+                "pipeline": name,
+                "missing_package": package,
+            }
+        pipeline = getattr(module, factory_name)()
+        combined = pipeline if combined is None else combined + pipeline
+    return combined, None
+
+
+def _load_backend(
+    target: str, pipeline: Any = None
+) -> tuple[Any, list[str], dict[str, Any] | None]:
     """Construct a pySigma backend instance for ``target``.
 
     Returns ``(backend, warnings, error_envelope_or_None)``. ``warnings``
     is a list of conversion-lossiness hints specific to the backend.
+    ``pipeline`` is an already-constructed ProcessingPipeline (or None).
     """
     warnings: list[str] = []
     target_lc = target.lower()
 
-    if target_lc == "splunk":
-        try:
-            from sigma.backends.splunk import SplunkBackend
-        except ImportError:
-            return (
-                None,
-                warnings,
-                _missing_backend_envelope(
-                    target_lc, "pysigma-backend-splunk"
+    spec = _BACKEND_SPECS.get(target_lc)
+    if spec is None:
+        return (
+            None,
+            warnings,
+            {
+                "ok": False,
+                "error": f"unknown target backend '{target}'",
+                "hint": (
+                    "supported targets: "
+                    + ", ".join(_BACKEND_KEYS)
                 ),
-            )
-        return SplunkBackend(), warnings, None
-
-    if target_lc in {"elastic", "elasticsearch"}:
-        try:
-            from sigma.backends.elasticsearch import LuceneBackend
-        except ImportError:
-            return (
-                None,
-                warnings,
-                _missing_backend_envelope(
-                    target_lc, "pysigma-backend-elasticsearch"
-                ),
-            )
-        return LuceneBackend(), warnings, None
-
-    if target_lc == "kibana":
-        try:
-            from sigma.backends.elasticsearch import LuceneBackend
-        except ImportError:
-            return (
-                None,
-                warnings,
-                _missing_backend_envelope(
-                    target_lc, "pysigma-backend-elasticsearch"
-                ),
-            )
-        warnings.append(
-            "kibana target uses the elasticsearch Lucene backend; "
-            "wrap the query in Kibana's saved-search UI"
+                "kind": "unknown_target",
+            },
         )
-        return LuceneBackend(), warnings, None
 
-    if target_lc == "wazuh":
-        try:
-            from sigma.backends.elasticsearch import LuceneBackend
-        except ImportError:
-            return (
-                None,
-                warnings,
-                _missing_backend_envelope(
-                    target_lc, "pysigma-backend-elasticsearch"
-                ),
-            )
-        warnings.append(
-            "wazuh target routed through the elasticsearch Lucene "
-            "backend; review the output against Wazuh decoders before "
-            "deploying (no native pySigma wazuh backend yet)"
-        )
-        return LuceneBackend(), warnings, None
+    module_name, attribute, package, caveat = spec
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError:
+        return None, warnings, _missing_backend_envelope(target_lc, package)
 
-    return (
-        None,
-        warnings,
-        {
-            "ok": False,
-            "error": f"unknown target backend '{target}'",
-            "hint": (
-                "supported targets: "
-                + ", ".join(_BACKEND_KEYS)
-            ),
-            "kind": "unknown_target",
-        },
-    )
+    backend_cls = getattr(module, attribute)
+    if caveat:
+        warnings.append(caveat)
+    if pipeline is not None:
+        return backend_cls(processing_pipeline=pipeline), warnings, None
+    return backend_cls(), warnings, None
 
 
 def _redact_query(query: str) -> tuple[str, bool]:
@@ -221,10 +324,11 @@ def convert_rule_body(
     correlate the query back to the rule (sister convention used by
     this corpus's ``observed_*`` rules).
 
-    ``config`` is reserved for future backend-specific options (index name,
-    field mappings, etc.) and is currently NOT applied to conversion -- a
-    non-empty value is echoed in ``config_used`` and flagged in ``warnings``
-    rather than silently dropped.
+    ``config`` accepts ``{"pipeline": "sysmon"}`` (or a list of pipeline
+    keys), which IS applied to the conversion -- see the module docstring
+    for why it matters. Any other config key (index name, field mappings,
+    etc.) remains reserved for future use: it is echoed in ``config_used``
+    and named in ``warnings`` rather than silently dropped.
     """
     if not isinstance(yaml_content, str) or not yaml_content.strip():
         return {
@@ -274,7 +378,20 @@ def convert_rule_body(
                     err[attr] = value
         return err
 
-    backend, warnings, backend_err = _load_backend(target)
+    # Resolve the requested processing pipeline BEFORE constructing the
+    # backend. Asking for a pipeline and silently converting without it
+    # would emit a query that looks right and selects the wrong events --
+    # the exact failure this parameter exists to prevent -- so an unknown
+    # or uninstalled pipeline is an error, not a warning.
+    cfg = config or {}
+    pipeline_names, pipeline_err = _normalise_pipelines(cfg.get("pipeline"))
+    if pipeline_err is not None:
+        return pipeline_err
+    pipeline, pipeline_load_err = _load_pipeline(pipeline_names)
+    if pipeline_load_err is not None:
+        return pipeline_load_err
+
+    backend, warnings, backend_err = _load_backend(target, pipeline)
     if backend_err is not None:
         return backend_err
 
@@ -314,16 +431,21 @@ def convert_rule_body(
         if q_flagged:
             redaction_applied = True
 
-    # `config` is not yet wired into backend construction (no backend here
-    # takes index names, field mappings, etc. at instantiation time) -- a
-    # caller passing a non-empty config would otherwise have it silently
-    # ignored, which is exactly the kind of unflagged behavior this corpus's
-    # own quality discipline exists to prevent. Surface it honestly instead.
-    if config:
+    # `config["pipeline"]` IS applied (above). Every other config key still
+    # is not -- no backend here takes index names or field mappings at
+    # instantiation time. A caller passing one would otherwise have it
+    # silently ignored, which is exactly the kind of unflagged behavior
+    # this corpus's own quality discipline exists to prevent. Name the
+    # specific unapplied keys rather than blanket-warning about "config",
+    # which would now be wrong for a caller who only passed a pipeline.
+    unapplied = sorted(k for k in cfg if k not in _RECOGNISED_CONFIG_KEYS)
+    if unapplied:
         warnings.append(
             "config parameter is currently accepted but not applied to "
-            "backend conversion (reserved for future use); the query below "
-            "reflects backend defaults only"
+            "backend conversion for key(s): "
+            + ", ".join(unapplied)
+            + " (reserved for future use); the query below reflects "
+            "backend defaults for those settings"
         )
 
     # Pull metadata so callers can correlate query <-> source rule. The
@@ -357,6 +479,10 @@ def convert_rule_body(
         "warnings": warnings,
         "metadata": metadata,
         "config_used": config or {},
+        # Echoed so the caller can tell a taxonomy-mapped query from a raw
+        # one without diffing the query text. Empty list = no pipeline, which
+        # for a windows/sysmon rule means the event selection is NOT applied.
+        "pipelines_applied": pipeline_names,
     }
     if alternate:
         out["alternate_queries"] = alternate
@@ -378,10 +504,16 @@ def register_convert_rule_tool(mcp: Any) -> None:
 
         Use when the caller has a validated sigma rule and needs the
         equivalent query for Splunk SPL, Elasticsearch / Kibana Lucene,
-        or Wazuh. Returns the primary converted query plus conversion
-        lossiness warnings (e.g. unsupported modifiers). Missing pySigma
-        or missing backend packages return actionable error envelopes
-        with the exact pip install command.
+        OpenSearch (Lucene or PPL), or Wazuh. Returns the primary
+        converted query plus conversion lossiness warnings (e.g.
+        unsupported modifiers). Missing pySigma or missing backend
+        packages return actionable error envelopes with the exact pip
+        install command.
+
+        For a rule written against a windows/sysmon logsource, pass
+        config={"pipeline": "sysmon"} so the abstract logsource is mapped
+        to the product's real event selection; without it the query keeps
+        the field names but matches events of every type.
         """
         return convert_rule_body(
             yaml_content, target=target, config=config

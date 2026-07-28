@@ -9,10 +9,11 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 ## TL;DR
 
-- **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/Wazuh/Kibana query)
+- **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/OpenSearch/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
 - **<!-- METRIC:sigma_rule_count -->73<!-- /METRIC:sigma_rule_count --> production sigma rule corpus**: 12 ATT&CK tactic categories (templates + observed campaign rules)
-- **Multi-backend conversion**: Splunk SPL, Elastic Lucene, Wazuh, Kibana verified (pySigma 1.x + 2 backend packages)
+- **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages)
+- **Logsource-aware output**: `config={"pipeline": "sysmon"}` maps Sigma's abstract logsource to the product's real event selection — without it a `process_creation` rule converts to a query that matches events of every type
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
 - **Live demo**: see [`DEMO.md`](DEMO.md) for end-to-end tool invocation on Mini Shai-Hulud rule (pySigma 1.x + Splunk + Elastic real output)
 
@@ -28,7 +29,7 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 
 - `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__draft_rule` — NL description → sigma YAML scaffold
 - `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule` — YAML schema + pySigma compat + best-practice linter
-- `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule` — sigma → Splunk/Elastic/Wazuh/Kibana query
+- `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule` — sigma → Splunk/Elastic/OpenSearch/Wazuh/Kibana query
 
 ### Claude Code skills (3)
 
@@ -95,7 +96,7 @@ Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in
 
 - **4-Layer self-audit** per WRG audit methodology (trust-but-verify self-audit)
 - **<!-- METRIC:test_module_count -->11<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
-- **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch`)
+- **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch` + `pysigma-backend-opensearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
 - **`claude plugin validate` PASS** (verified 2026-05-25)
 - **Live demo evidence**: [`DEMO.md`](DEMO.md) — 3 real tool invocations on Mini Shai-Hulud rule

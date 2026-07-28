@@ -1,20 +1,36 @@
 # wrg-sigma-rules plugin runtime dependencies.
 #
+# Every requirement here carries an upper bound at the next major version.
+# The reason is not caution for its own sake: an unbounded `>=` constraint is
+# already satisfied by every future release, so Dependabot sees nothing to
+# propose and stays silent, while a fresh `pip install -r requirements.txt`
+# silently picks up a breaking major. That is exactly how mcp 2.0.0 (which
+# removed `mcp.server.fastmcp`) broke this plugin's entry-point with every
+# recorded CI run still green. Bounds make the upgrade a reviewed PR instead
+# of an invisible break.
+#
 # Core (always required):
-# Upper-bounded on purpose: mcp 2.0.0 removed `mcp.server.fastmcp`, which
-# server.py imports, so an unbounded `>=1.28.1` silently installs an SDK the
-# entry-point cannot import. Lift this bound only together with the server.py
-# migration to the 2.x server API.
+# The <2 bound here is the narrower of the two cases -- server.py imports
+# `mcp.server.fastmcp`, which 2.x removed outright. Lift it together with the
+# migration to the 2.x server API, not before.
 mcp>=1.28.1,<2         # FastMCP server runtime (server.py plugin MCP entry-point)
-pysigma>=1.4.0
-PyYAML>=6.0.3
+pysigma>=1.4.0,<2
+PyYAML>=6.0.3,<7
 
 # Backend extras (lazy-imported; install per target SIEM):
-pysigma-backend-splunk>=2.1.0
-pysigma-backend-elasticsearch>=2.1.0
+pysigma-backend-splunk>=2.1.0,<3
+pysigma-backend-elasticsearch>=2.1.0,<3
+pysigma-backend-opensearch>=2.0.3,<3
 # Wazuh routes through the elasticsearch Lucene backend above; no separate
-# package needed yet (no native pySigma wazuh backend on PyPI as of
-# 2026-05-22; convert_rule emits an explicit caveat warning).
+# package needed yet (still no native pySigma wazuh backend on PyPI as of
+# 2026-07-29; convert_rule emits an explicit caveat warning).
+
+# Processing pipelines (lazy-imported; convert_rule config={"pipeline": ...}).
+# Without a pipeline a windows/sysmon rule converts to a query that keeps the
+# field names but drops the event selection, so these are runtime deps rather
+# than optional extras -- the test suite asserts the difference.
+pysigma-pipeline-sysmon>=2.0.0,<3
+pysigma-pipeline-windows>=2.0.0,<3
 
 # Test deps (pytest + monkeypatch; pin loose to track WRG monorepo):
 # pytest>=8.0 -- declared by the parent WRG repo, not pinned here.
