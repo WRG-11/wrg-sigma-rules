@@ -116,6 +116,11 @@ Sigma rule contributions welcome. Submit YAML to `resources/examples/<tactic>/` 
 - `template_*` prefix for canonical pattern templates
 - pySigma validation passing via `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`
 
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) first if the rule claims to detect
+something observed in the wild. It sets out the sourcing bar — attribution,
+platform, and manifestation all matched against the cited source — and the
+three upstream rejections that produced it.
+
 ## References
 
 - [Anthropic Claude Code plugin marketplace](https://github.com/anthropics/claude-plugins-community)
