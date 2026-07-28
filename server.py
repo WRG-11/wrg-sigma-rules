@@ -3,7 +3,8 @@
 Glama runs this entry-point in a Docker container to perform automated
 safety/quality checks. The 3 MCP tools (draft_rule, validate_rule,
 convert_rule) plus the canonical-patterns resource are registered
-against a FastMCP instance and exposed over stdio — matching the
+against the SDK's high-level server (``MCPServer`` on mcp 2.x, the
+API-compatible ``FastMCP`` on 1.x) and exposed over stdio — matching the
 transport Claude Code uses internally so the tool surface is identical
 across runtimes.
 
@@ -23,7 +24,21 @@ from __future__ import annotations
 
 import sys
 
-from mcp.server.fastmcp import FastMCP
+# MCP SDK 2.0 renamed the high-level server: `mcp.server.fastmcp.FastMCP`
+# became `mcp.server.MCPServer` and the old module was removed outright, so
+# a plain `from mcp.server.fastmcp import FastMCP` fails hard on 2.x. The
+# two classes are API-compatible for everything this server uses -- the
+# `tool()` and `resource()` decorators and `list_tools()` /
+# `list_resources()` / `list_resource_templates()` have identical
+# signatures, and `run()` differs only in trailing keyword arguments this
+# module does not pass. Supporting both keeps the plugin installable
+# against whichever SDK the host environment already has, instead of
+# pinning users to one major version. Try 2.x first so a machine with both
+# resolutions available lands on the current API.
+try:  # mcp >= 2.0
+    from mcp.server import MCPServer as _McpServer
+except ImportError:  # mcp 1.x
+    from mcp.server.fastmcp import FastMCP as _McpServer
 
 from tools.convert_rule import register_convert_rule_tool
 from tools.draft_rule import register_draft_rule_tool
@@ -34,7 +49,7 @@ from tools.validate_rule import register_validate_rule_tool
 
 # Server name surfaces in MCP client tool catalogs; mirror the Claude Code
 # plugin name from .claude-plugin/plugin.json for cross-surface consistency.
-mcp = FastMCP("wrg-sigma-rules")
+mcp = _McpServer("wrg-sigma-rules")
 
 register_draft_rule_tool(mcp)
 register_validate_rule_tool(mcp)

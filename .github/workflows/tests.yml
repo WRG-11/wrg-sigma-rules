@@ -29,6 +29,15 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # server.py supports both SDK majors through an import shim. Claiming
+        # that in a comment is not evidence -- run the suite against each, so
+        # the leg that breaks names itself. The two legs differ only in this
+        # one package; everything else comes from requirements.txt.
+        mcp-version: ["<2", ">=2"]
+    name: pytest (mcp ${{ matrix.mcp-version }})
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -42,6 +51,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest
+
+      - name: Pin the MCP SDK for this matrix leg
+        run: pip install "mcp${{ matrix.mcp-version }}"
+
+      - name: Show resolved MCP SDK
+        run: python -c "from importlib.metadata import version; print('mcp', version('mcp'))"
 
       - name: Run pytest
         run: python -m pytest -q

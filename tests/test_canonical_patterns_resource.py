@@ -142,11 +142,24 @@ def test_canonical_pattern_resources_wired_into_server() -> None:
 
     import server as server_module
 
+    def _template_uri(template: object) -> str:
+        # mcp 1.x names this field `uriTemplate`; 2.x renamed it to
+        # `uri_template`. server.py works on both SDKs, so the assertion
+        # must too -- reading only one name turns an SDK rename into a
+        # false failure about resource registration.
+        for attr in ("uriTemplate", "uri_template"):
+            value = getattr(template, attr, None)
+            if value is not None:
+                return str(value)
+        raise AssertionError(
+            f"resource template exposes no URI-template attribute: {template!r}"
+        )
+
     resource_uris = {
         str(r.uri) for r in asyncio.run(server_module.mcp.list_resources())
     }
     template_uris = {
-        t.uriTemplate
+        _template_uri(t)
         for t in asyncio.run(server_module.mcp.list_resource_templates())
     }
     assert "wrg-sigma://patterns/canonical-5" in resource_uris
