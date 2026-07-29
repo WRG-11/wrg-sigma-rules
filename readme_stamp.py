@@ -59,11 +59,62 @@ def count_test_modules(root: Path) -> int:
     return len(list((root / "tests").glob("test_*.py")))
 
 
+def _rule_files(root: Path) -> set[Path]:
+    files: set[Path] = set()
+    for pattern in RULE_GLOBS:
+        files.update(root.glob(pattern))
+    return files
+
+
+def _count_status(root: Path, wanted: str) -> int:
+    """Rules whose sigma ``status:`` is *wanted*.
+
+    Reads the LAST document of each file: in a base-rule + correlation-rule
+    pairing the correlation document is the rule being published, matching
+    how validate_rule and convert_rule pick their subject.
+
+    Deliberately hand-rolled rather than importing yaml -- this script is
+    documented as stdlib-only and copy-portable, and the stamp workflow
+    installs nothing. `status:` is a top-level scalar on its own line, so a
+    line match is sufficient and cannot be tripped by nesting.
+    """
+    total = 0
+    for path in _rule_files(root):
+        statuses = [
+            line.split(":", 1)[1].strip()
+            for line in path.read_text(encoding="utf-8").splitlines()
+            if line.startswith("status:")
+        ]
+        if statuses and statuses[-1] == wanted:
+            total += 1
+    return total
+
+
+def count_status_test(root: Path) -> int:
+    return _count_status(root, "test")
+
+
+def count_status_experimental(root: Path) -> int:
+    return _count_status(root, "experimental")
+
+
+def count_status_stable(root: Path) -> int:
+    """Intentionally expected to be 0 -- see README "Rule status".
+
+    Stamped anyway rather than hardcoded: if a rule is ever promoted, the
+    README table should say so without anyone remembering to edit it.
+    """
+    return _count_status(root, "stable")
+
+
 # marker name -> resolver(root) -> scalar value. Mirrors a shared metric
 # registry shape so the on-disk marker format stays byte-identical.
 METRICS = {
     "sigma_rule_count": count_rules,
     "test_module_count": count_test_modules,
+    "status_test_count": count_status_test,
+    "status_experimental_count": count_status_experimental,
+    "status_stable_count": count_status_stable,
 }
 
 
