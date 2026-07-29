@@ -34,7 +34,8 @@ detection:
     - .adobesign.com
   condition: selection_link_click_msg_referer and not filter_corporate_collab
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Users following legitimate shortened links from newsletters and vendor mail
+- Link-rewriting mail security products, which cause every clicked URL to appear as a redirect chain
 level: medium
 tags:
 - attack.t1204.001

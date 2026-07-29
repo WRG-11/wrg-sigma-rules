@@ -33,7 +33,8 @@ detection:
     TargetUserName|startswith: admin_
   condition: selection_rdp and not filter_legit_admin_interactive_rdp
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Administrators and helpdesk using RDP as their normal working method
+- Jump hosts and bastion servers, where inbound type-10 logons are the expected pattern
 level: medium
 tags:
 - attack.t1021.001

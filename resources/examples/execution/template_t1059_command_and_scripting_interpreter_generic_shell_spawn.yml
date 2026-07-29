@@ -24,7 +24,8 @@ detection:
     - FromBase64String
   condition: selection_shell_spawn
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Software installers and updaters, which spawn a shell for post-install steps
+- Monitoring agents running shell-based collection scripts on an interval
 level: medium
 tags:
 - attack.t1059

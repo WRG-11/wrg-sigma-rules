@@ -9,6 +9,7 @@ Design-discipline coverage:
 """
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 
@@ -17,8 +18,19 @@ import pytest
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PLUGIN_ROOT))
 
-from tools.draft_rule import draft_rule_body  # noqa: E402
 from tools.convert_rule import convert_rule_body  # noqa: E402
+from tools.draft_rule import draft_rule_body  # noqa: E402
+
+# pysigma-backend-opensearch is installed nowhere and declared in
+# neither requirements.txt. An absent optional backend is not a defect;
+# asserting through it would measure the environment, not the code. The very
+# thing these tests check -- convert_rule telling backend_missing apart from
+# backend_capability_gap -- can only be checked where the backend is present.
+requires_opensearch_backend = pytest.mark.skipif(
+    importlib.util.find_spec("sigma.backends.opensearch") is None,
+    reason="pysigma-backend-opensearch not installed (undeclared optional dep)",
+)
+
 
 
 def _good_yaml() -> str:
@@ -119,8 +131,136 @@ def test_convert_correlation_rule_elastic_fails_gracefully() -> None:
     parser produced for every backend indiscriminately."""
     result = convert_rule_body(_CORRELATION_YAML, target="elastic")
     assert result["ok"] is False
-    assert result["kind"] == "backend_conversion"
+    # Classified as a capability gap rather than a generic conversion error:
+    # the rule is valid and the backend simply cannot express correlations,
+    # so the caller's next move is a different target, not a rule edit.
+    assert result["kind"] == "backend_capability_gap"
     assert "correlation" in result["error"].lower()
+
+
+def _windows_process_creation_yaml() -> str:
+    return (
+        "title: Encoded PowerShell\n"
+        "id: 33333333-3333-3333-8333-333333333333\n"
+        "status: test\n"
+        "logsource:\n  category: process_creation\n  product: windows\n"
+        "detection:\n  selection:\n    Image|endswith: '\\powershell.exe'\n"
+        "  condition: selection\n"
+        "level: high\n"
+    )
+
+
+@requires_opensearch_backend
+def test_convert_opensearch_happy_path() -> None:
+    result = convert_rule_body(_good_yaml(), target="opensearch")
+    assert result["ok"] is True
+    assert result["target"] == "opensearch"
+
+
+@requires_opensearch_backend
+def test_convert_opensearch_ppl_is_not_the_lucene_target() -> None:
+    """PPL and Lucene are different query languages, so the two OpenSearch
+    targets must not quietly return the same string."""
+    lucene = convert_rule_body(_good_yaml(), target="opensearch")
+    ppl = convert_rule_body(_good_yaml(), target="opensearch-ppl")
+    assert lucene["ok"] is True and ppl["ok"] is True
+    assert lucene["query"] != ppl["query"]
+    assert any("ppl" in w.lower() for w in ppl["warnings"])
+
+
+def test_convert_elasticsearch_alias_is_advertised_and_works() -> None:
+    """'elasticsearch' was accepted by the loader but missing from the
+    advertised target list, so the unknown-target hint hid a working
+    target. Assert both halves: it converts, and it is advertised."""
+    result = convert_rule_body(_good_yaml(), target="elasticsearch")
+    assert result["ok"] is True
+    unknown = convert_rule_body(_good_yaml(), target="nope")
+    assert "elasticsearch" in unknown["hint"]
+
+
+@requires_opensearch_backend
+def test_sysmon_pipeline_changes_the_query_not_just_a_flag() -> None:
+    """The pipeline must alter the emitted query, not merely be recorded.
+
+    A presence-assert ("pipelines_applied == ['sysmon']") would pass even
+    if the pipeline were built and then dropped on the floor, so compare
+    the two queries directly: only the piped one carries the sysmon event
+    selection that scopes the rule to process-creation events.
+    """
+    rule = _windows_process_creation_yaml()
+    plain = convert_rule_body(rule, target="splunk")
+    piped = convert_rule_body(
+        rule, target="splunk", config={"pipeline": "sysmon"}
+    )
+    assert plain["ok"] is True and piped["ok"] is True
+    assert plain["query"] != piped["query"]
+    assert "EventID=1" in piped["query"]
+    assert "EventID=1" not in plain["query"]
+    assert piped["pipelines_applied"] == ["sysmon"]
+    assert plain["pipelines_applied"] == []
+
+
+@requires_opensearch_backend
+def test_pipeline_accepts_a_list() -> None:
+    result = convert_rule_body(
+        _windows_process_creation_yaml(),
+        target="splunk",
+        config={"pipeline": ["sysmon"]},
+    )
+    assert result["ok"] is True
+    assert result["pipelines_applied"] == ["sysmon"]
+
+
+def test_unknown_pipeline_is_an_error_not_a_silent_fallback() -> None:
+    """Converting anyway would emit a query that looks right and selects
+    the wrong events -- worse than failing."""
+    result = convert_rule_body(
+        _good_yaml(), target="splunk", config={"pipeline": "no-such-pipeline"}
+    )
+    assert result["ok"] is False
+    assert result["kind"] == "unknown_pipeline"
+    assert "sysmon" in result["hint"]
+
+
+def test_pipeline_wrong_type_is_rejected() -> None:
+    result = convert_rule_body(
+        _good_yaml(), target="splunk", config={"pipeline": 7}
+    )
+    assert result["ok"] is False
+    assert result["kind"] == "invalid_pipeline"
+
+
+def test_missing_pipeline_package_returns_actionable_envelope(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import importlib
+    original_import_module = importlib.import_module
+
+    def fake_import_module(name: str, *args: object, **kwargs: object) -> object:
+        if name == "sigma.pipelines.sysmon":
+            raise ImportError("No module named 'sigma.pipelines.sysmon'")
+        return original_import_module(name, *args, **kwargs)
+
+    monkeypatch.setattr(importlib, "import_module", fake_import_module)
+
+    result = convert_rule_body(
+        _good_yaml(), target="splunk", config={"pipeline": "sysmon"}
+    )
+    assert result["ok"] is False
+    assert result["kind"] == "pipeline_missing"
+    assert "pip install pysigma-pipeline-sysmon" in result["hint"]
+
+
+@requires_opensearch_backend
+def test_pipeline_config_alone_does_not_trigger_unapplied_warning() -> None:
+    """'pipeline' is now an applied key, so warning about it would be a lie."""
+    result = convert_rule_body(
+        _windows_process_creation_yaml(),
+        target="splunk",
+        config={"pipeline": "sysmon"},
+    )
+    assert result["ok"] is True
+    assert not any("not applied" in w for w in result["warnings"])
 
 
 def test_convert_unknown_target_returns_actionable_error() -> None:
@@ -210,18 +350,76 @@ def test_convert_pysigma_missing_returns_actionable_envelope(
 def test_convert_backend_missing_returns_actionable_envelope(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # backend-missing envelope -- backend extra missing.
-    import builtins
-    original_import = builtins.__import__
+    """Backend-missing envelope -- backend extra missing.
 
-    def fake_import(name: str, *args: object, **kwargs: object) -> object:
+    Patches ``importlib.import_module``, which is what the backend registry
+    uses to load a backend lazily. An earlier version of this test patched
+    ``builtins.__import__`` instead; that stopped simulating anything once
+    the registry moved off the import statement, and the test passed while
+    the real backend loaded normally.
+    """
+    import importlib
+    original_import_module = importlib.import_module
+
+    def fake_import_module(name: str, *args: object, **kwargs: object) -> object:
         if name == "sigma.backends.splunk":
             raise ImportError("No module named 'sigma.backends.splunk'")
-        return original_import(name, *args, **kwargs)
+        return original_import_module(name, *args, **kwargs)
 
-    monkeypatch.setattr(builtins, "__import__", fake_import)
+    monkeypatch.setattr(importlib, "import_module", fake_import_module)
 
     result = convert_rule_body(_good_yaml(), target="splunk")
     assert result["ok"] is False
     assert result["kind"] == "backend_missing"
     assert "pip install pysigma-backend-splunk" in result["hint"]
+
+
+@requires_opensearch_backend
+def test_correlation_on_lucene_backend_reports_a_capability_gap() -> None:
+    """A backend that cannot express correlations at all is a capability gap,
+    not a broken rule -- and the distinction changes what the caller does
+    next. The rule needs no edit; it needs a different target.
+    """
+    for target in ("elastic", "kibana", "wazuh", "opensearch"):
+        result = convert_rule_body(_CORRELATION_YAML, target=target)
+        assert result["ok"] is False, target
+        assert result["kind"] == "backend_capability_gap", target
+        assert result["capability"] == "correlation_rules"
+        # The hint must name a target that actually works, so the caller does
+        # not have to discover the set by trying each one.
+        assert "splunk" in result["hint"]
+
+
+@requires_opensearch_backend
+def test_correlation_capable_targets_really_are_capable() -> None:
+    """Guard against the hint naming a target that cannot do the job -- the
+    list is a measurement, so it has to keep matching reality."""
+    from tools.convert_rule.convert_rule import _CORRELATION_CAPABLE_TARGETS
+
+    for target in _CORRELATION_CAPABLE_TARGETS:
+        result = convert_rule_body(_CORRELATION_YAML, target=target)
+        assert result["ok"] is True, (
+            f"{target} is advertised as correlation-capable but failed: "
+            f"{result.get('error')}"
+        )
+
+
+def test_deprecated_pipe_syntax_is_not_a_capability_gap() -> None:
+    """The deprecated aggregation-pipe error also contains the word
+    "correlations" ("...replaced by Sigma correlations"), but it is a defect
+    in the rule, not a limit of the backend -- so it must keep the generic
+    classification. A substring match on "correlation" got this wrong.
+    """
+    result = convert_rule_body(
+        "title: Aggregation pipe rule\n"
+        "id: 88888888-8888-4888-8888-888888888888\n"
+        "status: test\n"
+        "logsource:\n  category: process_creation\n  product: windows\n"
+        "detection:\n"
+        "  selection:\n    Image|endswith: '\\\\bad.exe'\n"
+        "  condition: selection | count() by Image > 5\n"
+        "level: low\n",
+        target="splunk",
+    )
+    assert result["ok"] is False
+    assert result["kind"] != "backend_capability_gap"

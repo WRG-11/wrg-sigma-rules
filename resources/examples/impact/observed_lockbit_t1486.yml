@@ -47,7 +47,7 @@ correlation:
   condition:
     gt: 20
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Backup or archival software writing container files with an unusual extension into user directories
 level: high
 tags:
 - attack.t1486

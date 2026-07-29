@@ -37,7 +37,8 @@ detection:
     TargetUserName|startswith: admin_
   condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Administrators working a planned maintenance window outside business hours
+- Staff in another timezone, or on call, whose normal hours differ from the baseline
 level: medium
 tags:
 - attack.t1078

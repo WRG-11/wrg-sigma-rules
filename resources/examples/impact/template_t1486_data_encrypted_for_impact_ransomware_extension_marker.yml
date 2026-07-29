@@ -45,7 +45,8 @@ correlation:
   condition:
     gt: 20
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Backup, archival and disk-encryption software writing .enc or .crypt containers as normal output
+- Users encrypting files deliberately with a supported tool before sharing them
 level: medium
 tags:
 - attack.t1486

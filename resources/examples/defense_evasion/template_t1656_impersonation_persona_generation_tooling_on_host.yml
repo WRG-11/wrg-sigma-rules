@@ -29,7 +29,8 @@ detection:
     - generated-photos
   condition: selection_persona_generation_tooling
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- QA and test-data generation producing synthetic identities for non-production environments
+- Design or marketing tooling generating placeholder avatars and bios for mockups
 level: medium
 tags:
 - attack.t1656

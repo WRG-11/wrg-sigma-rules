@@ -61,20 +61,47 @@ Run validation immediately on the drafted YAML. Surface ALL warnings to the
 user, not just errors:
 
 - pySigma parser errors (hard fail)
-- best-practices linter warnings (e.g. missing `falsepositives:` block,
-  overly broad selection, `condition` ambiguity)
-- published-corpus deviations (e.g. logsource format drift vs canonical 50+ rule
-  reference set)
+- best-practices linter warnings, including:
+  - `falsepositives_empty` / `falsepositives_placeholder` -- the block is
+    missing, or filled only with placeholder text. The drafter deliberately
+    emits a `TODO --` placeholder here; replacing it is Step 3 work, not
+    something to defer
+  - `draft_scaffold_left_in` -- a `REPLACE_ME` value survived from the
+    scaffold, so the rule matches the literal placeholder string
+  - `condition_default` -- the bare `condition: selection` the scaffold
+    produced, which usually means no filter has been thought through yet
+  - `references_empty`, `mitre_tag_missing`, `deprecated_pipe_condition`
 
 If validation fails, offer to revise. Do not silently accept warnings.
 
+For a base-rule + correlation-rule pair, the linter judges the correlation
+document (the one that alerts), so put `falsepositives:` and `references:`
+there rather than on the informational base rule.
+
 ### Step 4 -- Offer conversion (opt-in)
 
-Ask whether the user wants the rule converted to their SIEM query language:
+Ask whether the user wants the rule converted to their SIEM query language.
+Pass the target as `target=`:
 
-- Splunk SPL (`mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule` backend=splunk)
-- Elastic ESQL / KQL (backend=elastic / kibana)
-- Wazuh XML (backend=wazuh)
+- `splunk` -- Splunk SPL
+- `elastic` / `elasticsearch` / `kibana` -- Lucene query syntax
+- `opensearch` -- OpenSearch Lucene; `opensearch-ppl` -- Piped Processing
+  Language (a different language, not an alias)
+- `wazuh` -- routed through the Lucene backend, with a caveat in `warnings`
+
+**Apply a processing pipeline for windows/sysmon rules.** Sigma logsource is
+abstract taxonomy; without a pipeline the emitted query keeps the field names
+but drops the event selection, so a `process_creation` rule matches events of
+every type that carries those fields. Pass
+`config={"pipeline": "sysmon"}` (also accepts `windows`, `windows-audit`, or
+a list). The difference is visible: only the piped Splunk query carries
+`EventID=1`.
+
+**Correlation rules do not convert on every target.** The Lucene-family
+backends (elastic, kibana, wazuh, opensearch) cannot express them and return
+`kind: backend_capability_gap`. That is a backend limit, not a defect in the
+rule -- do not "fix" the rule in response. Use `splunk` or `opensearch-ppl`,
+which the envelope's `hint` names.
 
 Show converted output side-by-side with source sigma YAML.
 
@@ -95,8 +122,14 @@ Use `Write` tool with the validated YAML content.
   `attack.txxxx` entry; multi-TTP rules tag each
 - **References included** -- CVE / blog / incident URL in `references:` block;
   empty `references:` is a smell
-- **Falsepositives populated** -- at least one realistic FP scenario; "Unknown"
-  is acceptable but flag for review
+- **Falsepositives populated with a real scenario** -- name the benign thing
+  that produces this same telemetry (which backup agent, which deployment
+  tool, which admin workflow). "Unknown", "N/A" and the drafter's `TODO --`
+  placeholder are NOT acceptable: they read as a completed field, so the rule
+  ships looking finished while giving the analyst triaging the alert nothing
+  to tune on. `validate_rule` reports these as `falsepositives_placeholder`.
+  If the rule genuinely has a narrow false-positive surface, one honest entry
+  beats three invented ones
 - **LLM-safe redaction** -- never leak operator-internal infra: no internal
   hostnames, no internal IP ranges, no employee identifiers; placeholders
   like `<internal-domain>` if the user pastes context that includes them

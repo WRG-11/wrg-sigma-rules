@@ -33,7 +33,7 @@ detection:
     - SocialMediaManager
   condition: selection_social_media_signup and not filter_known_marketing_or_security_tooling
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Marketing and recruitment staff creating official accounts as part of their role
 level: medium
 tags:
 - attack.t1585.001
