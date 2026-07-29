@@ -9,6 +9,7 @@ Design-discipline coverage:
 """
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 
@@ -17,8 +18,19 @@ import pytest
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PLUGIN_ROOT))
 
-from tools.draft_rule import draft_rule_body  # noqa: E402
 from tools.convert_rule import convert_rule_body  # noqa: E402
+from tools.draft_rule import draft_rule_body  # noqa: E402
+
+# pysigma-backend-opensearch is installed nowhere and declared in
+# neither requirements.txt. An absent optional backend is not a defect;
+# asserting through it would measure the environment, not the code. The very
+# thing these tests check -- convert_rule telling backend_missing apart from
+# backend_capability_gap -- can only be checked where the backend is present.
+requires_opensearch_backend = pytest.mark.skipif(
+    importlib.util.find_spec("sigma.backends.opensearch") is None,
+    reason="pysigma-backend-opensearch not installed (undeclared optional dep)",
+)
+
 
 
 def _good_yaml() -> str:
@@ -138,12 +150,14 @@ def _windows_process_creation_yaml() -> str:
     )
 
 
+@requires_opensearch_backend
 def test_convert_opensearch_happy_path() -> None:
     result = convert_rule_body(_good_yaml(), target="opensearch")
     assert result["ok"] is True
     assert result["target"] == "opensearch"
 
 
+@requires_opensearch_backend
 def test_convert_opensearch_ppl_is_not_the_lucene_target() -> None:
     """PPL and Lucene are different query languages, so the two OpenSearch
     targets must not quietly return the same string."""
@@ -164,6 +178,7 @@ def test_convert_elasticsearch_alias_is_advertised_and_works() -> None:
     assert "elasticsearch" in unknown["hint"]
 
 
+@requires_opensearch_backend
 def test_sysmon_pipeline_changes_the_query_not_just_a_flag() -> None:
     """The pipeline must alter the emitted query, not merely be recorded.
 
@@ -185,6 +200,7 @@ def test_sysmon_pipeline_changes_the_query_not_just_a_flag() -> None:
     assert plain["pipelines_applied"] == []
 
 
+@requires_opensearch_backend
 def test_pipeline_accepts_a_list() -> None:
     result = convert_rule_body(
         _windows_process_creation_yaml(),
@@ -235,6 +251,7 @@ def test_missing_pipeline_package_returns_actionable_envelope(
     assert "pip install pysigma-pipeline-sysmon" in result["hint"]
 
 
+@requires_opensearch_backend
 def test_pipeline_config_alone_does_not_trigger_unapplied_warning() -> None:
     """'pipeline' is now an applied key, so warning about it would be a lie."""
     result = convert_rule_body(
@@ -357,6 +374,7 @@ def test_convert_backend_missing_returns_actionable_envelope(
     assert "pip install pysigma-backend-splunk" in result["hint"]
 
 
+@requires_opensearch_backend
 def test_correlation_on_lucene_backend_reports_a_capability_gap() -> None:
     """A backend that cannot express correlations at all is a capability gap,
     not a broken rule -- and the distinction changes what the caller does
@@ -372,6 +390,7 @@ def test_correlation_on_lucene_backend_reports_a_capability_gap() -> None:
         assert "splunk" in result["hint"]
 
 
+@requires_opensearch_backend
 def test_correlation_capable_targets_really_are_capable() -> None:
     """Guard against the hint naming a target that cannot do the job -- the
     list is a measurement, so it has to keep matching reality."""

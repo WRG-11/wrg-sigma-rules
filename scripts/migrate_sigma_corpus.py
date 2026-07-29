@@ -53,7 +53,6 @@ from typing import Any
 
 import yaml
 
-
 # ---------------------------------------------------------------------------
 # Path config
 # ---------------------------------------------------------------------------
@@ -319,8 +318,6 @@ def render_technique_template_rules() -> list[tuple[str, str, dict[str, Any]]]:
     """
     from wrg_threat_intel.breach.sigma.templates import (
         CURATED_FP_WARNING,
-        SEVERITY_TO_SIGMA_LEVEL,
-        SIGMA_AUTHOR,
         TECHNIQUE_PATTERN_LIBRARY,
         get_detection_block,
         has_aggregation,
@@ -709,7 +706,7 @@ def main() -> int:
         newline="\n",
     )
 
-    print(f"[migrate_sigma_corpus] DONE")
+    print("[migrate_sigma_corpus] DONE")
     print(f"  total_rules: {index['total_rules']}")
     print(f"  categories: {list(index['categories'].keys())}")
     print(f"  by_detection_type keys: {list(index['by_detection_type'].keys())}")
