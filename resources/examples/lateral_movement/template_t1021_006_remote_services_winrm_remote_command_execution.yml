@@ -1,0 +1,49 @@
+title: Template -- WinRM remote command execution (wsmprovhost child process)
+id: 75282b72-5e6a-585a-ab27-857166f7a113
+status: experimental
+description: >-
+  Canonical sigma detection template for MITRE ATT&CK T1021.006
+  (Remote Services: Windows Remote Management). Anything executed over WinRM on
+  the receiving host is a child of wsmprovhost.exe, the WinRM provider host --
+  so the parent process, not the command line, is what identifies remote
+  execution. That makes this a reliable lateral-movement signal on hosts where
+  WinRM is not the sanctioned administration path, and near-useless noise on
+  hosts where it is; scope by asset role before deploying. Synthetic exemplar
+  from the WinstonRedGuard threat-intel corpus -- no actor binding; review and
+  bind to your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1021/006/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-07-29'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_winrm_parent:
+    ParentImage|endswith: \wsmprovhost.exe
+  selection_interpreter_child:
+    Image|endswith:
+    - \cmd.exe
+    - \powershell.exe
+    - \pwsh.exe
+    - \wscript.exe
+    - \cscript.exe
+    - \mshta.exe
+    - \rundll32.exe
+    - \regsvr32.exe
+    - \net.exe
+    - \whoami.exe
+  condition: selection_winrm_parent and selection_interpreter_child
+falsepositives:
+- Configuration management that uses WinRM as its transport (DSC, Ansible on
+  Windows, PowerShell Remoting-based tooling) -- on those estates this fires
+  constantly and by design
+- Administrators running Enter-PSSession or Invoke-Command as their normal
+  working method
+- Monitoring and inventory collection that gathers data over PowerShell
+  Remoting on a schedule
+level: medium
+tags:
+- attack.t1021.006
+- wrg.template
+- wrg.tactic.lateral_movement

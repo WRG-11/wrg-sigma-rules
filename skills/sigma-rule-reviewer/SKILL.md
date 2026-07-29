@@ -46,8 +46,24 @@ buckets:
 - **Errors (hard fail)** -- rule will not parse or load in pySigma
 - **Warnings** -- best-practices linter findings; rule loads but has quality
   issues
-- **Notes** -- informational observations (e.g. "consider adding falsepositives
-  entry")
+- **Notes** -- informational observations
+
+Two warnings deserve more than a one-line mention in the report, because both
+describe a rule that looks finished and is not:
+
+- `falsepositives_placeholder` -- the block is populated with text that says
+  nothing tunable ("Unknown", "N/A", a `TODO --` line, boilerplate about
+  reviewing before deployment). Do not report this as cosmetic. Ask what
+  benign process, path or schedule produces the same telemetry the rule keys
+  on, and write that instead. This was the single most common defect in the
+  published corpus at the time of the last sweep.
+- `draft_scaffold_left_in` -- a `REPLACE_ME` value survived from the drafting
+  scaffold, so the rule matches that literal string and detects nothing.
+
+For a base-rule + correlation-rule pair, the linter judges the correlation
+document. `falsepositives:` and `references:` belong there, not on the
+informational base rule -- do not report their absence from the base half as
+a finding.
 
 ### Step 3 -- Produce structured findings report
 
@@ -99,9 +115,21 @@ If errors or actionable warnings exist, offer to produce a revised version:
 ### Step 5 -- Optional backend conversion
 
 If the user asks for SIEM-specific output, use `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule`
-to convert to Splunk / Elastic / Wazuh. Mention any conversion-specific
-caveats (e.g. "Wazuh does not support `re|contains` modifiers; this clause
-was rewritten to `like`").
+to convert to Splunk, Elastic/Kibana, OpenSearch (Lucene or `opensearch-ppl`)
+or Wazuh. Always relay the `warnings` array rather than only the query.
+
+Two things to get right here:
+
+- For a windows/sysmon rule, pass `config={"pipeline": "sysmon"}`. Without a
+  processing pipeline the query keeps the field names but drops the event
+  selection, so it matches events of every type carrying those fields. The
+  response echoes `pipelines_applied`; an empty list on a windows rule means
+  the query is broader than the rule intends.
+- If the response comes back with `kind: backend_capability_gap`, the rule is
+  fine and the backend simply cannot express it -- correlation rules on any
+  Lucene-family target (elastic, kibana, wazuh, opensearch). Do not open a
+  finding against the rule. Point the user at the targets in the envelope's
+  `hint`.
 
 ## Output discipline
 

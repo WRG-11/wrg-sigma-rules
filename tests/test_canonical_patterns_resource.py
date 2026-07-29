@@ -19,11 +19,24 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 # Add the plugin's tools/ directory to sys.path so the resource module is
 # importable without installing the plugin as a package. Mirrors the
 # scaffolding convention used by an internal MCP-server test suite.
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PLUGIN_ROOT))
+
+# server.py belongs to the public repo's distribution shell and is
+# not mirrored here (tools/sigma_public_resync.ps1 is path-driven, by design).
+# This test asserts wiring ON that module, so in this layout it has no subject.
+# Conditioned on the file itself, never on "we are in the monorepo" -- it
+# activates by itself the day the mirror carries server.py.
+requires_server_module = pytest.mark.skipif(
+    not (_PLUGIN_ROOT / "server.py").is_file(),
+    reason="server.py is not mirrored here (public-repo distribution shell)",
+)
+
 
 from tools.resources.canonical_patterns_resource import (  # noqa: E402
     canonical_pattern_by_id_body,
@@ -129,6 +142,7 @@ def test_canonical_pattern_by_id_includes_reference_rules() -> None:
         )
 
 
+@requires_server_module
 def test_canonical_pattern_resources_wired_into_server() -> None:
     # Note: every test above calls the *_body() functions directly,
     # bypassing the MCP machinery entirely -- they would all still pass even
@@ -142,11 +156,24 @@ def test_canonical_pattern_resources_wired_into_server() -> None:
 
     import server as server_module
 
+    def _template_uri(template: object) -> str:
+        # mcp 1.x names this field `uriTemplate`; 2.x renamed it to
+        # `uri_template`. server.py works on both SDKs, so the assertion
+        # must too -- reading only one name turns an SDK rename into a
+        # false failure about resource registration.
+        for attr in ("uriTemplate", "uri_template"):
+            value = getattr(template, attr, None)
+            if value is not None:
+                return str(value)
+        raise AssertionError(
+            f"resource template exposes no URI-template attribute: {template!r}"
+        )
+
     resource_uris = {
         str(r.uri) for r in asyncio.run(server_module.mcp.list_resources())
     }
     template_uris = {
-        t.uriTemplate
+        _template_uri(t)
         for t in asyncio.run(server_module.mcp.list_resource_templates())
     }
     assert "wrg-sigma://patterns/canonical-5" in resource_uris

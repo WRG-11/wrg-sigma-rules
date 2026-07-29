@@ -223,3 +223,45 @@ def test_yaml_emit_round_trips_reference_with_colon_and_hash() -> None:
     assert result["ok"] is True
     parsed = yaml.safe_load(result["yaml"])
     assert parsed["references"] == tricky_refs
+
+
+def test_falsepositives_placeholder_names_itself_as_unfinished() -> None:
+    """The draft must not emit a placeholder that reads as a finished field.
+
+    It used to emit `falsepositives: ["Unknown"]`, which parses, validates
+    and looks complete -- so a rule carrying it survives review and ships.
+    56 of the 76 rules in this corpus reached publication with a placeholder
+    of that shape. The replacement has to be visibly unfinished.
+    """
+    import yaml
+
+    parsed = yaml.safe_load(draft_rule_body("Detect suspicious activity")["yaml"])
+    falsepositives = parsed["falsepositives"]
+    assert falsepositives, "falsepositives must not be empty"
+    joined = " ".join(falsepositives).lower()
+    assert "unknown" not in joined, (
+        "'Unknown' reads as a completed field; CONTRIBUTING.md rules it out"
+    )
+    assert "todo" in joined, "the placeholder must announce that it is unfinished"
+
+
+def test_draft_notes_flag_the_falsepositives_placeholder() -> None:
+    """A TODO the author never reads is the same as no TODO."""
+    notes = " ".join(draft_rule_body("Detect suspicious activity")["draft_notes"])
+    assert "falsepositives" in notes.lower()
+
+
+def test_draft_notes_carry_a_logsource_specific_hint() -> None:
+    """The hint belongs in the notes, not in the rule: the tool does not know
+    what the rule matches, so any scenario it wrote into the YAML would be
+    plausible-sounding filler -- the exact problem being fixed."""
+    import yaml
+
+    result = draft_rule_body("Detect suspicious logon", rule_type="authentication")
+    notes = " ".join(result["draft_notes"]).lower()
+    assert "service account" in notes or "shared egress" in notes, (
+        f"no authentication-specific hint in draft_notes: {result['draft_notes']}"
+    )
+    # ...and it must NOT have been written into the rule body.
+    parsed = yaml.safe_load(result["yaml"])
+    assert "service account" not in " ".join(parsed["falsepositives"]).lower()

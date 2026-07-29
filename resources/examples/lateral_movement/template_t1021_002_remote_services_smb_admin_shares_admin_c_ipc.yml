@@ -22,7 +22,9 @@ detection:
     AccountName|endswith: $
   condition: selection_admin_share and not filter_local_machine_account
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Software deployment and remote administration tooling, which uses ADMIN$ and IPC$ by design (SCCM, PsExec-based management)
+- Backup agents and inventory scanners reading administrative shares on a schedule
+- Vulnerability scanners performing authenticated checks
 level: medium
 tags:
 - attack.t1021.002

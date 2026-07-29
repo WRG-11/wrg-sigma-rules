@@ -21,7 +21,8 @@ detection:
     - 192.168.
   condition: selection_remote_service
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Remote and hybrid staff connecting through the sanctioned remote-access path
+- Vendor support sessions arranged in advance
 level: medium
 tags:
 - attack.t1133

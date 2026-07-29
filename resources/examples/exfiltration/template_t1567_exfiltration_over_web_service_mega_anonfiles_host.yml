@@ -21,7 +21,8 @@ detection:
     - file.io
   condition: selection_exfil_host
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Staff using consumer file-sharing to send large files to external partners where no sanctioned channel exists
+- Users downloading software or media from those same hosts
 level: medium
 tags:
 - attack.t1567
