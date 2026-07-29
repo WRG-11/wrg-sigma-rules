@@ -1,0 +1,32 @@
+# Normalise line endings on the way into the repository.
+#
+# Without this, six rule files ended up stored with CRLF while the rest of the
+# corpus used LF -- invisible until a bulk edit rewrote them, at which point
+# those six produced whole-file diffs that buried the actual change. Contributors
+# on Windows will keep reintroducing it otherwise, because git's default
+# core.autocrlf on that platform converts on checkout and back on commit only
+# when it is configured to.
+#
+# `text=auto eol=lf` stores LF in the repository for anything git detects as
+# text, regardless of what the working tree uses. Editors on Windows handle LF
+# fine; the tools in this repo read and write UTF-8 with explicit newline
+# handling, so nothing here depends on CRLF.
+
+* text=auto eol=lf
+
+# Explicit for the file types this repo is made of, so the intent survives even
+# if the wildcard above is ever narrowed.
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.py    text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.txt   text eol=lf
+*.cfg   text eol=lf
+*.toml  text eol=lf
+
+# Binary — never touch.
+*.png   binary
+*.jpg   binary
+*.gif   binary
+*.ico   binary

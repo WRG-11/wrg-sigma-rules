@@ -5,42 +5,62 @@
 # resources) plus the standalone modules readme_stamp.py and server.py. The
 # tests/ suite exercises these.
 #
-# Source roots are listed explicitly so coverage measures the toolchain code
-# and not the YAML rule corpus under resources/.
+# HOW TO RUN (the environment variable is not optional -- see below):
 #
-# fail_under is a conservative first-pass floor; ratchet up once measured.
+#   COVERAGE_CORE=sysmon coverage run -m pytest
+#   coverage report
 #
-# DO NOT wire `coverage run -m pytest` into CI (tests.yml) as-is. Confirmed
-# (2026-07-17, Python 3.12 -- matching CI): running the suite under coverage
-# produces 94/287 FALSE failures, all "could not determine a constructor for
-# the tag None" -- pysigma's SigmaYAMLLoader(yaml.CSafeLoader) (site-packages
-# sigma/rule/base.py, not this repo's code) breaks specifically under
-# coverage.py's tracer. Reproduced with core=ctrace forced and with
-# branch=False (avoids a hang under branch=True, but the parse failure
-# persists); a bare no-op sys.settrace does NOT reproduce it, so this is
-# coverage.py-specific, not "any active Python trace function." Root cause is
-# upstream (pysigma + coverage.py interaction), not fixable in this repo.
-# Any test that calls SigmaRule.from_yaml() -- validate_rule, convert_rule,
-# the corpus-wide test_sigma_validate_rule_corpus.py, test_sigma_integration_
-# e2e.py -- is affected. `tests.yml` intentionally runs plain `pytest`, not
-# `coverage run -m pytest`; this .coveragerc is for local `coverage run`
-# BEFORE calling any of the affected tools (or after confirming upstream has
-# fixed the interaction), not as a CI gate today.
+# BRANCH COVERAGE IS OFF, AND THAT IS WHAT MAKES THIS WORK.
+#
+# Running the suite under coverage.py's default C tracer corrupts pysigma's
+# YAML parsing: SigmaYAMLLoader(yaml.CSafeLoader) (site-packages
+# sigma/rule/base.py, not this repo's code) fails with "could not determine a
+# constructor for the tag None", so tests reaching SigmaRule.from_yaml report
+# false failures. That is an upstream interaction, not a defect here, and it
+# is why coverage was previously documented as unusable and kept out of CI.
+#
+# Python 3.12's sys.monitoring backend does not have the problem. Measured
+# 2026-07-29 (Python 3.12, coverage 7.15.2, pysigma 1.4.0): the full suite
+# passes 319/319 under COVERAGE_CORE=sysmon with zero false failures, against
+# 1 under the default core.
+#
+# But coverage REFUSES sysmon while branch measurement is on: it emits a
+# `no-sysmon` CoverageWarning and silently falls back to the default core,
+# which brings the corruption straight back. A run that looks like it used
+# sysmon while actually using the C tracer is the trap here -- the first
+# attempt at this measurement fell into exactly that and produced two
+# "different" runs that were the same core twice. If a result surprises you,
+# check for that warning before believing it.
+#
+# So branch=False is a deliberate trade, not an oversight: line coverage that
+# actually runs beats branch coverage that cannot be measured at all.
+#
+# The note this replaces reported 94/287 false failures under the default
+# core (2026-07-17). Re-measured 2026-07-29: 1/319. The upstream interaction
+# has largely, but not entirely, resolved -- hence sysmon, not the default.
 
 [run]
-source =
-    tools
-    readme_stamp.py
-    server.py
-branch = True
+# `source = .` rather than an explicit list: naming `readme_stamp.py` and
+# `server.py` as source roots made coverage read them as module names and
+# warn "Module server.py was never imported", excluding them from the report.
+source = .
+branch = False
 omit =
     tests/*
     scripts/*
+    .venv/*
 
 [report]
 show_missing = True
 skip_covered = False
-fail_under = 70
+# Measured 91% on 2026-07-29 (815 statements, 76 missed), up from 87% when
+# this gate was introduced earlier the same day -- readme_stamp.py went from
+# 62% to 99% once its --check and main() paths were covered. The floor sits
+# below the real number so a normal PR adding a lightly-covered path does not
+# fail the build, but close enough that a real regression does. Ratchet
+# upward as coverage improves; do not lower it to accommodate new untested
+# code.
+fail_under = 85
 exclude_lines =
     pragma: no cover
     if __name__ == .__main__.:

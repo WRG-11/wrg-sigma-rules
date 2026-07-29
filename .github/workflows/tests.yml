@@ -2,7 +2,14 @@ name: tests
 
 # Runs the pytest suite (rule validation + tool integration) on every push/PR
 # to main so detection-logic or tool regressions are caught in CI, not just
-# locally. Companion to codeql.yml (static analysis) and readme-stamp.yml.
+# locally. Companion to readme-stamp.yml.
+#
+# The weekly run is not redundant with push/PR. Dependencies are installed
+# unpinned from requirements.txt, so a new release of pysigma, PyYAML or the
+# MCP SDK can break a clone of this repo while every recorded run stays green
+# -- nothing re-ran after the release. That is exactly how the mcp 2.0.0
+# breakage stayed invisible: the last push predated it by four days. The cron
+# bounds how long such a break can hide to one week.
 
 on:
   push:
@@ -10,6 +17,10 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Weekly (Mon 05:23 UTC) -- ahead of readme-stamp's 06:17 slot so a
+    # dependency break surfaces before the corpus-stamp job runs.
+    - cron: "23 5 * * 1"
 
 permissions:
   contents: read
@@ -18,6 +29,15 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # server.py supports both SDK majors through an import shim. Claiming
+        # that in a comment is not evidence -- run the suite against each, so
+        # the leg that breaks names itself. The two legs differ only in this
+        # one package; everything else comes from requirements.txt.
+        mcp-version: ["<2", ">=2"]
+    name: pytest (mcp ${{ matrix.mcp-version }})
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -32,5 +52,72 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest
 
+      - name: Pin the MCP SDK for this matrix leg
+        run: pip install "mcp${{ matrix.mcp-version }}"
+
+      - name: Show resolved MCP SDK
+        run: python -c "from importlib.metadata import version; print('mcp', version('mcp'))"
+
       - name: Run pytest
         run: python -m pytest -q
+
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest coverage
+
+      # COVERAGE_CORE=sysmon is load-bearing: under coverage.py's default C
+      # tracer, pysigma's YAML loader corrupts and the suite reports false
+      # failures. See .coveragerc for the measurement behind this.
+      - name: Run suite under coverage
+        env:
+          COVERAGE_CORE: sysmon
+        run: |
+          python -m coverage run -m pytest -q 2>&1 | tee coverage-run.log
+          # coverage silently falls back to the default core if it cannot use
+          # sysmon, which reintroduces the corruption while still looking like
+          # a sysmon run. Fail loudly instead of reporting a bogus number.
+          if grep -q "no-sysmon" coverage-run.log; then
+            echo "::error::coverage fell back off the sysmon core; the run is not trustworthy"
+            exit 1
+          fi
+
+      - name: Report coverage against the floor
+        run: python -m coverage report
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+
+      # The Dockerfile has shipped since the Glama deployment work without
+      # anything ever building it, so a change to requirements.txt or
+      # server.py could break the image with nothing to notice.
+      - name: Build the MCP server image
+        run: docker build -t wrg-sigma-rules-mcp .
+
+      # Building is not evidence that it serves. Speak MCP to the container
+      # over stdio and require it to announce the tools and resources the
+      # plugin promises -- a server that starts and announces nothing would
+      # pass a build check and fail this one.
+      - name: Smoke the container over stdio MCP
+        run: python scripts/mcp_stdio_smoke.py docker run -i --rm wrg-sigma-rules-mcp

@@ -5,6 +5,8 @@ stdlib + pytest only; no network, no repo mutation (pure-function + tmp_path).
 from __future__ import annotations
 
 import sys
+
+import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -109,3 +111,132 @@ def test_count_test_modules_matches_real_repo_tests_dir() -> None:
     real_count = len(list((rs.REPO_ROOT / "tests").glob("test_*.py")))
     assert rs.count_test_modules(rs.REPO_ROOT) == real_count
     assert real_count > 0
+
+
+def _write_rule(path: Path, status: str, name: str = "r") -> None:
+    path.write_text(
+        f"title: {name}\nid: x\nstatus: {status}\n"
+        "logsource:\n  category: process_creation\n"
+        "detection:\n  selection: {a: 1}\n  condition: selection\n"
+        "level: low\n",
+        encoding="utf-8",
+    )
+
+
+def test_count_status_counts_each_status(tmp_path: Path) -> None:
+    corpus = tmp_path / "resources" / "examples" / "execution"
+    corpus.mkdir(parents=True)
+    _write_rule(corpus / "a.yml", "test")
+    _write_rule(corpus / "b.yml", "experimental")
+    _write_rule(corpus / "c.yml", "experimental")
+    assert rs.count_status_test(tmp_path) == 1
+    assert rs.count_status_experimental(tmp_path) == 2
+    assert rs.count_status_stable(tmp_path) == 0
+
+
+def test_count_status_reads_the_last_document(tmp_path: Path) -> None:
+    """In a base-rule + correlation-rule pair the published rule is the last
+    document, matching how validate_rule and convert_rule pick their subject.
+    Reading the first would report the base rule's status instead.
+    """
+    corpus = tmp_path / "resources" / "examples" / "credential_access"
+    corpus.mkdir(parents=True)
+    (corpus / "pair.yml").write_text(
+        "title: base\nname: base_rule\nstatus: experimental\n"
+        "logsource:\n  product: windows\n"
+        "detection:\n  selection: {EventID: 4625}\n  condition: selection\n"
+        "level: informational\n"
+        "---\n"
+        "title: correlation\nstatus: test\n"
+        "correlation:\n  type: event_count\n  rules:\n    - base_rule\n"
+        "  group-by:\n    - IpAddress\n  timespan: 10m\n  condition:\n    gt: 5\n"
+        "level: high\n",
+        encoding="utf-8",
+    )
+    assert rs.count_status_test(tmp_path) == 1
+    assert rs.count_status_experimental(tmp_path) == 0
+
+
+def test_status_counts_match_a_yaml_parse_of_the_real_corpus() -> None:
+    """The stamper is deliberately stdlib-only and matches `status:` by line.
+    Cross-check it against an actual YAML parse so that shortcut cannot drift
+    from what the file really says.
+    """
+    import yaml
+
+    root = Path(rs.REPO_ROOT)
+    counts: dict[str, int] = {}
+    for path in root.glob("resources/examples/**/*.yml"):
+        docs = [
+            d
+            for d in yaml.safe_load_all(path.read_text(encoding="utf-8"))
+            if isinstance(d, dict)
+        ]
+        status = docs[-1].get("status")
+        counts[status] = counts.get(status, 0) + 1
+
+    assert rs.count_status_test(root) == counts.get("test", 0)
+    assert rs.count_status_experimental(root) == counts.get("experimental", 0)
+    assert rs.count_status_stable(root) == counts.get("stable", 0)
+
+
+def test_check_mode_reports_drift_without_writing(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch", capsys: "pytest.CaptureFixture[str]"
+) -> None:
+    """--check is the CI gate; it must exit non-zero and leave the file alone."""
+    corpus = tmp_path / "resources" / "examples" / "execution"
+    corpus.mkdir(parents=True)
+    _write_rule(corpus / "a.yml", "test")
+    readme = tmp_path / "README.md"
+    stale = "count: <!-- METRIC:sigma_rule_count -->999<!-- /METRIC:sigma_rule_count -->\n"
+    readme.write_text(stale, encoding="utf-8")
+
+    monkeypatch.setattr(rs, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(rs, "README", readme)
+
+    assert rs.main(["--check"]) == 1
+    assert readme.read_text(encoding="utf-8") == stale, "--check must not write"
+    assert "DRIFT" in capsys.readouterr().out
+
+
+def test_check_mode_passes_when_in_sync(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"
+) -> None:
+    corpus = tmp_path / "resources" / "examples" / "execution"
+    corpus.mkdir(parents=True)
+    _write_rule(corpus / "a.yml", "test")
+    readme = tmp_path / "README.md"
+    readme.write_text(
+        "count: <!-- METRIC:sigma_rule_count -->1<!-- /METRIC:sigma_rule_count -->\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(rs, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(rs, "README", readme)
+    assert rs.main(["--check"]) == 0
+
+
+def test_main_writes_the_corrected_value(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"
+) -> None:
+    corpus = tmp_path / "resources" / "examples" / "execution"
+    corpus.mkdir(parents=True)
+    _write_rule(corpus / "a.yml", "test")
+    _write_rule(corpus / "b.yml", "test")
+    readme = tmp_path / "README.md"
+    readme.write_text(
+        "count: <!-- METRIC:sigma_rule_count -->0<!-- /METRIC:sigma_rule_count -->\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(rs, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(rs, "README", readme)
+
+    assert rs.main([]) == 0
+    assert ">2<" in readme.read_text(encoding="utf-8")
+
+
+def test_main_reports_missing_readme(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"
+) -> None:
+    monkeypatch.setattr(rs, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(rs, "README", tmp_path / "nope.md")
+    assert rs.main([]) == 2
