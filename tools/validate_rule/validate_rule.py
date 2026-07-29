@@ -22,7 +22,6 @@ Layer 4 gate coverage:
 """
 from __future__ import annotations
 
-import json
 import re
 from typing import Any
 
@@ -58,6 +57,47 @@ _VALID_STATUSES: frozenset[str] = frozenset(
 )
 
 _MITRE_TAG_RE = re.compile(r"^attack\.t\d{4}(?:\.\d{3})?$")
+
+# `falsepositives:` text that is present but says nothing an analyst can tune
+# on. The empty-block check above cannot see these: the field is populated, so
+# it passes, and the rule ships looking complete. Measured on this corpus,
+# 56 of 76 published rules carried an entry of one of these shapes.
+#
+# Matched on the whole entry, not as a substring search, so a real scenario
+# that happens to contain the word "unknown" ("...when the parent process is
+# unknown to the asset inventory") is not flagged. Only entries that are
+# ENTIRELY placeholder count, and only when every entry in the list is one --
+# a rule listing two real scenarios plus a leftover TODO has already done the
+# work being asked for here.
+_PLACEHOLDER_FALSEPOSITIVE_RES: tuple[re.Pattern[str], ...] = (
+    re.compile(r"^\s*unknown\.?\s*$", re.IGNORECASE),
+    re.compile(r"^\s*(none|n/?a|tbd|todo)\b.*$", re.IGNORECASE),
+    re.compile(r"^\s*pattern library v\d+\b.*$", re.IGNORECASE),
+    re.compile(r"^\s*review for environment-specific tuning\b.*$", re.IGNORECASE),
+)
+
+# Placeholder that draft_rule writes into detection values the author must
+# fill in. A shipped rule containing it matches the literal string.
+_SCAFFOLD_MARKER = "REPLACE_ME"
+
+
+def _is_placeholder_falsepositive(entry: str) -> bool:
+    """True if *entry* is placeholder text rather than a real scenario."""
+    return any(pattern.match(entry) for pattern in _PLACEHOLDER_FALSEPOSITIVE_RES)
+
+
+def _find_scaffold_markers(node: Any, path: str = "") -> list[str]:
+    """Return dotted paths of any value still holding draft scaffolding."""
+    hits: list[str] = []
+    if isinstance(node, dict):
+        for key, value in node.items():
+            hits.extend(_find_scaffold_markers(value, f"{path}.{key}" if path else str(key)))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            hits.extend(_find_scaffold_markers(value, f"{path}[{index}]"))
+    elif isinstance(node, str) and _SCAFFOLD_MARKER in node:
+        hits.append(path or "(root)")
+    return hits
 # Versions 1-8 (RFC 4122 + RFC 9562 UUIDv6/v7/v8) share the same variant
 # nibble encoding; the nil UUID (all zeros) is RFC 4122's one explicit
 # exception and is accepted as an alternate branch.
@@ -435,6 +475,41 @@ def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
                 ),
             }
         )
+    else:
+        placeholder_entries = [
+            entry
+            for entry in falsepositives
+            if isinstance(entry, str) and _is_placeholder_falsepositive(entry)
+        ]
+        if placeholder_entries and len(placeholder_entries) == len(falsepositives):
+            warnings.append(
+                {
+                    "rule": "falsepositives_placeholder",
+                    "message": (
+                        "falsepositives contains only placeholder text "
+                        f"({placeholder_entries[0][:60]!r}); name a concrete "
+                        "benign scenario that produces this same telemetry. "
+                        "A filled-but-meaningless block passes the empty "
+                        "check while giving an analyst nothing to tune on"
+                    ),
+                }
+            )
+
+    # Draft scaffolding that reached a shipped rule. `REPLACE_ME` is what
+    # draft_rule emits for detection values the author must supply, so its
+    # presence means the draft was never finished.
+    scaffold_hits = _find_scaffold_markers(rule)
+    if scaffold_hits:
+        warnings.append(
+            {
+                "rule": "draft_scaffold_left_in",
+                "message": (
+                    "unreplaced draft scaffolding in "
+                    f"{', '.join(scaffold_hits[:3])}; the rule matches the "
+                    "literal placeholder, not the behaviour it describes"
+                ),
+            }
+        )
 
     tags = rule.get("tags")
     mitre_found: list[str] = []
@@ -500,6 +575,35 @@ def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
             )
 
     return warnings, mitre_found
+
+
+def _lint_target(yaml_content: str, first_doc: dict[str, Any]) -> dict[str, Any]:
+    """Return the document the quality linter should judge.
+
+    For a plain single-document rule that is the document itself. For a
+    base-rule + correlation-rule pairing it is the LAST document, following
+    the sigma convention that the correlation rule (the thing that actually
+    alerts) is written last and references the base rules by name -- the same
+    convention ``convert_rule`` already uses when picking metadata.
+
+    Linting doc[0] instead produced false warnings on every correlation rule
+    in this corpus: the base document is deliberately `level: informational`
+    and carries no `falsepositives:` or `references:`, because on its own it
+    is not an alert and has nothing to tune. The linter was demanding tuning
+    notes from the half of the rule that explicitly is not the alert, while
+    never reading the half that is.
+    """
+    if not _looks_like_correlation_collection(yaml_content):
+        return first_doc
+    try:
+        docs = [
+            doc
+            for doc in yaml.safe_load_all(yaml_content)
+            if isinstance(doc, dict)
+        ]
+    except yaml.YAMLError:
+        return first_doc
+    return docs[-1] if docs else first_doc
 
 
 def _pysigma_validate(yaml_content: str) -> dict[str, Any]:
@@ -629,8 +733,9 @@ def validate_rule_body(
 
     if isinstance(parsed, dict):
         schema_errors.extend(_schema_checks(parsed))
-        linter_warnings, mitre_tags_found = _linter_warnings(parsed)
-        mitre_coverage = _detect_mitre_coverage(parsed, mitre_tags_found)
+        lint_target = _lint_target(yaml_content, parsed)
+        linter_warnings, mitre_tags_found = _linter_warnings(lint_target)
+        mitre_coverage = _detect_mitre_coverage(lint_target, mitre_tags_found)
         redacted_rule, redaction_applied = _redact_rule_dict(parsed)
 
     # _pysigma_validate now uses SigmaCollection (multi-doc-aware), so a

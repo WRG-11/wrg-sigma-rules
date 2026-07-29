@@ -37,7 +37,8 @@ detection:
     - '@accounts.google.com'
   condition: selection_phish_link_indicator and not filter_known_safe_workflow
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Legitimate marketing mail and newsletters, which use tracking redirects that look structurally identical
+- Mail security products that rewrite every link, making benign and hostile URLs share a shape
 level: medium
 tags:
 - attack.t1566.002

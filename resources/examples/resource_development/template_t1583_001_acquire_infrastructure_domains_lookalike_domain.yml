@@ -32,7 +32,8 @@ detection:
     - trthaber.com
   condition: selection_new_domain_hint and selection_narrative_lookalike_domain and not filter_legitimate_news_outlets
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Legitimate brand variants, regional domains and partner sites that are string-similar by nature
+- Users mistyping a domain and being caught by a benign parked page
 level: medium
 tags:
 - attack.t1583.001

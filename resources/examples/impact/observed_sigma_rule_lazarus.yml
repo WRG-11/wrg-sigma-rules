@@ -11,6 +11,11 @@ detection:
     counterparty_address: '0x098b716b8aaf21512996dc57eb0615e2383e2f96'
     counterparty_chain: eth
   condition: selection
+falsepositives:
+- Blockchain-analytics and research platforms, which interact with sanctioned
+  addresses precisely because they are tracing them
+- Exchange compliance workflows handling seized or frozen funds under a legal
+  process
 level: high
 tags:
 - attack.impact

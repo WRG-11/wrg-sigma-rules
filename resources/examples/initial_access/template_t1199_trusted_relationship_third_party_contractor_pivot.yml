@@ -22,7 +22,8 @@ detection:
     WorkstationName|startswith: INT-
   condition: selection_trusted_logon and not filter_internal
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Genuine contractor and managed-service-provider access under an existing agreement
+- Partner integrations authenticating on a schedule from their own infrastructure
 level: medium
 tags:
 - attack.t1199

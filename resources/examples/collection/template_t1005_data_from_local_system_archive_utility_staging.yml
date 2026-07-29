@@ -28,7 +28,9 @@ detection:
     - .pdf
   condition: selection_archive_staging
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Users archiving their own documents before a laptop refresh or project handover -- same archiver, same Documents/Desktop paths
+- Backup and mailbox-migration tooling packaging .pst files on a schedule
+- Helpdesk collecting a user profile or log bundle for a support case
 level: medium
 tags:
 - attack.t1005

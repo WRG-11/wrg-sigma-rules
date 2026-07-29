@@ -30,7 +30,8 @@ detection:
     - mymonero.com
   condition: selection_crypto_payment_infrastructure
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Blockchain-analytics and research tooling querying mixer infrastructure as part of tracing work
+- Privacy-motivated but lawful personal use of the same services from a corporate network
 level: medium
 tags:
 - attack.t1657

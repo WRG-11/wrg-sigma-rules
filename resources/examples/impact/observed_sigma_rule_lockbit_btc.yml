@@ -18,6 +18,11 @@ detection:
     counterparty_address: bc1qjnt7vjqyzpyjs6ne5xfu44p4uy4xyl0vudr4dp
     counterparty_chain: btc
   condition: selection
+falsepositives:
+- Blockchain-analytics and research platforms, which interact with sanctioned
+  addresses precisely because they are tracing them
+- Exchange compliance workflows handling seized or frozen funds under a legal
+  process
 level: high
 tags:
 - attack.impact

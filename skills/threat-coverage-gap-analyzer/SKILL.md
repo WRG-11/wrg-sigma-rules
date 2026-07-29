@@ -1,6 +1,6 @@
 ---
 name: threat-coverage-gap-analyzer
-description: Analyze a sigma rule corpus against the MITRE ATT&CK matrix and produce a coverage gap report. Use when the user asks "what TTPs am I missing", asks for a coverage report, wants to compare their detections against a threat actor profile (e.g. APT29, Scattered Spider), or wants a prioritized list of detection rules to write next. Reads a directory of sigma rules, cross-references against the ATT&CK matrix resource, and outputs gap analysis with priority ranking.
+description: Analyze a sigma rule corpus against the MITRE ATT&CK matrix and produce a coverage gap report. Use when the user asks "what TTPs am I missing", asks for a coverage report, wants to compare their detections against a threat actor profile (e.g. APT29, Scattered Spider), or wants a prioritized list of detection rules to write next. Reads a directory of sigma rules (or, for this plugin's own corpus, the precomputed wrg-sigma://coverage/mitre-attack-matrix resource), cross-references the covered techniques against the ATT&CK Enterprise matrix, and outputs gap analysis with priority ranking.
 user-invocable: true
 allowed-tools:
   - Read
@@ -35,11 +35,23 @@ Ask the user where their sigma rules live. Accept:
 - A directory path (recursively enumerate `*.yml` and `*.yaml` via
   `Bash(find *)`)
 - A list of file paths
-- "Use the WRG canonical corpus" (default to the plugin's
-  `resources/examples/` directory)
+- "Use the WRG canonical corpus" (this plugin's `resources/examples/`)
 
-For each discovered rule, use `Read` to load the YAML and `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`
-to extract the `tags:` block (specifically `attack.txxxx` entries).
+For the WRG canonical corpus, read the
+`wrg-sigma://coverage/mitre-attack-matrix` resource instead of walking the
+directory. It already reports the technique-by-tactic rollup, per-technique
+rule counts, the observed/template split, and any rule contributing no
+coverage -- computed from the corpus at read time, so it cannot be stale.
+Steps 1 and 2 are then already done and you start at Step 3.
+
+For any other corpus, use `Read` on each discovered rule and
+`mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule` to extract the
+`tags:` block (specifically `attack.txxxx` entries).
+
+Note what that resource is and is not: it is the "what we have" half only.
+The ATT&CK Enterprise matrix is deliberately not vendored in this repo (a
+copied-in matrix goes stale against ATT&CK releases with nothing here able
+to notice), so the "what is missing" half is yours to bring in Step 3.
 
 ### Step 2 -- Build the coverage map
 

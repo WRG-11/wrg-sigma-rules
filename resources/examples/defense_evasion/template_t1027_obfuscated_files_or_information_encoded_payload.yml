@@ -37,7 +37,8 @@ detection:
     CommandLine|contains: ' -NoProfile -EncodedCommand '
   condition: (selection_encoded_powershell or selection_long_base64_blob) and not filter_legit_sccm_installer_encoded_ps
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Software deployment tooling writing base64-encoded configuration or certificate blobs
+- CI/CD agents materialising encoded build artefacts on disk
 level: medium
 tags:
 - attack.t1027

@@ -25,7 +25,8 @@ detection:
     - \mshta.exe
   condition: selection_office_child
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Finance and reporting templates whose macros legitimately spawn helper processes
+- Line-of-business Office add-ins that launch a companion executable by design
 level: medium
 tags:
 - attack.t1566.001

@@ -25,7 +25,8 @@ detection:
     Signed: 'true'
   condition: selection_unsigned_install and not filter_signed
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Users installing legitimate software downloaded from a vendor site rather than an internal repository
+- Developer tooling installed per-user, which is unsigned or signed by a small publisher
 level: medium
 tags:
 - attack.t1195

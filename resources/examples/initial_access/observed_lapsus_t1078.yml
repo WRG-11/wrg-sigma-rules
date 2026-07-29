@@ -37,7 +37,7 @@ detection:
     TargetUserName|startswith: admin_
   condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- A genuine user travelling, whose logon location and device change legitimately
 level: high
 tags:
 - attack.t1078
