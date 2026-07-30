@@ -1,11 +1,13 @@
-# Glama image only needs server.py + tools/ + requirements.txt.
-# Everything else (Claude Code plugin surface + dev artefacts) stays out.
+# The image needs server.py + tools/ + requirements.txt, plus the rule
+# corpus under resources/examples/ -- the coverage resource reads it at
+# runtime, so excluding it shipped an image whose own resource answered
+# "rule corpus directory not found". Everything else (Claude Code plugin
+# surface + dev artefacts) stays out.
 .git/
 .github/
 .claude-plugin/
 skills/
 prompts/
-resources/
 scripts/
 tests/
 *.md
