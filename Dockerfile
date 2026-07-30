@@ -27,11 +27,20 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy server entrypoint + tool source. Skills/rules/tests/scripts excluded
-# via .dockerignore — Glama runs the MCP server, not the Claude Code
-# plugin surface.
+# Copy server entrypoint + tool source. Skills/tests/scripts stay out via
+# .dockerignore — Glama runs the MCP server, not the Claude Code plugin
+# surface.
 COPY server.py .
 COPY tools/ ./tools/
+
+# resources/ is runtime data, not plugin surface. BOTH published resources
+# read from it — the MITRE coverage matrix recomputes from resources/examples
+# on every read, and the canonical-patterns resource reads
+# resources/canonical-patterns/INDEX.md. Shipped without them the server still
+# starts, still lists both, and answers each with ok:false: a degradation no
+# build step can notice, which is why tests/test_image_contents.py derives
+# this list from the code rather than trusting the comment above it.
+COPY resources/ ./resources/
 
 USER mcp
 
