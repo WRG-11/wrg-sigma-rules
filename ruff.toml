@@ -1,0 +1,11 @@
+# No pyproject.toml in this repo by design (flat layout, no build system --
+# see .coveragerc's note on why). A standalone ruff.toml keeps that true
+# while still giving the linter a home instead of relying on ruff's defaults
+# silently changing under us on a version bump.
+target-version = "py312"
+
+[lint]
+# Start narrow: unused imports/variables and undefined names are unambiguous
+# bugs, not style opinions. Widen the selection later as a deliberate choice,
+# not a default that happened to come with a ruff upgrade.
+select = ["F"]

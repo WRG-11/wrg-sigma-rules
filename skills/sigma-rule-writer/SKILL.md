@@ -141,3 +141,9 @@ Use `Write` tool with the validated YAML content.
 - Wrapping in code comments instead of producing a parseable YAML document
 - Adding closure cues ("Hope this helps!", "Let me know if...") -- operator
   drives next step
+
+## Live example
+
+See [`DEMO.md`](../../DEMO.md) (Demo 1-3) for real, captured `validate_rule`
+and `convert_rule` output against a corpus rule -- what a passing validation
+and a Splunk/Elasticsearch conversion actually look like.

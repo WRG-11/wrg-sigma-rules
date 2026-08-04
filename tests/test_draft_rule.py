@@ -22,6 +22,7 @@ _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PLUGIN_ROOT))
 
 from tools.draft_rule import draft_rule_body  # noqa: E402
+from tools.draft_rule.draft_rule import _pysigma_validation  # noqa: E402
 
 
 def test_draft_rule_happy_path_process_creation() -> None:
@@ -265,3 +266,23 @@ def test_draft_notes_carry_a_logsource_specific_hint() -> None:
     # ...and it must NOT have been written into the rule body.
     parsed = yaml.safe_load(result["yaml"])
     assert "service account" not in " ".join(parsed["falsepositives"]).lower()
+
+
+def test_pysigma_validation_reports_parse_failure_structure() -> None:
+    """``_pysigma_validation`` is called on structured-payload output, so
+    draft_rule's own happy paths never reach the except-branch -- test it
+    directly instead of hunting for a draft_rule_body() call that produces
+    schema-invalid YAML by accident. A `condition:` naming a selection that
+    was never defined is a real pySigma rejection, not a synthetic one."""
+    broken_yaml = """
+title: broken
+logsource:
+    category: process_creation
+detection:
+    condition: selection
+"""
+    result = _pysigma_validation(broken_yaml)
+    assert result["available"] is True
+    assert result["valid"] is False
+    assert len(result["errors"]) == 1
+    assert "detection" in result["errors"][0]["message"].lower()

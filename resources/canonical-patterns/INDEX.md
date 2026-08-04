@@ -76,7 +76,7 @@ These patterns are distilled from:
 
 Total internal distillation corpus: 51 sigma rules across 11 ATT&CK
 tactics. (This is the source set these 5 patterns were distilled from; the
-published plugin corpus is 73 rules -- see `resources/examples/INDEX.json`.)
+published plugin corpus is 80 rules -- see `resources/examples/INDEX.json`.)
 
 ## License
 
