@@ -137,3 +137,9 @@ Do not auto-launch -- operator drives.
   rationale is more actionable than 553 with none)
 - Adding closure cues ("Now you have a clear path!") -- operator drives next
   step
+
+## Live example
+
+See [`DEMO.md`](../../DEMO.md) (Demo 6) for the real
+`wrg-sigma://coverage/mitre-attack-matrix` resource output this skill reads
+when analyzing this plugin's own corpus.

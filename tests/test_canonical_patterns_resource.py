@@ -178,3 +178,22 @@ def test_canonical_pattern_resources_wired_into_server() -> None:
     }
     assert "wrg-sigma://patterns/canonical-5" in resource_uris
     assert "wrg-sigma://patterns/canonical-5/{pattern_id}" in template_uris
+
+
+def test_canonical_pattern_missing_file_returns_honest_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``_PATTERN_FILES`` naming an ID whose file does not exist on disk is a
+    distinct failure mode from an unknown ID (that one is caught earlier, by
+    the dict lookup itself): the catalog entry is right and the file behind
+    it is missing. This must not raise -- it returns the same structured
+    envelope shape as every other error branch here."""
+    from tools.resources import canonical_patterns_resource as cpr
+
+    monkeypatch.setitem(cpr._PATTERN_FILES, "09", "09_does_not_exist.md")
+
+    body = canonical_pattern_by_id_body("09")
+    payload = json.loads(body)
+    assert payload["ok"] is False
+    assert "missing" in payload["error"].lower()
+    assert "09_does_not_exist.md" in payload["expected_path"]

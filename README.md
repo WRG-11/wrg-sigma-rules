@@ -1,5 +1,8 @@
 # WRG Sigma Rules — Claude Code Plugin
 
+[![tests](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml/badge.svg)](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](requirements.txt)
 
 ## Status
 
@@ -45,21 +48,26 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 
 | Tactic | Coverage |
 |---|---|
-| `credential_access` | templates + observed (LAPSUS T1110 correlation, Kali365 OAuth device-code phishing T1528, Mimikatz LSASS) |
-| `command_and_control` | template T1071 + **observed Mini Shai-Hulud npm supply-chain C2 T1071** (Nx campaign cluster) |
-| `defense_evasion` | templates + observed (AlphV T1027 obfuscation) |
-| `execution` | templates + observed (AlphV T1059.001) |
-| `persistence` | template T1053.005 (scheduled task created by a scripting host) + observed (Photo ZIP campaign, Node.js HKCU Run-key persistence T1547.001) |
-| `exfiltration` | templates + **observed SOCKS5 hostname null-byte egress T1041** (Claude Code v2.0.24-v2.1.89 silent-fix; +backslash extension variant) |
-| `impact` | templates + observed (Lazarus + LockBit BTC + Nullsec Nigeria T1491 defacement) |
-| `initial_access` | templates + **observed Nx campaign 4-vector** (s1ngularity npm token exfil, nx-console VS Code extension compromise, ClawHavoc Claude Skills T1195.002) + LAPSUS T1078 + OWASP lab-validated (SQLi auth-bypass, XSS reflected, path traversal) |
-| `lateral_movement` | templates (RDP EventID 4624 + SMB admin shares + WinRM remote execution T1021.006) |
-| `privilege_escalation` | templates (AWS IAM wildcard-admin policy creation T1098.003 + UAC bypass via auto-elevating binary T1548.002) |
+| `credential_access` | templates + observed (LAPSUS [T1110](https://attack.mitre.org/techniques/T1110/) correlation, Kali365 OAuth device-code phishing [T1528](https://attack.mitre.org/techniques/T1528/), Mimikatz LSASS) |
+| `command_and_control` | template [T1071](https://attack.mitre.org/techniques/T1071/) + **observed Mini Shai-Hulud npm supply-chain C2 [T1071](https://attack.mitre.org/techniques/T1071/)** (Nx campaign cluster) |
+| `defense_evasion` | templates + observed (AlphV [T1027](https://attack.mitre.org/techniques/T1027/) obfuscation) |
+| `execution` | templates + observed (AlphV [T1059.001](https://attack.mitre.org/techniques/T1059/001/)) |
+| `persistence` | template [T1053.005](https://attack.mitre.org/techniques/T1053/005/) (scheduled task created by a scripting host) + observed (Photo ZIP campaign, Node.js HKCU Run-key persistence [T1547.001](https://attack.mitre.org/techniques/T1547/001/)) |
+| `exfiltration` | templates + **observed SOCKS5 hostname null-byte egress [T1041](https://attack.mitre.org/techniques/T1041/)** (Claude Code v2.0.24-v2.1.89 silent-fix; +backslash extension variant) |
+| `impact` | templates + observed (Lazarus + LockBit BTC + Nullsec Nigeria [T1491](https://attack.mitre.org/techniques/T1491/) defacement) |
+| `initial_access` | templates + **observed Nx campaign 4-vector** (s1ngularity npm token exfil, nx-console VS Code extension compromise, ClawHavoc Claude Skills [T1195.002](https://attack.mitre.org/techniques/T1195/002/)) + LAPSUS [T1078](https://attack.mitre.org/techniques/T1078/) + OWASP lab-validated (SQLi auth-bypass, XSS reflected, path traversal) |
+| `lateral_movement` | templates (RDP EventID 4624 + SMB admin shares + WinRM remote execution [T1021.006](https://attack.mitre.org/techniques/T1021/006/)) |
+| `privilege_escalation` | templates (AWS IAM wildcard-admin policy creation [T1098.003](https://attack.mitre.org/techniques/T1098/003/) + UAC bypass via auto-elevating binary [T1548.002](https://attack.mitre.org/techniques/T1548/002/)) |
 | `resource_development` | templates (newly registered domain + lookalike domain + social media signup) |
-| `collection` | templates (archive utility staging + SharePoint access + local email collection T1114.001) |
+| `collection` | templates (archive utility staging + SharePoint access + local email collection [T1114.001](https://attack.mitre.org/techniques/T1114/001/)) |
 | `code_review` | 5 AI-fingerprint observed rules (ANSI-color class, decoy block, docstring density, hallucinated CVSS, prompt artifacts) |
 
 See [`resources/examples/INDEX.json`](resources/examples/INDEX.json) for full enumeration.
+
+Some rules have a companion write-up under [`docs/detection-notes/`](docs/detection-notes/)
+explaining the detection logic in prose — why the signal is specific, what
+the false-positive trap looks like, and what the coverage gaps are — for
+cases where the rule's `description:` field alone would not carry that.
 
 ### Rule status
 
@@ -104,7 +112,9 @@ Validate + convert a corpus rule end-to-end, from the repo root (commands from [
 
 ```bash
 pip install pysigma pysigma-backend-splunk pysigma-backend-elasticsearch
-python -c "
+```
+
+```python
 import sys, json
 sys.path.insert(0, '.')
 from tools.validate_rule.validate_rule import validate_rule_body
@@ -115,7 +125,6 @@ rule = open('resources/examples/command_and_control/observed_mini_shai_hulud_npm
 print(json.dumps(validate_rule_body(rule), indent=2))
 print(json.dumps(convert_rule_body(rule, target='splunk'), indent=2))
 print(json.dumps(convert_rule_body(rule, target='elasticsearch'), indent=2))
-"
 ```
 
 Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in [`DEMO.md`](DEMO.md).
@@ -126,13 +135,16 @@ Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in
 - **<!-- METRIC:test_module_count -->14<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch` + `pysigma-backend-opensearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
-- **`claude plugin validate` PASS** (re-verified 2026-07-29)
+- **`claude plugin validate` PASS** — not yet wired into CI (see [tests.yml](.github/workflows/tests.yml)); run it yourself with `claude plugin validate .` before relying on a dated claim here
 - **Live demo evidence**: [`DEMO.md`](DEMO.md) — 3 real tool invocations on Mini Shai-Hulud rule
 
 ## Tested environments
 
-- Windows 11 + Claude Code
-- WSL2 Ubuntu 24.04
+- Windows 11 + Claude Code (manual)
+- WSL2 Ubuntu 24.04 (manual)
+- Ubuntu, Windows, and macOS GitHub Actions runners — see the
+  [tests](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml)
+  workflow, which runs the full suite on all three on every push
 
 ## Contributing
 
@@ -148,13 +160,36 @@ something observed in the wild. It sets out the sourcing bar — attribution,
 platform, and manifestation all matched against the cited source — and the
 three upstream rejections that produced it.
 
+Questions about *why* a rule is shaped the way it is, or whether a technique
+is worth a rule at all, belong in
+[Discussions](https://github.com/WRG-11/wrg-sigma-rules/discussions) rather
+than an issue — [issues](https://github.com/WRG-11/wrg-sigma-rules/issues)
+are for concrete bugs and rule submissions (see the issue templates).
+
 ## References
 
 - [Anthropic Claude Code plugin marketplace](https://github.com/anthropics/claude-plugins-community)
+- [Sigma specification](https://github.com/SigmaHQ/sigma) — the rule format this corpus targets
+- [pySigma](https://github.com/SigmaHQ/pySigma) — the validation/conversion engine `validate_rule` and `convert_rule` wrap
+- [MITRE ATT&CK](https://attack.mitre.org/) — the technique taxonomy used in `tags:` and the coverage resource
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE) file.
+MIT — see [`LICENSE`](LICENSE) file. Covers the tooling (`server.py`, `tools/`,
+`scripts/`) and the rule corpus (`resources/`) under one license, a deliberate
+choice: some Sigma corpora split rule content under a separate
+[Detection Rule License](https://github.com/SigmaHQ/Detection-Rule-License)
+to preserve attribution on redistribution, but that trades off against
+frictionless reuse by SOC teams adapting a rule into their own tooling. MIT
+was chosen for the latter.
+
+Runtime dependencies bring in LGPL-2.1/3.0 (pySigma and its backend/pipeline
+packages, from SigmaHQ) and a handful of MIT/BSD/Apache packages. Using an
+LGPL library — importing it, not modifying it — does not require this
+repo's own code to be LGPL; see the
+[dependency-licenses](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml)
+CI job for the full, re-derivable list rather than trusting this paragraph
+to stay current on its own.
 
 ---
 

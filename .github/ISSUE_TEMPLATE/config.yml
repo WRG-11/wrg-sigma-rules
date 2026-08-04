@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Sourcing bar for rule contributions
+    url: https://github.com/WRG-11/wrg-sigma-rules/blob/main/CONTRIBUTING.md
+    about: Read this before opening a rule submission — it explains why three prior upstream PRs were closed and what a rule needs to clear review.

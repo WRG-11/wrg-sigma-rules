@@ -59,8 +59,14 @@ register_canonical_pattern_resources(mcp)
 register_coverage_resources(mcp)
 
 
-def main() -> int:
-    """Entry point — runs stdio MCP server until stdin closes."""
+def main() -> int:  # pragma: no cover
+    """Entry point — runs stdio MCP server until stdin closes.
+
+    Blocks on stdio until the transport closes; not something a fast unit
+    test can reach the way the ``if __name__`` guard below (already
+    excluded in .coveragerc) is. Excluding the function itself rather than
+    leaving it as unexplained missing coverage.
+    """
     mcp.run()
     return 0
 

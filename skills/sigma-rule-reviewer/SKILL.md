@@ -151,3 +151,9 @@ Two things to get right here:
 - Ignoring `falsepositives:` block emptiness (top-3 cause of SOC alert
   fatigue observed across this corpus)
 - Adding closure cues ("Hope this is helpful!") -- operator drives next step
+
+## Live example
+
+See [`DEMO.md`](../../DEMO.md) (Demo 1, 4, 5) for real, captured
+`validate_rule` output and the shape of a `convert_rule` backend-capability
+gap envelope -- the kind of finding this skill's review should surface.
