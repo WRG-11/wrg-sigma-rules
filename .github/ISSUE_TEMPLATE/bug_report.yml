@@ -1,0 +1,51 @@
+name: Bug report
+description: Something in the MCP tools, skills, or CI is broken.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you expect, and what did you get instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where
+      options:
+        - draft_rule (MCP tool)
+        - validate_rule (MCP tool)
+        - convert_rule (MCP tool)
+        - A skill (sigma-rule-writer / sigma-rule-reviewer / threat-coverage-gap-analyzer)
+        - Docker image / stdio server
+        - CI (tests.yml / readme-stamp.yml)
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The exact input (rule YAML, prompt, command) that triggers it.
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: mcp-sdk
+    attributes:
+      label: MCP SDK version (if relevant)
+      description: "`python -c \"from importlib.metadata import version; print(version('mcp'))\"`"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output / traceback
+      render: shell
+    validations:
+      required: false

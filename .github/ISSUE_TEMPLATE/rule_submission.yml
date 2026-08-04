@@ -1,0 +1,54 @@
+name: Rule submission / proposal
+description: Propose a new detection rule for the corpus, before or instead of opening a PR directly.
+labels: ["rule-proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read [CONTRIBUTING.md](../../CONTRIBUTING.md) first — the sourcing bar
+        (attribution / platform / manifestation) is what actually decides
+        whether a rule belongs here, not whether the YAML validates. This form
+        exists so you can propose a rule and get sourcing feedback *before*
+        writing detection logic against a source that will not hold up.
+
+  - type: input
+    id: prefix
+    attributes:
+      label: Rule prefix
+      description: "`observed_*` for an incident-specific rule, `template_*` for a canonical pattern. The prefix is a claim about provenance — pick the one that is honestly true."
+      placeholder: observed_ or template_
+    validations:
+      required: true
+
+  - type: input
+    id: technique
+    attributes:
+      label: ATT&CK technique
+      placeholder: "e.g. T1486"
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: Cited source
+      description: A specific document (report, advisory, incident writeup) — not a vendor blog summarising another blog. Link it.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: three-matches
+    attributes:
+      label: The three matches (only for observed_* rules — see CONTRIBUTING.md)
+      options:
+        - label: "Attribution: the source attributes this activity to this actor/campaign (I can quote the sentence)"
+        - label: "Platform: the documented activity runs on the platform this rule's logsource targets"
+        - label: "Manifestation: the source documents how this appears in the telemetry the rule matches on"
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Why this rule, what gap it closes, open questions on sourcing.
+    validations:
+      required: false
