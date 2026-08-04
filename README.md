@@ -1,5 +1,8 @@
 # WRG Sigma Rules — Claude Code Plugin
 
+[![tests](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml/badge.svg)](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](requirements.txt)
 
 ## Status
 
@@ -61,6 +64,11 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 
 See [`resources/examples/INDEX.json`](resources/examples/INDEX.json) for full enumeration.
 
+Some rules have a companion write-up under [`docs/detection-notes/`](docs/detection-notes/)
+explaining the detection logic in prose — why the signal is specific, what
+the false-positive trap looks like, and what the coverage gaps are — for
+cases where the rule's `description:` field alone would not carry that.
+
 ### Rule status
 
 Sigma's `status:` field says how far a rule has been proven, and this corpus
@@ -104,7 +112,9 @@ Validate + convert a corpus rule end-to-end, from the repo root (commands from [
 
 ```bash
 pip install pysigma pysigma-backend-splunk pysigma-backend-elasticsearch
-python -c "
+```
+
+```python
 import sys, json
 sys.path.insert(0, '.')
 from tools.validate_rule.validate_rule import validate_rule_body
@@ -115,7 +125,6 @@ rule = open('resources/examples/command_and_control/observed_mini_shai_hulud_npm
 print(json.dumps(validate_rule_body(rule), indent=2))
 print(json.dumps(convert_rule_body(rule, target='splunk'), indent=2))
 print(json.dumps(convert_rule_body(rule, target='elasticsearch'), indent=2))
-"
 ```
 
 Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in [`DEMO.md`](DEMO.md).
@@ -126,7 +135,7 @@ Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in
 - **<!-- METRIC:test_module_count -->14<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch` + `pysigma-backend-opensearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
-- **`claude plugin validate` PASS** (re-verified 2026-07-29)
+- **`claude plugin validate` PASS** — not yet wired into CI (see [tests.yml](.github/workflows/tests.yml)); run it yourself with `claude plugin validate .` before relying on a dated claim here
 - **Live demo evidence**: [`DEMO.md`](DEMO.md) — 3 real tool invocations on Mini Shai-Hulud rule
 
 ## Tested environments
@@ -148,13 +157,28 @@ something observed in the wild. It sets out the sourcing bar — attribution,
 platform, and manifestation all matched against the cited source — and the
 three upstream rejections that produced it.
 
+Questions about *why* a rule is shaped the way it is, or whether a technique
+is worth a rule at all, belong in
+[Discussions](https://github.com/WRG-11/wrg-sigma-rules/discussions) rather
+than an issue — [issues](https://github.com/WRG-11/wrg-sigma-rules/issues)
+are for concrete bugs and rule submissions (see the issue templates).
+
 ## References
 
 - [Anthropic Claude Code plugin marketplace](https://github.com/anthropics/claude-plugins-community)
+- [Sigma specification](https://github.com/SigmaHQ/sigma) — the rule format this corpus targets
+- [pySigma](https://github.com/SigmaHQ/pySigma) — the validation/conversion engine `validate_rule` and `convert_rule` wrap
+- [MITRE ATT&CK](https://attack.mitre.org/) — the technique taxonomy used in `tags:` and the coverage resource
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE) file.
+MIT — see [`LICENSE`](LICENSE) file. Covers the tooling (`server.py`, `tools/`,
+`scripts/`) and the rule corpus (`resources/`) under one license, a deliberate
+choice: some Sigma corpora split rule content under a separate
+[Detection Rule License](https://github.com/SigmaHQ/Detection-Rule-License)
+to preserve attribution on redistribution, but that trades off against
+frictionless reuse by SOC teams adapting a rule into their own tooling. MIT
+was chosen for the latter.
 
 ---
 

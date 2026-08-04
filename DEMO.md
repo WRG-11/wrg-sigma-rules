@@ -204,7 +204,7 @@ With `config={"pipeline": "sysmon"}`:
 
 The difference is the leading `EventID=1`. Without it the query matches *any*
 event carrying an `Image` field, not just process creation -- it runs, returns
-results, and is scoped wrong. 46 of the 76 corpus rules are `product: windows`,
+results, and is scoped wrong. 52 of the 80 corpus rules are `product: windows`,
 so this is the common case rather than an edge one.
 
 ---
@@ -238,8 +238,8 @@ Rule: `resources/examples/credential_access/template_t1110_brute_force_high_volu
 This is a backend limit, not a defect in the rule, and the envelope says so
 rather than returning a bare parse error that reads as "your rule is broken".
 The Lucene-family targets (`elastic`, `kibana`, `wazuh`, `opensearch`) all
-share it: measured across the corpus, they convert 66 of 76 rules while
-`splunk` and `opensearch-ppl` convert all 76.
+share it: measured across the corpus, they convert 70 of 80 rules while
+`splunk` and `opensearch-ppl` convert all 80.
 
 ---
 
@@ -251,10 +251,10 @@ stale against the rules. Reading it returns markdown beginning:
 ```markdown
 ## Summary
 
-- Rules: 76
+- Rules: 80
 - Incident rules (observed_*): 24
-- Pattern rules (template_*): 52
-- Distinct ATT&CK techniques covered: 62
+- Pattern rules (template_*): 56
+- Distinct ATT&CK techniques covered: 66
 - Tactic groupings: 13
 ```
 
