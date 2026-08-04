@@ -1,0 +1,50 @@
+name: publish-image
+
+# Prepared, not activated: this only runs on a GitHub Release being
+# published, never on an ordinary push -- so adding this file does not, by
+# itself, publish anything. The Dockerfile is already built + stdio-smoked on
+# every push (tests.yml's `docker` job); this job additionally PUSHES that
+# same image to GHCR, but only at a release boundary, so `ghcr.io/wrg-11/
+# wrg-sigma-rules-mcp` does not exist until the first release chooses to
+# create it. Review the tag/visibility implications before cutting that
+# first release -- a public GHCR package is a new, separately-visible surface
+# from the repo itself.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:  # manual trigger for a dry run against a specific ref
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/wrg-11/wrg-sigma-rules-mcp
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build the MCP server image
+        run: docker build -t "$IMAGE_NAME:${{ github.event.release.tag_name || 'dry-run' }}" -t "$IMAGE_NAME:latest" .
+
+      # Same proof-of-life check tests.yml's docker job runs -- a pushed
+      # image that never actually serves MCP is worse than no image at all.
+      - name: Smoke the built image over stdio MCP before pushing
+        run: python3 scripts/mcp_stdio_smoke.py docker run -i --rm "$IMAGE_NAME:latest"
+
+      - name: Push (skipped on workflow_dispatch dry runs)
+        if: github.event_name == 'release'
+        run: docker push "$IMAGE_NAME" --all-tags

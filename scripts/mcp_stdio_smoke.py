@@ -35,6 +35,25 @@ _EXPECTED_RESOURCES = {
 _PROTOCOL_VERSION = "2024-11-05"
 _TIMEOUT_SECONDS = 60
 
+# Self-contained, deliberately minimal -- not a corpus file path, so renaming
+# or removing a resources/examples/ rule can never break this smoke test for
+# a reason unrelated to whether the server actually runs a tool.
+_SMOKE_RULE_YAML = """\
+title: Smoke-test rule (not a corpus rule)
+id: 00000000-0000-0000-0000-000000000000
+status: test
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\\\\whoami.exe'
+    condition: selection
+falsepositives:
+    - Legitimate use of whoami for diagnostics
+level: low
+"""
+
 
 def _request(request_id: int, method: str, params: dict[str, Any] | None = None) -> str:
     payload: dict[str, Any] = {"jsonrpc": "2.0", "id": request_id, "method": method}
@@ -129,6 +148,20 @@ def main(argv: list[str]) -> int:
         read_response(2)
         send(_request(3, "resources/list"))
         read_response(3)
+        # R89 lesson from #57: a resource can ANNOUNCE itself in resources/list
+        # and still fail the instant something tries to actually READ it (both
+        # resources answered ok:false inside the Docker image while listing
+        # worked fine outside it). Listing is not evidence of working; reading
+        # and calling are.
+        send(_request(4, "tools/call", {
+            "name": "validate_rule",
+            "arguments": {"yaml_content": _SMOKE_RULE_YAML},
+        }))
+        read_response(4)
+        send(_request(5, "resources/read", {
+            "uri": "wrg-sigma://coverage/mitre-attack-matrix",
+        }))
+        read_response(5)
     except (BrokenPipeError, OSError) as exc:
         proc.kill()
         return _fail(f"server closed the pipe early: {exc}")
@@ -176,10 +209,41 @@ def main(argv: list[str]) -> int:
             f"server did not announce resources: {sorted(missing_resources)}"
         )
 
+    if 4 not in responses:
+        return _fail("no response to tools/call(validate_rule)", stderr=stderr_text)
+    call_result = responses[4].get("result") or {}
+    if call_result.get("isError"):
+        return _fail(
+            f"validate_rule tool call returned an error: {call_result}",
+            stderr=stderr_text,
+        )
+    if "error" in responses[4]:
+        return _fail(
+            f"tools/call(validate_rule) failed: {responses[4]['error']}",
+            stderr=stderr_text,
+        )
+
+    if 5 not in responses:
+        return _fail("no response to resources/read(coverage matrix)", stderr=stderr_text)
+    if "error" in responses[5]:
+        return _fail(
+            f"resources/read(coverage matrix) failed: {responses[5]['error']}",
+            stderr=stderr_text,
+        )
+    read_result = responses[5].get("result") or {}
+    contents = read_result.get("contents") or []
+    if not contents or not any((c.get("text") or "").strip() for c in contents):
+        return _fail(
+            "resources/read(coverage matrix) returned no text content",
+            stderr=stderr_text,
+        )
+
     print(f"OK: {server_name} announced {len(tools)} tool(s), "
           f"{len(resources)} resource(s) over stdio")
     print(f"    tools:     {', '.join(sorted(tools))}")
     print(f"    resources: {', '.join(sorted(resources))}")
+    print("    validate_rule tool call: ok")
+    print("    coverage-matrix resource read: ok")
     return 0
 
 

@@ -48,18 +48,18 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 
 | Tactic | Coverage |
 |---|---|
-| `credential_access` | templates + observed (LAPSUS T1110 correlation, Kali365 OAuth device-code phishing T1528, Mimikatz LSASS) |
-| `command_and_control` | template T1071 + **observed Mini Shai-Hulud npm supply-chain C2 T1071** (Nx campaign cluster) |
-| `defense_evasion` | templates + observed (AlphV T1027 obfuscation) |
-| `execution` | templates + observed (AlphV T1059.001) |
-| `persistence` | template T1053.005 (scheduled task created by a scripting host) + observed (Photo ZIP campaign, Node.js HKCU Run-key persistence T1547.001) |
-| `exfiltration` | templates + **observed SOCKS5 hostname null-byte egress T1041** (Claude Code v2.0.24-v2.1.89 silent-fix; +backslash extension variant) |
-| `impact` | templates + observed (Lazarus + LockBit BTC + Nullsec Nigeria T1491 defacement) |
-| `initial_access` | templates + **observed Nx campaign 4-vector** (s1ngularity npm token exfil, nx-console VS Code extension compromise, ClawHavoc Claude Skills T1195.002) + LAPSUS T1078 + OWASP lab-validated (SQLi auth-bypass, XSS reflected, path traversal) |
-| `lateral_movement` | templates (RDP EventID 4624 + SMB admin shares + WinRM remote execution T1021.006) |
-| `privilege_escalation` | templates (AWS IAM wildcard-admin policy creation T1098.003 + UAC bypass via auto-elevating binary T1548.002) |
+| `credential_access` | templates + observed (LAPSUS [T1110](https://attack.mitre.org/techniques/T1110/) correlation, Kali365 OAuth device-code phishing [T1528](https://attack.mitre.org/techniques/T1528/), Mimikatz LSASS) |
+| `command_and_control` | template [T1071](https://attack.mitre.org/techniques/T1071/) + **observed Mini Shai-Hulud npm supply-chain C2 [T1071](https://attack.mitre.org/techniques/T1071/)** (Nx campaign cluster) |
+| `defense_evasion` | templates + observed (AlphV [T1027](https://attack.mitre.org/techniques/T1027/) obfuscation) |
+| `execution` | templates + observed (AlphV [T1059.001](https://attack.mitre.org/techniques/T1059/001/)) |
+| `persistence` | template [T1053.005](https://attack.mitre.org/techniques/T1053/005/) (scheduled task created by a scripting host) + observed (Photo ZIP campaign, Node.js HKCU Run-key persistence [T1547.001](https://attack.mitre.org/techniques/T1547/001/)) |
+| `exfiltration` | templates + **observed SOCKS5 hostname null-byte egress [T1041](https://attack.mitre.org/techniques/T1041/)** (Claude Code v2.0.24-v2.1.89 silent-fix; +backslash extension variant) |
+| `impact` | templates + observed (Lazarus + LockBit BTC + Nullsec Nigeria [T1491](https://attack.mitre.org/techniques/T1491/) defacement) |
+| `initial_access` | templates + **observed Nx campaign 4-vector** (s1ngularity npm token exfil, nx-console VS Code extension compromise, ClawHavoc Claude Skills [T1195.002](https://attack.mitre.org/techniques/T1195/002/)) + LAPSUS [T1078](https://attack.mitre.org/techniques/T1078/) + OWASP lab-validated (SQLi auth-bypass, XSS reflected, path traversal) |
+| `lateral_movement` | templates (RDP EventID 4624 + SMB admin shares + WinRM remote execution [T1021.006](https://attack.mitre.org/techniques/T1021/006/)) |
+| `privilege_escalation` | templates (AWS IAM wildcard-admin policy creation [T1098.003](https://attack.mitre.org/techniques/T1098/003/) + UAC bypass via auto-elevating binary [T1548.002](https://attack.mitre.org/techniques/T1548/002/)) |
 | `resource_development` | templates (newly registered domain + lookalike domain + social media signup) |
-| `collection` | templates (archive utility staging + SharePoint access + local email collection T1114.001) |
+| `collection` | templates (archive utility staging + SharePoint access + local email collection [T1114.001](https://attack.mitre.org/techniques/T1114/001/)) |
 | `code_review` | 5 AI-fingerprint observed rules (ANSI-color class, decoy block, docstring density, hallucinated CVSS, prompt artifacts) |
 
 See [`resources/examples/INDEX.json`](resources/examples/INDEX.json) for full enumeration.
@@ -140,8 +140,11 @@ Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in
 
 ## Tested environments
 
-- Windows 11 + Claude Code
-- WSL2 Ubuntu 24.04
+- Windows 11 + Claude Code (manual)
+- WSL2 Ubuntu 24.04 (manual)
+- Ubuntu, Windows, and macOS GitHub Actions runners — see the
+  [tests](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml)
+  workflow, which runs the full suite on all three on every push
 
 ## Contributing
 
@@ -179,6 +182,14 @@ choice: some Sigma corpora split rule content under a separate
 to preserve attribution on redistribution, but that trades off against
 frictionless reuse by SOC teams adapting a rule into their own tooling. MIT
 was chosen for the latter.
+
+Runtime dependencies bring in LGPL-2.1/3.0 (pySigma and its backend/pipeline
+packages, from SigmaHQ) and a handful of MIT/BSD/Apache packages. Using an
+LGPL library — importing it, not modifying it — does not require this
+repo's own code to be LGPL; see the
+[dependency-licenses](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml)
+CI job for the full, re-derivable list rather than trusting this paragraph
+to stay current on its own.
 
 ---
 

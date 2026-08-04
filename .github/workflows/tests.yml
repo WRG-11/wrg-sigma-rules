@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   pytest:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -37,7 +37,19 @@ jobs:
         # the leg that breaks names itself. The two legs differ only in this
         # one package; everything else comes from requirements.txt.
         mcp-version: ["<2", ">=2"]
-    name: pytest (mcp ${{ matrix.mcp-version }})
+        # README's "Tested environments" section named Windows and WSL2
+        # Ubuntu as manually-checked, once, by a person -- not CI. Running
+        # the real matrix here turns that into a claim CI proves on every
+        # push instead of one that ages the moment nobody re-checks by hand.
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    name: pytest (${{ matrix.os }}, mcp ${{ matrix.mcp-version }})
+    defaults:
+      run:
+        # Windows runners default `run:` to pwsh, and the steps below use
+        # bash syntax (multi-line `|`, quoting). GitHub-hosted Windows
+        # runners ship git-bash; pinning the shell here keeps all three OSes
+        # running the identical steps instead of silently forking behavior.
+        shell: bash
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -96,6 +108,60 @@ jobs:
 
       - name: Report coverage against the floor
         run: python -m coverage report
+
+      - name: Report ATT&CK technique coverage against the floor
+        run: python scripts/coverage_gate.py
+
+      - name: Report fingerprint-sharing rule groups (advisory, never fails)
+        run: python scripts/duplicate_rule_check.py
+
+  dependency-licenses:
+    # Advisory, not a gate: a transitive dependency's license can change on a
+    # routine bump without that being a real problem, and failing the build
+    # on every such change would train everyone to ignore this job. It exists
+    # so the license mix is an explicit, re-derivable fact instead of nobody
+    # having looked -- measured 2026-08-03 in an isolated venv: pySigma and
+    # its backend/pipeline packages are LGPL-2.1/3.0 (expected, upstream
+    # SigmaHQ licensing; using them as a library does not require this
+    # MIT-licensed repo to relicense), everything else is MIT/BSD/Apache.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install runtime dependencies only (isolated from dev tooling)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pip-licenses
+
+      - name: Report dependency license mix
+        run: python -m piplicenses --format=markdown --with-urls
+
+  ruff:
+    # F-rules only (unused imports/names, undefined names) -- see ruff.toml's
+    # own comment on why this starts narrow instead of ruff's full default set.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: python -m pip install ruff
+
+      - name: Run ruff
+        run: python -m ruff check server.py tools/ scripts/ readme_stamp.py tests/
 
   bandit:
     # Complements the CodeQL default-setup scan (Security tab, weekly,

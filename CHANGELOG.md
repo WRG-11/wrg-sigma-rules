@@ -11,6 +11,38 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [Unreleased]
+
+Corpus 76 → 80 rules, and OpenSearch joins the conversion targets. Landed on
+`main` via #56 and #57; not yet tagged.
+
+### Added
+
+- OpenSearch as a fifth conversion target (Lucene and PPL are separate
+  targets; a test asserts they do not silently resolve to the same one).
+- Processing pipelines are applied by `convert_rule` rather than ignored; an
+  unknown pipeline name is an error, a missing pipeline package names itself
+  in the returned envelope instead of a bare traceback.
+- One new rule for each of the four thinnest ATT&CK tactics, plus the two
+  correlation types the templates had not yet used and a previously-withheld
+  privilege-escalation rule (#56).
+- Coverage measurement is gated on again, and the Docker image is built and
+  smoke-tested by speaking MCP to the container over stdio rather than
+  assuming it starts.
+
+### Fixed
+
+- **`mcp` 2.0.0 support, properly this time.** 1.3.0 responded to the SDK 2.0
+  break by pinning `mcp<2`; this rewrites `server.py` to import
+  `mcp.server.MCPServer` on 2.x and fall back to `mcp.server.fastmcp.FastMCP`
+  on 1.x, so both majors work and CI runs the suite against both instead of
+  excluding one.
+- The Docker image shipped without the rule corpus baked in, so both MCP
+  resources that read `resources/examples/` answered `ok: false` inside the
+  container even though the same server worked outside it (#57).
+- Placeholder `falsepositives:` entries (`REPLACE_ME` and similar) are gone
+  from the corpus, and `validate_rule` now flags any that reappear.
+
 ## [1.3.0] - 2026-07-29
 
 Corpus 73 → 76 rules, and 12 → 13 tactic categories. The larger part of this
