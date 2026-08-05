@@ -11,10 +11,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
-## [Unreleased]
+## [1.4.0] - 2026-08-05
 
-Corpus 76 → 100 rules, and OpenSearch joins the conversion targets. Landed on
-`main` via #56, #57 and #59; not yet tagged.
+Corpus 80 → 100 rules, and OpenSearch joins the conversion targets. Landed on
+`main` via #56, #57, #59 and #60.
 
 ### Added
 
@@ -64,7 +64,7 @@ Corpus 76 → 100 rules, and OpenSearch joins the conversion targets. Landed on
 
 ## [1.3.0] - 2026-07-29
 
-Corpus 73 → 76 rules, and 12 → 13 tactic categories. The larger part of this
+Corpus 73 → 80 rules, and 12 → 13 tactic categories. The larger part of this
 release is not the new rules: it is that several things this repo claimed
 were either untrue or unmeasured, and are now one or the other.
 
