@@ -1,0 +1,36 @@
+title: Template -- Drive-by Compromise (legacy-plugin UA + payload fetch)
+id: d293170d-5043-5fbe-a080-4351ae3131e0
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1189 (Drive-by Compromise (legacy-plugin UA + payload fetch)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1189/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: proxy
+  product: windows
+detection:
+  selection_legacy_plugin_ua:
+    cs-user-agent|contains:
+    - Java/1.
+    - Java/6
+    - Java/7
+    - Shockwave Flash
+    - Silverlight
+  selection_payload_fetch:
+    cs-uri-stem|endswith:
+    - .exe
+    - .jar
+    - .hta
+    - .js
+    - .vbs
+  condition: selection_legacy_plugin_ua and selection_payload_fetch
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1189
+- wrg.template
+- wrg.tactic.initial_access

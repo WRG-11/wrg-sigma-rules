@@ -29,8 +29,16 @@ LLM-safe redaction discipline:
 
 Char cap per rule <= 2000 (verbose rules truncated with warning).
 
-Idempotent: re-running overwrites outputs deterministically (uuid5
-namespaces match the source modules so rule IDs stay stable).
+Idempotent when its sources are current: re-running overwrites outputs
+deterministically (uuid5 namespaces match the source modules so rule IDs
+stay stable). NOT guaranteed idempotent-safe when a source has drifted
+behind the deployed corpus (observed near-miss: the AI-fingerprint and
+observed-breach sources are fixtures/goldens that are not automatically
+kept in sync with rules deployed via other means) -- ``write_rule_yaml``'s
+date-regression guard refuses any write that would backdate an
+already-deployed rule rather than silently reverting it; a blocked write
+means the corresponding source needs refreshing before re-running, not
+that the guard should be bypassed by default.
 
 Usage::
 
@@ -170,6 +178,12 @@ TECHNIQUE_TACTIC: dict[str, str] = {
     "T1556": "credential_access",
     "T1552": "credential_access",
     "T1552.001": "credential_access",
+    "T1552.004": "credential_access",
+    "T1195.002": "initial_access",
+    "T1485": "impact",
+    "T1204": "execution",
+    "T1083": "discovery",
+    "T1574": "defense_evasion",
     "T1078": "initial_access",
     "T1078.002": "initial_access",
     "T1133": "initial_access",
@@ -197,6 +211,7 @@ TECHNIQUE_TACTIC: dict[str, str] = {
     "T1490": "impact",
     "T1491": "impact",
     "T1567": "exfiltration",
+    "T1567.001": "exfiltration",
     "T1657": "impact",
     "T1071": "command_and_control",
     "T1071.001": "command_and_control",
@@ -206,6 +221,12 @@ TECHNIQUE_TACTIC: dict[str, str] = {
     "T1585.001": "resource_development",
     "T1588": "resource_development",
     "T1622": "defense_evasion",
+    # First Persistence-tactic entry in this map -- every prior
+    # technique happened to be tactically primary in an already-represented
+    # bucket. "persistence" is a real, standard MITRE tactic; this creates
+    # the category rather than folding T1546 into "other".
+    "T1546": "persistence",
+    "T1189": "initial_access",
 }
 
 
@@ -237,11 +258,72 @@ def safe_filename(s: str) -> str:
     return s[:80]
 
 
-def write_rule_yaml(category: str, filename: str, rule_doc: dict[str, Any]) -> Path:
-    """Write a single sigma rule as YAML under category dir; return path."""
+class DateRegressionError(RuntimeError):
+    """Raised by write_rule_yaml() when a write would backdate an
+    already-deployed rule -- see the module-level near-miss note below
+    write_rule_yaml for the real incident this guards against."""
+
+
+def _existing_rule_date(path: Path) -> str | None:
+    """Best-effort read of an existing rule file's ``date:`` field.
+
+    Returns None (no signal, not a failure) on a missing file, unparseable
+    YAML, or a doc shape without a string ``date`` -- the guard this feeds
+    only ever compares two known dates; anything else falls through to
+    "nothing to compare, allow the write."
+    """
+    if not path.is_file():
+        return None
+    try:
+        existing = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError:
+        return None
+    if not isinstance(existing, dict):
+        return None
+    date = existing.get("date")
+    return date if isinstance(date, str) else None
+
+
+def write_rule_yaml(
+    category: str,
+    filename: str,
+    rule_doc: dict[str, Any],
+    *,
+    allow_date_regression: bool = False,
+) -> Path:
+    """Write a single sigma rule as YAML under category dir; return path.
+
+    Date-regression guard (observed near-miss): refuses to overwrite an
+    existing file whose ``date:`` is NEWER than the incoming rule_doc's
+    ``date:``, unless ``allow_date_regression=True``. Real incident this
+    closes: main()'s render_ai_fingerprint_rules() and
+    render_observed_breach_rules() read from fixtures/goldens that are not
+    reliably kept in sync with what has since been deployed to the corpus
+    via other means (e.g. a one-off script adding a detector's rule
+    directly) -- a stale-source re-render silently overwrote an
+    already-deployed, fresher rule with older content. A net-line-loss
+    guard (the pattern tools/sigma_public_resync.ps1 uses for the public
+    sync) would NOT have caught that specific case: the diff was a net
+    loss of only 2 lines, well under any reasonable line-count threshold.
+    The ``date:`` field regressing (2026-06-22 -> 2026-05-13) was the
+    actual, precise signal. Template rules (TECHNIQUE_PATTERN_LIBRARY)
+    always render with a fixed date constant, so this is a no-op for them
+    by construction -- new_date == old_date, never a regression.
+    """
     cat_dir = EXAMPLES_DIR / category
     cat_dir.mkdir(parents=True, exist_ok=True)
     path = cat_dir / filename
+    new_date = rule_doc.get("date")
+    if isinstance(new_date, str):
+        old_date = _existing_rule_date(path)
+        if old_date is not None and new_date < old_date and not allow_date_regression:
+            raise DateRegressionError(
+                f"{path}: existing file is dated {old_date!r}, this write would "
+                f"backdate it to {new_date!r} -- refusing. This is the shape of "
+                f"overwriting an already-deployed rule with a stale source, not "
+                f"a legitimate regen. Pass allow_date_regression=True if the "
+                f"backdate is genuinely intended."
+            )
     # Recursively redact + drop broken URLs BEFORE yaml dump so em-dashes etc
     # become ASCII substitutes (--) rather than \uXXXX escape sequences in
     # the rendered output.
@@ -284,6 +366,15 @@ TECHNIQUE_NAMES: dict[str, str] = {
     "T1021.001": "Remote Services (RDP / EventID 4624 LogonType 10)",
     "T1021.002": "Remote Services SMB (admin shares ADMIN$/C$/IPC$)",
     "T1195": "Supply Chain Compromise (untrusted installer execution)",
+    "T1195.002": "Compromise Software Supply Chain (CI/package-manager LOLBin spawn)",
+    "T1552.004": "Unsecured Credentials Private Keys (key-file access)",
+    "T1546": "Event Triggered Execution (IFEO Debugger-key persistence)",
+    "T1485": "Data Destruction (secure-wipe tooling / mass deletion)",
+    "T1204": "User Execution (downloaded-file follow-through)",
+    "T1083": "File and Directory Discovery (recon commands)",
+    "T1082": "System Information Discovery (recon commands)",
+    "T1574": "Hijack Execution Flow (DLL search-order hijack / side-loading)",
+    "T1567.001": "Exfiltration to Cloud Storage",
     "T1566.001": "Spearphishing Attachment (office app child process)",
     "T1566.002": "Spearphishing Link (proxy-side suspicious link)",
     "T1059": "Command and Scripting Interpreter (generic shell spawn)",
@@ -307,6 +398,7 @@ TECHNIQUE_NAMES: dict[str, str] = {
     "T1585": "Establish Accounts (anomalous account creation burst)",
     "T1585.001": "Establish Accounts Social Media (signup hosts)",
     "T1588": "Obtain Capabilities (threat-intel lookup DNS)",
+    "T1189": "Drive-by Compromise (legacy-plugin UA + payload fetch)",
 }
 
 
@@ -691,11 +783,40 @@ def main() -> int:
 
     print("[migrate_sigma_corpus] writing YAMLs ...")
     EXAMPLES_DIR.mkdir(parents=True, exist_ok=True)
+    blocked: list[str] = []
     for category, filename, doc in rendered:
-        path = write_rule_yaml(category, filename, doc)
+        try:
+            path = write_rule_yaml(category, filename, doc)
+        except DateRegressionError as exc:
+            # Near-miss guard: collect and keep going rather than
+            # aborting the whole run on the first stale-source write --
+            # the point is a loud, itemised report of every file this run
+            # would have backdated, not a single opaque crash.
+            blocked.append(str(exc))
+            continue
         # ASCII verify
         text = path.read_text(encoding="utf-8")
         text.encode("ascii")  # raises if non-ASCII present
+
+    if blocked:
+        print(
+            f"\n[migrate_sigma_corpus] REFUSED {len(blocked)} write(s) -- "
+            "date-regression guard tripped (would backdate an already-"
+            "deployed rule with a stale source):",
+            file=sys.stderr,
+        )
+        for msg in blocked:
+            print(f"  - {msg}", file=sys.stderr)
+        print(
+            "\nThis usually means render_ai_fingerprint_rules() and/or "
+            "render_observed_breach_rules() are reading from a fixture/"
+            "golden that has drifted behind the deployed corpus. Refresh "
+            "that source before re-running, or pass allow_date_regression="
+            "True to write_rule_yaml() call sites if the backdate is "
+            "genuinely intended.",
+            file=sys.stderr,
+        )
+        return 1
 
     print("[migrate_sigma_corpus] writing INDEX.json ...")
     index = build_index(rendered)
