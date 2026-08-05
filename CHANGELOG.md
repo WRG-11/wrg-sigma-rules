@@ -13,11 +13,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 76 → 80 rules, and OpenSearch joins the conversion targets. Landed on
-`main` via #56 and #57; not yet tagged.
+Corpus 76 → 100 rules, and OpenSearch joins the conversion targets. Landed on
+`main` via #56, #57 and #59; not yet tagged.
 
 ### Added
 
+- **Corpus 80 → 100 rules** (#59), in three groups. Four AI-fingerprint
+  detectors on the `code_review` logsource (`ai_prose`, `unicode_watermark`,
+  `ai_provenance`, `hallucinated_import`); six observed campaigns each bound to
+  a named, dated incident (UNC1069/WAVESHAPER axios npm compromise, TanStack
+  Pwn Request Actions cache poisoning, SharePoint CVE-2026-58644 w3wp shell
+  spawn, N-able N-central CVE-2026-18577 cloudflared persistence, Storm-2949
+  Azure management-plane credential harvest, keyv/cacheable npm worm ETH C2);
+  and ten canonical templates (T1082, T1083, T1189, T1195.002, T1204, T1485,
+  T1546, T1552.004, T1567.001, T1574). Nothing was invented to reach a round
+  number — the corpus stopped at 94 when cross-verifiable material ran out, and
+  three further candidates were rejected for single-source or self-contradictory
+  IOCs. T1071.001 was checked and skipped: its frequency in the source corpus
+  is 0.
 - OpenSearch as a fifth conversion target (Lucene and PPL are separate
   targets; a test asserts they do not silently resolve to the same one).
 - Processing pipelines are applied by `convert_rule` rather than ignored; an
@@ -32,6 +45,12 @@ Corpus 76 → 80 rules, and OpenSearch joins the conversion targets. Landed on
 
 ### Fixed
 
+- **`write_rule_yaml` date-regression guard** (#59). Found via a real
+  near-miss: running the corpus migration overwrote an already-deployed,
+  *fresher* rule with content re-rendered from a *stale* test fixture, silently
+  backdating it. The guard refuses any write that would backdate a deployed
+  rule; a blocked write means the source needs refreshing, not that the guard
+  should be bypassed.
 - **`mcp` 2.0.0 support, properly this time.** 1.3.0 responded to the SDK 2.0
   break by pinning `mcp<2`; this rewrites `server.py` to import
   `mcp.server.MCPServer` on 2.x and fall back to `mcp.server.fastmcp.FastMCP`
