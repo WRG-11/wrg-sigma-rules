@@ -1,0 +1,32 @@
+title: Template -- System Information Discovery (recon commands)
+id: 29633113-b612-50b4-9de8-770aaad349bd
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1082 (System Information Discovery (recon commands)). Synthetic
+  exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1082/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_sysinfo_command:
+    Image|endswith:
+    - \cmd.exe
+    - \powershell.exe
+    - \pwsh.exe
+    CommandLine|contains:
+    - systeminfo
+    - wmic os get
+    - Get-ComputerInfo
+    - hostname &&
+    - ver && wmic
+  condition: selection_sysinfo_command
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1082
+- wrg.template
+- wrg.tactic.discovery

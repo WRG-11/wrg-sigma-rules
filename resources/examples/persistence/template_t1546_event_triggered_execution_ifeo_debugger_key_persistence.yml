@@ -1,0 +1,25 @@
+title: Template -- Event Triggered Execution (IFEO Debugger-key persistence)
+id: accde563-b835-503e-8f7f-834ec78e19b5
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1546 (Event Triggered Execution (IFEO Debugger-key persistence)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1546/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: registry_set
+  product: windows
+detection:
+  selection_ifeo_debugger:
+    TargetObject|contains: \Image File Execution Options\
+    TargetObject|endswith: \Debugger
+  condition: selection_ifeo_debugger
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1546
+- wrg.template
+- wrg.tactic.persistence
