@@ -531,6 +531,12 @@ def test_placeholder_falsepositives_are_flagged() -> None:
         "N/A",
         "TODO -- replace with a concrete benign scenario",
         "Pattern library v1 -- review for environment-specific tuning before deployment",
+        # A bare denial is still an unfilled block, so `none` stays flagged
+        # when nothing follows it -- see the sibling test for the shape that
+        # does carry a scenario.
+        "None",
+        "None.",
+        "None expected",
     ):
         rules = _lint_rules(_rule_with_falsepositives([placeholder]))
         assert "falsepositives_placeholder" in rules, (
@@ -545,6 +551,27 @@ def test_real_falsepositive_scenario_is_not_flagged() -> None:
     rules = _lint_rules(
         _rule_with_falsepositives(
             ["Administrative deployment scripts invoking powershell.exe with -enc"]
+        )
+    )
+    assert "falsepositives_placeholder" not in rules
+
+
+def test_none_expected_with_a_reason_is_a_scenario_not_a_placeholder() -> None:
+    """"None expected for X, because Y" tells an analyst what not to expect and
+    when that stops being true, which is the opposite of an unfilled block.
+
+    The regex used to match `none` greedily to end-of-line, so this entry --
+    taken verbatim from observed_ai_fingerprint_hallucinated_import -- was
+    reported as a placeholder while being one of the more specific
+    falsepositives entries in the corpus.
+    """
+    rules = _lint_rules(
+        _rule_with_falsepositives(
+            [
+                "None expected for a listed name -- if it becomes a real, "
+                "legitimately-registered package after the entry was added, "
+                "remove the entry rather than suppress at the rule level"
+            ]
         )
     )
     assert "falsepositives_placeholder" not in rules

@@ -28,7 +28,9 @@ detection:
     - .vbs
   condition: selection_legacy_plugin_ua and selection_payload_fetch
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Legacy line-of-business applications that ship their own Java runtime and fetch .jar files over HTTP as normal operation, Java Web Start deployments matching both selections by design
+- Any legacy-UA client pulling a .js file, which is the most common extension on the web and the first part of the list to narrow
+- Java/1. matching Java/1.8 as well, a still-deployed runtime rather than only the ancient versions this rule is aimed at
 level: medium
 tags:
 - attack.t1189

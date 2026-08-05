@@ -24,7 +24,9 @@ detection:
     - gci -recurse
   condition: selection_discovery_command
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Backup pre-scans, on-demand antivirus scans and disk-usage tools, all of which enumerate recursively by design
+- Interactive administrator and developer use of dir /s and Get-ChildItem -Recurse, which on a workstation is continuous rather than occasional
+- Build and installer scripts walking a tree to compute a file list
 level: medium
 tags:
 - attack.t1083
