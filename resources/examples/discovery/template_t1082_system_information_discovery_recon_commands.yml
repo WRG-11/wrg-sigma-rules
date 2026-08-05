@@ -24,7 +24,9 @@ detection:
     - ver && wmic
   condition: selection_sysinfo_command
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Inventory and asset-management agents running systeminfo or Get-ComputerInfo on a schedule from a service context (SCCM and Intune discovery, monitoring collectors)
+- Helpdesk and onboarding scripts collecting the same output when a ticket is opened
+- Administrators checking a host by hand, which the command line alone cannot distinguish from recon -- the parent process and session type carry that signal
 level: medium
 tags:
 - attack.t1082

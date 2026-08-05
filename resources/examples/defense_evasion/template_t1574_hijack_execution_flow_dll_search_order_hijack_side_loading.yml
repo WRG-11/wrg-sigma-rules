@@ -22,7 +22,9 @@ detection:
     Signed: 'true'
   condition: selection_dll_from_writable_path and not filter_signed
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Installers and self-updating applications unpacking unsigned helper DLLs into a Temp directory and loading them for the duration of the install (MSI custom actions, Electron and Squirrel updaters, driver setup packages)
+- Locally compiled DLLs, unsigned by construction, loaded by a debugger or test runner from a build output under a Temp or Users\Public working directory
+- Sensors that never populate the Signed field, which leaves filter_signed inert and makes every load in these paths match -- confirm the field is mapped before trusting the filter to carry the rule
 level: medium
 tags:
 - attack.t1574

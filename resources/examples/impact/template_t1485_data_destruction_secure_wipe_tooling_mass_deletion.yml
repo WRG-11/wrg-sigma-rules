@@ -23,7 +23,9 @@ detection:
     - 'format c:'
   condition: 1 of selection_*
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- sdelete used for decommissioning and compliance-driven media sanitisation, which is what the Sysinternals tool exists for
+- del /f /s /q in build clean-up scripts, CI workspace resets and uninstall routines
+- Disk-preparation and reimaging workflows, where a format command is the expected step rather than the incident
 level: medium
 tags:
 - attack.t1485

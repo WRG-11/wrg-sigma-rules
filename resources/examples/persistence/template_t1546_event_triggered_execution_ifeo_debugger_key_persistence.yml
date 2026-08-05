@@ -17,7 +17,9 @@ detection:
     TargetObject|endswith: \Debugger
   condition: selection_ifeo_debugger
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Application Verifier, the Windows debugging tools and Visual Studio's launch-under-debugger setting, all of which write the Debugger value legitimately
+- Vendor installers redirecting a legacy executable to a replacement shim through an IFEO Debugger entry
+- Anti-malware and application-control products that use IFEO to block execution of a named binary
 level: medium
 tags:
 - attack.t1546
