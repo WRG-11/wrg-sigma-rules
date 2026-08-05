@@ -1,7 +1,7 @@
 {
   "name": "wrg-sigma-rules",
   "version": "1.4.0",
-  "description": "Production-grade sigma detection rule writing, validation, and conversion for SOC analysts and threat-intel teams. LLM-assisted draft + pySigma validation + multi-backend conversion (Splunk, Elastic, OpenSearch, Wazuh) with logsource-aware processing pipelines. Ships an 100-rule published corpus spanning 13 MITRE ATT&CK tactics.",
+  "description": "Production-grade sigma detection rule writing, validation, and conversion for SOC analysts and threat-intel teams. LLM-assisted draft + pySigma validation + multi-backend conversion (Splunk, Elastic, OpenSearch, Wazuh) with logsource-aware processing pipelines. Ships a 100-rule published corpus spanning 13 MITRE ATT&CK tactics.",
   "author": {
     "name": "WRG (WinstonRedGuard)"
   },
