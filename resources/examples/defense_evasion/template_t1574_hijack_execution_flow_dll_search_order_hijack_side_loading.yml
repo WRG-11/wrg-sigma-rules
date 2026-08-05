@@ -1,0 +1,30 @@
+title: Template -- Hijack Execution Flow (DLL search-order hijack / side-loading)
+id: ce82f814-68e6-5d95-ab82-d716bf98759d
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1574 (Hijack Execution Flow (DLL search-order hijack / side-loading)).
+  Synthetic exemplar from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1574/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: image_load
+  product: windows
+detection:
+  selection_dll_from_writable_path:
+    ImageLoaded|contains:
+    - \AppData\Local\Temp\
+    - \Downloads\
+    - \Users\Public\
+    ImageLoaded|endswith: .dll
+  filter_signed:
+    Signed: 'true'
+  condition: selection_dll_from_writable_path and not filter_signed
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1574
+- wrg.template
+- wrg.tactic.defense_evasion

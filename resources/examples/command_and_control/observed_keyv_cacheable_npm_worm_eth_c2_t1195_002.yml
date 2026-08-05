@@ -1,0 +1,68 @@
+title: Keyv/cacheable npm supply chain worm -- Ethereum-smart-contract C2 (2026-08-04)
+id: 64f7123f-193b-552e-8f42-f8738634b717
+status: experimental
+description: 'Real, actively-spreading npm supply chain worm (T1195.002), disclosed 2026-08-04, cross-verified across multiple
+  independent outlets (Wiz, The Hacker News, Socket.dev, Snyk, Aikido). Attacker compromised the GitHub account of the maintainer
+  behind keyv (127M weekly npm downloads) and the same maintainer''s other packages (cacheable, flat-cache, file-entry-cache)
+  -- pushed malicious commits directly to main and cut new releases with valid GitHub-Actions-signed provenance, so the poisoned
+  versions carry a legitimate-looking supply-chain attestation. Spread to 400+ packages as of disclosure.
+
+
+  Malicious releases add a preinstall hook that downloads the Bun runtime and runs a large obfuscated stealer targeting .npmrc/GitHub-CLI/AWS/Vault/Kubernetes
+  credentials, crypto wallets, and AI tool config files (Claude, OpenAI, Cursor, Gemini); attempts persistence via Claude
+  Code hooks and VS Code tasks.json. Self-propagating: uses stolen credentials to push the same payload to other maintainers/repos
+  (worm behavior).
+
+
+  C2 mechanism: rather than embedding domains directly, the payload resolves its C2 domain via an on-chain lookup (eth_call)
+  against an Ethereum smart contract (StringListStore, 0xE1f2395ee43e45A1556EC6438a88c31B83493103 -- address confirmed independently
+  by the second source, since the first didn''t disclose one), currently returning npm-cache.com -- allowing infrastructure
+  rotation without a payload update.
+
+
+  Verification discipline: detects only the cross-source-confirmed C2 domain and npm-family process context. The first source''s
+  additional detail (dropped file node_modules/keyv/Math_Symbol.js, a specific ''Bun/1.3.13'' user-agent string) was not independently
+  repeated by the second source at the time of writing, so was deliberately left out of this rule''s detection logic rather
+  than encoded as confirmed fact.
+
+
+  Aggregated from 2 independent-source campaign disclosures, 2026-08-04.'
+references:
+- https://www.wiz.io/blog/keyv-and-cacheable-npm-supply-chain-attack
+- https://thehackernews.com/2026/08/keyv-linked-npm-worm-poisons-hundreds.html
+- https://attack.mitre.org/techniques/T1195/002/
+- https://attack.mitre.org/techniques/T1071/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-05'
+logsource:
+  category: dns
+  product: windows
+detection:
+  selection_dns_query_c2:
+    QueryName|contains: npm-cache.com
+  selection_npm_process_parent:
+    ParentImage|endswith:
+    - \node.exe
+    - \npm.cmd
+    - \npm.exe
+    - \yarn.cmd
+    - \yarn.exe
+    - \pnpm.cmd
+    - \pnpm.exe
+    - \bun.exe
+  condition: selection_dns_query_c2 or (selection_npm_process_parent and selection_dns_query_c2)
+falsepositives:
+- Threat-intel enrichment tooling or a sandbox resolving the indicator domain during analysis
+- The security team's own verification lookups after this rule fires
+level: critical
+tags:
+- attack.t1195.002
+- attack.t1071.001
+- wrg.observed.campaign.keyv_cacheable_npm_worm
+- wrg.observed.ioc.npm_cache_com_domain
+- wrg.observed.ioc.eth_c2_0xE1f2395ee43e45A1556EC6438a88c31B83493103
+- wrg.observed.vector.npm_maintainer_account_compromise
+- wrg.observed.vector.malicious_release_valid_provenance
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.command_and_control

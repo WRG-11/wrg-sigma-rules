@@ -16,7 +16,7 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/OpenSearch/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
-- **<!-- METRIC:sigma_rule_count -->80<!-- /METRIC:sigma_rule_count --> published sigma rule corpus**: 13 ATT&CK tactic categories (templates + observed campaign rules). Every rule carries a sigma `status:` — none of them `stable`; see [rule status](#rule-status) for the breakdown and what it means before you deploy one
+- **<!-- METRIC:sigma_rule_count -->100<!-- /METRIC:sigma_rule_count --> published sigma rule corpus**: 13 ATT&CK tactic categories (templates + observed campaign rules). Every rule carries a sigma `status:` — none of them `stable`; see [rule status](#rule-status) for the breakdown and what it means before you deploy one
 - **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages). Measured against the full corpus on 2026-07-29: Splunk and OpenSearch-PPL convert every rule; the Lucene-family targets (Elastic, Kibana, Wazuh, OpenSearch) fail on the 10 correlation rules, because that backend cannot express them — `convert_rule` reports this as a capability gap and names the targets that can
 - **Logsource-aware output**: `config={"pipeline": "sysmon"}` maps Sigma's abstract logsource to the product's real event selection — without it a `process_creation` rule converts to a query that matches events of every type
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
@@ -28,7 +28,7 @@ The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty*
 
 (For scale, the same count on 2026-05-23 found 200+ plugins and one security plugin. The marketplace grew roughly tenfold in two months; the sigma count stayed at zero.)
 
-WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: <!-- METRIC:sigma_rule_count -->80<!-- /METRIC:sigma_rule_count --> canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
+WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: <!-- METRIC:sigma_rule_count -->100<!-- /METRIC:sigma_rule_count --> canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
 
 ## What's included
 
@@ -44,7 +44,7 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 - `sigma-rule-reviewer` — paste rule for quality review + improvement suggestions
 - `threat-coverage-gap-analyzer` — MITRE ATT&CK coverage analysis vs your existing corpus
 
-### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->80<!-- /METRIC:sigma_rule_count --> rules across 13 ATT&CK tactic categories)
+### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->100<!-- /METRIC:sigma_rule_count --> rules across 13 ATT&CK tactic categories)
 
 | Tactic | Coverage |
 |---|---|
@@ -77,7 +77,7 @@ uses it literally rather than aspirationally:
 | `status:` | Count | What it means here |
 |---|---|---|
 | `test` | <!-- METRIC:status_test_count -->8<!-- /METRIC:status_test_count --> | Derived from a real, cited incident — the `observed_*` campaign rules |
-| `experimental` | <!-- METRIC:status_experimental_count -->72<!-- /METRIC:status_experimental_count --> | Canonical detection shapes; many describe themselves as synthetic exemplars in their own `description:` |
+| `experimental` | <!-- METRIC:status_experimental_count -->92<!-- /METRIC:status_experimental_count --> | Canonical detection shapes; many describe themselves as synthetic exemplars in their own `description:` |
 | `stable` | <!-- METRIC:status_stable_count -->0<!-- /METRIC:status_stable_count --> | Deliberately unused |
 
 `stable` in the sigma specification means a rule is running in production and
@@ -132,7 +132,7 @@ Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in
 ## Quality discipline
 
 - **4-Layer self-audit** per WRG audit methodology (trust-but-verify self-audit)
-- **<!-- METRIC:test_module_count -->14<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
+- **<!-- METRIC:test_module_count -->15<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch` + `pysigma-backend-opensearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
 - **`claude plugin validate` PASS** — not yet wired into CI (see [tests.yml](.github/workflows/tests.yml)); run it yourself with `claude plugin validate .` before relying on a dated claim here
