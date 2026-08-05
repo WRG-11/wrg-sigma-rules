@@ -32,9 +32,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent
 README = REPO_ROOT / "README.md"
 
-# Rule corpus = sigma YAML under resources/examples/<tactic>/ — the 11 ATT&CK
-# tactic categories that make up the published corpus. resources/canonical-
-# patterns/ holds *.md narrative pattern docs (not rules) and is excluded.
+# Rule corpus = sigma YAML under resources/examples/<tactic>/, one directory
+# per ATT&CK tactic category. The category count used to live in this comment
+# as a literal and drifted (it read 11 while the corpus had 14); it is counted
+# from disk now — see count_tactic_categories. resources/canonical-patterns/
+# holds *.md narrative pattern docs (not rules) and is excluded.
 RULE_GLOBS = (
     "resources/examples/**/*.yml",
     "resources/examples/**/*.yaml",
@@ -47,6 +49,25 @@ def count_rules(root: Path) -> int:
     for pattern in RULE_GLOBS:
         files.update(root.glob(pattern))
     return len(files)
+
+
+def count_tactic_categories(root: Path) -> int:
+    """Number of tactic directories under resources/examples/.
+
+    Added after the README's "N ATT&CK tactic categories" line drifted the
+    same way the test-module count once did: `discovery` was added to the
+    corpus and the TL;DR bullet, the section heading, the plugin manifest
+    and this file's own comment all kept saying 13. Nothing was measuring
+    it, so nothing objected.
+    """
+    examples = root / "resources" / "examples"
+    return len(
+        [
+            p
+            for p in examples.iterdir()
+            if p.is_dir() and not p.name.startswith((".", "_"))
+        ]
+    )
 
 
 def count_test_modules(root: Path) -> int:
@@ -111,10 +132,21 @@ def count_status_stable(root: Path) -> int:
 # registry shape so the on-disk marker format stays byte-identical.
 METRICS = {
     "sigma_rule_count": count_rules,
+    "tactic_category_count": count_tactic_categories,
     "test_module_count": count_test_modules,
     "status_test_count": count_status_test,
     "status_experimental_count": count_status_experimental,
     "status_stable_count": count_status_stable,
+}
+
+# A shields badge cannot carry the HTML-comment markers above: a Markdown
+# image URL has nowhere to put one. The value is located by its own regex
+# instead, under the same contract — rewritten from ground truth, and
+# `--check` fails on drift. Without this the badge is a hand-typed number
+# sitting next to auto-stamped ones, which is how the sibling profile README
+# ended up with a correct sentence and a stale badge in the same file.
+BADGES = {
+    "sigma_rule_count": re.compile(r"(img\.shields\.io/badge/sigma__rules-)(\d+)(-)"),
 }
 
 
@@ -160,6 +192,22 @@ def stamp_text(text: str, root: Path) -> tuple[str, list[tuple[str, str, str]]]:
         out = regex.sub(_repl, out)
         if not regex.search(text):
             print(f"warning: marker {name!r} not found in README", file=sys.stderr)
+
+    for name, regex in BADGES.items():
+        value = str(METRICS[name](root))
+
+        def _badge_repl(
+            match: re.Match[str], _name: str = name, _value: str = value
+        ) -> str:
+            old = match.group(2)
+            if old != _value:
+                drift.append((f"{_name} (badge)", old, _value))
+            return match.group(1) + _value + match.group(3)
+
+        out = regex.sub(_badge_repl, out)
+        if not regex.search(text):
+            print(f"warning: badge for {name!r} not found in README", file=sys.stderr)
+
     return out, drift
 
 
