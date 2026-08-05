@@ -142,9 +142,12 @@ METRICS = {
 # A shields badge cannot carry the HTML-comment markers above: a Markdown
 # image URL has nowhere to put one. The value is located by its own regex
 # instead, under the same contract — rewritten from ground truth, and
-# `--check` fails on drift. Without this the badge is a hand-typed number
-# sitting next to auto-stamped ones, which is how the sibling profile README
-# ended up with a correct sentence and a stale badge in the same file.
+# `--check` fails on drift. The reason is this README's own record: every
+# number in it that sat outside a marker had gone stale by the time anyone
+# re-measured (the tactic-category count in three places, the code_review
+# rule count, two dated measurements), while every marked one was correct.
+# A badge is the one value the marker mechanism cannot reach, so it gets a
+# rewriter of its own rather than an exemption.
 BADGES = {
     "sigma_rule_count": re.compile(r"(img\.shields\.io/badge/sigma__rules-)(\d+)(-)"),
 }
