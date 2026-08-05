@@ -1,7 +1,10 @@
 # WRG Sigma Rules — Claude Code Plugin
 
 [![tests](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml/badge.svg)](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml)
-[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![release](https://img.shields.io/github/v/release/WRG-11/wrg-sigma-rules)](https://github.com/WRG-11/wrg-sigma-rules/releases)
+[![last commit](https://img.shields.io/github/last-commit/WRG-11/wrg-sigma-rules)](https://github.com/WRG-11/wrg-sigma-rules/commits/main)
+[![sigma rules](https://img.shields.io/badge/sigma__rules-100-1f6feb)](resources/examples/INDEX.json)
+[![license](https://img.shields.io/github/license/WRG-11/wrg-sigma-rules)](LICENSE)
 [![python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](requirements.txt)
 
 ## Status
@@ -16,17 +19,17 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/OpenSearch/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
-- **<!-- METRIC:sigma_rule_count -->100<!-- /METRIC:sigma_rule_count --> published sigma rule corpus**: 13 ATT&CK tactic categories (templates + observed campaign rules). Every rule carries a sigma `status:` — none of them `stable`; see [rule status](#rule-status) for the breakdown and what it means before you deploy one
-- **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages). Measured against the full corpus on 2026-07-29: Splunk and OpenSearch-PPL convert every rule; the Lucene-family targets (Elastic, Kibana, Wazuh, OpenSearch) fail on the 10 correlation rules, because that backend cannot express them — `convert_rule` reports this as a capability gap and names the targets that can
+- **<!-- METRIC:sigma_rule_count -->100<!-- /METRIC:sigma_rule_count --> published sigma rule corpus**: <!-- METRIC:tactic_category_count -->14<!-- /METRIC:tactic_category_count --> ATT&CK tactic categories (templates + observed campaign rules). Every rule carries a sigma `status:` — none of them `stable`; see [rule status](#rule-status) for the breakdown and what it means before you deploy one
+- **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages). Re-measured against the full 100-rule corpus on 2026-08-06 (the corpus was 80 rules when this was first measured, so the number is restated rather than carried forward): Splunk and OpenSearch-PPL convert every rule; the Lucene-family targets (Elastic, Kibana, Wazuh, OpenSearch) fail on the 10 correlation rules, because that backend cannot express them — `convert_rule` reports this as a capability gap and names the targets that can
 - **Logsource-aware output**: `config={"pipeline": "sysmon"}` maps Sigma's abstract logsource to the product's real event selection — without it a `process_creation` rule converts to a query that matches events of every type
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
 - **Live demo**: see [`DEMO.md`](DEMO.md) for end-to-end tool invocation on Mini Shai-Hulud rule (pySigma 1.x + Splunk + Elastic real output)
 
 ## Why this plugin exists
 
-The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty**: re-counted against `anthropics/claude-plugins-community` on 2026-07-29, 0 of 2283 community plugins mention sigma. That niche being empty is not the same as the area being empty — 315 of those plugins are security-themed — so the claim here is specific: nobody is doing sigma rule authoring, validation and multi-backend conversion, not "nobody is doing security".
+The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty**: re-counted against `anthropics/claude-plugins-community` on 2026-08-06, 0 of 2298 community plugins mention sigma. The count is reproducible: fetch `.claude-plugin/marketplace.json` and grep each entry's name, description and homepage — the only fields the manifest carries. By that same method 290 entries mention at least one of security, vulnerability, exploit, pentest, CVE, threat, malware, OWASP, secrets, appsec, infosec, detection or SIEM. So the niche being empty is not the same as the area being empty, and the claim here is specific: nobody is doing sigma rule authoring, validation and multi-backend conversion, not "nobody is doing security".
 
-(For scale, the same count on 2026-05-23 found 200+ plugins and one security plugin. The marketplace grew roughly tenfold in two months; the sigma count stayed at zero.)
+(For scale, the same count on 2026-05-23 found 200+ plugins and one security plugin. The marketplace grew more than tenfold in under three months; the sigma count stayed at zero.)
 
 WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: <!-- METRIC:sigma_rule_count -->100<!-- /METRIC:sigma_rule_count --> canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
 
@@ -44,7 +47,7 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 - `sigma-rule-reviewer` — paste rule for quality review + improvement suggestions
 - `threat-coverage-gap-analyzer` — MITRE ATT&CK coverage analysis vs your existing corpus
 
-### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->100<!-- /METRIC:sigma_rule_count --> rules across 13 ATT&CK tactic categories)
+### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->100<!-- /METRIC:sigma_rule_count --> rules across <!-- METRIC:tactic_category_count -->14<!-- /METRIC:tactic_category_count --> ATT&CK tactic categories)
 
 | Tactic | Coverage |
 |---|---|
@@ -60,7 +63,8 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 | `privilege_escalation` | templates (AWS IAM wildcard-admin policy creation [T1098.003](https://attack.mitre.org/techniques/T1098/003/) + UAC bypass via auto-elevating binary [T1548.002](https://attack.mitre.org/techniques/T1548/002/)) |
 | `resource_development` | templates (newly registered domain + lookalike domain + social media signup) |
 | `collection` | templates (archive utility staging + SharePoint access + local email collection [T1114.001](https://attack.mitre.org/techniques/T1114/001/)) |
-| `code_review` | 5 AI-fingerprint observed rules (ANSI-color class, decoy block, docstring density, hallucinated CVSS, prompt artifacts) |
+| `discovery` | templates ([T1082](https://attack.mitre.org/techniques/T1082/) system information discovery + [T1083](https://attack.mitre.org/techniques/T1083/) file and directory discovery, both keyed on recon command bursts) |
+| `code_review` | 9 AI-fingerprint observed rules (AI prose, AI provenance, ANSI-color class, decoy block, docstring density, hallucinated CVSS, hallucinated import, prompt artifacts, unicode watermark) |
 
 See [`resources/examples/INDEX.json`](resources/examples/INDEX.json) for full enumeration.
 
@@ -103,8 +107,23 @@ expect first.
 
 ```bash
 git clone https://github.com/WRG-11/wrg-sigma-rules.git
-# Follow Claude Code plugin install path per https://code.claude.com/docs/en/plugins
+cd wrg-sigma-rules
+pip install -r requirements.txt
+claude plugin validate .
 ```
+
+`requirements.txt` is not optional for the MCP tools. `validate_rule` needs
+pySigma, `convert_rule` needs the backend packages, and the two pipeline
+packages are what make the logsource mapping above work — install them and
+the suite is green, skip them and the pipeline paths import fine while
+converting a `process_creation` rule to a query that matches every event
+type.
+
+`claude plugin validate .` reads `.claude-plugin/plugin.json` and exits 0 on
+success. The repo ships that plugin manifest plus `.mcp.json`, which wires
+`server.py` through `${CLAUDE_PLUGIN_ROOT}`; point your Claude Code plugin
+configuration at this checkout per
+[the plugin docs](https://code.claude.com/docs/en/plugins).
 
 ## Quick example
 
@@ -113,6 +132,10 @@ Validate + convert a corpus rule end-to-end, from the repo root (commands from [
 ```bash
 pip install pysigma pysigma-backend-splunk pysigma-backend-elasticsearch
 ```
+
+(Those three are all this example needs. `pip install -r requirements.txt`
+from [Installation](#installation) is the superset — add it if you also want
+OpenSearch or the `config={"pipeline": ...}` logsource mapping.)
 
 ```python
 import sys, json

@@ -42,7 +42,17 @@ jobs:
         # the real matrix here turns that into a claim CI proves on every
         # push instead of one that ages the moment nobody re-checks by hand.
         os: [ubuntu-latest, windows-latest, macos-latest]
-    name: pytest (${{ matrix.os }}, mcp ${{ matrix.mcp-version }})
+        python-version: ["3.12"]
+        # The README badge says "python 3.12+". The six legs above cannot
+        # prove the "+" -- they all pin 3.12, and there is no requires-python
+        # anywhere in the repo to check against either. One extra leg on the
+        # newest interpreter is what turns that badge into a measured claim;
+        # a full cross product would double the matrix to say the same thing.
+        include:
+          - os: ubuntu-latest
+            mcp-version: ">=2"
+            python-version: "3.14"
+    name: pytest (${{ matrix.os }}, py ${{ matrix.python-version }}, mcp ${{ matrix.mcp-version }})
     defaults:
       run:
         # Windows runners default `run:` to pwsh, and the steps below use
@@ -57,7 +67,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
