@@ -29,7 +29,9 @@ detection:
     - \mshta.exe
   condition: selection_ci_parent and selection_lolbin_child
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- node.exe spawning powershell.exe, which npm lifecycle scripts, node-gyp builds and cross-platform tooling do routinely on Windows
+- curl.exe, which ships with Windows and is a normal way for a postinstall script to fetch a platform-specific binary
+- Build agents, where the parent list matches nearly every job; this rule earns its keep on developer endpoints and servers rather than on CI runners
 level: medium
 tags:
 - attack.t1195.002

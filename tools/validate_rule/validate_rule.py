@@ -71,7 +71,17 @@ _MITRE_TAG_RE = re.compile(r"^attack\.t\d{4}(?:\.\d{3})?$")
 # work being asked for here.
 _PLACEHOLDER_FALSEPOSITIVE_RES: tuple[re.Pattern[str], ...] = (
     re.compile(r"^\s*unknown\.?\s*$", re.IGNORECASE),
-    re.compile(r"^\s*(none|n/?a|tbd|todo)\b.*$", re.IGNORECASE),
+    # `n/a`, `tbd` and `todo` never open a real scenario, so whatever follows
+    # them does not matter -- draft_rule's own scaffold reads
+    # "TODO -- replace with a concrete benign scenario".
+    re.compile(r"^\s*(n/?a|tbd|todo)\b.*$", re.IGNORECASE),
+    # `none` is not in that group. A bare "None" is a placeholder, but
+    # "None expected for X, because Y" is a scenario: it tells the analyst
+    # what not to expect and when that stops holding. Matching `none` greedily
+    # flagged observed_ai_fingerprint_hallucinated_import, whose entry names
+    # the exact condition under which the absence ends -- the opposite of an
+    # unfilled block. Only the bare denial is a placeholder.
+    re.compile(r"^\s*none(\s+expected)?\.?\s*$", re.IGNORECASE),
     re.compile(r"^\s*pattern library v\d+\b.*$", re.IGNORECASE),
     re.compile(r"^\s*review for environment-specific tuning\b.*$", re.IGNORECASE),
 )

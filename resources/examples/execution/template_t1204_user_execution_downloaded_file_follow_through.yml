@@ -31,7 +31,9 @@ detection:
     - \explorer.exe
   condition: selection_downloaded_file and selection_browser_or_mail_parent
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Ordinary software installation, where a user downloads an installer in the browser and runs it from Explorer -- the exact parent-child pair this rule matches
+- explorer.exe as the parent, which covers anything launched from a File Explorer window or the desktop and is by far the widest of the five parents; narrow it first
+- Portable applications that users keep in Downloads and launch repeatedly instead of installing
 level: medium
 tags:
 - attack.t1204

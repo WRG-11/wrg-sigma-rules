@@ -20,7 +20,9 @@ detection:
     - app.box.com
   condition: selection_cloud_storage_host
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Sanctioned corporate use, where one of these is the organisation's own file-sharing platform and its sync client produces continuous traffic to the same hostnames
+- OneDrive, which ships with Windows and signs in with a personal Microsoft account, making onedrive.live.com the default state on unmanaged machines
+- A browser tab left open on any of these services, since the rule keys on hostname alone with no volume, direction or duration component
 level: medium
 tags:
 - attack.t1567.001
