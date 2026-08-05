@@ -52,10 +52,12 @@ touched by this script.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
 import uuid
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -739,14 +741,30 @@ def regenerate_index_from_disk(examples_dir: Path, generated_at: str) -> dict[st
     return index
 
 
-def main_regenerate_index() -> int:
+def main_regenerate_index(argv: list[str] | None = None) -> int:
     """CLI entrypoint: regenerate INDEX.json from on-disk YAMLs.
 
     Unlike ``main()``, this has no monorepo/wrg_threat_intel dependency --
     runnable standalone from a plain public-repo checkout.
+
+    ``--generated-at`` defaults to today because the date used to be a
+    literal in this function: every regeneration re-stamped the file with
+    2026-07-08, so the 80 -> 100 corpus rebuild produced an INDEX.json whose
+    own provenance line predated by a month the rules it was describing. The
+    flag stays because ``regenerate_index_from_disk`` is called with a fixed
+    date from the consistency test, and a reproducible rebuild wants the
+    same handle.
     """
+    parser = argparse.ArgumentParser(description=main_regenerate_index.__doc__)
+    parser.add_argument(
+        "--generated-at",
+        default=date.today().isoformat(),
+        help="ISO date to stamp as _generated_at (default: today)",
+    )
+    args = parser.parse_args(argv)
+
     examples_dir = Path(__file__).resolve().parent.parent / "resources" / "examples"
-    index = regenerate_index_from_disk(examples_dir, generated_at="2026-07-08")
+    index = regenerate_index_from_disk(examples_dir, generated_at=args.generated_at)
     index_path = examples_dir / "INDEX.json"
     index_path.write_text(
         json.dumps(index, indent=2, sort_keys=False) + "\n",
@@ -837,5 +855,9 @@ def main() -> int:
 
 if __name__ == "__main__":
     if "--regenerate-index" in sys.argv:
-        raise SystemExit(main_regenerate_index())
+        # --regenerate-index is the mode selector, not one of the flags
+        # main_regenerate_index parses; drop it before handing the rest over.
+        raise SystemExit(
+            main_regenerate_index([a for a in sys.argv[1:] if a != "--regenerate-index"])
+        )
     raise SystemExit(main())

@@ -1,7 +1,7 @@
 {
   "_schema_version": 1,
   "_generated_by": "internal",
-  "_generated_at": "2026-07-08",
+  "_generated_at": "2026-08-06",
   "_pattern_34_v1_1_redaction_applied": true,
   "_source_module_refs": [
     "apps/<wrg-app>/src/<wrg-app>/breach/sigma/templates.py (TECHNIQUE_PATTERN_LIBRARY)",
