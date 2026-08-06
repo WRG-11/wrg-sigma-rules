@@ -11,6 +11,34 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [Unreleased]
+
+Corpus 100 → 101 rules.
+
+### Added
+
+- **`collection/observed_diffusers_weight_map_path_traversal_t1005.yml`** —
+  CVE-2026-65920, an out-of-directory file read in HuggingFace Diffusers
+  (≤ 0.39.0) reached by loading a malicious sharded checkpoint. Root cause read
+  from the fix commit (`cee298c`): `_get_checkpoint_shard_files` took shard
+  filenames verbatim from the checkpoint index's `weight_map` and joined them
+  to the model directory, so `"../secret/SECRET.safetensors"` escaped it. The
+  fix requires each entry to be a plain filename.
+
+  The rule states its own telemetry requirement rather than assuming it: the
+  manifestation is a file **read**, and Sysmon EventID 11 records writes, so it
+  uses `category: file_access` (EventID 4663 / auditd) — the first rule in this
+  corpus to do so. On a host without object-access auditing the rule cannot
+  fire, which is not the same as clean. It also names the normalisation trap:
+  a sensor that collapses `model/../secret/x` erases the traversal marker the
+  detection keys on.
+
+  Two sibling CVEs on the same AI-runtime watch list were deliberately **not**
+  given rules. CVE-2026-17500 (null-pointer dereference) and CVE-2026-17501
+  (uncontrolled recursion) are availability-only crashes in llama.cpp's
+  JSON-schema→GBNF conversion; the only host signal is "the server died", which
+  does not meet this corpus's bar for a named, specific detection.
+
 ## [1.4.0] - 2026-08-05
 
 Corpus 80 → 100 rules, and OpenSearch joins the conversion targets. Landed on
