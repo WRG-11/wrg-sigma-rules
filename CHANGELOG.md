@@ -13,9 +13,37 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 120 rules.
+Corpus 100 → 122 rules.
 
 ### Added
+
+- **Two more CVE rules, after rejecting two weaker candidates on sourcing
+  grounds.** Checked Eclipse Theia's indirect-prompt-injection advisory
+  (CVE-2026-44688) and Warp's branch-name command injection
+  (CVE-2026-48719) against the three-match sourcing bar and rejected
+  both: both sources turned out to be high-level summaries with no
+  quoted payload, no example malicious identifier, and no described
+  trigger mechanism to key detection logic on — the same failure class
+  that got this project's three upstream SigmaHQ PRs closed. Wrote rules
+  only for the two candidates whose sources actually name the mechanism:
+
+  - `execution/observed_ragflow_canvas_jinja2_ssti_t1059.yml` —
+    CVE-2026-45312 (CVSS 9.9). RAGFlow's citation-prompt generator uses
+    an unsandboxed Jinja2 environment; any authenticated user can chain
+    a Canvas DuckDuckGo+LLM workflow to reach it, and the advisory quotes
+    a working object-graph-traversal payload verbatim (`__globals__` ->
+    `__builtins__` -> `__import__('os')`). No patch exists at authoring
+    time — noted explicitly rather than assuming a version cutoff.
+  - `collection/observed_github_copilot_fetchpage_file_uri_exfil_t1005.yml` —
+    CVE-2025-66389. VS Code's `fetchPage` tool (which Copilot wraps
+    without re-applying its own `readFile` tool's workspace-boundary
+    check) accepts `file://` URIs, letting indirect prompt injection
+    read paths outside the workspace; chained with `$schema`-triggered
+    IntelliSense fetches for exfiltration. Filed as `high` not
+    `critical` and flagged for re-evaluation, since no specific patched
+    version number is stated in the available sources.
+
+  Both `validate_rule`-clean and convert cleanly to Splunk + Elasticsearch.
 
 - **Three prompt-injection-chain vendor-disclosed CVE rules** — sourced
   after checking whether `sigma_scout` (this monorepo's deterministic
