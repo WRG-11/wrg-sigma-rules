@@ -13,9 +13,47 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 101 rules.
+Corpus 100 → 104 rules.
 
 ### Added
+
+- **Three "Miasma" / "Phantom Gyp" npm supply-chain worm rules**
+  (StepSecurity + Snyk, 2026-06-03 — two independent technical write-ups,
+  cross-checked against each other rather than taken from a single vendor):
+
+  - `initial_access/observed_miasma_binding_gyp_command_substitution_t1195_002.yml` —
+    the initial code-execution stage: a 157-byte `binding.gyp` abuses gyp's
+    `<!(...)` command-substitution syntax so `npm install`'s automatic
+    `node-gyp rebuild` runs an attacker command with no
+    preinstall/postinstall script declared in `package.json`. Detection
+    keys on a `node-gyp` build step immediately followed by a Bun binary
+    fetch/execution in the same process lineage — Bun has no legitimate
+    reason to appear inside a native-addon compile step, and the campaign
+    uses Bun specifically because process-tree monitors that only watch
+    `node.exe` children miss it.
+  - `persistence/observed_miasma_ai_ide_config_poisoning_t1546.yml` — the
+    standout TTP: the worm writes auto-executing config into every
+    AI-assisted IDE/agent integration it finds (`.claude/setup.mjs`,
+    `.cursor/rules/setup.mdc`, `.gemini/settings.json`,
+    `.vscode/tasks.json`, `.github/setup.js`), so the backdoor re-fires the
+    next time a developer opens the project with an AI coding tool. Mapped
+    to the T1546 parent technique rather than a sub-technique, because none
+    of the existing sub-techniques describes an AI tool's own
+    project-open hook. Not covered by any prior rule in this corpus.
+  - `exfiltration/observed_miasma_github_graphql_exfil_t1567_001.yml` — the
+    worm self-propagates via the GitHub GraphQL API's `createCommitOnBranch`
+    mutation (not a plain `git push`) and exfiltrates stolen credentials as
+    RSA-encrypted JSON to newly created private repos under a themed naming
+    convention (Dune terms, Greek-mythology terms) that StepSecurity
+    documents verbatim. `level: medium`, not `high` like its two siblings —
+    the naming-pattern half of the detection is weaker evidence on its own
+    (a coincidental repo-name match is plausible), so the rule says so
+    rather than overclaiming.
+
+  All three `validate_rule`-clean (pySigma round-trip) and convert cleanly
+  to both Splunk SPL and Elasticsearch Lucene — none is a correlation rule,
+  so the Lucene-family conversion gap that affects 10 other rules in this
+  corpus does not apply here.
 
 - **`collection/observed_diffusers_weight_map_path_traversal_t1005.yml`** —
   CVE-2026-65920, an out-of-directory file read in HuggingFace Diffusers

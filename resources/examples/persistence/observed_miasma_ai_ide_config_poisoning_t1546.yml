@@ -1,0 +1,99 @@
+title: Miasma npm worm -- T1546 AI-assisted IDE config poisoning (Claude Code/Cursor/Gemini/VS Code)
+id: 1efc167a-d6d3-4dc8-b5d7-ac10e9eed989
+status: experimental
+description: |
+  Campaign-bound sigma detection for the persistence stage of the "Miasma"
+  / "Phantom Gyp" npm supply-chain worm (StepSecurity + Snyk disclosure,
+  2026-06-03). This is the standout TTP of the campaign and, as of this
+  rule's authoring, not covered by any other rule in this corpus: instead
+  of (or in addition to) classic host persistence, the worm writes
+  auto-executing configuration files into every AI-assisted IDE/agent
+  integration it can find in the poisoned project tree, so the backdoor
+  re-fires the next time a developer opens the project with an AI coding
+  tool:
+
+  - Claude Code: `.claude/setup.mjs` (session-start hook) and
+    `.claude/settings.json`
+  - Cursor: `.cursor/rules/setup.mdc` (fires on project-open)
+  - Google Gemini: `.gemini/settings.json`
+  - VS Code: `.vscode/tasks.json` (`runOn: folderOpen`) and
+    `.vscode/setup.mjs`
+  - GitHub Actions: `.github/setup.js`
+
+  Both source blogs independently list this same file-path set (StepSecurity
+  names all six; Snyk corroborates the Claude/Cursor/VS Code subset). The
+  social-engineering cover text embedded in the poisoned project reads
+  "This is required for proper IDE integration and dependency setup." The
+  payload files execute via the Bun runtime rather than Node, for the same
+  process-tree evasion reason as the initial `binding.gyp` stage (sister
+  rule: `observed_miasma_binding_gyp_command_substitution_t1195_002`).
+
+  Detection logic flags the creation of any of these six specific,
+  auto-executing AI-tool config paths inside a project directory,
+  attributed to a process descending from an npm-family package manager
+  (i.e. written during/after `npm install`, not hand-authored by the
+  developer in an editor) -- a developer manually adding one of these files
+  themselves is a normal, high-volume event this rule must not fire on,
+  so the process-lineage condition is load-bearing, not decorative.
+
+  Mapped to T1546 (Event Triggered Execution) at the parent-technique level:
+  none of the existing sub-techniques (change-default-file-association,
+  screensaver, etc.) describes "an AI coding assistant's own project-open
+  hook", so this rule does not force a sub-technique that does not fit
+  rather than making one up.
+
+  Aggregated from 2 independent technical disclosures, 2026-06-03/04
+  (StepSecurity, Snyk).
+references:
+- https://www.stepsecurity.io/blog/binding-gyp-npm-supply-chain-attack-spreads-like-worm
+- https://snyk.io/blog/node-gyp-supply-chain-compromise-self-propagating-npm-worm-binding-gyp/
+- https://attack.mitre.org/techniques/T1546/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_ai_ide_autorun_paths:
+    TargetFilename|endswith:
+    - \.claude\setup.mjs
+    - \.claude\settings.json
+    - \.cursor\rules\setup.mdc
+    - \.gemini\settings.json
+    - \.vscode\tasks.json
+    - \.vscode\setup.mjs
+    - \.github\setup.js
+  selection_npm_install_lineage:
+    Image|endswith:
+    - \node.exe
+    - \npm.cmd
+    - \npm.exe
+    - \npm-cli.js
+    - \pnpm.cmd
+    - \pnpm.exe
+    - \yarn.cmd
+    - \yarn.exe
+    - \bun.exe
+  condition: selection_ai_ide_autorun_paths and selection_npm_install_lineage
+falsepositives:
+- A developer or scaffolding tool legitimately creating one of these files
+  by hand (e.g. `.vscode/tasks.json` for a real build task) -- the
+  process-lineage condition (write attributed to an npm-family process
+  rather than an editor/IDE process itself) is the discriminator; if the
+  log source cannot attribute file writes to a specific process image,
+  this rule cannot be safely deployed as-is
+- CI scaffolding that generates one of these paths as part of a legitimate
+  repository template/bootstrap step -- exclude by known-good CI runner
+  identity
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1546
+- wrg.observed.campaign.miasma_binding_gyp
+- wrg.observed.source.stepsecurity_snyk_2026_06
+- wrg.observed.vector.ai_ide_config_poisoning
+- wrg.observed.technique.novel_ttp_not_prior_covered
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.persistence
