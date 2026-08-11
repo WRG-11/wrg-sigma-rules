@@ -13,9 +13,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 143 rules.
+Corpus 100 → 146 rules.
 
 ### Added
+
+- **Three more CVE rules**, all first-party Open WebUI/F5-TTS maintainer
+  fixes:
+
+  - `execution/observed_open_webui_socketio_session_hijack_t1059_007.yml` —
+    CVE-2026-59216 (CVSS 7.7). `get_event_call()` delivers
+    `execute:python`/`execute:tool` Socket.IO events to a caller-supplied
+    `session_id` after checking only that it's connected, never who it
+    belongs to; a victim's session_id leaks via `ydoc:document:join` when
+    an attacker shares a document with them. Advisory quotes both the
+    vulnerable code and the fix's ownership check verbatim.
+  - `privilege_escalation/observed_open_webui_url_idx_backend_bypass_t1548.yml` —
+    CVE-2026-54021. Indexed Ollama proxy routes use a caller-supplied
+    `url_idx` as a raw list index with no authorization on the index
+    itself — access control checks model permission, never which backend
+    the request reaches, so an admin-disabled backend stays reachable.
+  - `collection/observed_f5_tts_finetune_project_name_traversal_t1005.yml` —
+    CVE-2026-43624 (CVSS 8.8). `os.path.join(base, project_name)` across
+    ~10 call sites discards `base` entirely when `project_name` is
+    absolute; fix PR quotes the exact before/after PoC directory.
+
+  All three `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Three more CVE rules**, all first-party Gradio/RAGFlow maintainer
   fixes:
