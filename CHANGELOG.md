@@ -13,9 +13,38 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 169 rules.
+Corpus 100 → 173 rules.
 
 ### Added
+
+- **Four more rules: three vLLM, one more Open WebUI**, from the same
+  older W-cohort archive batches:
+
+  - `initial_access/observed_vllm_assert_security_check_optimized_mode_rce_t1195_002.yml` —
+    CVE-2026-41523 (CVSS 7.5). A security check written as a plain
+    `assert` is stripped entirely when vLLM runs under `python -O` /
+    `PYTHONOPTIMIZE=1` — a common production-performance flag that
+    silently removes the one line standing between an untrusted
+    HuggingFace model and RCE.
+  - `impact/observed_vllm_audio_upload_pre_limit_memory_exhaustion_t1499.yml` —
+    CVE-2026-55646. Audio-transcription endpoints call
+    `request.file.read()` to fully buffer an upload BEFORE checking the
+    configured size limit — an oversized request was always going to be
+    rejected, but only after paying for the full allocation first.
+  - `impact/observed_vllm_mrope_prompt_embeds_assertion_crash_t1499.yml` —
+    CVE-2026-55514 (CVSS 7.1). A pure prompt-embeds payload against an
+    M-RoPE model fails an internal `EngineCore` assertion — fatal, not
+    request-scoped, taking down the whole server from one ordinary,
+    authorized request.
+  - `initial_access/observed_open_webui_playwright_redirect_ssrf_bypass_t1190.yml` —
+    CVE-2026-54018 (CVSS 7.7). `SafePlaywrightURLLoader` validates only
+    the initial URL; Playwright follows redirects automatically, so a
+    safe URL redirecting to an internal address bypasses the check
+    entirely. Mechanistically distinct from this corpus's other
+    Playwright SSRF rule (sub-resource requests vs. HTTP redirects).
+
+  All four `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Three vLLM rules — another new runtime family**, sourced from older
   W-cohort archive batches (vLLM had no prior coverage in this corpus):
