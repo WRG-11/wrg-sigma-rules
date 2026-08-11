@@ -13,9 +13,38 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 203 rules.
+Corpus 100 → 207 rules.
 
 ### Added
+
+- **Four NLTK rules — the corpus's first non-runtime AI/NLP-tooling
+  theme**, sourced from `gh api advisories?ecosystem=pip` filtered to
+  high/critical severity:
+
+  - `initial_access/observed_nltk_pathsec_dns_rebind_ssrf_bypass_t1190.yml` —
+    CVE-2026-12075 (CVSS 8.6). `pathsec.urlopen()` validates a
+    hostname's resolved IP, then hands the raw hostname to `urllib`,
+    which resolves it AGAIN independently at connect time — a TTL-0
+    DNS-rebinding record defeats the filter even under strict
+    `ENFORCE = True`.
+  - `impact/observed_nltk_reviews_corpus_reader_redos_t1499.yml` —
+    CVE-2026-12061 (CVSS 7.5). The `FEATURES` regex's unbounded label
+    sub-pattern causes O(n²) backtracking on a long bracket-less
+    line — a single ~100,000-word line hangs the reader for minutes.
+  - `collection/observed_nltk_nkjp_corpus_reader_path_traversal_t1005.yml` —
+    CVE-2026-12072 (CVSS 7.5). `NKJPCorpusReader` builds file paths by
+    plain string concatenation and opens them with the builtin
+    `open()`, bypassing the `pathsec` sandbox's `PathPointer`-only
+    enforcement entirely.
+  - `collection/observed_nltk_framenet_corpus_reader_path_traversal_t1005.yml` —
+    CVE-2026-12074 (CVSS 7.5). Same builtin-`open()`-bypasses-sandbox
+    class as the NKJP rule above, but in `FramenetCorpusReader.frame()`
+    — a distinct reader class and code path with its own CVE.
+
+  All 4 validate_rule-clean, convert cleanly to Splunk + Elasticsearch.
+  INDEX.json regenerated (203→207), readme_stamp.py re-run, CHANGELOG
+  corpus claim updated 203→207, DEMO.md Summary re-read from the live
+  resource. Full suite: 639 passed. `claude plugin validate .` passed.
 
 - **Ten more rules: two new runtimes (Flyto2 Core AI-agent workflow
   engine, AWS Bedrock AgentCore SDK), one MCP server (AWS API MCP
