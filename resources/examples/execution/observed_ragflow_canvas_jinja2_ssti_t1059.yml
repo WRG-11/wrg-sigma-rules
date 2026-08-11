@@ -1,0 +1,83 @@
+title: RAGFlow Canvas -- T1059 unsandboxed Jinja2 SSTI in citation prompt generator
+id: 4581f6a5-5f77-4eb6-a9e8-512c6d3ce9db
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-45312 (GHSA-wpg4-h5g2-jxm6,
+  CVSS 9.9 CRITICAL), a self-reported advisory for RAGFlow, an
+  open-source Retrieval-Augmented Generation engine.
+
+  In 0.24.0 and earlier, `rag/prompts/generator.py:185` constructs prompt
+  templates with an unsandboxed Jinja2 environment
+  (`PROMPT_JINJA_ENV = jinja2.Environment(autoescape=False, ...)`).
+  `citation_prompt()` (line 189) renders a `user_defined_prompts` value
+  populated from the LLM component's `sys_prompt`
+  `<CITATION_GUIDELINES>` field through this environment. Any authenticated
+  user (self-registration is open by default, so this includes a brand-new
+  low-privilege account) can create a Canvas workflow chaining a
+  DuckDuckGo search component (no API key required) into an LLM component
+  with `cite=true` (the default) to reach this code path via
+  `POST /v1/canvas/set` (save the workflow) and `POST /v1/canvas/completion`
+  (execute it). The advisory's own PoC payload escapes the template
+  sandbox entirely via Jinja2's object-graph traversal:
+  `{% set g = cycler.__init__.__globals__ %}{% set bl = g.__builtins__ %}
+  {% set os = bl.__import__('os') %}{{ os.popen('id > /tmp/pwned').read() }}`
+  -- placed inside `<CITATION_GUIDELINES>` tags in the `sys_prompt` field.
+  No patched version exists as of this rule's authoring (advisory lists
+  "Patched versions: None").
+
+  Detection logic flags the specific object-graph-traversal primitives
+  that make Jinja2 SSTI payloads work regardless of exact payload wording
+  -- `__globals__`, `__builtins__`, `__import__`, `__subclasses__`, and
+  `__mro__` are Jinja2/Python sandbox-escape idioms with no legitimate
+  reason to appear inside a citation-guidelines prompt field.
+
+  Aggregated from 1 first-party vendor security advisory (infiniflow, via
+  GHSA and NVD). No fix available at authoring time -- deployers should
+  restrict Canvas creation to trusted users or disable self-registration
+  until a patch ships.
+references:
+- https://github.com/infiniflow/ragflow/security/advisories/GHSA-wpg4-h5g2-jxm6
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: webserver
+  product: ""
+detection:
+  selection_canvas_endpoint:
+    cs-uri-stem|contains:
+    - /v1/canvas/set
+    - /v1/canvas/completion
+  selection_jinja2_ssti_idiom:
+    cs-body|contains:
+    - __globals__
+    - __builtins__
+    - __import__
+    - __subclasses__
+    - __mro__
+  condition: selection_canvas_endpoint and selection_jinja2_ssti_idiom
+falsepositives:
+- No patched version exists at authoring time, so this rule cannot rely
+  on a fixed-deployment negative case the way most rules in this corpus
+  do -- treat every match as needing manual review until infiniflow ships
+  a fix, rather than assuming a specific version range is safe
+- A security researcher's own authorized testing of this exact
+  vulnerability on a lab instance -- indistinguishable from real
+  exploitation by log content alone
+- A legitimate `sys_prompt`/`CITATION_GUIDELINES` value that happens to
+  discuss Python dunder-attribute syntax in prose (e.g. a documentation
+  or tutorial Canvas) -- narrow in practice given the specific combination
+  of endpoint + payload idiom required
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; the log source must capture request body content for this
+  rule to fire, since the payload lives in the POST body, not the URL
+level: critical
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_45312
+- wrg.observed.source.infiniflow_ghsa_wpg4_h5g2_jxm6
+- wrg.observed.vector.unsandboxed_jinja2_ssti
+- wrg.observed.vector.no_patch_available
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

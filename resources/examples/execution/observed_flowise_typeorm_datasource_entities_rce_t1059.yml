@@ -1,0 +1,77 @@
+title: Flowise record-manager and memory nodes -- T1059 additionalConfig grants full TypeORM DataSource control, entities loads arbitrary JS
+id: 9f9dcafa-d257-465d-9fe7-750400b377ac
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-69251, an elttam-disclosed
+  advisory affecting five Flowise nodes (MySQL/Postgres/SQLite Record
+  Manager, MySQL Agent Memory, and the shared `AgentMemory.ts`).
+
+  Each of these nodes lets the caller set arbitrary options for a
+  TypeORM `DataSource` through the `additionalConfig` node input, with
+  no restriction on which options are allowed. TypeORM's `DataSource`
+  options support `entities`, `subscribers`, and `migrations` --
+  filesystem paths whose contents TypeORM loads and executes as
+  JavaScript when the DataSource initializes. An authenticated user
+  uploads a file containing a reverse-shell one-liner
+  (`process.mainModule.require('child_process').execSync(...)`) through
+  the ordinary File Loader, then sets a Record Manager node's
+  `additionalConfig.entities` to that uploaded file's path. The next
+  Upsert Vector Store operation initializes the DataSource, TypeORM
+  loads the "entity" file as code, and the reverse shell fires --
+  confirmed as root on the published Docker image.
+
+  Detection logic flags a Record Manager or Agent Memory node
+  configuration whose `additionalConfig` sets `entities`,
+  `subscribers`, or `migrations` to a path outside the node's own
+  managed schema directory -- the exact
+  attacker-controlled-DataSource-option class this advisory's
+  end-to-end reverse-shell reproduction exploits.
+
+  Aggregated from 1 first-party vendor security advisory (elttam, via
+  a disclosed advisory citing all five affected node source files, the
+  TypeORM `entities`/`subscribers`/`migrations` code-loading mechanism
+  by name, and a fully reproduced reverse shell with `uid=0(root)`
+  confirmation), not yet fixed at time of publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-g32j-mmxr-gfq5
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_recordmanager_or_agentmemory_node:
+    Message|contains:
+    - RecordManager
+    - AgentMemory
+  selection_dangerous_datasource_option:
+    Message|contains:
+    - '"entities":'
+    - '"subscribers":'
+    - '"migrations":'
+  condition: selection_recordmanager_or_agentmemory_node and selection_dangerous_datasource_option
+falsepositives:
+- A deployment already upgraded past the fix, where `entities`,
+  `subscribers`, and `migrations` are stripped from caller-supplied
+  `additionalConfig` before constructing the DataSource -- a matching
+  config on a fixed deployment cannot reach TypeORM's code-loading
+  options
+- A legitimate `additionalConfig` that sets unrelated, safe TypeORM
+  options (connection pooling, timeouts) without touching these three
+  keys -- this rule specifically requires one of the three dangerous
+  option names, which no ordinary connection tuning needs
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of node
+  configuration content, which most infrastructure log sources do not
+  capture by default
+level: high
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_69251
+- wrg.observed.source.flowise_ghsa_g32j_mmxr_gfq5
+- wrg.observed.vector.unrestricted_orm_datasource_options
+- wrg.observed.vector.entities_option_loads_arbitrary_js
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

@@ -1,0 +1,86 @@
+title: NLTK pathsec urlopen -- T1190 DNS rebinding defeats the documented SSRF filter even under strict ENFORCE mode
+id: 304e059b-eae4-4c07-be62-fee2ab900758
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-12075 (GHSA-qvv7-cg9c-w4x3,
+  CVSS 8.6 HIGH), affecting NLTK's `nltk.pathsec` SSRF filter used by
+  `nltk.download` / `nltk.data.load`.
+
+  `nltk.pathsec.urlopen()` validates a URL's hostname by resolving it
+  and checking the returned IPs against loopback/private/link-local/
+  multicast ranges, then hands the RAW hostname to
+  `build_opener(...).open(url)`, which makes `urllib` resolve the
+  hostname a SECOND time, independently, deep in
+  `http.client.HTTPConnection.connect`. The validation-side resolution
+  and the connection-side resolution share no cache and no state. An
+  attacker controlling DNS for a hostname (a TTL-0 rebinding record)
+  serves a public IP for the validation lookup and an internal or
+  loopback IP for the connection lookup -- the IP that passed
+  validation is never the IP actually connected to, and this defeats
+  the filter even with `nltk.pathsec.ENFORCE = True`, the strict mode
+  NLTK's own security documentation recommends for environments where
+  untrusted input may reach it. The `lru_cache` decorator on the
+  resolver's docstring claims to mitigate rebinding; it only memoizes
+  the validation-side lookup and provides no protection at all.
+
+  Detection logic flags two DNS resolutions for the same hostname
+  within a short window that return DIFFERENT IP address classes (a
+  public/global address followed by a private, loopback, or link-local
+  address) immediately preceding an `nltk.pathsec.urlopen` /
+  `nltk.download` call -- the exact validate-then-rebind sequence this
+  advisory's proof of concept demonstrates against `ENFORCE = True`.
+
+  Aggregated from 1 first-party vendor security advisory (nltk, via
+  GHSA and NVD, citing the exact function names, the two independent
+  resolution code paths, and a runnable proof of concept with a
+  loopback-only secret marker), not yet fixed at time of publication.
+references:
+- https://github.com/nltk/nltk/security/advisories/GHSA-qvv7-cg9c-w4x3
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: network_connection
+  product: linux
+detection:
+  selection_python_process:
+    Image|contains: python
+  selection_nltk_command_line_evidence:
+    CommandLine|contains:
+    - 'nltk.download'
+    - 'nltk.data.load'
+    - 'pathsec'
+  selection_internal_destination:
+    DestinationIp|cidr:
+    - '10.0.0.0/8'
+    - '172.16.0.0/12'
+    - '192.168.0.0/16'
+    - '127.0.0.0/8'
+    - '169.254.0.0/16'
+  condition: selection_python_process and selection_nltk_command_line_evidence and selection_internal_destination
+falsepositives:
+- A deployment already upgraded past the fix, where the connect-time
+  address is validated against the same check as the resolution-time
+  address (or the hostname is resolved once and pinned) -- a matching
+  rebinding attempt on a fixed deployment is blocked with the same
+  `PermissionError` a direct loopback URL receives
+- A legitimate DNS answer change for a hostname behind a load balancer
+  or CDN with genuinely short TTLs, where both addresses happen to be
+  public -- this rule specifically requires the SECOND answer to fall
+  in a private/loopback/link-local range, which a normal multi-IP
+  public service does not produce
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires DNS telemetry correlated with the
+  requesting process and its two independent resolutions within one
+  request lifecycle, which most infrastructure log sources do not
+  capture by default
+level: high
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_12075
+- wrg.observed.source.nltk_ghsa_qvv7_cg9c_w4x3
+- wrg.observed.vector.dns_rebinding_ssrf_filter_bypass
+- wrg.observed.vector.validation_connection_resolution_mismatch
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

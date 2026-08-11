@@ -1,0 +1,61 @@
+title: Open WebUI calendar event update -- T1565.001 unchecked destination calendar_id moves events across owners
+id: 6a9dcf6e-9e0f-47fc-a16f-712531ac5972
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54006 (GHSA-f3g7-59qc-pqg6,
+  CVSS 4.3 MEDIUM), affecting Open WebUI prior to 0.9.6.
+
+  `POST /api/v1/calendars/events/{event_id}/update` correctly validates
+  that the caller has write access to the calendar the event CURRENTLY
+  belongs to -- but never validates the DESTINATION `calendar_id`
+  supplied in the request body. The model layer then persists the new
+  `calendar_id` unconditionally. A regular user-role account can create
+  an event in their own calendar (a legitimate action) and then, through
+  this same update endpoint, move that event into ANY other user's
+  calendar whose id they know -- bypassing the authorization check that
+  the sibling `create_event` endpoint correctly performs.
+
+  Detection logic flags an event-update request whose `calendar_id`
+  field differs from the event's CURRENT calendar and whose destination
+  calendar does not belong to the requesting user -- the exact
+  authorization gap this advisory describes.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD), fixed in 0.9.6.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-f3g7-59qc-pqg6
+- https://attack.mitre.org/techniques/T1565/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_event_update_endpoint:
+    cs-uri-stem|re: '/api/v1/calendars/events/[^/]+/update$'
+  selection_calendar_id_field:
+    cs-body|contains: calendar_id
+  condition: selection_event_update_endpoint and selection_calendar_id_field
+falsepositives:
+- A deployment already upgraded to 0.9.6+, where the destination
+  `calendar_id` is validated the same way `create_event` already
+  validates the calendar it targets -- a matching request on a fixed
+  deployment moving an event to a foreign calendar would be rejected
+- A legitimate event update where the caller genuinely owns both the
+  source and destination calendars -- this rule flags every update
+  carrying a `calendar_id` field since HTTP proxy logs typically cannot
+  determine calendar ownership; correlate the destination
+  `calendar_id`'s actual owner against the requesting user (application-
+  level logs) to confirm an unauthorized move occurred
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1565.001
+- wrg.observed.cve.cve_2026_54006
+- wrg.observed.source.open_webui_ghsa_f3g7_59qc_pqg6
+- wrg.observed.vector.unchecked_destination_field
+- wrg.observed.vector.sibling_endpoint_inconsistent_authz
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

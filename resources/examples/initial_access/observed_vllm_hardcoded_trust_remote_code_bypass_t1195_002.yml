@@ -1,0 +1,70 @@
+title: vLLM NemotronVL/KimiK25 -- T1195.002 hardcoded trust_remote_code bypasses the operator's own flag
+id: 71aaed06-2c3e-4320-b4b3-e62e8a7e6675
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-4944 (CVSS 8.8 HIGH), affecting
+  vllm-project/vllm 0.14.1.
+
+  Two model implementation files --
+  `vllm/model_executor/models/nemotron_vl.py` and
+  `vllm/model_executor/models/kimi_k25.py` -- hardcode
+  `trust_remote_code=True` internally, silently overriding an operator's
+  explicit `--trust-remote-code=False` startup flag. Since
+  `trust_remote_code` controls whether HuggingFace Hub model repositories
+  are allowed to ship and execute their own custom Python code alongside
+  weights, this hardcoding means an operator who believes they have
+  disabled arbitrary-code-execution-on-load is still exposed the moment a
+  NemotronVL or KimiK25 model is loaded -- a malicious HuggingFace
+  repository masquerading as either architecture achieves RCE regardless
+  of the operator's own configuration. The advisory notes this is an
+  INCOMPLETE fix for two PRIOR CVEs (CVE-2025-66448, CVE-2026-22807) --
+  those closed other code paths, but these two model files were missed.
+
+  Detection logic flags a model-load event whose model architecture
+  matches NemotronVL or KimiK25 on a vLLM instance that was started with
+  `--trust-remote-code=False` (or the flag omitted, since `False` is the
+  default) -- the exact configuration the operator believed protected
+  them.
+
+  Aggregated from 1 first-party vendor bounty disclosure (huntr.com,
+  cross-referencing vllm-project's own two prior CVEs this one is an
+  incomplete fix for).
+references:
+- https://huntr.com/bounties/97f706f7-a852-49b2-a4eb-76811e611daf
+- https://attack.mitre.org/techniques/T1195/002/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: vllm
+detection:
+  selection_affected_model_class:
+    Message|contains:
+    - NemotronVL
+    - KimiK25
+  selection_model_load_event:
+    Message|contains: model_executor
+  condition: selection_affected_model_class and selection_model_load_event
+falsepositives:
+- A deployment already upgraded past the fix, where these two model
+  files no longer hardcode `trust_remote_code=True` -- a matching model
+  load on a fixed deployment respects the operator's own flag
+- A deployment that has intentionally set `--trust-remote-code=True`
+  itself (accepting the risk deliberately for all models) -- this rule
+  cannot distinguish an intentionally-trusting deployment from one
+  believing itself protected by content alone; correlate with the
+  deployment's actual startup configuration
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of which
+  model class is being loaded, which most infrastructure log sources do
+  not capture by default
+level: high
+tags:
+- attack.t1195.002
+- wrg.observed.cve.cve_2026_4944
+- wrg.observed.source.huntr_bounty_97f706f7
+- wrg.observed.vector.hardcoded_flag_override
+- wrg.observed.vector.incomplete_prior_fix
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

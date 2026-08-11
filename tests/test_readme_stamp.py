@@ -240,3 +240,35 @@ def test_main_reports_missing_readme(
     monkeypatch.setattr(rs, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(rs, "README", tmp_path / "nope.md")
     assert rs.main([]) == 2
+
+
+def test_main_leaves_the_real_demo_alone_when_readme_is_redirected(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"
+) -> None:
+    """A redirected README must not drag the repo's own DEMO.md into the write.
+
+    Regression, and one that actually fired: the multi-file target map was
+    first written as a module-level dict built from the real README/DEMO
+    paths at import time. ``monkeypatch`` could redirect ``README``, but the
+    dict still held the repo's published DEMO.md -- so this very test file's
+    2-rule tmp corpus got stamped into it as "0 of 2". Resolving targets at
+    call time, relative to wherever ``README`` currently points, is the fix.
+    """
+    real_demo = rs.REPO_ROOT / "DEMO.md"
+    before = rs._read(real_demo)
+
+    corpus = tmp_path / "resources" / "examples" / "execution"
+    corpus.mkdir(parents=True)
+    _write_rule(corpus / "a.yml", "test")
+    _write_rule(corpus / "b.yml", "test")
+    readme = tmp_path / "README.md"
+    readme.write_text(
+        "count: <!-- METRIC:sigma_rule_count -->0<!-- /METRIC:sigma_rule_count -->\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(rs, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(rs, "README", readme)
+
+    assert rs.main([]) == 0
+    assert ">2<" in readme.read_text(encoding="utf-8")  # tmp file WAS stamped
+    assert rs._read(real_demo) == before, "main() wrote into the real DEMO.md"

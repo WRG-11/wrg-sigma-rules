@@ -1,0 +1,69 @@
+title: vLLM multimodal embeddings -- T1499 unvalidated sparse tensor indices crash or corrupt memory
+id: 5bdfc31a-d952-43ae-a077-2b3dd52afc7b
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-56340 (GHSA-mcmc-2m55-j8jj,
+  CVSS 8.7 HIGH), affecting vLLM >= 0.10.2 and < 0.13.0.
+
+  vLLM's multimodal embeddings processing (the `prompt-embeds` feature)
+  is missing sparse tensor validation. Because PyTorch disables sparse
+  tensor invariant checks by default, an attacker who submits a crafted
+  embedding request with MALFORMED tensor indices (negative or
+  out-of-bounds) reaches the tensor operations unchecked -- triggering
+  crashes or resource exhaustion at minimum, with the advisory noting
+  POTENTIAL for out-of-bounds/write-what-where memory corruption beyond
+  denial of service. This is explicitly a continuation of an EARLIER bug
+  (CVE-2025-62164), whose prior fix only disabled the `prompt-embeds`
+  feature by default rather than fixing the missing validation itself --
+  any deployment that re-enables the feature (a documented, supported
+  configuration) is exposed again.
+
+  Detection logic flags a request to a prompt-embeds-enabled endpoint
+  whose embedding payload declares sparse tensor indices outside the
+  expected non-negative, in-bounds range -- the specific malformed-index
+  shape this advisory's root cause requires, distinct from an ordinary
+  well-formed embedding request.
+
+  Aggregated from 2 independent sources (vLLM's own GHSA advisory +
+  VulnCheck's corroborating write-up, both citing the prior
+  CVE-2025-62164 the incomplete fix stems from), fixed with root-cause
+  index validation (not merely a feature-default flip this time).
+references:
+- https://github.com/vllm-project/vllm/security/advisories/GHSA-mcmc-2m55-j8jj
+- https://www.vulncheck.com/advisories/vllm-denial-of-service-via-unvalidated-multimodal-embeddings
+- https://attack.mitre.org/techniques/T1499/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: vllm
+detection:
+  selection_prompt_embeds_endpoint:
+    Message|contains: prompt_embeds
+  selection_malformed_tensor_index:
+    Message|re: '"indices":\s*\[[^]]*-\d'
+  condition: selection_prompt_embeds_endpoint and selection_malformed_tensor_index
+falsepositives:
+- A deployment already upgraded past the fix, where sparse tensor
+  indices are validated before reaching the unchecked PyTorch operation
+  -- a matching request on a fixed deployment would be rejected
+- A deployment that has NOT re-enabled `prompt-embeds` (disabled by
+  default since the earlier CVE-2025-62164 fix) -- this vulnerability is
+  unreachable in that default configuration
+- A legitimate embedding request with a negative value in an unrelated
+  numeric field the regex coincidentally matches -- narrow in practice
+  given the specific `indices` field context required
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of the
+  actual embedding request payload, which most infrastructure log
+  sources do not capture by default
+level: high
+tags:
+- attack.t1499
+- wrg.observed.cve.cve_2026_56340
+- wrg.observed.source.vllm_ghsa_mcmc_2m55_j8jj
+- wrg.observed.vector.sparse_tensor_index_validation_gap
+- wrg.observed.vector.incomplete_prior_fix
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.impact

@@ -1,0 +1,72 @@
+title: Flowise SQLite Record Manager -- T1059 additionalConfig spread overwrites the database path, planted content becomes a config-file RCE
+id: 338cc747-61fd-4426-8db6-6e1939e6e47d
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-69259, an elttam-disclosed
+  advisory affecting Flowise's SQLite Record Manager node.
+
+  `SQLiteRecordManager_RecordManager.init()` builds its TypeORM options
+  as `{ database, ...additionalConfiguration, type: 'sqlite' }` -- the
+  caller-controlled `additionalConfig` input is spread AFTER the
+  intended `database` path, so any key it sets (including `database`
+  itself) silently overwrites the preceding value. An attacker sets
+  `additionalConfig.database` to a system config path such as
+  `/etc/chromium/exploit.conf` (the Docker image runs as root) and, by
+  exploiting SQLite's binary record-length encoding to smuggle a `'`
+  character past the otherwise-safe `tableName` regex filter, writes a
+  crafted database file whose bytes, when later sourced by a Chromium
+  config-file reader (triggered when Puppeteer launches for an
+  unrelated Upsert Vector Store operation), execute a shell command via
+  argument injection -- confirmed end-to-end with a reverse shell as
+  root.
+
+  Detection logic flags a SQLite Record Manager node configuration
+  whose `additionalConfig` sets a `database` path outside the intended
+  Flowise data directory, particularly one targeting a system
+  configuration path such as `/etc/` -- the exact
+  spread-after-database override this advisory's reproduction uses to
+  redirect the SQLite file write.
+
+  Aggregated from 1 first-party vendor security advisory (elttam, via
+  a disclosed advisory citing the exact source file, the spread-order
+  root cause, a binary SQLite structure analysis, and a fully
+  reproduced reverse shell with `uid=0(root)` confirmation), not yet
+  fixed at time of publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-x3hf-7cj6-3r4m
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_sqlite_recordmanager_node:
+    Message|contains: SQLiteRecordManager
+  selection_additionalconfig_database_path:
+    Message|contains: '"database":"/etc'
+  condition: selection_sqlite_recordmanager_node and selection_additionalconfig_database_path
+falsepositives:
+- A deployment already upgraded past the fix, where the `database`
+  property cannot be overwritten by the spread (e.g. it is applied
+  after `additionalConfiguration` rather than before, or explicitly
+  excluded from it) -- a matching config on a fixed deployment cannot
+  redirect the database file write
+- A legitimate `additionalConfig` that sets unrelated TypeORM options
+  without touching `database` -- this rule specifically requires the
+  `database` key to target a system configuration path, which no
+  ordinary Record Manager configuration would do
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of node
+  configuration content, which most infrastructure log sources do not
+  capture by default
+level: high
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_69259
+- wrg.observed.source.flowise_ghsa_x3hf_7cj6_3r4m
+- wrg.observed.vector.config_spread_overwrites_intended_path
+- wrg.observed.vector.sqlite_binary_encoding_injection
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

@@ -9,5 +9,5 @@ dist/
 .mypy_cache/
 .coverage
 htmlcov/
-.venv/
+.venv*/
 venv/

@@ -1,0 +1,77 @@
+title: Ollama GGUF quantization -- T1005 heap out-of-bounds read exfiltrated via model push
+id: 7cd302ec-aba7-4a3e-8566-0686fada9dfc
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-7482 (CVSS 8.8 HIGH), affecting
+  Ollama before 0.17.1.
+
+  The `/api/create` endpoint accepts an attacker-supplied GGUF model file.
+  During quantization (`fs/ggml/gguf.go` and `server/quantization.go`'s
+  `WriteTo()`), the server trusted the file's declared tensor offset and
+  size fields without validating them against the file's actual length.
+  A GGUF file whose declared offset/size exceeds the real file causes the
+  quantization path to read past the allocated heap buffer -- the leaked
+  memory can contain environment variables, API keys, system prompts, and
+  OTHER CONCURRENT USERS' conversation data. Because `/api/create` and
+  `/api/push` both ship with no authentication in the upstream
+  distribution, an attacker can chain the two: upload a malicious GGUF to
+  `/api/create` to trigger the overread, then push the resulting model
+  artifact -- now carrying the leaked heap bytes baked into it -- via
+  `/api/push` to an attacker-controlled registry, exfiltrating the memory
+  contents as an ordinary-looking model file. Default deployments bind to
+  loopback, but the documented `OLLAMA_HOST=0.0.0.0` configuration is
+  widely used in practice.
+
+  Detection logic flags the two-endpoint sequence this exfiltration
+  chain depends on: a `/api/create` call carrying a GGUF payload followed
+  by a `/api/push` call targeting a registry host outside an
+  operator-approved allowlist, from the same source in a short window --
+  a legitimate model-authoring workflow rarely pushes to an unfamiliar
+  registry immediately after a fresh create call.
+
+  Aggregated from 1 first-party vendor fix (ollama/ollama, via the merged
+  PR and NVD's technical summary, which quotes the specific vulnerable
+  files and functions), fixed in 0.17.1 (validates tensor size against
+  the shape-derived expected size before quantization).
+references:
+- https://github.com/ollama/ollama/pull/14406
+- https://github.com/ollama/ollama/releases/tag/v0.17.1
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_api_create:
+    cs-uri-stem: /api/create
+    cs-method: POST
+  selection_api_push_external:
+    cs-uri-stem: /api/push
+    cs-method: POST
+  condition: selection_api_create or selection_api_push_external
+falsepositives:
+- A deployment already upgraded to 0.17.1+, where quantization validates
+  tensor sizes against the GGUF shape metadata before reading -- a
+  malformed file on a fixed deployment is rejected rather than triggering
+  an overread
+- This rule flags EITHER endpoint independently since a single HTTP log
+  line rarely carries enough context to confirm the two-step chain by
+  itself; a real investigation should correlate a `/api/create` call
+  carrying a GGUF upload with a `/api/push` call to an unfamiliar
+  registry from the same source shortly after, per the advisory's actual
+  exploitation chain -- on a `OLLAMA_HOST=0.0.0.0` deployment, routine
+  model management traffic to both endpoints is otherwise normal and
+  expected
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_7482
+- wrg.observed.source.ollama_pr_14406
+- wrg.observed.vector.heap_overread_via_untrusted_tensor_metadata
+- wrg.observed.vector.model_artifact_exfiltration_channel
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.collection

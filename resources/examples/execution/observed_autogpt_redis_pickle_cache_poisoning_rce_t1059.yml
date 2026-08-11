@@ -1,0 +1,75 @@
+title: AutoGPT Platform -- T1059 Redis cache pickle deserialization RCE
+id: dfa33719-b279-452b-89c1-d3f62c2801b8
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-33233 (GHSA-rfg2-37xq-w4m9,
+  CVSS 7.6 HIGH), a self-reported advisory for AutoGPT Platform, versions
+  0.6.34 through 0.6.51.
+
+  The backend's cache layer (`cache.py`, near line 192) writes values to
+  Redis with `pickle.dumps(...)` and reads them back with a bare
+  `pickle.loads(cached_bytes)` -- no HMAC/signature check and no strict
+  schema validation gates the deserialization. Python's `pickle` protocol
+  executes arbitrary code during unpickling via an object's `__reduce__`
+  method; the advisory's own PoC uses a crafted class that, when
+  deserialized, creates the file `/tmp/autogpt_pickle_rce_official` as
+  proof of command execution. Any attacker able to write to the shared
+  Redis cache key -- whether through a separate Redis-access
+  vulnerability, a misconfigured/exposed Redis instance, or another
+  service sharing the same cache -- can trigger arbitrary command
+  execution in the backend container simply by having their poisoned
+  bytes read back through the normal cache-read path.
+
+  Detection logic flags the resulting host-level artifact: a Python
+  process attributed to the AutoGPT backend spawning a child process as a
+  direct consequence of a cache read -- since legitimate cache reads
+  never spawn subprocesses, any subprocess creation immediately following
+  a `cache.py` read call in the same process is the anomaly this bug
+  makes possible.
+
+  Aggregated from 1 first-party vendor security advisory
+  (Significant-Gravitas, via GHSA and NVD), fixed in 0.6.52 (moves to a
+  non-code-executing serialization format with schema validation; the
+  advisory also recommends HMAC-signing cached values and hardening the
+  Redis deployment itself -- auth, TLS, network isolation).
+references:
+- https://github.com/Significant-Gravitas/AutoGPT/security/advisories/GHSA-rfg2-37xq-w4m9
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_autogpt_backend_parent:
+    ParentCommandLine|contains: autogpt
+    ParentImage|endswith: /python3
+  selection_unexpected_child_process:
+    Image|endswith:
+    - /sh
+    - /bash
+  condition: selection_autogpt_backend_parent and selection_unexpected_child_process
+falsepositives:
+- A deployment already upgraded to 0.6.52+, where the cache no longer
+  deserializes with pickle -- a matching child-process spawn on a fixed
+  deployment reflects normal application behavior unrelated to this bug,
+  since the vulnerable code path no longer exists
+- The AutoGPT backend legitimately spawns subprocesses for unrelated
+  reasons (block execution, external tool invocation) -- this rule cannot
+  distinguish a legitimate backend-initiated subprocess from a
+  pickle-triggered one by process lineage alone; correlate with a
+  preceding Redis read in application logs, or the specific proof file
+  `/tmp/autogpt_pickle_rce_official` the advisory's own PoC creates, for
+  higher confidence
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_33233
+- wrg.observed.source.significant_gravitas_ghsa_rfg2_37xq_w4m9
+- wrg.observed.vector.pickle_deserialization_rce
+- wrg.observed.vector.shared_cache_poisoning
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

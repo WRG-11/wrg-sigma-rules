@@ -1,0 +1,75 @@
+title: Flyto2 Core workflow engine -- T1552 ${env.VAR} interpolation reads any host secret the env.get denylist was meant to block
+id: 9962434e-e9d4-4334-8e51-e77c2227f1df
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-67427 (GHSA-hr7p-wg7r-hg9m,
+  CVSS 8.6 HIGH), affecting Flyto2 Core (`flyto-core`)'s workflow
+  engine.
+
+  Flyto2's capability policy denies the `env.get` and
+  `env.load_dotenv` modules by default, stating inline that they read
+  arbitrary host environment variables and are a secret-exfiltration
+  risk. But `VariableResolver` in
+  `src/core/engine/variable_resolver.py` expands `${env.VAR}` template
+  syntax for ANY environment variable, with no allowlist and no policy
+  check -- the interpolation happens earlier in the engine than
+  `enforce_module_policy`, so it is never subject to the module
+  denylist at all. A workflow parameter containing
+  `${env.AWS_SECRET_ACCESS_KEY}` resolves to the operator's live
+  secret in plaintext, and interpolating it into an outbound request
+  handled by any allowed module (the SSRF guard permits public hosts)
+  exfiltrates it to an attacker's server -- reachable via the workflow
+  API and the MCP agent surface, meaning the caller supplying the
+  template string is an LLM processing untrusted content, not the
+  trusted operator.
+
+  Detection logic flags a workflow step parameter containing the
+  `${env.` interpolation syntax -- the exact denylist-bypassing
+  template form this advisory's reproduction confirms resolves live
+  secrets even while the equivalent `env.get` module call is denied.
+
+  Aggregated from 1 first-party vendor security advisory (flyto-core, via
+  GHSA and NVD, citing the exact resolver source file, a standalone
+  reproduction script, and confirmation through the running workflow
+  API), not yet fixed at time of publication.
+references:
+- https://github.com/advisories/GHSA-hr7p-wg7r-hg9m
+- https://attack.mitre.org/techniques/T1552/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_workflow_run_request:
+    Message|contains: /v1/workflow/run
+  selection_env_interpolation_syntax:
+    Message|contains: '${env.'
+  condition: selection_workflow_run_request and selection_env_interpolation_syntax
+falsepositives:
+- A deployment already upgraded past the fix, where `${env.*}`
+  interpolation is gated behind the same allowlist/denylist the
+  `env.get` module enforces -- a matching workflow step on a fixed
+  deployment resolves to nothing (or is rejected) instead of the live
+  secret
+- A workflow step that legitimately interpolates a non-sensitive
+  environment variable the operator explicitly intends workflows to
+  read (e.g. a public region name or feature flag) -- this rule flags
+  the syntax itself since application logs cannot distinguish which
+  variable name was requested without deeper parsing; correlate with
+  the specific variable name interpolated to confirm a secret was
+  actually read
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of workflow
+  step parameters, which most infrastructure log sources do not
+  capture by default
+level: high
+tags:
+- attack.t1552
+- wrg.observed.cve.cve_2026_67427
+- wrg.observed.source.flyto_core_ghsa_hr7p_wg7r_hg9m
+- wrg.observed.vector.template_interpolation_bypasses_module_policy
+- wrg.observed.vector.denylist_covers_module_not_syntax
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.credential_access

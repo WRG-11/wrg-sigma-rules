@@ -1,0 +1,72 @@
+title: Claude Code /copy -- T1552 predictable-path symlink pre-creation local disclosure/overwrite
+id: 2b70ee69-fdaf-439d-8c68-5996a364bd71
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-46406 (GHSA-4vp2-6q8c-pvq2,
+  CVSS 4.4 MEDIUM), a self-reported advisory for Claude Code.
+
+  From 2.1.59 until 2.1.128, the `/copy` command wrote its response to a
+  hardcoded, predictable path -- `/tmp/claude/response.md` -- with no UID
+  isolation, no randomness, and no symlink protection. The file was created
+  world-readable (`0644`) inside a world-traversable directory (`0755`).
+  This enables two distinct local attacks by any unprivileged user on the
+  same host: (1) simply reading the file after a privileged user runs
+  `/copy`, disclosing whatever the response contained (potentially secrets
+  or credentials); (2) pre-creating the directory and planting a symlink at
+  the expected file path BEFORE the privileged user runs `/copy`, causing
+  the privileged process to follow the symlink and overwrite an
+  attacker-chosen file with the response text instead.
+
+  Detection logic flags the second, more severe attack: a symlink present
+  at the exact expected path (`/tmp/claude/response.md`) at the moment a
+  Claude Code process opens it for writing -- the pre-creation-then-victim-
+  writes sequence is the discriminator, not merely "a symlink exists in
+  /tmp" (routine and noisy on its own). Detecting the read-disclosure half
+  of this advisory (case 1) from a host log is not attempted here: a
+  world-readable file being read by another local user is, without
+  additional context, indistinguishable from countless benign file reads,
+  so this rule does not claim coverage it cannot support.
+
+  Aggregated from 1 first-party vendor security advisory (Anthropic, via
+  GHSA and NVD), fixed in 2.1.128.
+references:
+- https://github.com/anthropics/claude-code/security/advisories/GHSA-4vp2-6q8c-pvq2
+- https://attack.mitre.org/techniques/T1552/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: file_event
+  product: linux
+detection:
+  selection_symlink_created_at_target_path:
+    TargetFilename|endswith: /claude/response.md
+  selection_symlink_creation_syscall:
+    Image|endswith:
+    - /ln
+  selection_symlink_flag:
+    CommandLine|contains: '-s'
+  condition: selection_symlink_created_at_target_path and selection_symlink_creation_syscall and selection_symlink_flag
+falsepositives:
+- A Claude Code deployment already upgraded to 2.1.128+, where the fix
+  introduces UID isolation (`/tmp/claude-<uid>/response.md`), randomness,
+  and symlink rejection -- a symlink planted at the OLD shared path on a
+  patched install cannot achieve the overwrite this rule is built to
+  detect, since the process no longer writes there
+- Any legitimate use of `ln -s` targeting a path that happens to end in
+  `/claude/response.md` for unrelated reasons -- narrow in practice given
+  the specific path, but a log source without full-path visibility (only a
+  basename) will alias this
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule detects symlink PLANTING (the setup step), not the
+  privileged process's write that actually triggers the overwrite --
+  correlate with a subsequent Claude Code `/copy` invocation for
+  confirmation of exploitation rather than just planting
+level: medium
+tags:
+- attack.t1552
+- wrg.observed.cve.cve_2026_46406
+- wrg.observed.source.anthropic_ghsa_4vp2_6q8c_pvq2
+- wrg.observed.vector.predictable_path_symlink_race
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.collection

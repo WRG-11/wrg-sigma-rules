@@ -1,0 +1,78 @@
+title: Open WebUI chat completions -- T1565.001 channel-prefixed chat_id overwrites a message in a channel the caller cannot access
+id: 3b4c5d6e-7f80-4912-ab2c-3d4e5f607182
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59714 (GHSA-x2ff-v5v8-m75m,
+  CVSS 6.5 MEDIUM), affecting Open WebUI chat completions from v0.9.5
+  until v0.10.0.
+
+  Submitting a chat completion request with a `channel:`-prefixed
+  `chat_id` skipped the entire ownership/membership verification block
+  in `main.py` -- the code path was written to treat channel chats as
+  not requiring the check, with no channel membership/write check
+  substituted in its place. The caller-supplied `message_id` (or, for
+  multimodel requests, each value of the `message_ids` map) then flows
+  unchecked into `_make_channel_emitter()` in `socket/main.py`, which
+  performs a direct primary-key `Messages.update_message_by_id()` write
+  with no `channel_id`/`user_id` validation. Any authenticated user can
+  therefore overwrite a message in a private or DM channel they do not
+  belong to, with the model's (or a provider-error) content replacing
+  it while the original author attribution is preserved --
+  impersonation via message-integrity destruction. A v0.9.6 partial fix
+  validated only the first entry of the multimodel `message_ids` map,
+  leaving the fan-out variant exploitable until v0.10.0.
+
+  Detection logic flags a chat-completions request whose `chat_id`
+  carries the `channel:` prefix together with a caller-supplied
+  `message_id` (or `message_ids` map) -- the exact unauthenticated
+  write path this advisory describes, on the endpoint whose sibling
+  REST channel routes correctly return 403 for the same caller.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, consolidating two independent reports and citing the
+  exact functions and source files for both the single-model and
+  multimodel variants), fixed in v0.10.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-x2ff-v5v8-m75m
+- https://attack.mitre.org/techniques/T1565/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_chat_completions_endpoint:
+    Message|contains: /api/chat/completions
+  selection_channel_prefixed_chat_id:
+    Message|contains: '"chat_id":"channel:'
+  selection_caller_supplied_message_id:
+    Message|contains:
+    - '"message_id":'
+    - '"message_ids":'
+  condition: selection_chat_completions_endpoint and selection_channel_prefixed_chat_id and selection_caller_supplied_message_id
+falsepositives:
+- A deployment already upgraded to v0.10.0+, where every entry of
+  `message_ids` is validated against the target channel and
+  `_make_channel_emitter` fails closed on a channel_id mismatch -- a
+  matching cross-channel request on a fixed deployment is rejected or
+  no-oped rather than written
+- A legitimate request from a user overwriting their own message inside
+  a channel they genuinely belong to -- this rule flags every
+  channel-prefixed request carrying a caller-supplied message id since
+  application logs typically cannot determine channel membership;
+  correlate with the account's actual channel roster to confirm an
+  out-of-channel write occurred
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of chat-
+  completions request bodies, which most infrastructure log sources do
+  not capture by default
+level: medium
+tags:
+- attack.t1565.001
+- wrg.observed.cve.cve_2026_59714
+- wrg.observed.source.open_webui_ghsa_x2ff_v5v8_m75m
+- wrg.observed.vector.ownership_check_skipped_on_prefix
+- wrg.observed.vector.unchecked_primary_key_write
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

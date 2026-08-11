@@ -1,0 +1,69 @@
+title: vLLM audio transcription upload -- T1499 file fully buffered in memory before size-limit check
+id: b0de60f7-5dec-495b-913c-1675234a258d
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-55646 (GHSA-v82g-2437-67m2,
+  CVSS 6.5 MEDIUM), affecting vLLM from 0.22.0 to 0.23.0.
+
+  `/v1/audio/transcriptions` and `/v1/audio/translations` call
+  `request.file.read()` to fully materialize an uploaded audio file INTO
+  MEMORY before the documented `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` size
+  limit (default 25 MB) is checked -- the check happens later, in the
+  speech-to-text preprocessing step. An API caller who can reach these
+  routes can submit a multipart upload far larger than the configured
+  limit and cause vLLM to allocate memory proportional to the FULL
+  uploaded size before the request is ever rejected as too large --
+  memory pressure or process termination depending on the deployment's
+  resource limits, entirely from a request that is ultimately going to
+  be refused anyway.
+
+  Detection logic flags a multipart upload to either audio endpoint whose
+  `Content-Length` exceeds the configured `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB`
+  limit by a wide margin -- the size-limit check existing at all means a
+  request this oversized was never going to succeed, so its presence on
+  the wire is itself the signal, independent of whether the request
+  eventually completes or the process survives it.
+
+  Aggregated from 1 first-party vendor security advisory (vllm-project,
+  via GHSA and NVD, citing the exact fix commit and PR), fixed in 0.24.0
+  (checks size before buffering, not after).
+references:
+- https://github.com/vllm-project/vllm/security/advisories/GHSA-v82g-2437-67m2
+- https://github.com/vllm-project/vllm/commit/b997071ec493765abbed990c65843ed05e4708a8
+- https://github.com/vllm-project/vllm/pull/45510
+- https://attack.mitre.org/techniques/T1499/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: webserver
+  product: ""
+detection:
+  selection_audio_endpoint:
+    cs-uri-stem|contains:
+    - /v1/audio/transcriptions
+    - /v1/audio/translations
+  selection_oversized_upload:
+    cs-bytes: '>26214400'
+  condition: selection_audio_endpoint and selection_oversized_upload
+falsepositives:
+- A deployment already upgraded to 0.24.0+, where the size limit is
+  checked BEFORE the upload is buffered -- an oversized request on a
+  fixed deployment is rejected immediately without the memory-allocation
+  step this advisory describes
+- A deployment that has raised `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` above
+  the 25MB default for a legitimate use case -- this rule's threshold
+  needs adjustment to match the deployment's actual configured limit
+  rather than assuming the default
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; the exact byte threshold here assumes the documented 25MB
+  default and should be tuned to match a given deployment's configured
+  `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` value
+level: medium
+tags:
+- attack.t1499
+- wrg.observed.cve.cve_2026_55646
+- wrg.observed.source.vllm_ghsa_v82g_2437_67m2
+- wrg.observed.vector.check_after_buffer_not_before
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

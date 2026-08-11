@@ -1,0 +1,78 @@
+title: Flowise prediction API -- T1565.001 overrideConfig spreads unchecked into flow execution context, enabling session hijack and chat-history injection
+id: fa4195ff-8d78-49b8-8523-193007c6bc01
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-69258 (GHSA-6vh2-wg4h-4vwj),
+  affecting the unauthenticated (whitelisted) `POST /api/v1/prediction/:id`
+  endpoint.
+
+  A prior advisory (GHSA-5cph-wvm9-45gj) gated `overrideConfig`'s
+  ability to modify node input parameters behind `apiOverrideStatus`.
+  Two SEPARATE spread operations were not covered by that fix:
+  `buildChatflow.ts` spreads `incomingInput.overrideConfig` directly
+  into `flowConfig`, and `utils/index.ts` does the same into
+  `flowData` -- both unconditionally, with no `apiOverrideStatus`
+  check, even though the sibling node-parameter path correctly checks
+  it. `flowConfig` feeds the `$flow.*` template variable resolver, so
+  any attacker-injected property becomes available to any node
+  template referencing it. Concretely: `overrideConfig: {"chatId":
+  "<victim-id>"}` on an unauthenticated request redirects the
+  attacker's messages and responses into the victim's conversation
+  memory session; `overrideConfig: {"chatHistory": [...]}` injects a
+  fabricated system message as prompt injection with no UI interaction
+  at all.
+
+  Detection logic flags a `POST /api/v1/prediction/:id` request whose
+  `overrideConfig` object sets `chatId`, `sessionId`, or `chatHistory`
+  -- the exact ungated properties this advisory's proof of concept
+  demonstrates flow, unauthenticated, straight into the execution
+  context that controls which conversation session is read and
+  written.
+
+  Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
+  GHSA, citing the exact two ungated spread locations, contrasting them
+  against the correctly-gated sibling code path, and three concrete
+  attack scenarios each with a working curl reproduction), not yet
+  fixed at time of publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-6vh2-wg4h-4vwj
+- https://attack.mitre.org/techniques/T1565/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_prediction_endpoint:
+    Message|contains: /api/v1/prediction/
+  selection_override_session_fields:
+    Message|contains:
+    - '"chatId":'
+    - '"sessionId":'
+    - '"chatHistory":'
+  condition: selection_prediction_endpoint and selection_override_session_fields
+falsepositives:
+- A deployment already upgraded past the fix, where both spread
+  operations are removed or replaced with an explicit allowlist that
+  excludes `chatId`/`sessionId`/`chatHistory` -- a matching override
+  on a fixed deployment does not affect the actual execution context
+- A legitimate API integration that is authorized (via
+  `apiOverrideStatus`) to set these fields for a genuine multi-session
+  orchestration use case -- this rule flags every override of these
+  three fields since application logs cannot see the chatflow's
+  `apiOverrideStatus` setting; correlate with that setting to confirm
+  the override was actually unauthorized
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of
+  prediction request bodies, which most infrastructure log sources do
+  not capture by default
+level: high
+tags:
+- attack.t1565.001
+- wrg.observed.cve.cve_2026_69258
+- wrg.observed.source.flowise_ghsa_6vh2_wg4h_4vwj
+- wrg.observed.vector.ungated_spread_distinct_from_prior_fix
+- wrg.observed.vector.session_id_controls_memory_scope
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.impact

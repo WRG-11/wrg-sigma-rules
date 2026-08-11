@@ -1,0 +1,78 @@
+title: Flowise MCP launcher -- T1562.001 npm_config_yes environment variable reproduces the --yes flag the patched blocklist only checks by name
+id: 92cdfe55-3f01-433f-880a-fdd413b3dd7d
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-69263 (GHSA-xc48-889x-5qmw),
+  affecting Flowise's MCP server launcher security check, an
+  incomplete fix for the earlier CVE-2025-8943.
+
+  The CVE-2025-8943 patch blocks the `-y`/`--yes` flags on `npx` to
+  stop auto-installation of arbitrary packages, and
+  `validateEnvironmentVariables()` in `MCP/core.ts` denies exactly four
+  hardcoded variable names by exact string match (`PATH`,
+  `LD_LIBRARY_PATH`, `DYLD_LIBRARY_PATH`, `NODE_OPTIONS`). `npm` reads
+  its configuration directly from `npm_config_*` environment variables,
+  and `npm_config_yes=true` reproduces the exact `--yes` behavior the
+  flag filter exists to block -- it is not in the four-item blocklist,
+  so it passes through untouched. On a default Flowise deployment
+  (no authentication), an attacker-supplied MCP server config with
+  `env: {"npm_config_yes": "true"}` causes `npx` to auto-install and
+  execute an arbitrary named package as the Flowise process, even with
+  `CUSTOM_MCP_SECURITY_CHECK=true` enabled.
+
+  Detection logic flags an MCP server configuration whose `env` object
+  sets `npm_config_yes` (or the advisory's sibling bypass variables
+  `npm_config_prefix`, `npm_config_userconfig`, `NODE_PATH`,
+  `PYTHONPATH`, `PYTHONSTARTUP`) -- the exact denylist-by-name-only gap
+  this advisory's proof of concept exploits against a mitigation that
+  was believed closed.
+
+  Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
+  GHSA, citing the exact four-item blocklist source, the
+  `npm_config_yes` mechanism by name, a working PoC MCP config, and a
+  table of five additional untreated bypass variables across the other
+  permitted interpreters), not yet fixed at time of publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-xc48-889x-5qmw
+- https://attack.mitre.org/techniques/T1562/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_mcp_server_config:
+    Message|contains: mcpServers
+  selection_bypass_env_var:
+    Message|contains:
+    - npm_config_yes
+    - npm_config_prefix
+    - npm_config_userconfig
+    - NODE_PATH
+    - PYTHONPATH
+    - PYTHONSTARTUP
+  condition: selection_mcp_server_config and selection_bypass_env_var
+falsepositives:
+- A deployment already upgraded past the fix, where the environment is
+  stripped before reaching the child process or replaced with an
+  explicit allowlist -- a matching config on a fixed deployment either
+  has these variables removed or is rejected outright
+- A legitimate MCP server configuration that intentionally sets
+  `NODE_PATH` or `PYTHONPATH` for a trusted, operator-authored
+  integration -- narrow given these variables have no legitimate
+  purpose in an untrusted, attacker-supplied MCP server config, which
+  is the threat model this rule targets
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of MCP
+  server configuration submissions, which most infrastructure log
+  sources do not capture by default
+level: high
+tags:
+- attack.t1562.001
+- wrg.observed.cve.cve_2026_69263
+- wrg.observed.source.flowise_ghsa_xc48_889x_5qmw
+- wrg.observed.vector.denylist_by_name_incomplete
+- wrg.observed.vector.env_config_reproduces_blocked_flag
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.defense_evasion

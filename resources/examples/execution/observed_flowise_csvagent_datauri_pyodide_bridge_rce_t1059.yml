@@ -1,0 +1,77 @@
+title: Flowise CSVAgent -- T1059 an attacker-controlled data URI segment escapes a Python string literal and reaches Pyodide's js bridge
+id: cd144b51-3611-40fa-9274-c425155bf1a1
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-69264 (GHSA-4j8x-x6v7-w9rq,
+  CVSS 9.9 CRITICAL), affecting Flowise's `CSVAgent` node.
+
+  `CSVAgent.run()` extracts a segment of the `csvFile` data URI by
+  splitting on `,` and interpolates it VERBATIM into a Python
+  bootstrap template (`base64_string = "${base64String}"`) before
+  handing the assembled string to `pyodide.runPythonAsync()`. Neither
+  of the two validators guarding this code path
+  (`validatePythonCodeForDataFrame`, `validateCustomReadCSVFunction`)
+  is ever applied to the bootstrap template itself. An attacker crafts
+  a comma-free segment that closes the Python string literal early,
+  imports the `js` module, and calls `js.eval()` -- which on Node.js
+  bridges to `globalThis`, exposing dynamic `import()` of Node built-in
+  modules (`fs`, `child_process`). This escapes Pyodide's WASM sandbox
+  entirely and executes as the Flowise host process. The trigger route
+  `POST /api/v1/prediction/:id` is whitelisted from auth when the
+  chatflow has no `apikeyid` set (the default for new chatflows), so
+  one authenticated plant reaches unauthenticated RCE on every
+  subsequent prediction request.
+
+  Detection logic flags a chatflow prediction request whose CSVAgent
+  `csvFile` data-URI segment contains a Python string-literal
+  terminator (`";`) followed by an `import js` statement -- the exact
+  string-escape-then-bridge-import shape this advisory's verified
+  end-to-end proof of concept (against a stock `flowise@3.1.2`)
+  demonstrates writes a proof file on the Node host.
+
+  Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
+  GHSA, citing the exact source file and line numbers, a standalone
+  reproduction against real Pyodide, and independent verification
+  against a live `flowise@3.1.2` install with owner-uid confirmation),
+  not yet fixed at time of publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-4j8x-x6v7-w9rq
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_csv_file_parameter:
+    Message|contains: csvFile
+  selection_string_escape_js_import:
+    Message|contains|all:
+    - '";'
+    - 'import js'
+  condition: selection_csv_file_parameter and selection_string_escape_js_import
+falsepositives:
+- A deployment already upgraded past the fix, where the base64 value is
+  passed through Pyodide's `globals.set()` API instead of string
+  interpolation, or the `js` module is removed from the Pyodide load
+  options -- a matching escape attempt on a fixed deployment never
+  enters the Python source text at all
+- A legitimate CSV data URI that happens to contain the literal
+  sequence `";` followed by unrelated text mentioning `import js` --
+  narrow in practice given the specific string-terminator-then-import
+  shape this signature requires, well outside any valid base64
+  payload
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of chatflow
+  prediction request bodies, which most infrastructure log sources do
+  not capture by default
+level: high
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_69264
+- wrg.observed.source.flowise_ghsa_4j8x_x6v7_w9rq
+- wrg.observed.vector.template_string_interpolation_injection
+- wrg.observed.vector.pyodide_js_bridge_sandbox_escape
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

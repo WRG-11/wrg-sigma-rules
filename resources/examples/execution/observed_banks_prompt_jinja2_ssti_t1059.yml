@@ -1,0 +1,82 @@
+title: banks (LLM prompt templating) -- T1059 unsandboxed Jinja2 SSTI to RCE
+id: c0cce86f-87af-4b26-91e2-ff55ae453899
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-44209 (GHSA-gphh-9q3h-jgpp),
+  a self-reported advisory for `banks`, a library for generating LLM
+  prompts with a template language.
+
+  Prior to 2.4.2, `banks` rendered prompt templates with a plain
+  `jinja2.Environment()` -- unsandboxed, permitting Jinja2's dunder-
+  attribute object-graph traversal. Any application that passes a
+  user-supplied string as the `template` argument to `Prompt()` is
+  vulnerable to Server-Side Template Injection. The advisory's own PoC:
+  `{{ self.__init__.__globals__.__builtins__.__import__('os').popen('id').read() }}`
+  passed to `Prompt(user_input)` then `.text()`, with a captured output of
+  `uid=1000(ak) gid=1000(ak) groups=1000(ak),27(sudo),...` demonstrating
+  full command execution. Templates loaded from a database, an external
+  API, or a user config file are all realistic vectors for reaching this
+  code path in a downstream application.
+
+  This corpus already carries `observed_ragflow_canvas_jinja2_ssti_t1059`
+  for a mechanistically identical bug class in a different product
+  (RAGFlow's citation-prompt generator); this rule targets the same
+  object-graph-traversal idiom, filed separately because the vulnerable
+  library, reachable code path, and affected downstream applications are
+  distinct.
+
+  Detection logic flags the same sandbox-escape idioms as the sibling
+  RAGFlow rule -- `__globals__`, `__builtins__`, `__import__`,
+  `__subclasses__`, `__mro__` -- appearing in content passed to a prompt-
+  template renderer, since these have no legitimate reason to appear in
+  ordinary prompt text.
+
+  Aggregated from 1 first-party vendor security advisory (masci, via
+  GHSA and NVD; also tracked as RHSA via Red Hat/Bugzilla 2481713 for
+  distributions bundling `banks`), fixed in 2.4.2 (switches to
+  `jinja2.sandbox.SandboxedEnvironment`).
+references:
+- https://github.com/masci/banks/security/advisories/GHSA-gphh-9q3h-jgpp
+- https://github.com/masci/banks/pull/74
+- https://bugzilla.redhat.com/show_bug.cgi?id=2481713
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: python
+detection:
+  selection_jinja2_ssti_idiom:
+    Message|contains:
+    - __globals__
+    - __builtins__
+    - __import__
+    - __subclasses__
+    - __mro__
+  selection_banks_prompt_context:
+    Message|contains:
+    - banks.Prompt
+    - 'Prompt('
+  condition: selection_jinja2_ssti_idiom and selection_banks_prompt_context
+falsepositives:
+- A deployment already upgraded to 2.4.2+, where `SandboxedEnvironment`
+  blocks the dunder-attribute traversal chain -- a matching log entry on
+  a fixed deployment reflects a rejected/inert payload, not successful
+  exploitation
+- A legitimate prompt template that discusses Python dunder-attribute
+  syntax in prose (e.g. documentation or a tutorial) -- narrow in
+  practice given the specific idiom combination required
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of the
+  template content actually passed to `Prompt()`, which most log sources
+  do not capture by default
+level: critical
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_44209
+- wrg.observed.source.masci_ghsa_gphh_9q3h_jgpp
+- wrg.observed.vector.unsandboxed_jinja2_ssti
+- wrg.observed.cluster.jinja2_ssti_llm_prompt_libraries
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

@@ -1,0 +1,64 @@
+title: Open WebUI terminal WebSocket -- T1548 pending-role account reaches terminal despite unapproved status
+id: 6fa4b671-5509-4aa2-8e56-97281e4ec3e3
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70490 (GHSA-5gpj-vj23-vhhv,
+  CVSS 6.3 MEDIUM), affecting Open WebUI from 0.8.8 until 0.11.0.
+
+  `backend/open_webui/routers/terminals.py`'s terminal WebSocket route
+  authenticates its own first-message JWT but never applies the
+  verified-user role gate that `get_verified_user` enforces on the
+  equivalent HTTP terminal routes. An account whose role is `pending` --
+  a registered-but-not-yet-approved signup, or an account an
+  administrator deactivated back to pending -- can open an interactive
+  terminal session over WebSocket as long as at least one terminal
+  server is configured and its access grants cover that account. This
+  quietly loses the account-approval boundary specifically for terminal
+  access, while the HTTP terminal routes on the same feature correctly
+  reject the identical account.
+
+  Detection logic flags a successful terminal WebSocket connection whose
+  authenticating JWT belongs to a `pending`-role account -- the same
+  account the HTTP terminal routes would reject, reaching an interactive
+  shell through the one code path that forgot to check.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact router file), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-5gpj-vj23-vhhv
+- https://attack.mitre.org/techniques/T1548/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_terminal_ws_connection:
+    Message|contains: terminal
+    Message|contains: websocket
+  selection_pending_role:
+    Message|contains: 'role":"pending'
+  condition: selection_terminal_ws_connection and selection_pending_role
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where the terminal WebSocket
+  route applies the same verified-user role gate the HTTP routes use --
+  a pending-role account's connection attempt on a fixed deployment
+  would be rejected
+- A deployment with no terminal servers configured, or where terminal
+  access grants exclude all pending-role accounts by policy -- the
+  vulnerability requires both a configured server AND matching access
+  grants to be reachable at all
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging that
+  correlates a WebSocket connection with the authenticating account's
+  role, which most infrastructure log sources do not capture by default
+level: medium
+tags:
+- attack.t1548
+- wrg.observed.cve.cve_2026_70490
+- wrg.observed.source.open_webui_ghsa_5gpj_vj23_vhhv
+- wrg.observed.vector.websocket_route_missing_role_gate
+- wrg.observed.vector.pending_account_boundary_loss
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.privilege_escalation

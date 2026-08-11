@@ -1,0 +1,80 @@
+title: mem0 config API -- T1552 unauthenticated plaintext API-key disclosure + Ollama-URL SSRF
+id: 12ad095a-08a3-4399-8b40-ea90a111b56e
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59706 (CVSS 9.2 CRITICAL),
+  documented by VulnCheck for mem0, an LLM memory-layer library.
+
+  mem0's config API exposes two unauthenticated endpoints with no
+  credential check. `GET /api/v1/config/` returns stored LLM provider
+  configuration, including API keys (e.g. OpenAI) in PLAINTEXT -- any
+  network caller can read them with no authentication. Separately,
+  `PUT /api/v1/config/mem0/llm` accepts a caller-controlled
+  `ollama_base_url` parameter that the server later uses to reach the
+  configured Ollama backend with no destination-address validation --
+  setting it to an internal address (e.g. a cloud instance-metadata
+  service) turns this into an SSRF primitive, letting an attacker pivot
+  from a public-facing mem0 deployment into the host's internal network
+  or cloud IAM credential endpoint.
+
+  Detection logic covers both halves of this advisory as two independent
+  selections: (1) a `GET /api/v1/config/` request with no Authorization
+  header, and (2) a `PUT /api/v1/config/mem0/llm` request whose
+  `ollama_base_url` value targets a private/link-local/metadata address
+  range -- each is exploitable on its own, so either alone is a hit
+  worth investigating.
+
+  Aggregated from 2 independent sources (mem0ai's own commit fixing the
+  issue + VulnCheck's corroborating write-up), no CVE-published patched
+  version stated beyond the fix commit
+  `a3154d59e52386d4e1189c1f5f44819868f76514`.
+references:
+- https://www.vulncheck.com/advisories/mem0-server-side-request-forgery-and-plaintext-api-key-exposure-via-unauthenticated-config-endpoints
+- https://github.com/mem0ai/mem0/commit/a3154d59e52386d4e1189c1f5f44819868f76514
+- https://github.com/mem0ai/mem0/issues/6081
+- https://attack.mitre.org/techniques/T1552/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_config_disclosure:
+    cs-uri-stem: /api/v1/config/
+    cs-method: GET
+    cs(Authorization): null
+  selection_ssrf_via_ollama_url:
+    cs-uri-stem: /api/v1/config/mem0/llm
+    cs-method: PUT
+    cs-body|contains:
+    - 169.254.169.254
+    - 'ollama_base_url":"http://127.'
+    - 'ollama_base_url":"http://10.'
+    - 'ollama_base_url":"http://192.168.'
+    - 'ollama_base_url":"http://169.254.'
+  condition: selection_config_disclosure or selection_ssrf_via_ollama_url
+falsepositives:
+- A deployment that has since applied the fix commit -- a matching
+  request on a patched deployment would be rejected by the now-present
+  auth/validation layer rather than returning secrets or reaching the
+  target address
+- 'config-disclosure selection: a legitimate authenticated admin request
+  whose Authorization header the log source failed to capture -- verify
+  against a log source known to reliably record request headers before
+  treating a hit as a real unauthenticated read'
+- 'ssrf selection: a legitimate deployment where mem0 and Ollama are
+  intentionally co-located and the operator has configured a
+  private-range `ollama_base_url` on purpose -- this rule cannot
+  distinguish that from an attacker-supplied value by content alone'
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1552
+- wrg.observed.cve.cve_2026_59706
+- wrg.observed.source.mem0ai_vulncheck
+- wrg.observed.vector.unauth_config_secret_disclosure
+- wrg.observed.vector.ssrf_via_configurable_backend_url
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.credential_access

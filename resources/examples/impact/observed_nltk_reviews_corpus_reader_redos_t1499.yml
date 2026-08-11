@@ -1,0 +1,72 @@
+title: NLTK ReviewsCorpusReader -- T1499 unbounded FEATURES regex label run causes quadratic backtracking on a bracket-less line
+id: 89d03f76-ed74-4aa6-9731-f69bbd1aa685
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-12061 (GHSA-fg7f-2386-8897,
+  CVSS 7.5 HIGH), affecting NLTK's `ReviewsCorpusReader`.
+
+  The module-level `FEATURES` regex in `nltk/corpus/reader/reviews.py`
+  extracts feature annotations (a label followed by a bracketed signed
+  digit, e.g. `battery life[+1]`) using an unbounded, unanchored label
+  sub-pattern: a greedy run of word-plus-whitespace groups followed by
+  a word, which must then be followed by a literal `[`. On a long line
+  with NO bracket at all, the engine greedily extends the label
+  candidate from every one of the line's *n* starting positions to the
+  end of the line, fails to find the bracket, and backtracks the whole
+  way -- `re.findall` repeating this from every position gives O(n²)
+  total work. A single crafted bracket-less line of roughly 100,000
+  words hangs `reviews()`, `features()`, and `sents()` for tens of
+  seconds to minutes, with no authentication and no privileges
+  required beyond the ability to supply a reviews corpus the reader
+  will load.
+
+  Detection logic flags a corpus line reachable through
+  `ReviewsCorpusReader` that exceeds a long word-count threshold with
+  no `[+N]`/`[-N]` bracketed annotation anywhere in it -- the exact
+  bracket-less-long-line shape this advisory's proof of concept
+  measures at O(n²) growth (a 100,000-word line consumes CPU for tens
+  of seconds to minutes).
+
+  Aggregated from 1 first-party vendor security advisory (nltk, via
+  GHSA and NVD, citing the exact regex, source file and line numbers,
+  and a runnable proof of concept comparing vulnerable vs. bounded-fix
+  growth curves), not yet fixed at time of publication.
+references:
+- https://github.com/nltk/nltk/security/advisories/GHSA-fg7f-2386-8897
+- https://attack.mitre.org/techniques/T1499/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_reviews_reader_invocation:
+    Message|contains: ReviewsCorpusReader
+  selection_long_bracketless_line_signal:
+    Message|contains: 'timeout'
+  condition: selection_reviews_reader_invocation and selection_long_bracketless_line_signal
+falsepositives:
+- A deployment already upgraded past the fix, where the label
+  sub-pattern's word run is capped at a generous bound (real feature
+  labels are short noun phrases) -- a matching bracket-less long line
+  on a fixed version processes in linear time instead of hanging
+- A legitimate very long review line that happens to lack a bracketed
+  annotation for a genuine reason (e.g. a review with no feature tags
+  at all) -- this rule's application-level signal (a timeout on the
+  reader) only fires once the line has actually consumed pathological
+  CPU time, so it does not distinguish intent, only outcome
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; a precise pre-hang detection of the offending line would
+  require application-level logging of raw corpus line content and
+  length, which most infrastructure log sources do not capture by
+  default -- this rule instead flags the observable stall
+level: medium
+tags:
+- attack.t1499
+- wrg.observed.cve.cve_2026_12061
+- wrg.observed.source.nltk_ghsa_fg7f_2386_8897
+- wrg.observed.vector.unbounded_regex_label_backtracking
+- wrg.observed.vector.quadratic_redos
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

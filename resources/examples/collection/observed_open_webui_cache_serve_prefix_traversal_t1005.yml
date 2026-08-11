@@ -1,0 +1,69 @@
+title: Open WebUI cache file serving -- T1005 startswith containment check without trailing separator
+id: f690c421-8839-4a1f-a2d2-f38eb543a14d
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54014 (GHSA-j2c8-v969-8r5c,
+  CVSS 4.3 MEDIUM), affecting Open WebUI prior to 0.9.6.
+
+  `serve_cache_file()` in `open_webui/main.py` validates a requested
+  path against the cache directory with
+  `file_path.startswith(os.path.abspath(CACHE_DIR))` -- WITHOUT
+  appending `os.sep` to the comparison prefix. This is the classic
+  "prefix containment without a trailing separator" bug: a resolved path
+  landing in a SIBLING directory whose name merely begins with the same
+  characters as `CACHE_DIR` (the advisory's own examples: `cache_sibling`,
+  `cache_backup`, `cached_models`) passes the `startswith` check even
+  though it is not actually inside `CACHE_DIR` at all. Any authenticated
+  user can therefore read files from these sibling directories through
+  the cache-file endpoint.
+
+  Detection logic flags a cache-file-serving request whose resolved path
+  targets a directory sharing `CACHE_DIR`'s name PREFIX but not equal to
+  it followed by a path separator -- the exact shape the unpatched
+  `startswith` check incorrectly accepts.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact function, file, and vulnerable
+  comparison), fixed in 0.9.6 (adds the trailing separator to the
+  containment check).
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-j2c8-v969-8r5c
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_cache_endpoint:
+    cs-uri-stem|contains: /cache/
+  selection_sibling_prefix_path:
+    cs-uri-query|contains:
+    - cache_sibling
+    - cache_backup
+    - cached_models
+    - '..%2f'
+    - '../'
+  condition: selection_cache_endpoint and selection_sibling_prefix_path
+falsepositives:
+- A deployment already upgraded to 0.9.6+, where the containment check
+  appends the trailing path separator before comparison -- a matching
+  request on a fixed deployment resolving to a same-prefix sibling
+  directory would be rejected
+- A deployment with no sibling directory sharing the `cache` name
+  prefix at all -- this specific bypass shape is unreachable regardless
+  of request content in that case
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; the specific sibling directory names matched here are the
+  advisory's own illustrative examples, not an exhaustive list --
+  adjust to whatever directories actually exist alongside a given
+  deployment's `CACHE_DIR`
+level: medium
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_54014
+- wrg.observed.source.open_webui_ghsa_j2c8_v969_8r5c
+- wrg.observed.vector.startswith_missing_trailing_separator
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.collection

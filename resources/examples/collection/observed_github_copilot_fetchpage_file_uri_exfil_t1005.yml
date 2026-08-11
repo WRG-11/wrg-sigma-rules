@@ -1,0 +1,83 @@
+title: GitHub Copilot fetchPage -- T1005 file:// URI workspace-boundary bypass + JSON-schema exfiltration
+id: 6a740ee0-39d8-4364-9e41-c5599f297310
+status: experimental
+description: |
+  Detection for CVE-2025-66389, GitHub Copilot 1.372.0's `fetchPage` tool
+  accepting `file://` URIs without the workspace-boundary check its own
+  `readFile` tool enforces (per `fetchPageTool.ts:152`,
+  microsoft/vscode-copilot-chat).
+
+  VS Code's `fetchPage` tool is designed for fetching web pages and is
+  shared between HTTP(S) and `file://` schemes; Copilot invokes it as a
+  thin wrapper without re-applying its own `readFile` tool's explicit
+  workspace/open-tab containment check. This lets an indirect prompt
+  injection (content the agent reads from elsewhere, not a direct user
+  instruction) steer Copilot into fetching a local path outside the
+  workspace -- the write-up's example target is `file:///etc/passwd` --
+  without the user-approval gate this action would otherwise require for
+  untrusted web URLs. The documented exfiltration path chains this with a
+  second VS Code behavior: content written into a JSON file's `$schema`
+  field triggers an automatic IntelliSense fetch of that schema URL, so an
+  attacker-controlled schema endpoint receives file content appended to
+  the request as a side effect of normal editor behavior.
+
+  Detection logic flags the disclosure vector this write-up documents:
+  a `fetchPage`-tool-attributed process reading a `file://`-scheme target
+  outside the current workspace root -- since a legitimate web-page fetch
+  never uses this scheme, any `file://` target reaching this specific tool
+  path is itself the anomaly, not merely a sensitive-path heuristic.
+
+  Aggregated from 1 independent technical write-up (blindcyber.com,
+  citing the specific `fetchPageTool.ts` source line), corroborated by
+  Microsoft's own confirmation and fix of the reported behavior. No
+  specific patched version number is stated in the available sources.
+references:
+- https://blindcyber.com/2025/10/28/copilot-fun/
+- https://github.com/microsoft/vscode-copilot-chat/
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: file_access
+  product: windows
+detection:
+  selection_copilot_process:
+    Image|endswith:
+    - \Code.exe
+    - \code.exe
+  selection_file_uri_target:
+    TargetFilename|contains: 'file://'
+  selection_sensitive_out_of_workspace_paths:
+    TargetFilename|contains:
+    - /etc/passwd
+    - /etc/shadow
+    - .ssh/id_
+    - .aws/credentials
+    - \.ssh\id_
+    - \.aws\credentials
+  condition: selection_copilot_process and selection_file_uri_target and selection_sensitive_out_of_workspace_paths
+falsepositives:
+- No specific fixed version is documented in the sources available at
+  authoring time, unlike most rules in this corpus that name an exact
+  cutoff -- this rule cannot state a version-based negative case and
+  should be re-evaluated once an authoritative advisory with a version
+  range is published
+- A legitimate VS Code extension or task that intentionally opens a
+  `file://` URI outside the workspace for an unrelated reason -- the
+  process-attribution condition narrows this to Copilot's own `fetchPage`
+  path, but a log source that cannot distinguish which VS Code extension
+  issued the read will alias the two
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule detects the read/access half of the chain, not
+  the JSON-schema exfiltration half, since no log-observable signature
+  for the schema-fetch step is documented in the source material
+level: high
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2025_66389
+- wrg.observed.source.blindcyber_writeup
+- wrg.observed.vector.file_uri_tool_scope_bypass
+- wrg.observed.vector.json_schema_exfiltration
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.collection
