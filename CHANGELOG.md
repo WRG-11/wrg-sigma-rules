@@ -13,9 +13,38 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 131 rules.
+Corpus 100 → 135 rules.
 
 ### Added
+
+- **Four more CVE rules**, widening beyond the MCP/npm themes into
+  code-sandbox internals:
+
+  - `defense_evasion/observed_maxkb_sendto_fastopen_sandbox_bypass_t1562_001.yml` —
+    CVE-2026-39418. MaxKB's sandbox hooks `connect()` via `LD_PRELOAD` to
+    enforce a banned-hosts policy; `sendto()` with `MSG_FASTOPEN`
+    establishes a TCP connection entirely kernel-side, never calling the
+    hooked function.
+  - `execution/observed_autogpt_redis_pickle_cache_poisoning_rce_t1059.yml` —
+    CVE-2026-33233 (CVSS 7.6). AutoGPT's Redis cache read path calls bare
+    `pickle.loads()` with no HMAC/schema check; advisory's own PoC proves
+    RCE by creating a named file. Same bug class as any pickle-cache
+    poisoning, cited here with the vendor's own captured proof.
+  - `initial_access/observed_agenticmail_mcp_http_unauth_masterkey_tools_t1190.yml` —
+    CVE-2026-50287 (CVSS 8.7). AgenticMail's MCP HTTP mode has no auth on
+    `/mcp`; master-key-gated tools (`delete_agent`, `setup_email_relay`,
+    etc.) still execute under the server's own master key regardless of
+    caller auth. Distinct code path from this corpus's existing
+    AgenticMail bridge-wake rule (same product, different vulnerability).
+  - `defense_evasion/observed_maxkb_frame_introspection_result_spoofing_t1036.yml` —
+    CVE-2026-39419. Sandboxed code reads its own wrapper's embedded UUID
+    via `sys._getframe().f_code.co_consts`, then forges a matching result
+    line written directly to fd 1 before `sys.exit(0)` — defeating the
+    UUID-prefix trust mechanism entirely from inside the sandbox it's
+    meant to constrain.
+
+  All four `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Two more CVE rules; one candidate (Cursor Desktop hook execution)
   rejected** — its advisory states impact and fix in prose but names no

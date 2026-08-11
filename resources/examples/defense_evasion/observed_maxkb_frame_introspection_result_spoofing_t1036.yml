@@ -1,0 +1,76 @@
+title: MaxKB code sandbox -- T1036 frame-introspected UUID forges tool-execution result via fd 1
+id: 9441f01c-1156-4adb-9ec3-32762c0bdb97
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-39419 (GHSA-f3c8-p474-xwfv), a
+  self-reported advisory for MaxKB, affecting versions 2.7.1 and below.
+
+  MaxKB's sandbox wrapper embeds a per-execution UUID (as a bytecode
+  constant) that it prefixes to its legitimate result line, so the host
+  service can identify which line in mixed stdout is the genuine tool
+  result. An authenticated user can defeat this: using
+  `sys._getframe(1).f_code.co_consts` (Python frame introspection), code
+  running inside the sandbox reads the wrapper's own compiled bytecode
+  constants to recover that UUID at runtime -- a value that was never
+  meant to be readable from inside the sandboxed code. It then writes a
+  FORGED result line, carrying the same UUID prefix, directly to file
+  descriptor 1 via `os.write` -- bypassing any stdout redirection the
+  wrapper itself might otherwise rely on -- and calls `sys.exit(0)` to
+  terminate the wrapper before it ever emits its own legitimate output.
+  The host service, which trusts the LAST line matching the UUID prefix,
+  parses and acts on the attacker's forged result as if it were genuine.
+
+  Detection logic flags the structural pattern this bypass depends on:
+  a sandboxed process whose captured output shows a `sys.exit(0)` call
+  occurring immediately after a raw `os.write` to file descriptor 1 --
+  the specific write-then-exit sequence that lets a forged line become
+  the wrapper's apparent final output.
+
+  Aggregated from 1 first-party vendor security advisory (1Panel-dev, via
+  GHSA and NVD), fixed in 2.8.0.
+references:
+- https://github.com/1Panel-dev/MaxKB/security/advisories/GHSA-f3c8-p474-xwfv
+- https://github.com/1Panel-dev/MaxKB/commit/38c4cfecd065293ede0437f6fa76cf0116591d25
+- https://attack.mitre.org/techniques/T1036/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: python
+detection:
+  selection_sandbox_context:
+    Message|contains: maxkb
+  selection_frame_introspection_idiom:
+    Message|contains:
+    - _getframe
+    - f_code.co_consts
+  selection_raw_fd_write_and_exit:
+    Message|contains:
+    - 'os.write(1'
+    - 'sys.exit(0)'
+  condition: selection_sandbox_context and selection_frame_introspection_idiom and selection_raw_fd_write_and_exit
+falsepositives:
+- A deployment already upgraded to 2.8.0+, where the fix presumably
+  either stops embedding a frame-readable UUID or validates the result
+  through a channel the sandboxed code cannot write to directly -- a
+  matching submission on a fixed deployment would not achieve the same
+  result-spoofing effect even if it appears in submitted code
+- Legitimate code that happens to use `sys._getframe` for unrelated
+  introspection/debugging purposes and separately calls `os.write`/
+  `sys.exit` in the same submission -- narrow in practice given the
+  specific combination required, but not impossible in advanced
+  data-science or debugging workloads run through the sandbox
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of the actual
+  code string submitted to the sandbox, which most infrastructure log
+  sources do not capture by default
+level: medium
+tags:
+- attack.t1036
+- wrg.observed.cve.cve_2026_39419
+- wrg.observed.source.1panel_dev_ghsa_f3c8_p474_xwfv
+- wrg.observed.vector.frame_introspection_secret_recovery
+- wrg.observed.vector.result_channel_spoofing
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.defense_evasion
