@@ -13,9 +13,42 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 177 rules.
+Corpus 100 → 182 rules.
 
 ### Added
+
+- **Five more Open WebUI rules, remaining CVEs from the 2026-06-23
+  disclosure batch**:
+
+  - `execution/observed_open_webui_mermaid_loose_security_xss_t1059_007.yml` —
+    CVE-2026-54011 (CVSS 8.7). Mermaid diagrams render with
+    `securityLevel: 'loose'` and the SVG output goes into `innerHTML` —
+    a working payload was validated through the Markdown file-preview
+    path specifically.
+  - `collection/observed_open_webui_model_metadata_knowledge_file_bypass_t1005.yml` —
+    CVE-2026-54012 (CVSS 7.1). `meta.knowledge` entries on a model are
+    stored with no ownership check; `view_file` and
+    `has_access_to_file()`'s model branch both trust them downstream —
+    a sibling bug class to this corpus's shared-chat file-ownership
+    rule, different vector.
+  - `execution/observed_open_webui_model_profile_svg_xss_takeover_t1059_007.yml` —
+    CVE-2026-54013 (CVSS 7.6). A prior SVG-XSS fix for user/webhook
+    profile images was never applied to MODEL profile images —
+    `ModelMeta` has no validator, full account takeover just from
+    navigating to the image URL.
+  - `collection/observed_open_webui_cache_serve_prefix_traversal_t1005.yml` —
+    CVE-2026-54014. `serve_cache_file()`'s containment check uses
+    `startswith(CACHE_DIR)` with no trailing separator — the classic
+    prefix-bypass bug (`cache_sibling`, `cache_backup` all pass).
+  - `initial_access/observed_open_webui_milvus_collection_name_injection_t1190.yml` —
+    CVE-2026-54019. Milvus-multitenancy mode lets an unescaped,
+    user-controlled collection name become a `resource_id` interpolated
+    into a Milvus query expression — an incomplete fix for an earlier
+    CVE that closed a different path.
+
+  All five `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch. One more instance of the backtick-colon YAML footgun
+  caught and fixed.
 
 - **Four more rules — one candidate (CVE-2026-12491, EXIF/PNG
   transparency mishandling) rejected as a data-integrity bug, not a
