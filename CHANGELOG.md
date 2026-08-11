@@ -13,9 +13,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 129 rules.
+Corpus 100 → 131 rules.
 
 ### Added
+
+- **Two more CVE rules; one candidate (Cursor Desktop hook execution)
+  rejected** — its advisory states impact and fix in prose but names no
+  concrete hook JSON, sandbox-escape mechanism, or example payload:
+
+  - `initial_access/observed_microsoft_apm_symlink_dereference_deploy_t1195_002.yml` —
+    CVE-2026-45539. Microsoft APM's file-discovery integrators used bare
+    `Path.glob()`/`read_text()`, which follows symlinks; a remote
+    dependency's committed symlink (advisory quotes the PoC `ln -s`
+    commands) is dereferenced into `.github/`/`.claude/`/`.codex/` as a
+    plain file, missed by all three controls in place (`content_hash`
+    computed pre-dereference, `SecurityGate` walks with
+    `followlinks=False`, `.gitignore` covers only `apm_modules/`).
+  - `execution/observed_agno_clickhouse_metadata_sqli_t1059.yml` —
+    CVE-2026-10105 (CVSS 8.7). agno's ClickHouse `delete_by_metadata()`
+    f-string-interpolated caller-controlled metadata straight into SQL;
+    advisory + fix PR quote both the vulnerable line and the exact
+    named-parameter fix.
+
+  Both `validate_rule`-clean and convert cleanly to Splunk + Elasticsearch.
 
 - **Three more CVE rules; three n8n candidates rejected in the same
   pass.** n8n disclosed 10 CVEs the same day (2026-05-04); three looked

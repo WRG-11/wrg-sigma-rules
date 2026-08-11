@@ -28,7 +28,19 @@ _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 _WAVE_ID_RE = re.compile(r"R\d+-\d+[a-z]?", re.IGNORECASE)
 
 # Paths permitted to contain the pattern (documented exceptions only).
-_ALLOWLIST: frozenset[str] = frozenset()
+#
+# gitlab_mcp_server rule: the GHSA advisory id it cites (see that file's
+# `references:` block -- an external, real GitHub Security Advisory id,
+# not written out again here to avoid re-tripping this same regex inside
+# this comment) contains a short digit-dash-digit-letter run that
+# coincidentally matches R\d+-\d+[a-z]? -- not an internal wave-dispatch
+# id. Confirmed: every match in that file resolves to a substring of that
+# one external id, quoted verbatim from the advisory URL.
+_ALLOWLIST: frozenset[str] = frozenset(
+    {
+        "resources/examples/initial_access/observed_gitlab_mcp_server_unauth_pat_abuse_t1190.yml",
+    }
+)
 
 
 def _tracked_files() -> list[str]:
