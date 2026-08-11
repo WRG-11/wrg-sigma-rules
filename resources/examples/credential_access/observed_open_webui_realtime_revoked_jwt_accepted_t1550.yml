@@ -1,0 +1,79 @@
+title: Open WebUI realtime auth -- T1550 Redis-revoked JWT still authenticates Socket.IO and terminal WebSocket connections
+id: 4c5d6e7f-8091-4a23-bc3d-4e5f60718293
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59219 (GHSA-855v-hq7w-jmjw,
+  CVSS 5.9 MEDIUM), affecting Open WebUI's realtime authentication
+  surfaces from v0.9.0 until v0.10.0, when Redis is configured.
+
+  HTTP auth (`get_current_user` in `utils/auth.py`) rejects a JWT
+  whose `jti` is recorded as revoked in Redis (via sign-out or OIDC
+  back-channel logout) with 401. The realtime authentication paths --
+  Socket.IO `connect`, `user-join`, `join-channels`, `join-note` in
+  `socket/main.py`, and the terminal WebSocket first-message auth in
+  `terminals.py` -- validate the token with `decode_token()` only,
+  which checks signature and expiry but never consults the Redis
+  revocation keys. A token revoked by the exact action meant to kill
+  it -- the user signing out, or the identity provider's back-channel
+  logout -- therefore continues to authenticate NEW realtime
+  connections: it can join the victim's user/channel/note rooms,
+  receive realtime messages and collaborative-note updates, and pass
+  terminal WebSocket auth where terminal servers are configured. HTTP
+  remains correctly protected throughout.
+
+  Detection logic flags a Socket.IO or terminal-WebSocket connection
+  authenticated with a JWT `jti` that a `POST /api/v1/auths/signout`
+  or OIDC back-channel logout event for the same `jti` preceded -- the
+  exact revoked-but-still-authenticating sequence this advisory
+  describes.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact functions, source files, and a
+  reporter proof-of-concept demonstrating HTTP 401 alongside a
+  successful realtime connection on the same revoked token), fixed in
+  v0.10.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-855v-hq7w-jmjw
+- https://attack.mitre.org/techniques/T1550/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_signout_event:
+    Message|contains: /api/v1/auths/signout
+  selection_realtime_connect_event:
+    Message|contains:
+    - socket.io
+    - user-join
+    - join-channels
+    - join-note
+    - terminal websocket
+  condition: selection_signout_event and selection_realtime_connect_event
+falsepositives:
+- A deployment already upgraded to v0.10.0+, where Socket.IO connect,
+  user-join, join-channels, join-note, and the terminal WebSocket
+  first-message auth all consult `is_token_revoked()` before accepting
+  a connection -- a matching revoked token on a fixed deployment is
+  rejected on the realtime path the same way HTTP already was
+- A deployment with no Redis configured -- per-token revocation is not
+  supported without Redis and sign-out does not invalidate JWTs by
+  design in that configuration, so there is nothing this rule can
+  detect there
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; correlating a specific revoked `jti` with a subsequent
+  realtime connection using that same token requires application-level
+  logging most infrastructure log sources do not capture by default --
+  this rule flags the coarser signal of both event classes appearing
+  together
+level: medium
+tags:
+- attack.t1550
+- wrg.observed.cve.cve_2026_59219
+- wrg.observed.source.open_webui_ghsa_855v_hq7w_jmjw
+- wrg.observed.vector.revocation_check_missing_on_realtime_path
+- wrg.observed.vector.http_only_defense
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.credential_access

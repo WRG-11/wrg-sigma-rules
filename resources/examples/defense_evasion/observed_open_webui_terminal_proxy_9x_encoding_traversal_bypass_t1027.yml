@@ -1,0 +1,70 @@
+title: Open WebUI terminal proxy -- T1027 9x percent-encoding survives an 8-round decode cap and reaches a traversal path
+id: 1f2e3d4c-5b6a-4978-8c9d-0a1b2c3d4e51
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59221 (GHSA-frvj-c5qp-xj4w,
+  CVSS 6.8 MEDIUM), an incomplete fix for the earlier GHSA-r2wg-2mcr-66rv
+  terminal proxy traversal, present in Open WebUI v0.9.6 and prior main.
+
+  `_sanitize_proxy_path()` in `backend/open_webui/routers/terminals.py`
+  decodes a caller-supplied path parameter for up to 8 `unquote()`
+  rounds, then applies `posixpath.normpath()` and a `..`-prefix check to
+  the result. A path parameter encoded 9 times still contains one layer
+  of percent-encoded dot/slash bytes after those 8 rounds, so the
+  traversal check runs against literal `%2E%2E%2F...` text rather than
+  `../...` and passes. The sanitized-but-still-encoded value is
+  forwarded to the configured terminal server, which decodes it itself
+  and turns it back into a traversal (`/base/../admin/system`) --
+  reaching upstream paths outside the intended normalized proxy path
+  with the connection's forwarded credentials and `X-User-Id` header.
+
+  Detection logic flags a terminal-proxy path parameter carrying 9 or
+  more literal `%25` sequences (the escaped-`%` signature of a
+  multiply-encoded payload surviving into the request) -- the exact
+  over-encoding depth this advisory's fixed 8-round decode cap fails to
+  unwind.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact function, source file, and a
+  reproduction script demonstrating the 8-vs-9-round boundary), not yet
+  fixed at time of publication.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-frvj-c5qp-xj4w
+- https://attack.mitre.org/techniques/T1027/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_terminal_proxy_path:
+    cs-uri-stem|contains: /terminals/
+  selection_repeated_percent_encoding:
+    cs-uri-query|contains|all:
+    - '%2525'
+    - '%252525'
+  condition: selection_terminal_proxy_path and selection_repeated_percent_encoding
+falsepositives:
+- A fixed deployment that decodes until stable with a strict length cap
+  and rejects any value still containing encoded separators after that
+  -- a matching over-encoded request on a fixed deployment would be
+  rejected rather than forwarded
+- A legitimate terminal path parameter that happens to contain
+  multiply-encoded characters for an unrelated reason -- narrow in
+  practice given the specific 9-plus round depth this signature
+  requires, well past any normal single or double encoding a client
+  would produce
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires infrastructure logging that captures
+  the full request path/query with encoding intact, which some proxy
+  configurations normalize before logging
+level: medium
+tags:
+- attack.t1027
+- wrg.observed.cve.cve_2026_59221
+- wrg.observed.source.open_webui_ghsa_frvj_c5qp_xj4w
+- wrg.observed.vector.fixed_depth_decode_cap_bypass
+- wrg.observed.vector.incomplete_prior_fix
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.defense_evasion

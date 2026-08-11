@@ -13,9 +13,79 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 193 rules.
+Corpus 100 → 203 rules.
 
 ### Added
+
+- **Ten more rules: two new runtimes (Flyto2 Core AI-agent workflow
+  engine, AWS Bedrock AgentCore SDK), one MCP server (AWS API MCP
+  Server), and four more Open WebUI access-control/auth gaps**, sourced
+  by cross-checking `gh api advisories` against pip-ecosystem
+  high/critical CVEs not yet covered by this corpus:
+
+  - `initial_access/observed_flyto2_http_redirect_ssrf_revalidation_gap_t1190.yml` —
+    CVE-2026-67424 (CVSS 8.6). Flyto2's guarded HTTP modules validate
+    only the initial URL; aiohttp's default `allow_redirects=True`
+    follows a 302 into internal/metadata space with no per-hop
+    revalidation.
+  - `initial_access/observed_flyto2_sibling_modules_missing_ssrf_guard_t1190.yml` —
+    CVE-2026-67428 (CVSS 8.6). A dozen HTTP-emitting modules carry an
+    inert `ssrf_protected` metadata tag but never call the guard their
+    siblings apply — direct-IP SSRF to cloud metadata, no encoding
+    trick needed.
+  - `credential_access/observed_flyto2_env_interpolation_denylist_bypass_t1552.yml` —
+    CVE-2026-67427 (CVSS 8.6). `${env.VAR}` template interpolation
+    resolves any host environment variable with no allowlist, bypassing
+    the `env.get` module denylist the vendor built specifically to
+    block secret exfiltration.
+  - `command_and_control/observed_flyto2_image_download_arbitrary_file_write_t1105.yml` —
+    CVE-2026-67429 (CVSS 8.6). `image.download`'s path check validates
+    the target against a caller-supplied `output_dir` — the attacker
+    controls both the value and the base it's checked against — so
+    arbitrary attacker-hosted bytes land outside `FLYTO_SANDBOX_DIR`.
+  - `execution/observed_bedrock_agentcore_install_packages_extras_metachar_injection_t1059.yml` —
+    CVE-2026-16796. The pre-1.18.1 extras-group regex accepted any
+    character inside `[...]`, and specifiers were joined without shell
+    quoting — `requests[$(id)]` reached a shell intact inside the Code
+    Interpreter sandbox.
+  - `defense_evasion/observed_aws_api_mcp_server_policy_load_failure_silent_bypass_t1562_001.yml` —
+    CVE-2026-16584. A startup security-policy load failure logs and
+    continues rather than failing closed — the per-request deny/gate
+    check is silently skipped for the process's entire lifetime.
+  - `defense_evasion/observed_open_webui_terminal_proxy_9x_encoding_traversal_bypass_t1027.yml` —
+    CVE-2026-59221, an incomplete fix for an earlier terminal-proxy
+    traversal. The sanitizer's fixed 8-round decode cap lets a 9x
+    percent-encoded `../` survive as literal text through the traversal
+    check, then get re-decoded by the upstream terminal server.
+  - `privilege_escalation/observed_open_webui_terminal_identity_spoofing_unsigned_forward_t1548.yml` —
+    CVE-2026-59224. The terminal WebSocket path concatenates an
+    unvalidated, unencoded `session_id` into the upstream URL — an
+    encoded `?`/`&` injects an attacker-chosen `user_id` ahead of the
+    one Open WebUI appended.
+  - `impact/observed_open_webui_channel_message_cross_channel_overwrite_t1565_001.yml` —
+    CVE-2026-59714. A `channel:`-prefixed `chat_id` skips ownership
+    verification entirely; a caller-supplied `message_id` (or
+    multimodel `message_ids` map) writes directly to the `Messages`
+    table with no channel-membership check.
+  - `credential_access/observed_open_webui_realtime_revoked_jwt_accepted_t1550.yml` —
+    CVE-2026-59219. Socket.IO and terminal-WebSocket auth call
+    `decode_token()` only — never consulting the Redis revocation keys
+    HTTP auth checks — so a JWT revoked by sign-out or back-channel
+    logout still authenticates new realtime connections.
+
+  Flyto2 and AWS advisories were fetched via `gh api advisories?cve_id=`
+  for full technical detail (root cause, source line, PoC); the
+  Bedrock AgentCore and AWS API MCP Server rules were additionally
+  cross-checked against the actual current source (fix commit diff for
+  the former, the live `policy.py` log message text for the latter) to
+  confirm the manifestation claim independent of the advisory's own
+  wording. 13 candidate Open WebUI CVEs from the W-cohort radar batch
+  were checked first; only 4 were not already covered.
+
+  All 10 validate_rule-clean, convert cleanly to Splunk + Elasticsearch.
+  INDEX.json regenerated (193→203), readme_stamp.py re-run, CHANGELOG
+  corpus claim updated 193→203, DEMO.md Summary re-read from the live
+  resource. Full suite: 631 passed. `claude plugin validate .` passed.
 
 - **Two more Open WebUI rules, found via the W-cohort `ai_runtime_cve_radar`
   archive after cross-checking 13 candidate CVEs against the existing

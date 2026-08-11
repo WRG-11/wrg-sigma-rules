@@ -1,0 +1,84 @@
+title: Flyto2 Core guarded HTTP modules -- T1190 SSRF guard validates only the initial URL, aiohttp follows the 302 into internal space
+id: 1e1e13a9-d9cb-41a8-8323-8a538d87070d
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-67424 (GHSA-c9hr-64h3-gxpc,
+  CVSS 8.6 HIGH), affecting Flyto2 Core (`flyto-core`) <= 2.26.6.
+
+  Flyto2's `http.get`, `http.request`, and `http.batch` modules call
+  `validate_url_with_env_config()` before issuing a request -- the
+  project's own SSRF guard, correctly applied here unlike the modules
+  in the sibling advisory GHSA-pgwh-4jj4-qm8v. But the guard validates
+  only the URL the caller supplied, and the subsequent
+  `session.get(url, ...)` call carries no `allow_redirects=False`, so
+  aiohttp's default `allow_redirects=True` transparently follows any
+  redirect the response returns -- with no re-validation of the
+  `Location` target. An attacker hosts a public URL that 302-redirects
+  to an internal or cloud-metadata address; the guard passes on the
+  public host, aiohttp follows the redirect, and the internal response
+  body is returned to the caller through a module the project believed
+  was SSRF-protected.
+
+  Detection logic flags a Flyto2 `http.get`/`http.request`/`http.batch`
+  module invocation whose target URL is a public host that responds
+  with a 3xx redirect to a private, loopback, or cloud-metadata
+  address -- the exact guard-then-redirect sequence this advisory's
+  proof of concept demonstrates against a live instance.
+
+  Aggregated from 1 first-party vendor security advisory (flyto-core, via
+  GHSA and NVD, citing the exact source files, line numbers, and a live
+  proof of concept confirming the redirect-to-loopback bypass), not yet
+  fixed at time of publication.
+references:
+- https://github.com/advisories/GHSA-c9hr-64h3-gxpc
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: network_connection
+  product: linux
+detection:
+  selection_outbound_http_module_call:
+    Image|contains: flyto
+  selection_redirect_response_code:
+    c-status:
+    - 301
+    - 302
+    - 303
+    - 307
+    - 308
+  selection_internal_destination:
+    r-dst:
+    - '10.'
+    - '172.16.'
+    - '192.168.'
+    - '127.'
+    - '169.254.'
+  condition: selection_outbound_http_module_call and selection_redirect_response_code and selection_internal_destination
+falsepositives:
+- A deployment already upgraded past the fix, where each hop's
+  `Location` header is re-validated through `validate_url_with_env_config`
+  before being followed, or `allow_redirects=False` is set and the
+  caller must re-issue the request manually -- a matching redirect
+  chain on a fixed deployment is rejected mid-chain rather than
+  followed
+- A legitimate workflow whose public target happens to redirect to an
+  internal monitoring or health-check endpoint the operator intended
+  the workflow engine to reach -- narrow in practice given internal
+  network segmentation normally prevents a public redirect target from
+  resolving to a private address in the first place
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires network telemetry that captures both
+  the redirect response and the subsequent internal connection
+  correlated to the same originating process, which most infrastructure
+  log sources do not provide by default
+level: high
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_67424
+- wrg.observed.source.flyto_core_ghsa_c9hr_64h3_gxpc
+- wrg.observed.vector.ssrf_guard_initial_url_only
+- wrg.observed.vector.redirect_revalidation_gap
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access
