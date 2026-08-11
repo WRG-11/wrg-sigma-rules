@@ -251,10 +251,10 @@ stale against the rules. Reading it returns markdown beginning:
 ```markdown
 ## Summary
 
-- Rules: 108
-- Incident rules (observed_*): 42
+- Rules: 114
+- Incident rules (observed_*): 48
 - Pattern rules (template_*): 66
-- Distinct ATT&CK techniques covered: 79
+- Distinct ATT&CK techniques covered: 80
 - Tactic groupings: 14
 ```
 

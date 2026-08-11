@@ -13,9 +13,73 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 108 rules.
+Corpus 100 → 114 rules.
 
 ### Added
+
+- **Three MCP-ecosystem vendor-disclosed CVE rules**, selected for
+  mechanism diversity rather than repeating the same unauthenticated-
+  endpoint shape:
+
+  - `initial_access/observed_mcp_pinot_unauth_confused_deputy_t1190.yml` —
+    CVE-2026-49257 (CVSS 10.0). `mcp-pinot` defaulted OAuth off and bound
+    to `0.0.0.0:8080`; the server proxied every call with its OWN Pinot
+    credentials rather than the (nonexistent) caller identity — a
+    confused-deputy, not merely a missing check.
+  - `execution/observed_flowise_custom_mcp_header_spoof_rce_t1059.yml` —
+    CVE-2025-71336 (CVSS 9.3). Flowise's Custom MCP endpoint trusted a
+    spoofable `x-request-from: internal` header for internal-request
+    classification; VulnCheck's corroborating PoC payloads (quoted in the
+    rule) demonstrate direct OS command execution from one unauthenticated
+    HTTP request.
+  - `privilege_escalation/observed_mcp_toolbox_protocol_downgrade_scope_bypass_t1548.yml` —
+    CVE-2026-11719 (Google's MCP Toolbox for Databases). Only the newest
+    MCP protocol-version handler enforced per-tool `scopesRequired`; three
+    older (still-supported) handlers omitted the check, and OMITTING the
+    `MCP-Protocol-Version` header entirely defaulted to the most
+    vulnerable one. Mapped to the T1548 parent technique rather than a
+    sub-technique, since none of the existing sub-techniques describes a
+    protocol-version selector silently disabling its own newest auth
+    check.
+
+  All three `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch. `duplicate_rule_check.py` flags mcp-pinot and the
+  corpus's existing Ruflo rule as sharing a (T1190, proxy) key —
+  expected and non-blocking: two different CVEs/campaigns legitimately
+  sharing one MITRE technique + logsource pairing, the same pattern this
+  corpus already has for T1027 across 4 AI-fingerprint rules.
+
+- **Three more vendor-disclosed CVE rules**, same sourcing discipline as
+  the four above (first-party GHSA advisories):
+
+  - `execution/observed_praisonai_claude_gha_branch_injection_t1059_004.yml` —
+    CVE-2026-48168 (CVSS 10.0). PraisonAI's bundled Claude GitHub Actions
+    workflow interpolated an unquoted, attacker-controlled PR branch name
+    into a Bash `run:` block, with no `author_association` gate on the
+    `@claude` trigger. Filed under `execution` (T1059.004) rather than
+    `initial_access` like its GHA siblings, because the injection artifact
+    is the branch-name string reaching the shell, not a trusted config file.
+  - `initial_access/observed_agenticmail_bridge_wake_unverified_sender_t1566.yml` —
+    CVE-2026-57495 (CVSS 8.2). An inbound email to AgenticMail's bridge
+    inbox resumed a fully-privileged agent session
+    (`permissionMode: 'bypassPermissions'`) with attacker-controlled
+    `from`/`subject`/`preview` embedded verbatim into the resumed prompt,
+    with no sender verification -- a sibling handler in the same codebase
+    already had the equivalent check, and bridge-wake simply lacked it.
+    Falsepositives section says plainly that on an unpatched install this
+    is the systemic shape of every bridge-wake event, not an attack-only
+    signature.
+  - `collection/observed_claude_code_copy_tmp_symlink_t1552.yml` —
+    CVE-2026-46406 (CVSS 4.4). Claude Code's `/copy` command wrote to a
+    hardcoded `/tmp/claude/response.md` with no UID isolation or symlink
+    protection, letting a local unprivileged user pre-plant a symlink and
+    have a privileged user's `/copy` output overwrite an arbitrary file.
+    Only the symlink-planting half is detected; the rule states outright
+    that the read-disclosure half of the advisory is not something a host
+    log can distinguish from a benign file read.
+
+  All three `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Four MCP/agent-tooling vendor-disclosed CVE rules** (each sourced from a
   first-party GHSA security advisory, not a third-party restatement — the
