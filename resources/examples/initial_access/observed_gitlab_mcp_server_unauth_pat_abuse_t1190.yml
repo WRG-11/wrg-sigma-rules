@@ -1,0 +1,74 @@
+title: GitLab MCP Server -- T1190 no-host-bind unauthenticated PAT-backed mutation endpoint
+id: fd597c05-714b-4a7b-b373-1ec908dad4f1
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-44895 (GHSA-8jr5-6gvj-rfpf,
+  CVSS 9.2 CRITICAL), a self-reported advisory for `mcp-gitlab-server`,
+  which lets an AI agent talk directly to GitLab.
+
+  Prior to 0.6.0, `src/transport.ts`'s HTTP transport shipped with no
+  authentication layer and a wildcard `Access-Control-Allow-Origin: *` on
+  every response. The `httpServer.listen(port)` call at line 97 passes no
+  host argument, so Node.js defaults the bind to `0.0.0.0` -- exposed on
+  every interface, not just loopback. Any unauthenticated caller reaching
+  `/sse` or `/messages?sessionId=<id>` could invoke mutation-capable
+  GitLab operations (the advisory's own PoC reaches `delete_repository`
+  and `push_files`) backed by the operator's own
+  `GITLAB_PERSONAL_ACCESS_TOKEN` -- with the wildcard CORS header,
+  even a malicious web page the operator merely visits in a browser could
+  reach it cross-origin.
+
+  Detection logic flags a request to either affected endpoint invoking one
+  of the destructive/mutating tool names, with no bearer credential
+  present -- the specific combination of endpoint + mutation-capable
+  operation + missing auth is what distinguishes this from routine,
+  authenticated agent traffic once the fix's auth requirement is active.
+
+  Aggregated from 1 first-party vendor security advisory (yoda-digital,
+  via GHSA and NVD), fixed in 0.6.0 (requires `MCP_GITLAB_AUTH_TOKEN` when
+  `USE_SSE=true`, binds to `127.0.0.1` by default, restricts CORS to
+  localhost, and validates the Authorization header).
+references:
+- https://github.com/yoda-digital/mcp-gitlab-server/security/advisories/GHSA-8jr5-6gvj-rfpf
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_sse_or_messages_endpoint:
+    cs-uri-stem|contains:
+    - /sse
+    - /messages
+  selection_mutation_tool:
+    cs-uri-query|contains:
+    - delete_repository
+    - push_files
+    - create_or_update_file
+    - merge_merge_request
+  selection_no_auth_header:
+    cs(Authorization): null
+  condition: selection_sse_or_messages_endpoint and selection_mutation_tool and selection_no_auth_header
+falsepositives:
+- A deployment already upgraded to 0.6.0+, where `MCP_GITLAB_AUTH_TOKEN`
+  is required whenever SSE is enabled and the bind defaults to loopback
+  -- a matching request on a fixed, non-loopback-exposed deployment would
+  already have been refused at the network layer
+- Legitimate localhost-only agent traffic on an unfixed version where the
+  operator has not yet exposed the port beyond loopback -- correlate with
+  source-IP scope (non-loopback origin) to distinguish local development
+  from real exposure, the same discrimination this corpus's other
+  no-host-bind MCP rules (mcp-pinot, Network-AI) use
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_44895
+- wrg.observed.source.yoda_digital_ghsa_8jr5_6gvj_rfpf
+- wrg.observed.vector.no_host_argument_default_bind
+- wrg.observed.vector.pat_backed_confused_deputy
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.initial_access

@@ -13,9 +13,40 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 126 rules.
+Corpus 100 → 129 rules.
 
 ### Added
+
+- **Three more CVE rules; three n8n candidates rejected in the same
+  pass.** n8n disclosed 10 CVEs the same day (2026-05-04); three looked
+  promising by NVD summary (prototype-pollution RCE via xml2js, MCP OAuth
+  client_name XSS, foreign-credential exfiltration) but each advisory
+  turned out to be a high-level restatement with no quoted payload, XML,
+  or code — rejected on the same sourcing grounds as the Eclipse
+  Theia/Warp candidates earlier in this file. The three that DID carry
+  line numbers, working payloads, and captured output:
+
+  - `initial_access/observed_gitlab_mcp_server_unauth_pat_abuse_t1190.yml` —
+    CVE-2026-44895 (CVSS 9.2). `mcp-gitlab-server`'s HTTP transport
+    called `httpServer.listen(port)` with no host argument
+    (`transport.ts:97`), defaulting the bind to `0.0.0.0` with no auth
+    and wildcard CORS, exposing GitLab-PAT-backed mutation tools
+    (`delete_repository`, `push_files`) to any caller.
+  - `credential_access/observed_mcp_kubernetes_log_injection_token_exfil_t1557.yml` —
+    CVE-2026-47250. `kubectl_generic`'s unallowlisted `flags` object let
+    an attacker with only pod-log-write access plant a JSON instruction
+    that, once a privileged operator's agent read the log and followed
+    it, redirected `kubectl`'s `--server` to an attacker host with
+    `--insecure-skip-tls-verify`, capturing the operator's bearer token
+    (advisory's own PoC: `CAPTURED: Bearer EXFIL-CONFIRM-THIS-TOKEN-12345`).
+  - `execution/observed_fastgpt_sandbox_regex_bypass_import_t1059_007.yml` —
+    CVE-2026-44287. FastGPT's sandbox blocked dynamic `import()` with a
+    whitespace-only regex; a block comment's delimiter bytes aren't in
+    `\s`, so `import/**/("child_process")` parses as valid JS the filter
+    never sees, reaching unrestricted `execSync`.
+
+  All three `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Four more CVE rules; one candidate (IBM Langflow SSRF) dropped after
   its primary source returned HTTP 403 and could not be read directly** —
