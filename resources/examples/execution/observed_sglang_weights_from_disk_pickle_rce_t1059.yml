@@ -1,0 +1,74 @@
+title: SGLang update_weights_from_disk -- T1059 torch.load weights_only=False fallback enables pickle RCE
+id: 7b099f43-2ff1-4400-9d53-238db84358a1
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-15976 (GHSA-wf98-gv64-5wrf,
+  CVSS 9.8 CRITICAL), affecting SGLang.
+
+  `/update_weights_from_disk` loads model weight files
+  (`.bin`) that a caller can direct SGLang to fetch from a HuggingFace
+  repository. When loading, SGLang falls back to
+  `torch.load(..., weights_only=False)` -- PyTorch's own documentation
+  is explicit that this mode is UNSAFE for untrusted input, since it
+  enables full pickle deserialization rather than the restricted
+  tensor-only loading `weights_only=True` provides. A `.bin` file crafted
+  as a malicious pickle stream (disguised as model weights) therefore
+  achieves remote code execution the moment SGLang loads it -- the third
+  distinct pickle-deserialization RCE in the same coordinated disclosure
+  series alongside `observed_sglang_lora_adapter_safeunpickler_bypass_rce_t1059`
+  and `observed_sglang_dumper_subsystem_sandbox_escape_t1059`, this one
+  reached via a HuggingFace-repository weight-loading path rather than a
+  direct tensor-upload or debug-port path.
+
+  Detection logic flags a request to `/update_weights_from_disk` (or
+  `/update_weights_from_huggingface`, the equivalent repository-source
+  path) whose target file has a `.bin` extension and originates from a
+  repository outside an operator-curated allowlist -- the specific
+  artifact-loading path this bug reaches, distinct from the
+  already-trusted, operator-provisioned model repository.
+
+  Aggregated from 2 independent sources (SGLang's own GHSA advisory + an
+  independent security researcher's corroborating disclosure write-up,
+  part of the same coordinated multi-CVE SGLang research series), no
+  patched version confirmed in the summary available at authoring time.
+references:
+- https://github.com/sgl-project/sglang/security/advisories/GHSA-wf98-gv64-5wrf
+- https://thoughts.apoorvdayal.com/posts/sglang-disclosures/
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_update_weights_endpoint:
+    cs-uri-stem|contains:
+    - /update_weights_from_disk
+    - /update_weights_from_huggingface
+  selection_method_post:
+    cs-method: POST
+  condition: selection_update_weights_endpoint and selection_method_post
+falsepositives:
+- A deployment already upgraded to a fixed version once one ships, where
+  weight loading uses `weights_only=True` (PyTorch's own safe-loading
+  mode) rather than the unsafe fallback -- a matching request on a fixed
+  deployment loads only tensors, never arbitrary pickle content
+- Legitimate weight-update operations from an operator-curated,
+  trusted repository -- this rule flags every request to the endpoint
+  since network proxy logs typically cannot inspect the source
+  repository's trust status; correlate against an allowlist of approved
+  HuggingFace repositories to reduce false positives
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_15976
+- wrg.observed.source.sglang_ghsa_wf98_gv64_5wrf
+- wrg.observed.source.apoorvdayal_disclosure_series
+- wrg.observed.vector.torch_load_weights_only_false
+- wrg.observed.vector.pickle_deserialization_rce
+- wrg.observed.cluster.sglang_2026_08_disclosure_series
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

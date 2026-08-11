@@ -1,0 +1,64 @@
+title: Open WebUI model meta.knowledge -- T1005 attached foreign file_id authorizes read/delete via model metadata
+id: 5038ead4-f72d-4c87-98a4-bfbfb9d4bc29
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54012 (GHSA-vjqm-6gcc-62cr,
+  CVSS 7.1 HIGH), affecting Open WebUI prior to 0.9.6.
+
+  Any user who can create, update, or import a workspace model can store
+  arbitrary `meta.knowledge` entries on that model without Open WebUI
+  checking whether they own or can read the referenced files. Two
+  DOWNSTREAM code paths then trust those entries as an authorization
+  source: the built-in `view_file` tool reads the referenced file's
+  extracted text when the model is used, and `has_access_to_file()`'s
+  MODEL branch authorizes the file-content and file-delete endpoints
+  based on the same metadata. A malicious model owner can therefore
+  attach another user's `file_id` to their own model's `meta.knowledge`
+  and both read and DELETE that private file -- a mechanistically
+  distinct sibling of `observed_open_webui_shared_chat_file_ownership_bypass_t1005`
+  (which reaches the same class of bug through chat sharing rather than
+  model metadata).
+
+  Detection logic flags a model create/update/import request whose
+  `meta.knowledge` array references a `file_id` NOT owned by the
+  requesting user -- the exact check both downstream authorization paths
+  needed and neither performed.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD), fixed in 0.9.6.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-vjqm-6gcc-62cr
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_model_metadata_write:
+    Message|contains: meta.knowledge
+  selection_foreign_file_reference:
+    Message|contains: 'file_owner_match: false'
+  condition: selection_model_metadata_write and selection_foreign_file_reference
+falsepositives:
+- A deployment already upgraded to 0.9.6+, where model-metadata writes
+  validate `file_id` ownership before storing the `meta.knowledge`
+  entry -- a matching request on a fixed deployment would be rejected
+- 'This rule''s "file_owner_match: false" marker is illustrative,
+  approximating what a hardened build''s own logging might record -- the
+  advisory documents the vulnerable CODE PATH (view_file and
+  has_access_to_file()''s model branch), not a specific log line
+  format; deploying this rule requires adapting it to whatever Open
+  WebUI''s actual application logs capture'
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_54012
+- wrg.observed.source.open_webui_ghsa_vjqm_6gcc_62cr
+- wrg.observed.vector.model_metadata_unchecked_file_reference
+- wrg.observed.cluster.open_webui_file_ownership_bypass_family
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.collection

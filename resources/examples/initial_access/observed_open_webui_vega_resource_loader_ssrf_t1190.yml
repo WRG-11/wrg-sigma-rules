@@ -1,0 +1,69 @@
+title: Open WebUI Vega chart rendering -- T1190 unrestricted resource loader issues attacker-chosen GETs
+id: 01fff18a-ba69-43c0-98f9-4a0ecda8ec3c
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70480 (GHSA-rffm-9q57-q649),
+  affecting Open WebUI from 0.6.34 until 0.11.0.
+
+  Open WebUI renders `vega` and `vega-lite` fenced code blocks in chat
+  content by building a live Vega view directly in the VIEWER's browser,
+  without a restricted resource loader -- Vega's own spec format supports
+  data-loading directives that fetch external URLs as part of rendering
+  the chart. Any user who can place such a block where another user will
+  see it (a shared chat, a channel) can make that OTHER user's browser
+  issue attacker-chosen outbound GET requests and have the responses from
+  same-origin or CORS-permissive targets rendered directly into the page
+  the victim is viewing -- a stored, victim-executed SSRF/data-exfiltration
+  primitive delivered through ordinary chat content.
+
+  Detection logic flags a stored chat message containing a `vega`/
+  `vega-lite` fenced code block whose spec references a `data`/`url`
+  directive targeting a private, loopback, or link-local address --
+  ordinary chart specs reference public data sources or inline data, not
+  internal network targets.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact fix commit and PR), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-rffm-9q57-q649
+- https://github.com/open-webui/open-webui/commit/5278eb906ebecefc6538a19bc86df09d997e43e6
+- https://github.com/open-webui/open-webui/pull/26806
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_vega_fenced_block:
+    Message|contains:
+    - '```vega'
+    - '```vega-lite'
+  selection_internal_data_url:
+    Message|contains:
+    - '127.'
+    - '169.254.'
+    - '192.168.'
+  condition: selection_vega_fenced_block and selection_internal_data_url
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where the Vega view uses a
+  restricted resource loader -- a matching stored message on a fixed
+  deployment renders the chart without issuing the internal-target
+  request
+- A legitimate chart spec that references a public IP address literal
+  containing similar digit sequences for unrelated reasons -- narrow in
+  practice given the specific private/loopback/link-local ranges matched
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of stored
+  chat message content, which most infrastructure log sources do not
+  capture by default
+level: medium
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_70480
+- wrg.observed.source.open_webui_ghsa_rffm_9q57_q649
+- wrg.observed.vector.unrestricted_vega_resource_loader
+- wrg.observed.vector.stored_victim_executed_ssrf
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access

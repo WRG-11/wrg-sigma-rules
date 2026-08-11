@@ -1,0 +1,66 @@
+title: Open WebUI knowledge sync cleanup -- T1485 write-access-to-one-KB deletes files from another
+id: 9ce66190-b481-4a05-8d57-81c5d8b95b93
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70488 (GHSA-jxc9-xmc4-gr23,
+  CVSS 4.3 MEDIUM), affecting Open WebUI from 0.9.6 until 0.11.0.
+
+  The sync cleanup endpoint authorized WRITE access to the knowledge base
+  named in the URL, then acted on directory and file ids supplied in the
+  REQUEST BODY without checking that those objects actually belonged to
+  that same knowledge base. A user with write access to knowledge base A
+  could therefore delete directories and remove file embeddings from
+  knowledge base B, breaking retrieval and chat-with-file for the
+  targeted documents in a knowledge base they had no legitimate access
+  to -- a targeted-availability attack rather than a content-disclosure
+  one.
+
+  Detection logic flags a sync-cleanup request whose body-supplied
+  directory/file ids resolve to a DIFFERENT knowledge base than the one
+  named in the URL path and authorized against -- the specific
+  cross-object mismatch the vulnerable endpoint failed to check.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact fix commit and PR), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-jxc9-xmc4-gr23
+- https://github.com/open-webui/open-webui/commit/707efeaed7992dd9896d5928559458f228b9a539
+- https://github.com/open-webui/open-webui/pull/26722
+- https://attack.mitre.org/techniques/T1485/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_sync_cleanup_endpoint:
+    cs-uri-stem|contains: /knowledge/
+    cs-uri-stem|contains: /sync
+  selection_method_post_or_delete:
+    cs-method:
+    - POST
+    - DELETE
+  condition: selection_sync_cleanup_endpoint and selection_method_post_or_delete
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where the endpoint validates
+  that body-supplied directory/file ids belong to the URL-authorized
+  knowledge base -- a mismatched request on a fixed deployment would be
+  rejected rather than deleting the target objects
+- A legitimate sync-cleanup operation targeting the SAME knowledge base
+  the caller was authorized against -- this rule flags every request to
+  the endpoint since HTTP proxy logs typically cannot capture the
+  cross-knowledge-base id mismatch on their own; correlate the
+  body-supplied ids against the URL-named knowledge base (from
+  application-level logs) to confirm a real cross-KB deletion
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1485
+- wrg.observed.cve.cve_2026_70488
+- wrg.observed.source.open_webui_ghsa_jxc9_xmc4_gr23
+- wrg.observed.vector.url_authz_body_object_mismatch
+- wrg.observed.vector.cross_knowledge_base_deletion
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

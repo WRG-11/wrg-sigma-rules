@@ -1,0 +1,75 @@
+title: agno ClickHouse vector store -- T1059 unsafe f-string metadata SQL injection in delete_by_metadata
+id: 9295f215-9f6d-47ad-a853-2f00af651f92
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-10105 (CVSS 8.7 HIGH), a
+  self-reported issue for agno (2.6.5), an AI-agent framework, in its
+  ClickHouse vector-database backend.
+
+  `clickhousedb.py`'s `delete_by_metadata()` built its `WHERE` clause with
+  unsafe f-string interpolation of caller-supplied metadata keys and
+  values directly into the SQL text:
+  `f"JSONExtractString(toString(filters), '{key}') = '{value}'"`. Neither
+  `key` nor `value` was escaped or parameterized. An attacker who controls
+  either -- for example, metadata attached to agent-ingested content --
+  can supply a `value` like `1' OR '1'='1` to turn the intended equality
+  check into a tautology, producing
+  `JSONExtractString(toString(filters), 'user_id') = '1' OR '1'='1'` and
+  matching every row rather than the intended one: mass deletion, targeted
+  row deletion, or error-based/blind data extraction, per the advisory.
+
+  Detection logic flags the resulting query-log artifact: a
+  `JSONExtractString` predicate whose value operand contains a SQL
+  boolean-tautology or comment idiom (`' OR '`, `'='`, `--`, `/*`) rather
+  than an ordinary metadata value -- this is the specific function this
+  vulnerable code path builds, so its presence with an injection idiom is
+  a tight signal, not a generic "SQL keyword in a query" heuristic.
+
+  Aggregated from 1 first-party vendor disclosure (agno-agi, via the
+  linked issue and merged fix PR, corroborated by VulnCheck's independent
+  write-up), fixed via ClickHouse named-parameter binding (indexed
+  `meta_key_N`/`meta_val_N` parameters handled by the driver's own
+  escaping layer, matching the secure pattern already used elsewhere in
+  the same file).
+references:
+- https://github.com/agno-agi/agno/issues/7866
+- https://github.com/agno-agi/agno/pull/7883
+- https://www.vulncheck.com/advisories/agno-sql-injection-via-clickhouse-delete-by-metadata
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: clickhouse
+detection:
+  selection_jsonextractstring_predicate:
+    Message|contains: JSONExtractString(toString(filters)
+  selection_sqli_idiom:
+    Message|contains:
+    - "' OR '"
+    - "'='"
+    - '--'
+    - '/*'
+  condition: selection_jsonextractstring_predicate and selection_sqli_idiom
+falsepositives:
+- A deployment already upgraded to the fixed version, where keys/values
+  are bound as ClickHouse named parameters rather than interpolated into
+  the query text -- a matching log entry on a fixed deployment would show
+  parameter placeholders (`{meta_key_0:String}`), not raw injected SQL
+- A legitimate metadata value that coincidentally contains one of these
+  substrings for unrelated reasons (e.g. a document title containing
+  "--") -- narrow in practice given the specific `JSONExtractString`
+  function-call context required alongside it
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires database/application query-log content,
+  which many infrastructure log sources do not capture by default
+level: high
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_10105
+- wrg.observed.source.agno_agi_issue_7866_vulncheck
+- wrg.observed.vector.unsafe_fstring_sql_interpolation
+- wrg.observed.vector.vector_store_metadata_injection
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

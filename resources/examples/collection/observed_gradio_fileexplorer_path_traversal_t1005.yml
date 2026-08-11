@@ -1,0 +1,68 @@
+title: Gradio FileExplorer -- T1005 os.path.join root_dir prefix discard path traversal
+id: dbb4174e-3ec6-4c2a-92a7-1a7c39231328
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-49119 (CVSS 8.7 HIGH), affecting
+  Gradio before 6.16.0.
+
+  The `FileExplorer` component's `preprocess()` method joined caller-
+  supplied path segments with `os.path.join(self.root_dir, *segments)`
+  followed by `os.path.normpath()`. Two ways this fails to confine the
+  result to `root_dir`: an ABSOLUTE path segment (e.g. `["/etc/passwd"]`)
+  causes `os.path.join` to discard the `root_dir` prefix entirely (a
+  well-known Python `os.path.join` footgun), and a `..`-laden segment
+  list (e.g. `["..", "..", "etc", "passwd"]`) resolves outside root via
+  normal traversal. Either shape lets an unauthenticated caller read
+  arbitrary files reachable by the server process, outside the directory
+  the component's configuration was meant to confine them to.
+
+  Detection logic flags a request to a FileExplorer-backed endpoint whose
+  path-segment parameter is either an absolute path or contains a `..`
+  traversal component -- the two shapes the advisory's own fix
+  specifically targets by switching to the already-safe `_safe_join()`
+  helper (the same one the component's `ls()` endpoint already used).
+
+  Aggregated from 1 first-party vendor fix (gradio-app/gradio, via the
+  merged PR and VulnCheck's corroborating write-up), fixed in 6.16.0.
+references:
+- https://github.com/gradio-app/gradio/pull/13437
+- https://github.com/gradio-app/gradio/releases/tag/gradio%406.16.0
+- https://www.vulncheck.com/advisories/gradio-path-traversal-via-fileexplorer-preprocess
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_fileexplorer_endpoint:
+    cs-uri-stem|contains: /file
+  selection_absolute_or_traversal_segment:
+    cs-uri-query|contains:
+    - '%2e%2e'
+    - '../'
+    - '..%2f'
+    - 'root=%2f'
+    - '/etc/passwd'
+  condition: selection_fileexplorer_endpoint and selection_absolute_or_traversal_segment
+falsepositives:
+- A deployment already upgraded to 6.16.0+, where `_safe_join()` rejects
+  absolute paths and `..` segments with an `InvalidPathError` before any
+  file access -- a matching request on a fixed deployment would be
+  refused rather than returning file content
+- Legitimate file-browsing traffic where a path segment coincidentally
+  contains `..` as part of a real filename (rare but possible on some
+  filesystems) -- narrow in practice given the specific patterns matched
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; the exact query-parameter shape a given FileExplorer-backed
+  Gradio app uses may differ from this rule's generic assumptions
+level: high
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_49119
+- wrg.observed.source.gradio_app_pr_13437_vulncheck
+- wrg.observed.vector.os_path_join_prefix_discard
+- wrg.observed.vector.dot_dot_traversal
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.collection

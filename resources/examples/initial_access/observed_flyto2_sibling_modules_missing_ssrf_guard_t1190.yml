@@ -1,0 +1,83 @@
+title: Flyto2 Core sibling modules -- T1190 numerous HTTP-emitting modules carry an inert SSRF metadata tag and call no guard at all
+id: 511e1f08-b378-4796-9ffe-ca46cf2f9523
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-67428 (GHSA-pgwh-4jj4-qm8v,
+  CVSS 8.6 HIGH), affecting Flyto2 Core (`flyto-core`) <= 2.26.6.
+
+  Flyto2's SSRF guard (`validate_url_with_env_config`) is per-module
+  with no global egress interception, and a wide set of HTTP-emitting
+  modules -- `core.api.http_get`, `core.api.http_post`,
+  `graphql.query`/`graphql.mutation`, `monitor.http_check`,
+  `communication.slack_send`, the `discord`/`slack`/`teams`
+  notification senders, the `ai.vision_analyze` Anthropic path,
+  `verify.visual_diff`, `browser.proxy_rotate`, and the `agent`/`llm`
+  inline `base_url` branch -- never call it. Each carries only an
+  `ssrf_protected` metadata tag string that enforces nothing; a repo
+  grep of the exemplar module for `validate_url`/`ssrf`/`is_private`
+  returns zero guard calls. An authenticated workflow-author can point
+  any of these modules' URL parameter directly at the cloud metadata IP
+  or an internal host and receive the full response body back, with no
+  encoding trick required.
+
+  Detection logic flags an invocation of one of this advisory's named
+  unguarded modules whose URL parameter targets the cloud metadata
+  address or a private/loopback range -- the exact direct-IP SSRF this
+  advisory's live proof of concept confirms, contrasted against the
+  guarded sibling `http.get` rejecting the identical input on the same
+  instance.
+
+  Aggregated from 1 first-party vendor security advisory (flyto-core, via
+  GHSA and NVD, citing every affected module by name, the exact source
+  file with zero guard-call hits, and a live proof of concept
+  contrasting guarded vs. unguarded behavior on identical input), not
+  yet fixed at time of publication.
+references:
+- https://github.com/advisories/GHSA-pgwh-4jj4-qm8v
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_unguarded_module_call:
+    Message|contains:
+    - core.api.http_get
+    - core.api.http_post
+    - monitor.http_check
+    - communication.slack_send
+    - browser.proxy_rotate
+  selection_internal_metadata_target:
+    Message|contains:
+    - '169.254.169.254'
+    - '127.0.0.1'
+    - '10.'
+    - '172.16.'
+    - '192.168.'
+  condition: selection_unguarded_module_call and selection_internal_metadata_target
+falsepositives:
+- A deployment already upgraded past the fix, where each listed module
+  calls `validate_url_with_env_config()` before issuing its request or
+  all outbound HTTP is routed through a single guarded client wrapper
+  -- a matching internal-target invocation on a fixed deployment is
+  rejected
+- A legitimate monitoring or integration workflow that genuinely
+  targets an internal host the operator intended these modules to
+  reach -- these modules have no SSRF protection by design in the
+  vulnerable version, so intended internal use is indistinguishable
+  from abuse without a policy-level allowlist this rule cannot see
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of workflow
+  module invocations with their resolved URL parameters, which most
+  infrastructure log sources do not capture by default
+level: high
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_67428
+- wrg.observed.source.flyto_core_ghsa_pgwh_4jj4_qm8v
+- wrg.observed.vector.inert_metadata_tag_no_enforcement
+- wrg.observed.vector.per_module_guard_coverage_gap
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

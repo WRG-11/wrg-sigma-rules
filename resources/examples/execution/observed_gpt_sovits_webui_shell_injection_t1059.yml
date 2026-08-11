@@ -1,0 +1,69 @@
+title: GPT-SoVITS webui -- T1059 Gradio textbox shell=True command injection
+id: 53c82bfe-38aa-4f89-9232-1188d89f4b69
+status: experimental
+description: |
+  Detection for CVE-2026-63766 (CVSS 9.3 CRITICAL), affecting GPT-SoVITS
+  through version 20250606v2pro.
+
+  `webui.py`'s ASR, slice, denoise, and uvr5 handlers (the ASR path,
+  approximately lines 376-395) build shell command strings by directly
+  interpolating Gradio textbox values -- e.g.
+  `cmd = '"%s" -s tools/asr/funasr/funasr_asr.py -i "%s" -o "%s" ...' %
+  (python_exec, asr_inp_dir, asr_opt_dir)` -- and execute them with
+  `Popen(cmd, shell=True)`. The project's own sanitization helper,
+  `clean_path()` (`tools/my_utils.py`, near line 39), strips only
+  whitespace and quote characters; it does not remove shell
+  metacharacters (`;`, `` ` ``, `$()`), so an attacker who can reach the
+  webui (no authentication by default) can supply a crafted path value
+  such as `"; touch /tmp/pwned; "` to break out of the intended quoted
+  argument and run an arbitrary trailing command as the server process
+  user -- the same underlying flaw repeats across all four affected
+  handlers.
+
+  Detection logic flags the resulting host-level artifact: a `Popen`/
+  shell child process spawned as a descendant of the GPT-SoVITS webui
+  process whose command line contains a shell metacharacter immediately
+  following a quoted path-like argument -- the specific
+  `"<path>" ... "; <injected>"` construction `clean_path()`'s incomplete
+  filtering makes possible.
+
+  Aggregated from 1 first-party GitHub issue with maintainer/community
+  discussion (RVC-Boss/GPT-SoVITS, via VulnCheck's corroborating
+  write-up), quoting the vulnerable code and confirming the injection
+  behavior.
+references:
+- https://github.com/RVC-Boss/GPT-SoVITS/issues/2793
+- https://www.vulncheck.com/advisories/gpt-sovits-20250606v2pro-os-command-injection-via-webui-py
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_gpt_sovits_parent:
+    ParentCommandLine|contains: webui.py
+  selection_shell_metacharacter_after_quoted_arg:
+    CommandLine|re: '"[^"]*"\s*;\s*\S'
+  condition: selection_gpt_sovits_parent and selection_shell_metacharacter_after_quoted_arg
+falsepositives:
+- No patched version is confirmed at authoring time -- this rule cannot
+  rely on a fixed-deployment negative case
+- A legitimate file path that genuinely contains a semicolon for
+  unrelated reasons (unusual but not impossible on some filesystems) --
+  this rule cannot distinguish that from deliberate injection by
+  command-line content alone; the process-lineage condition (child of
+  `webui.py`) narrows the search space but does not resolve this
+  ambiguity
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_63766
+- wrg.observed.source.rvc_boss_issue_2793_vulncheck
+- wrg.observed.vector.incomplete_shell_metacharacter_sanitization
+- wrg.observed.vector.gradio_textbox_to_shell_true
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

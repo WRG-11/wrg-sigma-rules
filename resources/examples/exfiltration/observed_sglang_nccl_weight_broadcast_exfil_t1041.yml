@@ -1,0 +1,75 @@
+title: SGLang NCCL weight broadcast -- T1041 no-API-key deployment lets a remote caller exfiltrate all model weights
+id: 3fc3f65d-89ff-4f6f-bce8-b299c716d3a7
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-15978 (GHSA-cpqq-22v3-2wfm,
+  CVSS 7.5 HIGH), affecting SGLang.
+
+  When no API key is configured, SGLang exposes TWO endpoints that,
+  called in sequence by a remote caller, trigger DISTRIBUTED weight
+  broadcasting over NCCL (the GPU-to-GPU collective communication
+  library normally used internally for multi-GPU inference) and then
+  trigger a data transfer -- letting an attacker exfiltrate the entire
+  served model's weights over what is meant to be an internal,
+  trusted-cluster communication channel. This is a distinct failure mode
+  from the pickle-deserialization RCEs in the same disclosure series:
+  no deserialization bug is needed, only the absence of the API-key
+  gate that was meant to protect these two endpoints.
+
+  Detection logic flags the specific two-call sequence this exfiltration
+  path depends on: a request to the weight-broadcast-trigger endpoint
+  followed shortly by a request to the corresponding data-transfer
+  endpoint, from the same caller, on a deployment where no API key
+  authentication is configured -- either call alone is unremarkable
+  internal-cluster traffic, but the pairing from an external caller is
+  the exfiltration chain this advisory describes.
+
+  Aggregated from 2 independent sources (SGLang's own GHSA advisory + an
+  independent security researcher's corroborating disclosure write-up,
+  part of the same coordinated multi-CVE SGLang research series), no
+  patched version confirmed in the summary available at authoring time --
+  operators should always configure an API key even on deployments
+  believed to be internal-only.
+references:
+- https://github.com/sgl-project/sglang/security/advisories/GHSA-cpqq-22v3-2wfm
+- https://thoughts.apoorvdayal.com/posts/sglang-disclosures/
+- https://attack.mitre.org/techniques/T1041/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_weight_broadcast_endpoints:
+    cs-uri-stem|contains:
+    - init_weights_send_group_for_remote_instance
+    - send_weights_to_remote_instance
+  condition: selection_weight_broadcast_endpoints
+falsepositives:
+- A deployment already upgraded to a fixed version once one ships, where
+  these two endpoints require the same API-key authentication as the
+  rest of the inference API -- a matching request on a fixed, keyed
+  deployment would be rejected
+- Legitimate internal multi-node weight synchronization between an
+  operator's own SGLang instances during normal distributed-inference
+  operation -- this rule cannot distinguish that from an external
+  attacker by endpoint name alone; correlate the caller's source
+  address against the deployment's known internal cluster nodes to
+  reduce false positives
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; the exact endpoint path names are inferred from the
+  advisory's description of the mechanism (weight broadcasting via NCCL
+  plus a data-transfer trigger), not quoted verbatim, since the specific
+  route names are not stated in the source material available at
+  authoring time
+level: high
+tags:
+- attack.t1041
+- wrg.observed.cve.cve_2026_15978
+- wrg.observed.source.sglang_ghsa_cpqq_22v3_2wfm
+- wrg.observed.source.apoorvdayal_disclosure_series
+- wrg.observed.vector.no_api_key_nccl_weight_exfil
+- wrg.observed.cluster.sglang_2026_08_disclosure_series
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.exfiltration

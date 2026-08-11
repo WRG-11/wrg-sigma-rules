@@ -1,0 +1,69 @@
+title: NLTK NKJPCorpusReader -- T1005 builtin open() bypasses the pathsec sandbox even under ENFORCE mode
+id: 5a8a9213-bce6-4feb-931b-54881140cf17
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-12072 (GHSA-6hm5-jgcp-p838,
+  CVSS 7.5 HIGH), affecting NLTK's `NKJPCorpusReader`.
+
+  NLTK's `SECURITY.md` promises that file access is validated against
+  allowed data directories and that `nltk.pathsec.ENFORCE = True`
+  raises `PermissionError` on unauthorized access -- a guarantee
+  enforced through `FileSystemPathPointer.open()` calling
+  `nltk.pathsec.validate_path()`. `NKJPCorpusReader` never routes
+  through that protected path: `add_root()` builds the file path by
+  plain string concatenation (`self.root + fileid`, no `..`
+  stripping), and both `NKJPCorpus_Header_View` and `XML_Tool` open the
+  resulting path with the builtin `open()` rather than
+  `PathPointer.open()` -- so `pathsec`'s sentinel is never invoked and
+  `ENFORCE = True` provides no protection at all. A `fileids` argument
+  containing `../` sequences reaches `header()`, `raw()`, `words()`,
+  `sents()`, or `tagged_words()` and returns the parsed content of a
+  file outside the corpus root to the caller.
+
+  Detection logic flags an `NKJPCorpusReader` read invocation whose
+  `fileids` argument contains a `../` path-traversal sequence -- the
+  exact escape this advisory's proof of concept uses to read a
+  secret-marked `header.xml` planted outside a legitimate, empty corpus
+  root.
+
+  Aggregated from 1 first-party vendor security advisory (nltk, via
+  GHSA and NVD, citing the exact source file, line numbers for
+  `add_root()`/`XML_Tool`, and a runnable proof of concept with an
+  out-of-root secret marker), not yet fixed at time of publication.
+references:
+- https://github.com/nltk/nltk/security/advisories/GHSA-6hm5-jgcp-p838
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_nkjp_reader_invocation:
+    Message|contains: NKJPCorpusReader
+  selection_traversal_in_fileid:
+    Message|contains: '../'
+  condition: selection_nkjp_reader_invocation and selection_traversal_in_fileid
+falsepositives:
+- A deployment already upgraded past the fix, where `add_root()` routes
+  through `CorpusReader.open()` / `validate_path()` the same way the
+  safe API does -- a matching `../`-containing fileid on a fixed
+  version is rejected with `PermissionError` instead of opened
+- A legitimate corpus fileid that happens to contain a literal `..`
+  substring unrelated to path traversal (e.g. an ellipsis-style
+  filename) -- narrow in practice given real NKJP corpus fileids are
+  drawn from a fixed directory structure, not free-form user input
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of the
+  `fileids` argument passed to corpus reader methods, which most
+  infrastructure log sources do not capture by default
+level: high
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_12072
+- wrg.observed.source.nltk_ghsa_6hm5_jgcp_p838
+- wrg.observed.vector.builtin_open_bypasses_sandbox
+- wrg.observed.vector.string_concat_no_containment_check
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.collection

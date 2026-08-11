@@ -1,0 +1,83 @@
+title: Flyto2 Core image.download -- T1105 attacker-hosted bytes land outside the sandbox because the path check's base is caller-controlled
+id: 138c0966-8764-4279-8dc6-52ec65c33d19
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-67429 (GHSA-2956-977x-2w3r,
+  CVSS 8.6 HIGH), affecting Flyto2 Core (`flyto-core`)'s
+  `image.download` module and its file-writing siblings.
+
+  `image.download` in `src/core/modules/atomic/image/download.py`
+  fetches a caller-supplied URL and writes the response to disk. Unlike
+  `file.write`, which uses the central `validate_path_with_env_config()`
+  guard confining writes to `FLYTO_SANDBOX_DIR`, `image.download`
+  checks its target path against `output_dir` -- a parameter the SAME
+  caller also controls. Setting `output_dir` to `/` makes
+  `os.path.commonpath()` accept any absolute target, so the check is
+  self-defeating: the attacker chooses both the value being validated
+  and the base it is validated against. The HTTP response body --
+  fully attacker-controlled bytes, since the URL is only SSRF-checked,
+  not content-checked -- is then written verbatim to that path.
+  `image.convert`, `image.resize`, `document.excel_write`,
+  `document.pdf_fill_form` and several other file-writing modules share
+  the same caller-controlled-base pattern, though their content is
+  format-constrained; `image.download` is the strongest because the
+  written bytes are arbitrary.
+
+  Detection logic flags an `image.download` (or sibling file-writing
+  module) invocation whose `output_dir` parameter is a filesystem root
+  or a path outside the module's own default sandbox prefix -- the
+  exact caller-controlled-base pattern this advisory's proof of concept
+  demonstrates writes attacker bytes outside `FLYTO_SANDBOX_DIR` while
+  the guarded `file.write` sibling correctly refuses the identical
+  escape.
+
+  Aggregated from 1 first-party vendor security advisory (flyto-core, via
+  GHSA and NVD, citing the exact source file, a runnable reproduction
+  script contrasting `file.write` vs. `image.download` on the same
+  escape target, and a list of every other affected file-writing
+  module), not yet fixed at time of publication.
+references:
+- https://github.com/advisories/GHSA-2956-977x-2w3r
+- https://attack.mitre.org/techniques/T1105/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_file_writing_module_call:
+    Message|contains:
+    - image.download
+    - image.convert
+    - document.excel_write
+    - document.pdf_fill_form
+  selection_root_or_escaped_output_dir:
+    Message|contains:
+    - '"output_dir":"/"'
+    - '"output_dir":"/etc'
+    - '"output_dir":"/home'
+    - '..'
+  condition: selection_file_writing_module_call and selection_root_or_escaped_output_dir
+falsepositives:
+- A deployment already upgraded past the fix, where every file-writing
+  module uses `validate_path_with_env_config()` and confines writes to
+  `FLYTO_SANDBOX_DIR` regardless of a caller-supplied `output_dir` --
+  a matching escape attempt on a fixed deployment is rejected
+- A legitimate workflow that genuinely needs to write outside the
+  default sandbox location by operator design, on a deployment that
+  has not yet adopted the sandbox confinement model -- narrow given the
+  root/system-path targets this signature looks for
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of workflow
+  module parameters, which most infrastructure log sources do not
+  capture by default
+level: high
+tags:
+- attack.t1105
+- wrg.observed.cve.cve_2026_67429
+- wrg.observed.source.flyto_core_ghsa_2956_977x_2w3r
+- wrg.observed.vector.caller_controlled_validation_base
+- wrg.observed.vector.arbitrary_file_write_outside_sandbox
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.command_and_control

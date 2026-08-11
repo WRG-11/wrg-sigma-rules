@@ -1,0 +1,69 @@
+title: Open WebUI terminal proxy -- T1548 unsigned forwarded identity is spoofable via WebSocket session_id query injection
+id: 2a3b4c5d-6e7f-4890-9a1b-2c3d4e5f6071
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59224 (GHSA-j657-m4c4-24jq,
+  CVSS 6.5 MEDIUM), affecting Open WebUI's terminal proxy.
+
+  The terminal proxy forwards the caller's identity to the upstream
+  terminal server as an unsigned claim, with no cryptographic binding
+  to the session that produced it. On the WebSocket path,
+  `ws_terminal()` in `backend/open_webui/routers/terminals.py`
+  interpolates the path parameter `session_id` directly into the
+  upstream URL before appending `?user_id=<caller>` -- and unlike its
+  HTTP sibling `proxy_terminal`, this path runs no `_sanitize_proxy_path`
+  or URL-encoding on `session_id`. An attacker-controlled `session_id`
+  containing an encoded `?`/`&` survives Open WebUI's single decode,
+  is re-decoded by the upstream, and injects an attacker-chosen
+  `user_id` ahead of the one Open WebUI appended -- and because query
+  parsing binds the first occurrence, the backend coordinator resolves
+  the spoofed user's terminal scope instead of the caller's own.
+
+  Detection logic flags a terminal WebSocket connect whose `session_id`
+  path segment contains a percent-encoded query delimiter (`%3F` or
+  `%26`) -- the exact injection primitive this advisory's unvalidated,
+  unencoded `session_id` concatenation makes possible.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact router functions and consolidating two
+  independent reports of the same root cause), not yet fixed at time of
+  publication.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-j657-m4c4-24jq
+- https://attack.mitre.org/techniques/T1548/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_terminal_ws_session_path:
+    Message|contains: /api/terminals/
+  selection_encoded_query_delimiter_in_session_id:
+    Message|contains:
+    - '%3F'
+    - '%26'
+  condition: selection_terminal_ws_session_path and selection_encoded_query_delimiter_in_session_id
+falsepositives:
+- A fixed deployment that URL-encodes `session_id` before building the
+  upstream URL and rejects delimiter characters -- a matching injected
+  session_id on a fixed deployment would be rejected rather than
+  forwarded
+- A deployment whose upstream terminal servers do not scope containers
+  by `user_id`, or that binds the forwarded identity with a signed
+  claim rather than a raw parameter -- the vulnerability's impact
+  requires the upstream to trust the unsigned identity it receives
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of terminal
+  WebSocket connect parameters, which most infrastructure log sources
+  do not capture by default
+level: medium
+tags:
+- attack.t1548
+- wrg.observed.cve.cve_2026_59224
+- wrg.observed.source.open_webui_ghsa_j657_m4c4_24jq
+- wrg.observed.vector.unsigned_identity_forwarding
+- wrg.observed.vector.query_parameter_injection
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.privilege_escalation

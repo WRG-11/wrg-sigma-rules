@@ -1,0 +1,73 @@
+title: SGLang LoRA adapter loader -- T1059 SafeUnpickler denylist bypass unauthenticated RCE
+id: 3d66875f-f9bc-4bc5-883a-f11d6966aad7
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-15969 (GHSA-2wvm-gjg7-5jfm,
+  CVSS 9.8 CRITICAL), affecting SGLang, a high-performance LLM/VLM
+  serving engine.
+
+  `/load_lora_adapter_from_tensors` accepts a caller-supplied,
+  base64-encoded pickle payload representing LoRA adapter tensors. The
+  endpoint's `SafeUnpickler` is meant to restrict which classes a pickle
+  stream can reconstruct, but its denylist is incomplete -- a crafted
+  payload using a class the denylist does not cover reaches arbitrary
+  code execution during deserialization, with no authentication required
+  to reach the endpoint at all. This is SGLang's first of several
+  pickle-deserialization RCEs disclosed the same week (see sibling rules
+  for `/update_weights_from_disk` and the dumper subsystem), each a
+  distinct code path sharing the same root cause class: trusting a
+  denylist-based unpickler instead of avoiding `pickle` for
+  network-reachable input entirely.
+
+  Detection logic flags a request to this endpoint carrying a
+  base64-encoded body whose decoded content begins with pickle's protocol
+  opcodes (`\x80\x04` / `\x80\x05` for protocol 4/5, or the ASCII
+  protocol-0 opcode sequence) -- LoRA adapter tensors submitted through
+  the intended, safe path do not require raw pickle framing at the HTTP
+  layer.
+
+  Aggregated from 2 independent sources (SGLang's own GHSA advisory + an
+  independent security researcher's corroborating disclosure write-up,
+  part of a coordinated multi-CVE SGLang security research series), no
+  patched version confirmed in the summary available at authoring time --
+  operators should restrict network reachability to this endpoint until
+  a fix is confirmed.
+references:
+- https://github.com/sgl-project/sglang/security/advisories/GHSA-2wvm-gjg7-5jfm
+- https://thoughts.apoorvdayal.com/posts/sglang-disclosures/
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_lora_adapter_endpoint:
+    cs-uri-stem|contains: /load_lora_adapter_from_tensors
+  selection_method_post:
+    cs-method: POST
+  condition: selection_lora_adapter_endpoint and selection_method_post
+falsepositives:
+- A deployment already upgraded to a fixed version once one ships, where
+  the endpoint either avoids `pickle` entirely or enforces a complete,
+  correct denylist -- a matching request on a fixed deployment would be
+  rejected rather than deserialized
+- Legitimate LoRA adapter uploads through this endpoint from an
+  authorized internal workflow -- this rule flags every request since
+  network proxy logs typically cannot inspect decoded pickle opcode
+  content; correlate with network-exposure scope (this endpoint should
+  not be internet-reachable) to prioritize investigation
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_15969
+- wrg.observed.source.sglang_ghsa_2wvm_gjg7_5jfm
+- wrg.observed.source.apoorvdayal_disclosure_series
+- wrg.observed.vector.safeunpickler_incomplete_denylist
+- wrg.observed.vector.pickle_deserialization_rce
+- wrg.observed.cluster.sglang_2026_08_disclosure_series
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

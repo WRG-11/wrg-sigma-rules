@@ -1,0 +1,78 @@
+title: Flowise executeJavaScriptCode -- T1611 caller-supplied nodeVMOptions spread overrides the sandbox's require allowlist
+id: 14a11700-3cd6-4086-be70-c972d9920df2
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-69254 (GHSA-3769-jgqc-cxm7),
+  affecting Flowise's `executeJavaScriptCode()` NodeVM sandbox.
+
+  `executeJavaScriptCode()` builds its sandbox options as
+  `{ ...defaultNodeVMOptions, ...nodeVMOptions }`, where
+  `defaultNodeVMOptions` restricts `require.builtin` to a safe
+  allowlist that blocks `child_process`, `fs`, and similar modules --
+  but `nodeVMOptions` is caller-supplied and spread AFTER the defaults,
+  so any key it sets silently overrides them. From inside a first,
+  correctly-sandboxed custom-function execution, an attacker requires
+  `flowise-components/dist/src/utils.js` by absolute path (bypassing
+  the module allowlist since the file is loaded, not required through
+  the restricted API), obtains a direct reference to
+  `executeJavaScriptCode()` itself, and calls it a second time with
+  `nodeVMOptions: { require: { builtin: ["*"] } }` -- re-enabling every
+  Node.js built-in inside the nested VM, including `child_process`.
+  Verified end-to-end against a stock `flowiseai/flowise` Docker image:
+  arbitrary commands execute as root, including reading
+  `/root/.flowise/encryption.key` (decrypts every stored credential)
+  and the JWT signing secret.
+
+  Detection logic flags a `POST /api/v1/node-custom-function` request
+  whose `javascriptFunction` body references
+  `flowise-components/dist/src/utils.js` together with
+  `nodeVMOptions` and a `require.builtin` override -- the exact
+  nested-sandbox-escape shape this advisory's proof of concept
+  confirms achieves root RCE against a live instance.
+
+  Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
+  GHSA, citing the exact source line for the vulnerable spread, a
+  7-step taint trace from route registration to RCE, and a fully
+  reproduced Docker-based exploit with proof-file and credential-file
+  read confirmation), not yet fixed at time of publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-3769-jgqc-cxm7
+- https://attack.mitre.org/techniques/T1611/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_node_custom_function_endpoint:
+    Message|contains: /api/v1/node-custom-function
+  selection_utils_require_and_options_override:
+    Message|contains|all:
+    - flowise-components/dist/src/utils.js
+    - nodeVMOptions
+    - require.builtin
+  condition: selection_node_custom_function_endpoint and selection_utils_require_and_options_override
+falsepositives:
+- A deployment already upgraded past the fix, where `nodeVMOptions` no
+  longer overrides `require.builtin`, or the option is stripped before
+  reaching `executeJavaScriptCode()` -- a matching payload on a fixed
+  deployment cannot re-enable the blocked modules
+- A legitimate custom function that happens to reference the utils
+  module path for an unrelated, non-malicious reason -- narrow in
+  practice given the specific combination of the utils path, the
+  `nodeVMOptions` key, and a `require.builtin` override this signature
+  requires together
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of custom
+  function request bodies, which most infrastructure log sources do
+  not capture by default
+level: high
+tags:
+- attack.t1611
+- wrg.observed.cve.cve_2026_69254
+- wrg.observed.source.flowise_ghsa_3769_jgqc_cxm7
+- wrg.observed.vector.spread_operator_overrides_security_defaults
+- wrg.observed.vector.absolute_path_require_bypasses_allowlist
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.privilege_escalation

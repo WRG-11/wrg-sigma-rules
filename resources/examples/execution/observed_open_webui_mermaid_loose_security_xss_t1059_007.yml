@@ -1,0 +1,67 @@
+title: Open WebUI Mermaid preview -- T1059.007 securityLevel:'loose' + innerHTML renders attacker SVG/JS
+id: d1491b08-aa6f-40e3-a285-e4fe26e6b3fe
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54011 (GHSA-v8qj-hxv7-mgvv,
+  CVSS 8.7 HIGH), affecting Open WebUI prior to 0.9.6.
+
+  Open WebUI renders Mermaid diagram blocks from Markdown files in the
+  file-preview panel and inserts the generated SVG into the DOM via
+  `innerHTML`. Because Mermaid is configured with `securityLevel: 'loose'`
+  -- the setting that permits Mermaid diagram syntax to include raw
+  clickable links and script-capable constructs -- attacker-controlled
+  Mermaid content reaching this render path executes as JavaScript in the
+  application's own origin. The advisory notes a working payload was
+  validated specifically through the Markdown FILE PREVIEW path (not
+  chat rendering), giving an attacker who can get a victim to preview a
+  malicious Markdown file full script execution under the victim's
+  authenticated session.
+
+  Detection logic flags a Markdown file preview request whose content
+  contains a Mermaid fenced code block with embedded HTML/script markup
+  -- ordinary Mermaid diagram syntax (nodes, edges, flowchart directives)
+  has no legitimate reason to contain `<script>` tags or event-handler
+  attributes.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD), fixed in 0.9.6.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-v8qj-hxv7-mgvv
+- https://attack.mitre.org/techniques/T1059/007/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_mermaid_fenced_block:
+    Message|contains: '```mermaid'
+  selection_script_injection_markup:
+    Message|contains:
+    - '<script'
+    - onerror=
+    - onload=
+    - 'javascript:'
+  condition: selection_mermaid_fenced_block and selection_script_injection_markup
+falsepositives:
+- A deployment already upgraded to 0.9.6+, where either `securityLevel`
+  is no longer `'loose'` for this render path or the SVG output is
+  sanitized before `innerHTML` insertion -- a matching file on a fixed
+  deployment renders without executing embedded script
+- A legitimate Markdown file discussing Mermaid syntax and HTML/script
+  examples together for documentation purposes -- narrow in practice
+  given the specific fenced-block + markup combination required
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of the
+  actual Markdown file content previewed, which most infrastructure log
+  sources do not capture by default
+level: high
+tags:
+- attack.t1059.007
+- wrg.observed.cve.cve_2026_54011
+- wrg.observed.source.open_webui_ghsa_v8qj_hxv7_mgvv
+- wrg.observed.vector.mermaid_loose_security_level
+- wrg.observed.vector.innerhtml_svg_injection
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

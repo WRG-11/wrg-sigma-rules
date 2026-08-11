@@ -1,0 +1,76 @@
+title: Windows-MCP -- T1059.001 wildcard-CORS reachable PowerShell tool execution
+id: 4391118f-8dae-470c-acdc-23ac1a03b865
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-48989 (GHSA-vrxg-gm77-7q5g,
+  CVSS 8.9 HIGH), a self-reported advisory for Windows-MCP, an open-source
+  project integrating AI agents with Windows via MCP.
+
+  Prior to 0.7.5, the SSE and Streamable-HTTP transport modes (the default
+  `stdio` mode is unaffected) configured `_http_middleware()` with wildcard
+  CORS -- `allow_origins=["*"]`, `allow_methods=["*"]`, `allow_headers=["*"]`
+  -- and exposed the MCP control plane without authentication at
+  `http://localhost:8000/mcp`. The same server registers a `PowerShell`
+  tool (`src/windows_mcp/tools/shell.py`) that forwards a caller-controlled
+  `command` argument to `PowerShellExecutor.execute_command`
+  (`src/windows_mcp/desktop/powershell.py`), which runs it via
+  `powershell -EncodedCommand`. Combined, any origin -- browser or
+  non-browser -- could reach the control plane and run arbitrary
+  PowerShell as the Windows user running Windows-MCP. The advisory's own
+  example call: `{"jsonrpc":"2.0","id":2,"method":"tools/call","params":
+  {"name":"PowerShell","arguments":{"command":"calc.exe","timeout":30}}}`.
+
+  Detection logic flags the resulting HOST-side signal: a `powershell.exe`
+  process invoked with `-EncodedCommand`, whose parent process is the
+  Windows-MCP server rather than an interactive user shell or a scheduled
+  task -- the `-EncodedCommand` flag is the specific artifact of this
+  server's own execution path (base64-encoding the caller's command before
+  invocation), not a generic "PowerShell ran" heuristic.
+
+  Aggregated from 1 first-party vendor security advisory (CursorTouch, via
+  GHSA and NVD), fixed in 0.7.5.
+references:
+- https://github.com/CursorTouch/Windows-MCP/security/advisories/GHSA-vrxg-gm77-7q5g
+- https://github.com/CursorTouch/Windows-MCP/releases/tag/v0.7.5
+- https://attack.mitre.org/techniques/T1059/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_powershell_encoded:
+    Image|endswith:
+    - \powershell.exe
+    - \pwsh.exe
+    CommandLine|contains: '-EncodedCommand'
+  selection_windows_mcp_parent:
+    ParentImage|endswith:
+    - \windows-mcp.exe
+    - \windows_mcp.exe
+    ParentCommandLine|contains: windows_mcp
+  condition: selection_powershell_encoded and selection_windows_mcp_parent
+falsepositives:
+- A deployment already upgraded to 0.7.5+, where the control plane now
+  requires authentication and no longer accepts wildcard-origin requests
+  -- a matching process on a fixed deployment reflects legitimate,
+  authenticated tool use, not exploitation of this specific bug
+- Legitimate operator use of the PowerShell tool through a correctly-
+  authenticated MCP client, which also produces this exact process
+  signature -- the parent-process condition narrows to Windows-MCP's own
+  execution path, but cannot by itself distinguish an authorized caller
+  from an attacker exploiting the wildcard-CORS/no-auth gap; correlate
+  with the HTTP request's Origin header and auth state if the log source
+  captures it
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1059.001
+- wrg.observed.cve.cve_2026_48989
+- wrg.observed.source.cursortouch_ghsa_vrxg_gm77_7q5g
+- wrg.observed.vector.wildcard_cors_unauth_control_plane
+- wrg.observed.vector.mcp_tool_to_powershell_execution
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

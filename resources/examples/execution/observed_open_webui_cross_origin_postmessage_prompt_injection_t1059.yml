@@ -1,0 +1,70 @@
+title: Open WebUI chat listener -- T1059 non-same-origin postMessage triggers submitPrompt() in victim session
+id: b68d99aa-5819-40e4-80bb-62191e4f98ac
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54007 (GHSA-3vv5-8xxp-4f55,
+  CVSS 7.1 HIGH), affecting Open WebUI prior to 0.9.6.
+
+  Open WebUI's chat message listener accepted `input:prompt` and
+  `action:submit` `postMessage` events regardless of the sending
+  window's origin -- no same-origin check. An external, ATTACKER-CONTROLLED
+  web page can therefore set arbitrary prompt text and trigger
+  `submitPrompt()` inside an authenticated victim's Open WebUI tab simply
+  by having the victim visit the attacker's page while logged in
+  elsewhere. The advisory's own validation: a cross-origin attacker page
+  that auto-posts these messages causes unauthorized
+  `POST /api/v1/chats/new` and `POST /api/chat/completions` requests
+  carrying attacker-controlled prompt content -- cross-site forced model/
+  tool execution under the victim's own privileges, entirely without
+  their consent or awareness.
+
+  Detection logic flags a `POST /api/chat/completions` or
+  `POST /api/v1/chats/new` request whose Referer/Origin header is ABSENT
+  or does not match the Open WebUI deployment's own origin, combined with
+  timing consistent with a `postMessage`-triggered auto-submission rather
+  than direct user interaction -- since the vulnerable listener has no
+  origin gate, any successful cross-origin trigger reaches these
+  endpoints as if it were a same-origin request.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, describing the researcher's own cross-origin
+  attacker-page validation), fixed in 0.9.6.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-3vv5-8xxp-4f55
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_chat_action_endpoints:
+    cs-uri-stem|contains:
+    - /api/v1/chats/new
+    - /api/chat/completions
+  selection_missing_or_foreign_origin:
+    cs(Referer): null
+  condition: selection_chat_action_endpoints and selection_missing_or_foreign_origin
+falsepositives:
+- A deployment already upgraded to 0.9.6+, where the chat listener
+  validates the sending window's origin before acting on
+  `input:prompt`/`action:submit` messages -- a matching cross-origin
+  trigger on a fixed deployment would be silently ignored, never
+  reaching these endpoints
+- A legitimate API client, mobile app, or browser extension that
+  genuinely omits a Referer header for unrelated reasons -- this rule
+  cannot distinguish that from a cross-origin `postMessage` trigger by
+  header absence alone; correlate with browser-tab/session context
+  (application-level logging) for higher confidence
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_54007
+- wrg.observed.source.open_webui_ghsa_3vv5_8xxp_4f55
+- wrg.observed.vector.postmessage_missing_origin_check
+- wrg.observed.vector.cross_site_forced_model_execution
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

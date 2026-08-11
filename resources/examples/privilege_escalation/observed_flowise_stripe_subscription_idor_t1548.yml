@@ -1,0 +1,70 @@
+title: Flowise organization billing -- T1548 attacker-supplied subscriptionId reaches another tenant's Stripe subscription
+id: 0469d862-8142-4da8-b9f1-02a6bdf99e0f
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70476 (GHSA-gmmw-qg98-6j6p),
+  affecting Flowise's organization billing endpoints.
+
+  `updateSubscriptionPlan` and `updateAdditionalSeats` in
+  `organization.controller.ts` take `subscriptionId` directly from the
+  request body and forward it to the Stripe integration layer, with no
+  check that the identifier belongs to the authenticated user's own
+  organization. The server trusts the client-supplied Stripe
+  subscription ID rather than resolving it from the caller's session
+  context. Any authenticated user of ANY organization can supply
+  another organization's `subscriptionId` (obtainable via the
+  organization read endpoint or other exposed references) and
+  downgrade its plan, change its seat quantity, or otherwise trigger
+  billing operations against a tenant they have no relationship to.
+
+  Detection logic flags a `POST /api/v1/organization/update-subscription-plan`
+  or `POST /api/v1/organization/update-additional-seats` request whose
+  `subscriptionId` in the body does not match the caller's own
+  organization's subscription -- the exact ownership-unchecked pattern
+  this advisory's proof of concept demonstrates end-to-end (leak a
+  victim `subscriptionId`, then downgrade or zero its seats from an
+  unrelated account).
+
+  Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
+  GHSA, citing the exact controller functions, source files, and a full
+  request/response proof of concept), not yet fixed at time of
+  publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-gmmw-qg98-6j6p
+- https://attack.mitre.org/techniques/T1548/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: webserver
+  product: ""
+detection:
+  selection_billing_endpoint:
+    cs-uri-stem|contains:
+    - /api/v1/organization/update-subscription-plan
+    - /api/v1/organization/update-additional-seats
+  selection_post_method:
+    cs-method: POST
+  condition: selection_billing_endpoint and selection_post_method
+falsepositives:
+- A deployment already upgraded past the fix, where each handler
+  resolves the subscription from `req.user.activeOrganization` instead
+  of trusting the body's `subscriptionId` -- a matching cross-tenant
+  request on a fixed deployment is rejected
+- A legitimate billing operation by an organization admin modifying
+  their own subscription -- this rule flags every call to these two
+  endpoints since web server logs typically cannot see the request
+  body's `subscriptionId` or the caller's own organization to compare
+  against; correlate with application-level authorization logs to
+  confirm a cross-tenant identifier was actually used
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1548
+- wrg.observed.cve.cve_2026_70476
+- wrg.observed.source.flowise_ghsa_gmmw_qg98_6j6p
+- wrg.observed.vector.client_supplied_billing_identifier
+- wrg.observed.vector.missing_tenant_ownership_check
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.privilege_escalation

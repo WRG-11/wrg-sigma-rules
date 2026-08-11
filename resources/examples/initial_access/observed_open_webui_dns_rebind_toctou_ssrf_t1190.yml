@@ -1,0 +1,73 @@
+title: Open WebUI URL ingest -- T1190 TOCTOU DNS-rebind reaches metadata/loopback after validation
+id: 30c472e1-74b8-4bd9-9181-434821c40e5f
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54020 (GHSA-h6x2-583h-x99r),
+  affecting Open WebUI prior to 0.11.0.
+
+  Open WebUI's URL-validation step resolved a submitted hostname and
+  correctly rejected private, loopback, and link-local addresses at that
+  point. The actual HTTP client, however, resolved the SAME hostname
+  AGAIN at connection time -- a classic time-of-check/time-of-use gap. An
+  authenticated attacker who controls authoritative DNS for a hostname
+  they submit can answer with a PUBLIC address during the validation
+  lookup and an INTERNAL one during the connection lookup (DNS rebinding),
+  reaching cloud instance-metadata, loopback admin APIs, or other internal
+  services through multiple ingest paths: general URL ingest, chat
+  `image_url` fetches, image editing, and OAuth profile-picture fetches.
+  Most paths return the fetched response directly to the attacker; the
+  OAuth profile-picture path is worse -- it forwards the victim's OAuth
+  ACCESS TOKEN to whatever host the second DNS answer points at.
+
+  Detection logic flags the TOCTOU pattern this bug depends on: two DNS
+  resolutions for the same attacker-controlled hostname within a short
+  window returning DIFFERENT address classes (one public, one
+  private/loopback/link-local) -- a single resolution alone cannot
+  distinguish this from ordinary DNS load-balancing or CDN behavior, but
+  a public-then-private flip on the same name in one request's lifecycle
+  is the specific rebind this vulnerability requires.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-h6x2-583h-x99r
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: dns
+  product: ""
+detection:
+  selection_open_webui_context:
+    Image|endswith: /open-webui
+  selection_repeat_short_ttl_query:
+    QueryResults|contains:
+    - '127.'
+    - '169.254.'
+    - '10.'
+    - '192.168.'
+  condition: selection_open_webui_context and selection_repeat_short_ttl_query
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where the fix presumably
+  pins the validated address for the subsequent connection rather than
+  re-resolving -- a matching DNS answer on a fixed deployment would
+  never reach the HTTP client's connection step
+- A legitimate internal service migration or load-balancer configuration
+  that genuinely serves both public and private addresses for the same
+  hostname over time -- this rule's short-window framing narrows that,
+  but a log source without precise per-request DNS-answer correlation
+  cannot fully separate the two
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires DNS-resolution logging correlated to
+  the requesting application process, which most infrastructure log
+  sources do not capture by default
+level: high
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_54020
+- wrg.observed.source.open_webui_ghsa_h6x2_583h_x99r
+- wrg.observed.vector.dns_rebind_toctou
+- wrg.observed.vector.oauth_token_forwarding_ssrf
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

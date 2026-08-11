@@ -1,0 +1,69 @@
+title: Open WebUI signin -- T1087 bcrypt-only-on-match timing reveals registered email addresses
+id: 39cb81ff-e77b-461e-a182-7b09f4bb18f0
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59218 (GHSA-7rw5-9f7q-xj36,
+  CVSS 5.3 MEDIUM), affecting Open WebUI prior to 0.10.0.
+
+  `/api/v1/auths/signin` looks up a submitted email, and only runs
+  bcrypt password verification when a matching credential record
+  EXISTS. Because bcrypt is deliberately slow (that is the point of
+  using it) and a missing-email response returns immediately without
+  ever calling it, registered-account signin attempts take measurably
+  longer than attempts against an email that was never registered --
+  a classic timing side-channel that lets an unauthenticated caller
+  enumerate valid account emails purely from response latency, with no
+  password guessing required.
+
+  Detection logic flags a burst of `/api/v1/auths/signin` requests from
+  a single source targeting many distinct email addresses in a short
+  window -- the access pattern an automated timing-based enumeration
+  script produces, distinct from an individual user's occasional
+  login-failure retries.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact fix commit and PR), fixed in 0.10.0
+  (runs a dummy bcrypt verification even on a missing email, so timing
+  no longer distinguishes the two cases).
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-7rw5-9f7q-xj36
+- https://github.com/open-webui/open-webui/commit/993e74912199c66c522f08ec81abe31d76985e39
+- https://github.com/open-webui/open-webui/pull/26385
+- https://attack.mitre.org/techniques/T1087/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: authentication
+  product: open_webui
+detection:
+  selection_signin_endpoint:
+    Message|contains: /api/v1/auths/signin
+  selection_high_volume_distinct_emails:
+    Message|contains: signin_attempt
+  condition: selection_signin_endpoint and selection_high_volume_distinct_emails
+falsepositives:
+- A deployment already upgraded to 0.10.0+, where a dummy bcrypt
+  verification runs regardless of whether the email matches -- response
+  timing on a fixed deployment no longer distinguishes registered from
+  unregistered emails, defeating the enumeration technique even if
+  attempted
+- A legitimate credential-stuffing DEFENSE tool or a password manager's
+  bulk-validation feature probing many emails for unrelated reasons --
+  this rule flags volume/pattern, not confirmed exploitation; the
+  distinguishing signal (timing variance between hits and misses)
+  requires response-latency measurement this rule's log-content-only
+  selection cannot directly express
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule is a coarse volume-based proxy for the actual
+  timing side-channel, since Sigma cannot natively express a
+  latency-comparison condition
+level: low
+tags:
+- attack.t1087
+- wrg.observed.cve.cve_2026_59218
+- wrg.observed.source.open_webui_ghsa_7rw5_9f7q_xj36
+- wrg.observed.vector.timing_side_channel
+- wrg.observed.vector.bcrypt_only_on_match
+- wrg.severity.low
+- wrg.observed
+- wrg.tactic.discovery

@@ -1,0 +1,69 @@
+title: Open WebUI shared chat -- T1005 self-shared file_id grants access to a file the caller never owned
+id: 35f92a2b-b0c9-4961-ae72-b375563c0a44
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54010 (GHSA-vrhc-3fr6-pc3c,
+  CVSS 8.3 HIGH), affecting Open WebUI prior to 0.9.6.
+
+  Open WebUI lets an authenticated user attach an arbitrary `file_id`
+  value to their OWN chat message without checking whether they actually
+  own or can read that file -- the attachment step trusts the caller's
+  claim. An attacker who knows (or guesses) a victim's file id can attach
+  it to their own message, then SHARE that chat and grant themselves read
+  access to their own shared copy. At that point, `has_access_to_file()`
+  treats the victim's file as accessible THROUGH the shared chat -- and
+  the file endpoints then read or DELETE the victim's file, all without
+  ever having had legitimate access to it in the first place. The
+  ownership check that should have blocked the initial attachment never
+  ran; the shared-chat access-grant machinery downstream simply trusted
+  that the attachment was legitimate.
+
+  Detection logic flags a chat-share-then-file-access sequence: a chat
+  containing a `file_id` attachment, followed by that chat being shared,
+  followed by a file endpoint request against the same `file_id` from
+  the sharing user -- the specific ownership-bypass chain this advisory
+  describes, distinct from ordinary legitimate file sharing where the
+  attaching user actually owned the file to begin with.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD), fixed in 0.9.6.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-vrhc-3fr6-pc3c
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_file_attach_no_ownership_check:
+    Message|contains: file_id
+  selection_share_and_file_endpoint:
+    Message|contains:
+    - share
+    - has_access_to_file
+  condition: selection_file_attach_no_ownership_check and selection_share_and_file_endpoint
+falsepositives:
+- A deployment already upgraded to 0.9.6+, where attaching a `file_id`
+  to a chat message requires the attaching user to actually own or have
+  read access to that file -- a matching attachment attempt on a fixed
+  deployment would be rejected before the file can ever be shared
+- A legitimate user sharing a chat that genuinely contains only files
+  they own -- this rule cannot distinguish that from the attack chain by
+  message content alone; correlate the attached `file_id`'s actual owner
+  against the sharing user's identity (from application-level audit
+  logs) to confirm an ownership mismatch
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging that
+  correlates file attachment, chat sharing, and file-access events,
+  which most infrastructure log sources do not capture by default
+level: high
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_54010
+- wrg.observed.source.open_webui_ghsa_vrhc_3fr6_pc3c
+- wrg.observed.vector.unchecked_file_attachment
+- wrg.observed.vector.shared_chat_access_grant_trust
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.collection

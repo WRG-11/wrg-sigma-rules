@@ -1,0 +1,73 @@
+title: stable-diffusion.cpp .ckpt loader -- T1005 missing bounds check reads past the metadata buffer
+id: 4d019678-bfc4-44d2-876a-dd7cd7c6271e
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-47748 (GHSA-rx4w-x86j-vx57,
+  CVSS 5.5 MEDIUM), affecting stable-diffusion.cpp prior to
+  master-584-0a7ae07.
+
+  Unlike the sign-confusion write bugs in this corpus's other
+  `stable_diffusion_cpp_ckpt_*` rules, this is an OUT-OF-BOUNDS READ with
+  a different root cause: throughout the pickle `.ckpt` parser in
+  `src/model.cpp`, opcode handlers advance the parser position with
+  expressions like `buffer += N` WITHOUT first checking that
+  `buffer + N <= buffer_end`. A truncated `.ckpt` file -- simply cut
+  short, no sign-confusion trickery needed -- causes reads past the end
+  of the metadata buffer. The advisory notes LibFuzzer found crashes in
+  under one second of fuzzing against malformed checkpoint inputs, which
+  is itself a signal of how shallow this bug class is to trigger.
+
+  Detection logic flags the same coarse file-event signal as this
+  corpus's sibling `.ckpt`-loading rules -- a `.ckpt` file loaded by a
+  stable-diffusion.cpp process -- since host-level logging cannot
+  distinguish this specific opcode-advancement bug from the sign-
+  confusion bugs in the same file; all three are named as separate CVEs
+  because each is a distinct code defect, even though the detectable
+  artifact (a `.ckpt` load) is identical.
+
+  Aggregated from 1 first-party vendor security advisory (leejet, via
+  GHSA and NVD, citing the exact source file, the general opcode-
+  advancement pattern, and the LibFuzzer finding), fixed in
+  master-584-0a7ae07 (same commit as the sibling rules).
+references:
+- https://github.com/leejet/stable-diffusion.cpp/security/advisories/GHSA-rx4w-x86j-vx57
+- https://github.com/leejet/stable-diffusion.cpp/commit/0a7ae07f948eff4611968a65a22bd7c7031ad74f
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: file_event
+  product: linux
+detection:
+  selection_ckpt_file_loaded:
+    TargetFilename|endswith: .ckpt
+  selection_sd_cpp_process:
+    Image|contains:
+    - sd
+    - stable-diffusion
+  condition: selection_ckpt_file_loaded and selection_sd_cpp_process
+falsepositives:
+- A deployment already upgraded past master-584-0a7ae07, where opcode
+  handlers check `buffer + N <= buffer_end` before advancing -- a
+  matching truncated `.ckpt` load on a fixed build is rejected cleanly
+  rather than reading past the buffer
+- A legitimate `.ckpt` file from a trusted source -- this rule cannot
+  distinguish a truncated/malformed file from an ordinary one by
+  filename/extension alone; the advisory's own recommended mitigation
+  (prefer `.safetensors`) is the stronger control this rule cannot
+  verify the absence of
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule is identical in shape to its two sibling
+  `.ckpt` rules for the reason stated in the description above -- three
+  distinct CVEs, one detectable file-event signal
+level: medium
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_47748
+- wrg.observed.source.leejet_ghsa_rx4w_x86j_vx57
+- wrg.observed.vector.missing_bounds_check_opcode_advance
+- wrg.observed.vector.libfuzzer_discovered
+- wrg.observed.cluster.stable_diffusion_cpp_ckpt_parser_bugs
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.collection

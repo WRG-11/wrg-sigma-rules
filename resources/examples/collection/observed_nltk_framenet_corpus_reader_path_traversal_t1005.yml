@@ -1,0 +1,76 @@
+title: NLTK FramenetCorpusReader -- T1005 caller-supplied frame name reaches builtin open(), same pathsec-bypass class as NKJPCorpusReader
+id: e1eb6c7b-3ded-4482-ab82-328bebfd9d85
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-12074 (GHSA-xh95-f55m-82fw,
+  CVSS 7.5 HIGH), affecting NLTK's `FramenetCorpusReader.frame()`.
+
+  `frame_by_name` builds an XML file path by joining the corpus root,
+  the frame directory, and a caller-supplied frame name with a fixed
+  `.xml` extension -- no containment check -- then constructs an
+  `XMLCorpusView` from that STRING path rather than a `PathPointer`.
+  Because the view is built from a string, it reads with the builtin
+  `open()`, so `nltk.pathsec.validate_path()` is never invoked and
+  `ENFORCE = True` does not block a `../` sequence in the name. This is
+  the same builtin-open-bypasses-the-sandbox class as this corpus's
+  sibling `NKJPCorpusReader` rule (CVE-2026-12072), but in a distinct
+  reader class and code path: `frame_by_name` never goes through
+  `CorpusReader.open()` at all, so that reader's protection does not
+  extend to it. The same string-path pattern additionally exists in
+  `doc()` (using an index-entry `filename` field) and the lexical-unit
+  file loader (using a `lexUnit` ID attribute), both reachable through
+  a malicious or attacker-modified FrameNet corpus index rather than a
+  direct caller argument.
+
+  Detection logic flags a `FramenetCorpusReader.frame()` invocation
+  whose frame-name argument contains a `../` path-traversal sequence --
+  the exact escape this advisory's proof of concept uses, with
+  `nltk.pathsec.ENFORCE = True` set before import, to read a
+  secret-marked frame XML file planted outside a minimal valid FrameNet
+  corpus root.
+
+  Aggregated from 1 first-party vendor security advisory (nltk, via
+  GHSA and NVD, citing the exact function, the string-vs-PathPointer
+  distinction, the two sibling reachable code paths, and a runnable
+  proof of concept with `ENFORCE = True` explicitly enabled), not yet
+  fixed at time of publication.
+references:
+- https://github.com/nltk/nltk/security/advisories/GHSA-xh95-f55m-82fw
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_framenet_reader_invocation:
+    Message|contains: FramenetCorpusReader
+  selection_traversal_in_frame_name:
+    Message|contains: '../'
+  condition: selection_framenet_reader_invocation and selection_traversal_in_frame_name
+falsepositives:
+- A deployment already upgraded past the fix, where `frame_by_name`
+  routes the resolved path through `PathPointer`/`validate_path()` the
+  same way the generic corpus reader API does -- a matching
+  `../`-containing frame name on a fixed version is rejected instead of
+  opened
+- A legitimate frame name that happens to contain a literal `..`
+  substring unrelated to path traversal -- narrow in practice given
+  real FrameNet frame names are drawn from a fixed, published
+  vocabulary, not free-form user input
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of the
+  frame-name argument passed to `frame()`, which most infrastructure
+  log sources do not capture by default; it also does not cover the
+  sibling `doc()` / lexical-unit variants reachable only through a
+  malicious corpus index rather than a direct caller argument
+level: high
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_12074
+- wrg.observed.source.nltk_ghsa_xh95_f55m_82fw
+- wrg.observed.vector.builtin_open_bypasses_sandbox
+- wrg.observed.vector.string_path_not_pathpointer
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.collection

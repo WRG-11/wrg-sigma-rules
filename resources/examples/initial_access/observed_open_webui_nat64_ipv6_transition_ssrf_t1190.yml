@@ -1,0 +1,76 @@
+title: Open WebUI URL ingest -- T1190 NAT64-wrapped IPv4 bypasses is_global SSRF filter
+id: 1b7edf98-641b-4186-8d3d-10469ec86f74
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70485 (GHSA-8x5v-cpv7-8jjp,
+  CVSS 7.1 HIGH), affecting Open WebUI from 0.9.0 until 0.11.0.
+
+  Open WebUI checked whether a user-supplied URL destination was globally
+  routable by applying Python's `ipaddress.is_global` to the LITERAL
+  IPv6 address -- without examining IPv4 addresses embedded inside IPv6
+  TRANSITION encodings. On a deployment with a NAT64 gateway (common in
+  IPv6-only or dual-stack-with-NAT64 setups, including some Kubernetes
+  clusters), any verified user can wrap an internal or cloud-metadata
+  IPv4 address inside the NAT64 well-known prefix (`64:ff9b::/96`); the
+  wrapped address passes `is_global` as a seemingly-ordinary global IPv6
+  literal, but the NAT64 gateway unwraps it back to the internal IPv4
+  target at connection time -- reaching it through RAG URL ingestion,
+  URL-to-markdown conversion, or web-search content retrieval, with the
+  internal response body returned to the requesting user.
+
+  This corpus already carries a Pydantic AI rule for a structurally
+  identical class of bug (`CVE-2026-46678`/`CVE-2026-48782`-style IPv6
+  transition-encoding blocklist bypass is NOT yet in this corpus, but the
+  underlying pattern -- checking the wrapper form instead of the
+  unwrapped target -- recurs across multiple SSRF-protection
+  implementations); this rule is Open WebUI's own specific instance.
+
+  Detection logic flags a URL-ingestion request whose target hostname is
+  an IPv6 literal within the NAT64 well-known prefix
+  (`64:ff9b::/96`) -- a legitimate public URL has no reason to be
+  expressed in NAT64-wrapped form rather than a plain IPv4/IPv6 address
+  or hostname.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact fix commit), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-8x5v-cpv7-8jjp
+- https://github.com/open-webui/open-webui/commit/1717b493d83c86afa82aa8bc50139250852dd2f3
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_url_ingest_context:
+    cs-uri-query|contains:
+    - image_url
+    - 'url='
+  selection_nat64_wrapped_target:
+    cs-uri-query|contains: '64:ff9b:'
+  condition: selection_url_ingest_context and selection_nat64_wrapped_target
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where the fix decodes NAT64
+  (and other transition-encoding) wrapped addresses back to their IPv4
+  form before applying the global-routability check -- a matching
+  request on a fixed deployment would be rejected
+- A deployment with no NAT64 gateway configured -- the wrapped address
+  would simply fail to route rather than reaching an internal target,
+  so this specific bypass does not apply even if the literal is
+  submitted
+- A legitimate use of a genuinely public IPv4-mapped NAT64 address for
+  an unrelated reason -- narrow in practice given the specific prefix
+  matched
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_70485
+- wrg.observed.source.open_webui_ghsa_8x5v_cpv7_8jjp
+- wrg.observed.vector.nat64_transition_encoding_bypass
+- wrg.observed.vector.literal_check_vs_unwrapped_target
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access
