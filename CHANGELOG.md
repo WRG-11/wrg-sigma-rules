@@ -13,9 +13,45 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 104 rules.
+Corpus 100 → 108 rules.
 
 ### Added
+
+- **Four MCP/agent-tooling vendor-disclosed CVE rules** (each sourced from a
+  first-party GHSA security advisory, not a third-party restatement — the
+  project disclosing its own vulnerability is the strongest form of
+  attribution this corpus's sourcing bar recognizes). This is the corpus's
+  first coverage of the MCP protocol's own request shape rather than a
+  downstream OS-level effect, which is directly relevant to this plugin's
+  own threat model since it is itself an MCP server:
+
+  - `initial_access/observed_ruflo_mcp_bridge_unauth_terminal_execute_t1190.yml` —
+    CVE-2026-59726 (CVSS 10.0). Ruflo's default `docker-compose` deployment
+    exposed `POST /mcp` and `POST /mcp/:group` without authentication; the
+    `terminal_execute` tool blocklist was enforced only in the autopilot
+    flow, so these two endpoints bypassed it entirely.
+  - `collection/observed_whatsapp_mcp_bridge_path_traversal_t1005.yml` —
+    CVE-2026-46555 (CVSS 7.7). `whatsapp-mcp`'s bridge API on
+    `127.0.0.1:8080` accepted an unconfined absolute `media_path`, plus no
+    Host-header validation (DNS-rebinding reachable from a webpage).
+  - `persistence/observed_claude_code_worktree_git_confusion_t1546_004.yml` —
+    CVE-2026-55607 (CVSS 7.7). Claude Code allowed creating a git worktree
+    literally named `.git`; combined with symlink manipulation and git
+    fsmonitor execution this overwrote `.zshenv` outside the macOS seatbelt
+    sandbox. Requires a chained prompt-injection precondition (cloning a
+    malicious repo), noted explicitly in the rule rather than implied.
+  - `initial_access/observed_claude_code_action_mcp_json_pr_rce_t1195_002.yml` —
+    CVE-2026-47751 (CVSS 5.3). `claude-code-action` checked out the PR head
+    branch and read `.mcp.json` from it with `enableAllProjectMcpServers`
+    unconditionally on, letting a PR author's malicious MCP server command
+    run on the Actions runner. Same root shape as this corpus's existing
+    `observed_megalodon_github_actions_base64_payload_t1195_002` and
+    `observed_tanstack_pwn_request_actions_cache_poisoning_t1195_002` —
+    attacker PR content reaching a privileged CI context — distinct in the
+    specific artifact abused (`.mcp.json`, not a workflow file or cache key).
+
+  All four `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Three "Miasma" / "Phantom Gyp" npm supply-chain worm rules**
   (StepSecurity + Snyk, 2026-06-03 — two independent technical write-ups,
