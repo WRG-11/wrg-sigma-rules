@@ -13,9 +13,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 166 rules. `observed_*` count crosses 100.
+Corpus 100 → 169 rules.
 
 ### Added
+
+- **Three vLLM rules — another new runtime family**, sourced from older
+  W-cohort archive batches (vLLM had no prior coverage in this corpus):
+
+  - `initial_access/observed_vllm_hardcoded_trust_remote_code_bypass_t1195_002.yml` —
+    CVE-2026-4944 (CVSS 8.8). Two model files hardcode
+    `trust_remote_code=True`, silently overriding the operator's own
+    `--trust-remote-code=False` — an incomplete fix for two PRIOR CVEs
+    that missed these code paths.
+  - `impact/observed_vllm_sparse_tensor_multimodal_dos_t1499.yml` —
+    CVE-2026-56340 (CVSS 8.7). Missing sparse-tensor index validation in
+    multimodal embeddings; PyTorch disables invariant checks by default,
+    so malformed indices reach unchecked ops — a continuation of an
+    earlier CVE whose fix only flipped a feature default rather than
+    validating.
+  - `impact/observed_vllm_structured_outputs_regex_redos_t1499.yml` —
+    CVE-2026-55574 (CVSS 8.7). `structured_outputs.regex` has no
+    compilation timeout; the `outlines` backend blocks unsafe regex
+    constructs structurally but does no complexity analysis, so nested
+    quantifiers pass every check while still exploding combinatorially.
+
+  All three `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Six SGLang rules — a brand-new runtime family for this corpus**,
   from a coordinated multi-CVE disclosure series (independent researcher
