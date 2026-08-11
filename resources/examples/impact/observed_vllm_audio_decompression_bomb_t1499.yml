@@ -1,0 +1,70 @@
+title: vLLM audio transcription -- T1499 compressed-size limit ignores decoded PCM expansion
+id: f4286f0f-0639-4c83-bd16-62e4a7006c21
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54233 (GHSA-6pr9-rp53-2pmc,
+  CVSS 6.5 MEDIUM), affecting vLLM prior to 0.23.1rc0.
+
+  `/v1/audio/transcriptions` limits the COMPRESSED upload size but never
+  bounds the DECODED PCM output size -- a classic decompression-bomb
+  shape. The advisory's own measured ratio: a 25MB OPUS file (within the
+  compressed limit) expands to approximately 14.9GB of float32 PCM at
+  decode time. A caller submitting an ordinary, size-compliant compressed
+  audio file can therefore still cause the server to allocate gigabytes
+  of decoded audio data, exhausting memory regardless of the compressed
+  upload staying comfortably under the documented limit -- the same
+  outcome as `observed_vllm_audio_upload_pre_limit_memory_exhaustion_t1499`
+  (buffer-before-check), but reached through a completely different
+  mechanism: high compression ratio rather than a missing check ordering.
+
+  Detection logic flags an audio-transcription upload using a
+  high-compression-ratio codec (OPUS, or other codecs with similarly
+  extreme compressed:decoded ratios) at or near the compressed-size
+  limit -- since the vulnerable code path bounds only the compressed
+  size, a request maximizing that size while using a high-ratio codec is
+  the specific shape that triggers the largest possible decoded
+  allocation.
+
+  Aggregated from 1 first-party vendor security advisory (vllm-project,
+  via GHSA and NVD, citing the exact fix PR and the measured 25MB->14.9GB
+  expansion ratio), fixed in 0.23.1rc0.
+references:
+- https://github.com/vllm-project/vllm/security/advisories/GHSA-6pr9-rp53-2pmc
+- https://github.com/vllm-project/vllm/pull/44970
+- https://attack.mitre.org/techniques/T1499/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: webserver
+  product: ""
+detection:
+  selection_audio_transcription_endpoint:
+    cs-uri-stem|contains: /v1/audio/transcriptions
+  selection_high_ratio_codec_near_limit:
+    cs-uri-query|contains: opus
+  selection_near_size_limit:
+    cs-bytes: '>20971520'
+  condition: selection_audio_transcription_endpoint and selection_high_ratio_codec_near_limit and selection_near_size_limit
+falsepositives:
+- A deployment already upgraded to 0.23.1rc0+, where decoded PCM output
+  size is bounded independently of the compressed upload limit -- a
+  matching upload on a fixed deployment is rejected once decoded size
+  exceeds the new bound, before memory exhaustion occurs
+- A legitimate, ordinary OPUS audio transcription request near the size
+  limit for genuine business reasons -- OPUS is a normal, widely-used
+  codec; this rule flags every large OPUS upload since it cannot
+  distinguish benign large audio files from a deliberate
+  decompression-bomb attempt by request metadata alone
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; the codec detection and size threshold are approximations
+  and need tuning against a deployment's actual upload patterns
+level: medium
+tags:
+- attack.t1499
+- wrg.observed.cve.cve_2026_54233
+- wrg.observed.source.vllm_ghsa_6pr9_rp53_2pmc
+- wrg.observed.vector.compressed_size_check_ignores_decoded_expansion
+- wrg.observed.cluster.vllm_audio_endpoint_dos
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

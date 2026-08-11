@@ -13,9 +13,36 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 173 rules.
+Corpus 100 → 177 rules.
 
 ### Added
+
+- **Four more rules — one candidate (CVE-2026-12491, EXIF/PNG
+  transparency mishandling) rejected as a data-integrity bug, not a
+  security signal a detection rule can act on:**
+
+  - `impact/observed_vllm_audio_decompression_bomb_t1499.yml` —
+    CVE-2026-54233. The compressed-upload size limit ignores decoded
+    PCM expansion — advisory's own measured ratio: 25MB OPUS decodes to
+    ~14.9GB float32 PCM.
+  - `execution/observed_stable_diffusion_cpp_ckpt_sign_confusion_heap_overflow_t1059.yml` —
+    CVE-2026-47749 (CVSS 7.8). `.ckpt` pickle parser's
+    `SHORT_BINUNICODE` length field has a sign-confusion bug; a
+    negative-interpreted length reaches `memcpy` directly. First
+    stable-diffusion.cpp (C/C++ memory corruption) rule in this corpus.
+  - `execution/observed_open_webui_cross_origin_postmessage_prompt_injection_t1059.yml` —
+    CVE-2026-54007 (CVSS 7.1). The chat listener accepts
+    `input:prompt`/`action:submit` `postMessage` events with no
+    same-origin check — an external page triggers `submitPrompt()` in
+    an authenticated victim's tab.
+  - `collection/observed_open_webui_shared_chat_file_ownership_bypass_t1005.yml` —
+    CVE-2026-54010 (CVSS 8.3). Attaching a `file_id` to a chat message
+    skips the ownership check; sharing that chat then makes
+    `has_access_to_file()` treat the victim's file as accessible through
+    the share.
+
+  All four `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Four more rules: three vLLM, one more Open WebUI**, from the same
   older W-cohort archive batches:
