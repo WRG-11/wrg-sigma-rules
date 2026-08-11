@@ -13,9 +13,47 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 146 rules.
+Corpus 100 → 151 rules.
 
 ### Added
+
+- **Five more Open WebUI CVE rules, sourced from WinstonRedGuard's own
+  `ai_runtime_cve_radar` sentry** (cohort W in the monorepo this plugin
+  ships from) instead of another ad-hoc `cve_lookup` keyword sweep — the
+  radar already polls hourly and had flagged 10 new AI-runtime CVEs
+  earlier today, all quoting exact source files/lines in their NVD
+  entries:
+
+  - `execution/observed_open_webui_katex_stack_overflow_xss_t1059_007.yml` —
+    CVE-2026-70492 (CVSS 8.7). `KatexRenderer.svelte`'s stack-overflow
+    catch branch renders the raw math source via `{@html}` instead of
+    escaped text — stored XSS in shared chats, steals the viewer's
+    session token.
+  - `execution/observed_open_webui_terminal_preview_iframe_sandbox_t1059_007.yml` —
+    CVE-2026-70486 (CVSS 8.2). Terminal file-preview's iframe always
+    granted `allow-same-origin` WITH `allow-scripts` for same-origin
+    HTML — the combination the sandbox spec itself warns defeats origin
+    isolation.
+  - `initial_access/observed_open_webui_dns_rebind_toctou_ssrf_t1190.yml` —
+    CVE-2026-54020. Classic TOCTOU: hostname validated against one DNS
+    answer, HTTP client resolves again at connection time — a
+    DNS-rebinding attacker flips public->private between the two,
+    reaching cloud metadata; the OAuth profile-picture path forwards the
+    victim's OAuth token to wherever the second answer points.
+  - `impact/observed_open_webui_folder_delete_ownership_bypass_t1485.yml` —
+    CVE-2026-70494 (CVSS 8.1). `DELETE /api/v1/folders/{id}`'s subfolder
+    check accepts any inherited WRITE grant instead of requiring
+    ownership — a collaborator can destroy the folder owner's entire
+    chat subtree.
+  - `privilege_escalation/observed_open_webui_terminal_ws_role_gate_bypass_t1548.yml` —
+    CVE-2026-70490 (CVSS 6.3). The terminal WebSocket route authenticates
+    its JWT but skips the `get_verified_user` role gate the equivalent
+    HTTP route enforces — a `pending`-role (unapproved) account reaches
+    an interactive terminal.
+
+  All five `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch. (One more YAML slip: bare `127.`/`10.` list items parsed
+  as floats rather than strings — fixed by quoting.)
 
 - **Three more CVE rules**, all first-party Open WebUI/F5-TTS maintainer
   fixes:
