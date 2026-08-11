@@ -13,9 +13,40 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 182 rules.
+Corpus 100 → 187 rules.
 
 ### Added
+
+- **Five more rules: four Open WebUI, one stable-diffusion.cpp sibling
+  bug**:
+
+  - `impact/observed_open_webui_calendar_event_destination_bypass_t1565_001.yml` —
+    CVE-2026-54006. Event-update validates write access to the SOURCE
+    calendar but never checks the destination `calendar_id` — moves an
+    event into any calendar whose id is known.
+  - `collection/observed_open_webui_image_url_file_id_ocr_exfil_t1005.yml` —
+    CVE-2026-54009 (CVSS 6.5). A non-URL `image_url.url` value resolves
+    as a raw file id with no ownership check; the file is read,
+    base64-encoded, and injected into the LLM request — attacker OCRs
+    a victim's private file back through the model's own response.
+  - `collection/observed_open_webui_upload_knowledge_id_writeaccess_bypass_t1005.yml` —
+    CVE-2026-59217. File upload's `metadata.knowledge_id` auto-link
+    skips the write-access check the dedicated `/file/add` endpoint
+    correctly enforces — a read-only KB user adds files anyway.
+  - `discovery/observed_open_webui_signin_timing_account_enumeration_t1087.yml` —
+    CVE-2026-59218. bcrypt only runs when an email lookup matches, so
+    registered accounts respond measurably slower — a timing
+    side-channel for account enumeration. Filed under `discovery`
+    (T1087), not `credential_access` — corrected mid-authoring after
+    initially placing it wrong.
+  - `execution/observed_stable_diffusion_cpp_ckpt_global_opcode_heap_overflow_t1059.yml` —
+    CVE-2026-47750 (CVSS 7.8). The `GLOBAL` opcode's sibling bug to the
+    already-covered `SHORT_BINUNICODE` one, same file, same disclosure
+    round, same fix commit — a missing newline yields a `-1` copy
+    length reaching `memcpy` directly.
+
+  All five `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Five more Open WebUI rules, remaining CVEs from the 2026-06-23
   disclosure batch**:
