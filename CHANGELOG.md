@@ -980,6 +980,51 @@ Corpus 100 → 222 rules.
   JSON-schema→GBNF conversion; the only host signal is "the server died", which
   does not meet this corpus's bar for a named, specific detection.
 
+### Changed
+
+- **`readme_stamp.py` now stamps `DEMO.md` too, and carries three more
+  metrics.** The corpus growing 100 → 222 left DEMO.md's prose behind in
+  three places — "66 of the 100 corpus rules are `product: windows`",
+  "convert 90 of 100 rules", "convert all 100" — while every *marked*
+  number in README.md stayed correct. The mechanism was never the defect;
+  its reach was. DEMO.md now carries markers for `sigma_rule_count`,
+  `windows_product_count` and `lucene_convert_count`, and README.md's
+  previously-unmarked "full 101-rule corpus" / "the 10 correlation rules"
+  claims are marked as well.
+
+  The three numbers were **re-measured, not search-replaced**:
+  `product: windows` is 72 of 222 (the windows share itself had moved,
+  66 → 72, so substituting the corpus total alone would still have been
+  wrong); the Lucene-family targets convert 212 of 222; Splunk and
+  OpenSearch-PPL convert all 222. Each hand-rolled count was cross-checked
+  against `yaml.safe_load_all` before being wired in — the stamp script
+  stays stdlib-only, so the counting is by hand, but not unverified.
+
+### Added
+
+- **`tests/test_lucene_convert_claim.py`** — converts the entire live corpus
+  with the real backends on all four Lucene targets and asserts the result
+  equals the stamped `lucene_convert_count`. That metric is derived (corpus
+  minus correlation rules) so the stamp script can install nothing, and the
+  derivation rests on one assumption: correlations are the only thing those
+  backends reject. This test is what makes that assumption fail loudly
+  instead of silently skewing a published number. It also asserts all four
+  targets fail on an *identical* set, which is what DEMO.md's prose claims
+  when it groups them together.
+
+### Fixed
+
+- **`readme_stamp.py` wrote a scratch corpus's counts into the real
+  DEMO.md.** The multi-file target map was first a module-level dict built
+  from the real README/DEMO paths at import time, so redirecting `README`
+  (what every test here does) left the repo's own DEMO.md in the write set —
+  a 2-rule tmp corpus stamped "0 of 2" into the published file. Targets are
+  resolved at call time now, relative to wherever `README` currently points,
+  with DEMO located next to it and skipped when absent.
+  `test_main_leaves_the_real_demo_alone_when_readme_is_redirected` locks it.
+- `.gitignore` matched `.venv/` but not `.venv_c_check/`, leaving 2885
+  untracked files in the working tree; the pattern is `.venv*/` now.
+
 ## [1.4.0] - 2026-08-05
 
 Corpus 80 → 100 rules, and OpenSearch joins the conversion targets. Landed on
