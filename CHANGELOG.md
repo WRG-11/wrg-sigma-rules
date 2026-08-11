@@ -13,9 +13,45 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 122 rules.
+Corpus 100 → 126 rules.
 
 ### Added
+
+- **Four more CVE rules; one candidate (IBM Langflow SSRF) dropped after
+  its primary source returned HTTP 403 and could not be read directly** —
+  consistent with this corpus's rule that a source must be read, not
+  assumed from an NVD summary alone:
+
+  - `credential_access/observed_librechat_mcp_oauth_resource_mismatch_t1528.yml` —
+    CVE-2026-54030 (CVSS 8.0). LibreChat's MCP OAuth handler used a
+    resource-metadata field to build the authorization URL without
+    verifying it matched the configured server (RFC 9728 §7.3/§3.3),
+    letting a malicious MCP server redirect a legitimate-looking consent
+    flow's token to itself. Advisory quotes the vulnerable code
+    (`handler.ts:542-548`) and the fix's comparison logic verbatim.
+  - `exfiltration/observed_openclaw_mcp_header_redirect_leak_t1567.yml` —
+    CVE-2026-53840 (CVSS 7.1). OpenClaw forwarded operator-configured MCP
+    custom headers across cross-origin redirects. Neither the specific
+    header name nor the legitimate server host is fixed by the vulnerable
+    code, so the rule deliberately detects only the necessary
+    precondition (an MCP-context cross-origin redirect) rather than
+    overclaiming header-content detection the source doesn't support —
+    an earlier draft used a `{{ placeholder }}` for the unknown host,
+    caught and rewritten before commit.
+  - `execution/observed_banks_prompt_jinja2_ssti_t1059.yml` —
+    CVE-2026-44209. Same Jinja2-SSTI bug CLASS as
+    `observed_ragflow_canvas_jinja2_ssti_t1059` but a different library
+    (`banks`, an LLM prompt-templating package) and reachable code path;
+    advisory quotes a working PoC payload and its captured `id` output.
+  - `execution/observed_apostrophecms_apos_create_password_injection_t1059_004.yml` —
+    CVE-2026-42853 (CVSS 6.5). `apos create`'s password prompt is
+    interpolated into an `exec()` shell string
+    (`lib/commands/create.js:186`); advisory quotes the vulnerable line,
+    a working PoC password payload, and its captured proof-of-execution
+    output. No patch exists at authoring time.
+
+  All four `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Two more CVE rules, after rejecting two weaker candidates on sourcing
   grounds.** Checked Eclipse Theia's indirect-prompt-injection advisory

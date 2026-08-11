@@ -1,0 +1,71 @@
+title: LibreChat MCP OAuth -- T1528 unvalidated resource-metadata redirects a token to a malicious server
+id: 8622ff34-3e12-418d-a6a6-ad63ca0f3d5d
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54030 (GHSA-gvpj-vm2f-2m23,
+  CVSS 8.0 HIGH), a self-reported advisory for LibreChat, an
+  enhanced ChatGPT-clone supporting multiple AI providers.
+
+  Prior to 0.8.5, LibreChat's MCP OAuth implementation
+  (`packages/api/src/mcp/oauth/handler.ts:542-548`) fetched OAuth
+  Protected Resource metadata (RFC 9728) from the configured MCP server
+  and used its `resource` field to build the authorization URL --
+  WITHOUT verifying that field matches the server the operator actually
+  configured. RFC 9728 section 7.3 requires exactly this check
+  (the metadata's `resource` value must match the URL it was requested
+  from) and section 3.3 says data must be discarded on mismatch; LibreChat
+  implemented neither. A malicious MCP server hosted at
+  `fake-mcp.com/mcp` can therefore publish resource metadata claiming
+  `resource: real-mcp.com/mcp`, causing a victim who configured LibreChat
+  to point at the attacker's server to complete an OAuth consent flow that
+  LOOKS like it authorizes the legitimate server, while the resulting
+  access token is delivered to the attacker's server instead.
+
+  Detection logic flags the structural mismatch the fix specifically
+  validates against: an OAuth authorization request whose `resource`
+  parameter's origin differs from the MCP server origin the client
+  actually connected to, to fetch the metadata.
+
+  Aggregated from 1 first-party vendor security advisory (danny-avila, via
+  GHSA and NVD), fixed in 0.8.5 (compares the metadata's resource origin
+  against the configured server's origin and rejects a mismatch).
+references:
+- https://github.com/danny-avila/LibreChat/security/advisories/GHSA-gvpj-vm2f-2m23
+- https://attack.mitre.org/techniques/T1528/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: librechat
+detection:
+  selection_oauth_authorize_request:
+    Message|contains: authorizationUrl
+  selection_resource_param_present:
+    Message|contains: 'resource='
+  filter_origin_matches_configured_server:
+    Message|contains: 'resource-origin-match: true'
+  condition: selection_oauth_authorize_request and selection_resource_param_present and not filter_origin_matches_configured_server
+falsepositives:
+- A deployment already upgraded to 0.8.5+, where the origin comparison
+  rejects a mismatched resource before the authorization URL is built --
+  a matching log entry on a fixed deployment reflects a rejected
+  configuration, not a completed token-theft flow
+- This rule's field names (`Message`, the `resource-origin-match` marker)
+  are an approximation of what a hardened/patched build's own logging
+  might emit, not a quote from the advisory itself -- the advisory
+  documents the vulnerable CODE PATH, not a specific log line format, so
+  this rule needs adaptation to whatever LibreChat's actual deployment
+  logs capture (or an application-level hook added specifically to record
+  the resource-origin comparison outcome)
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1528
+- wrg.observed.cve.cve_2026_54030
+- wrg.observed.source.librechat_ghsa_gvpj_vm2f_2m23
+- wrg.observed.vector.oauth_resource_metadata_mismatch
+- wrg.observed.vector.rfc9728_validation_gap
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.credential_access
