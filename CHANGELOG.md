@@ -13,9 +13,35 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 140 rules.
+Corpus 100 → 143 rules.
 
 ### Added
+
+- **Three more CVE rules**, all first-party Gradio/RAGFlow maintainer
+  fixes:
+
+  - `collection/observed_gradio_fileexplorer_path_traversal_t1005.yml` —
+    CVE-2026-49119 (CVSS 8.7). `FileExplorer.preprocess()`'s
+    `os.path.join(root_dir, *segments)` silently discards `root_dir` on
+    an absolute segment (a classic Python footgun); fix switches to the
+    `_safe_join()` helper the component's `ls()` endpoint already used.
+  - `initial_access/observed_gradio_file_fetch_ssrf_metadata_t1190.yml` —
+    CVE-2026-59806. `/gradio_api/file=<url>` redirected to any supplied
+    URL unvalidated; advisory quotes the before/after curl behavior
+    against the AWS metadata endpoint verbatim.
+  - `execution/observed_ragflow_agent_node_name_stored_xss_t1059_007.yml` —
+    CVE-2026-58579 (CVSS 5.1). An agent DSL's node name survives
+    `normalize_dsl` unsanitized and renders via
+    `dangerouslySetInnerHTML` with i18next's `escapeValue: false` —
+    stored XSS across the workspace trust boundary, not self-XSS. No
+    specific payload is quoted in the source; the rule keys on the
+    unsanitized-field -> `dangerouslySetInnerHTML` mechanism instead,
+    stated explicitly rather than inventing a payload.
+
+  All three `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch. (One more YAML slip caught in validation: an unquoted
+  `javascript:` list item parsed as an empty-mapping key rather than a
+  string, because of the trailing colon -- fixed by quoting.)
 
 - **Five more CVE rules; one candidate (AWS Bedrock AgentCore
   install_packages) rejected** — its source offered only a speculative,
