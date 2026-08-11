@@ -13,9 +13,33 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 191 rules.
+Corpus 100 → 193 rules.
 
 ### Added
+
+- **Two more Open WebUI rules, found via the W-cohort `ai_runtime_cve_radar`
+  archive after cross-checking 13 candidate CVEs against the existing
+  corpus (11 were already covered by earlier entries in this file)**:
+
+  - `privilege_escalation/observed_open_webui_chat_features_image_gen_permission_bypass_t1548.yml` —
+    CVE-2026-70484 (CVSS 4.3). The two direct image routes and the
+    native function-calling path all re-check the caller's
+    `image_generation` permission; the legacy chat-completions path
+    dispatches on the client-supplied `features` flag alone, letting a
+    permission-revoked user still trigger generation and spend the
+    operator's provider quota.
+  - `impact/observed_open_webui_knowledge_search_catastrophic_backtrack_dos_t1499.yml` —
+    CVE-2026-70493 (CVSS 6.5). The built-in `grep_knowledge_files` tool
+    compiles a caller-chosen pattern with the backtracking `re` engine
+    and no time limit; a pattern like `(x|x)*y` grows exponentially with
+    subject length (measured: 30 chars → 74s) and, running synchronously
+    on the shared event loop, starves every other request the worker is
+    serving.
+
+  All 2 validate_rule-clean, convert cleanly to Splunk + Elasticsearch.
+  INDEX.json regenerated (191→193), readme_stamp.py re-run, CHANGELOG
+  corpus claim updated 191→193, DEMO.md Summary re-read from the live
+  resource. Full suite: 611 passed.
 
 - **Four more rules: one stable-diffusion.cpp sibling bug, three Open WebUI
   access-control gaps**:
