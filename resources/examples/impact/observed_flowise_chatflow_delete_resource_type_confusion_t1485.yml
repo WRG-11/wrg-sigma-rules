@@ -1,0 +1,67 @@
+title: Flowise chatflow delete -- T1485 either delete permission deletes either flow type, RBAC domains are not bound to resource type
+id: d44a6e94-1293-442d-9fdc-9c4ee19a5a8d
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-69262 (GHSA-p5w8-m249-4r4v),
+  affecting `DELETE /api/v1/chatflows/:id`.
+
+  The route authorizes with `checkAnyPermission('chatflows:delete,agentflows:delete')`
+  -- possession of EITHER permission is sufficient to reach the delete
+  path. The delete logic resolves the target record by `id` and
+  `workspaceId` and deletes it, with no check that the resolved
+  resource's actual type (`CHATFLOW` vs. `AGENTFLOW`) matches the
+  permission domain the caller was granted. An API key scoped to only
+  `agentflows:delete` can therefore delete a `CHATFLOW`, and a key
+  scoped to only `chatflows:delete` can delete an `AGENTFLOW` -- the
+  intended RBAC separation between the two resource types does not
+  actually bind to the type being acted on.
+
+  Detection logic flags a `DELETE /api/v1/chatflows/:id` request
+  authenticated with an API key or role whose granted permissions do
+  not include `chatflows:delete` -- the exact
+  permission-domain-crosses-resource-type gap this advisory's
+  reproduction confirms with a 200 OK deletion using an
+  `agentflows:delete`-only key.
+
+  Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
+  GHSA, citing the exact permission check, the missing type-binding
+  logic, and a step-by-step reproduction with the actual API key
+  permission set and observed 200 OK response), not yet fixed at time
+  of publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-p5w8-m249-4r4v
+- https://attack.mitre.org/techniques/T1485/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: webserver
+  product: ""
+detection:
+  selection_chatflow_delete_endpoint:
+    cs-uri-stem|contains: /api/v1/chatflows/
+  selection_delete_method:
+    cs-method: DELETE
+  condition: selection_chatflow_delete_endpoint and selection_delete_method
+falsepositives:
+- A deployment already upgraded past the fix, where the delete logic
+  additionally checks that the resolved resource's type matches the
+  granted permission domain -- a matching cross-type delete on a fixed
+  deployment is rejected with an authorization error
+- A legitimate delete by a caller who genuinely holds
+  `chatflows:delete` and is deleting an actual chatflow -- this rule
+  flags every call to the endpoint since web server logs cannot see
+  the caller's granted permission set or the resolved resource's type;
+  correlate with the API key's actual permission grant and the
+  deleted resource's type to confirm a cross-type deletion occurred
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1485
+- wrg.observed.cve.cve_2026_69262
+- wrg.observed.source.flowise_ghsa_p5w8_m249_4r4v
+- wrg.observed.vector.permission_domain_not_bound_to_resource_type
+- wrg.observed.vector.either_permission_grants_full_delete
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

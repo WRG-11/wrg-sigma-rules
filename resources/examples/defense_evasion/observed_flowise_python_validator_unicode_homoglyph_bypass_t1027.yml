@@ -1,0 +1,78 @@
+title: Flowise Python code validator -- T1027 mathematical bold Unicode homoglyphs slip past an ASCII-only word-boundary blacklist
+id: 5bff24e3-2065-4a42-b103-16b36d667037
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70470 (GHSA-52fh-8v99-63c2),
+  affecting `validatePythonCodeForDataFrame` in
+  `pythonCodeValidator.ts`, which gates every call to
+  `pyodide.runPythonAsync` in `CSVAgent` and `AirtableAgent`.
+
+  The validator is a regex blacklist using `\b__class__\b`-style
+  patterns. JavaScript's `\b` word boundary is computed against the
+  ASCII word class only, so a Unicode letter such as U+1D41A
+  (mathematical bold small a) is treated as a non-word character and
+  never matches. Python 3 (PEP 3131) NFKC-normalizes every identifier
+  at parse time, so `__cl𝐚ss__` parses identically to `__class__`. The
+  attacker writes `obj.__cl𝐚ss__.__b𝐚se__.__subcl𝐚sses__()` to reach
+  `catch_warnings`, then assembles `__import__` from `chr()` calls to
+  dodge the literal-string blacklist entries, obtains the `js` module,
+  and calls `child_process.execSync` on the host -- reopening the exact
+  RCE class two prior advisories (GHSA-3hjv-c53m-58jj,
+  GHSA-v38x-c887-992f) patched, because both patches relied entirely on
+  this bypassable validator.
+
+  Detection logic flags Python source submitted to the CSVAgent /
+  AirtableAgent code path containing a dunder-style identifier
+  (`__word__`) where at least one character is outside the ASCII range
+  -- the exact homoglyph-substitution shape this advisory's proof of
+  concept confirms the validator's `\b`-anchored regex cannot see.
+
+  Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
+  GHSA, citing the exact validator source file, the ASCII-only `\b`
+  root cause, PEP 3131 NFKC normalization as the mechanism, and a
+  runnable proof of concept confirming `validate() === true` on the
+  malicious payload before it achieves host RCE), not yet fixed at
+  time of publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-52fh-8v99-63c2
+- https://attack.mitre.org/techniques/T1027/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_customreadcsv_or_pythoncode_field:
+    Message|contains:
+    - customReadCSV
+    - pythonCode
+  selection_dunder_pattern:
+    Message|contains: __
+  selection_non_ascii_present:
+    Message|re: '[^\x00-\x7F]'
+  condition: selection_customreadcsv_or_pythoncode_field and selection_dunder_pattern and selection_non_ascii_present
+falsepositives:
+- A deployment already upgraded past the fix, where the validator
+  NFKC-normalizes input before matching, or matches on the Unicode
+  word class rather than ASCII-only `\b` -- a matching homoglyph
+  payload on a fixed deployment is caught before reaching Pyodide
+- A legitimate CSV or prompt input that happens to contain both a
+  dunder-shaped substring and unrelated non-ASCII text (e.g.
+  internationalized column names) -- this rule's combination of both
+  conditions narrows false positives but application-level logging is
+  required to see the actual submitted code rather than just its
+  presence
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of
+  `customReadCSV` / LLM-generated `pythonCode` content, which most
+  infrastructure log sources do not capture by default
+level: high
+tags:
+- attack.t1027
+- wrg.observed.cve.cve_2026_70470
+- wrg.observed.source.flowise_ghsa_52fh_8v99_63c2
+- wrg.observed.vector.ascii_only_word_boundary_regex
+- wrg.observed.vector.nfkc_identifier_normalization
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.defense_evasion

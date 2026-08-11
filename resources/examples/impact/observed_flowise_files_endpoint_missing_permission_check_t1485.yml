@@ -1,0 +1,68 @@
+title: Flowise files API -- T1485 a feature-flag gate with no permission check lets any API key list and delete other workspaces' files
+id: 9aebf1ca-b66c-4646-abf8-a3e2bbb23d11
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-69252 (GHSA-wp74-f5hh-5f3r),
+  affecting `/api/v1/files`.
+
+  The route is mounted behind `IdentityManager.checkFeatureByPlan('feat:files')`
+  only -- no `checkPermission(...)` middleware on either `GET` or
+  `DELETE`. `getAllFiles` lists everything under
+  `req.user.activeOrganizationId` with no workspace filter; `deleteFile`
+  reads `activeWorkspaceId` only for storage-quota bookkeeping, while
+  the actual deletion targets `activeOrganizationId` plus a
+  caller-supplied path. Neither the API key's granted `permissions`
+  array nor its bound `activeWorkspaceId` restricts what it can see or
+  remove. The advisory's own reproduction created an API key scoped to
+  only `["tools:view"]` and used it to list AND delete a file belonging
+  to a completely different workspace in the same organization.
+
+  Detection logic flags a `GET` or `DELETE` request to `/api/v1/files`
+  whose `path` parameter's leading workspace-UUID segment does not
+  match the authenticated caller's own `activeWorkspaceId` -- the exact
+  cross-workspace reach this advisory's step-by-step reproduction
+  confirms with a `tools:view`-only key.
+
+  Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
+  GHSA, citing the exact route mount, the two controller functions and
+  what each does and doesn't check, and a full reproduction with the
+  actual API key and observed 200 OK responses for both list and
+  delete), not yet fixed at time of publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-wp74-f5hh-5f3r
+- https://attack.mitre.org/techniques/T1485/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: webserver
+  product: ""
+detection:
+  selection_files_endpoint:
+    cs-uri-stem|contains: /api/v1/files
+  selection_delete_or_get:
+    cs-method:
+    - GET
+    - DELETE
+  condition: selection_files_endpoint and selection_delete_or_get
+falsepositives:
+- A deployment already upgraded past the fix, where the route adds
+  `checkPermission(...)` middleware and scopes both list and delete to
+  the caller's own `activeWorkspaceId` -- a matching cross-workspace
+  request on a fixed deployment is rejected
+- A legitimate file operation by a caller managing their own
+  workspace's files -- this rule flags every call to the endpoint
+  since web server logs cannot see the caller's `activeWorkspaceId` or
+  the target path's owning workspace; correlate with the application's
+  workspace assignment to confirm a cross-workspace operation occurred
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1485
+- wrg.observed.cve.cve_2026_69252
+- wrg.observed.source.flowise_ghsa_wp74_f5hh_5f3r
+- wrg.observed.vector.feature_gate_without_permission_check
+- wrg.observed.vector.workspace_id_unused_for_authorization
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

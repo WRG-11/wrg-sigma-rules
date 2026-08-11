@@ -1,0 +1,74 @@
+title: Flowise custom-function sandbox -- T1552 $vars is pre-populated with every workspace secret regardless of the caller's variables:view permission
+id: 6f8e56bf-e3a7-431c-9c46-23edbdc47f8e
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70471 (GHSA-8r8h-6vcc-xhrv),
+  affecting Flowise's custom-function code-execution sandbox.
+
+  The official Variables API (`routes/variables/index.ts`) correctly
+  enforces `variables:view`. But `utils.ts` fetches all workspace
+  variables and always injects them into `$vars` inside the custom-
+  function JS execution sandbox, with NO permission check at the
+  injection site. Runtime-type variables additionally resolve from
+  `process.env`. A caller whose API key is explicitly DENIED
+  `variables:view` -- and for whom `/api/v1/variables` correctly
+  returns 403 -- can still call `POST /api/v1/node-custom-function` and
+  have `$vars` pre-populated with the full name-to-value map of every
+  workspace variable, including runtime variables backed by server
+  environment variables (database passwords, JWT secrets, SMTP
+  passwords, cloud keys), all reachable from ordinary JavaScript inside
+  the sandbox.
+
+  Detection logic flags a `POST /api/v1/node-custom-function` request
+  from a caller whose granted permissions do not include
+  `variables:view`, whose submitted `javascriptFunction` references
+  `$vars` -- the exact permission-boundary-bypass this advisory's
+  contrast between the gated Variables API and the ungated sandbox
+  injection describes.
+
+  Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
+  GHSA, citing the exact ungated injection site, the runtime-variable
+  `process.env` resolution mechanism, and the contrasting
+  permission-protected official API as evidence the gap was an
+  oversight rather than intended behavior), not yet fixed at time of
+  publication.
+references:
+- https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-8r8h-6vcc-xhrv
+- https://attack.mitre.org/techniques/T1552/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_node_custom_function_endpoint:
+    Message|contains: /api/v1/node-custom-function
+  selection_vars_reference:
+    Message|contains: '$vars'
+  condition: selection_node_custom_function_endpoint and selection_vars_reference
+falsepositives:
+- A deployment already upgraded past the fix, where `$vars` injection
+  itself checks `variables:view` (or only an explicit allowlist of
+  variables is injected) -- a matching request from a
+  permission-denied caller on a fixed deployment either receives no
+  `$vars` or only the allowlisted subset
+- A legitimate custom function authored by a user who genuinely holds
+  `variables:view` and is using `$vars` as intended -- this rule flags
+  every reference to `$vars` since application logs typically cannot
+  see the caller's granted permission set at this call site; correlate
+  with the API key's actual permission grant to confirm a
+  permission-denied caller accessed it
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of custom
+  function request bodies, which most infrastructure log sources do
+  not capture by default
+level: high
+tags:
+- attack.t1552
+- wrg.observed.cve.cve_2026_70471
+- wrg.observed.source.flowise_ghsa_8r8h_6vcc_xhrv
+- wrg.observed.vector.permission_check_missing_at_injection_site
+- wrg.observed.vector.runtime_variable_env_resolution
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.credential_access

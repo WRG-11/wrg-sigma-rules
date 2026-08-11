@@ -13,9 +13,84 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 207 rules.
+Corpus 100 → 222 rules.
 
 ### Added
+
+- **Fifteen Flowise rules — this corpus's first agentflow/low-code-LLM-
+  builder theme**, out of ~23 high/critical Flowise CVEs disclosed in a
+  single window; 15 selected for technique diversity rather than
+  exhausting every CVE (several additional CSVAgent/sandbox-escape
+  variants were left uncovered as redundant with the mechanisms below):
+
+  - `credential_access/observed_flowise_oauth2_refresh_whitelisted_token_leak_t1528.yml` —
+    CVE-2026-70478. The OAuth2 refresh endpoint is whitelisted from all
+    authentication and returns the live `access_token` in its response
+    body.
+  - `privilege_escalation/observed_flowise_stripe_subscription_idor_t1548.yml` —
+    CVE-2026-70476. Billing endpoints trust a client-supplied
+    `subscriptionId` with no ownership check against the caller's
+    organization.
+  - `credential_access/observed_flowise_oauth2_credential_workspace_scoping_missing_t1552.yml` —
+    CVE-2026-70474. Three OAuth2 credential handlers look up by `id`
+    alone with no `workspaceId` filter; two are additionally
+    whitelisted from auth.
+  - `collection/observed_flowise_upsert_history_server_wide_disclosure_t1005.yml` —
+    CVE-2026-70473. `GET /api/v1/upsert-history` returns the entire
+    server-wide history unscoped (>100MB in the vendor's own PoC).
+  - `execution/observed_flowise_csvagent_datauri_pyodide_bridge_rce_t1059.yml` —
+    CVE-2026-69264 (CVSS 9.9). A `csvFile` data-URI segment is
+    interpolated verbatim into a Python template; escaping the string
+    literal reaches Pyodide's `js` bridge and Node's `child_process`.
+  - `defense_evasion/observed_flowise_python_validator_unicode_homoglyph_bypass_t1027.yml` —
+    CVE-2026-70470. The Python code validator's `\b`-anchored regex
+    blacklist is ASCII-only; PEP 3131 NFKC-normalizes Unicode
+    homoglyphs back to the blocked identifiers at parse time.
+  - `defense_evasion/observed_flowise_mcp_npm_config_yes_env_bypass_t1562_001.yml` —
+    CVE-2026-69263, a patch bypass of CVE-2025-8943. `npm_config_yes`
+    reproduces the blocked `--yes` flag; the env-var denylist checks
+    only four hardcoded names.
+  - `impact/observed_flowise_chatflow_delete_resource_type_confusion_t1485.yml` —
+    CVE-2026-69262. Either `chatflows:delete` or `agentflows:delete`
+    deletes either flow type — permission domains aren't bound to
+    resource type.
+  - `execution/observed_flowise_sqlite_recordmanager_database_path_override_rce_t1059.yml` —
+    CVE-2026-69259. `additionalConfig` spreads after the intended
+    `database` path, silently overwriting it; combined with SQLite
+    binary-encoding injection, becomes an RCE via a Chromium config
+    file.
+  - `impact/observed_flowise_overrideconfig_ungated_flow_context_injection_t1565_001.yml` —
+    CVE-2026-69258. Two spreads into `flowConfig`/`flowData` were
+    missed by an earlier `overrideConfig` fix — unauthenticated session
+    hijack and chat-history injection.
+  - `initial_access/observed_flowise_ipv4_mapped_ipv6_ssrf_bypass_t1190.yml` —
+    CVE-2026-69257. `ipaddr.js` `.kind()` reports `'ipv6'` for
+    IPv4-mapped addresses vs. `'ipv4'` for deny-list CIDR entries — the
+    mismatch skips every IPv4 SSRF deny rule.
+  - `privilege_escalation/observed_flowise_nodevm_options_spread_sandbox_escape_t1611.yml` —
+    CVE-2026-69254. Caller-supplied `nodeVMOptions` spreads after the
+    sandbox defaults, re-enabling `child_process` inside a nested VM —
+    verified root RCE.
+  - `impact/observed_flowise_files_endpoint_missing_permission_check_t1485.yml` —
+    CVE-2026-69252. `/api/v1/files` is gated by a feature flag only;
+    any API key, regardless of granted permissions, lists and deletes
+    other workspaces' files.
+  - `execution/observed_flowise_typeorm_datasource_entities_rce_t1059.yml` —
+    CVE-2026-69251. Five nodes grant unrestricted TypeORM `DataSource`
+    options via `additionalConfig`; `entities` loads and executes
+    arbitrary JavaScript.
+  - `credential_access/observed_flowise_vars_injection_bypasses_permission_t1552.yml` —
+    CVE-2026-70471. `$vars` is unconditionally injected into the
+    custom-function sandbox with no `variables:view` check, exposing
+    every workspace secret including `process.env`-backed runtime
+    variables.
+
+  All 15 validate_rule-clean, convert cleanly to Splunk + Elasticsearch
+  on the first pass. INDEX.json regenerated (207→222), readme_stamp.py
+  re-run, CHANGELOG corpus claim updated 207→222, DEMO.md Summary
+  re-read from the live resource. Full suite: 669 passed. `claude
+  plugin validate .` passed. This batch closes the 222-rule target set
+  for this work session.
 
 - **Four NLTK rules — the corpus's first non-runtime AI/NLP-tooling
   theme**, sourced from `gh api advisories?ecosystem=pip` filtered to
