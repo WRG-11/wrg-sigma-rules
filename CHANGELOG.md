@@ -13,9 +13,40 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 155 rules.
+Corpus 100 → 160 rules.
 
 ### Added
+
+- **Five more CVE rules from earlier W-cohort radar batches the same
+  day** (05:00-07:00 + one earlier 2026-08-04 batch), one from a
+  different vendor entirely:
+
+  - `credential_access/observed_open_webui_oauth_token_exchange_audience_confusion_t1528.yml` —
+    CVE-2026-70482 (CVSS 8.1). Token-exchange validates a raw provider
+    token via userinfo but never confirms which OAuth CLIENT it was
+    issued to — any token minted for any client on the same provider
+    exchanges for a session.
+  - `initial_access/observed_open_webui_playwright_subresource_ssrf_t1190.yml` —
+    CVE-2026-70479 (CVSS 7.7). Playwright loader validates only the
+    top-level page; sub-resource requests the rendered page's own JS
+    issues reach blocked internal addresses unchecked.
+  - `initial_access/observed_open_webui_vega_resource_loader_ssrf_t1190.yml` —
+    CVE-2026-70480. Vega/vega-lite chart rendering has no restricted
+    resource loader — a chart spec in a shared chat makes the VIEWER's
+    browser issue attacker-chosen GETs.
+  - `collection/observed_nvidia_triton_mlflow_model_name_traversal_t1005.yml` —
+    CVE-2026-47487. A different vendor (NVIDIA) — Triton's MLflow plugin
+    builds a filesystem path from a caller-supplied model name with no
+    repository confinement.
+  - `initial_access/observed_open_webui_nat64_ipv6_transition_ssrf_t1190.yml` —
+    CVE-2026-70485 (CVSS 7.1). `ipaddress.is_global` checks the literal
+    IPv6 form but not IPv4 addresses embedded in NAT64 transition
+    encoding — the same class of wrapper-vs-unwrapped-target bug as
+    Pydantic AI's, here in Open WebUI's own URL-ingest path.
+
+  All five `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch. Two more instances of the bare-`127.`-parsed-as-float
+  YAML footgun caught and quoted before commit.
 
 - **Four more Open WebUI CVE rules, remaining W-cohort radar output from
   the same 2026-08-11 batch**:
