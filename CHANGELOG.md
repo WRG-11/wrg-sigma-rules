@@ -13,9 +13,45 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 187 rules.
+Corpus 100 → 191 rules.
 
 ### Added
+
+- **Four more rules: one stable-diffusion.cpp sibling bug, three Open WebUI
+  access-control gaps**:
+
+  - `collection/observed_stable_diffusion_cpp_ckpt_missing_bounds_check_oob_read_t1005.yml` —
+    CVE-2026-47748 (CVSS 5.5). A distinct root cause from this corpus's
+    sign-confusion `.ckpt` write bugs: throughout the pickle parser,
+    opcode handlers advance the buffer position (`buffer += N`) without
+    checking `buffer + N <= buffer_end` first — a simply-truncated
+    `.ckpt` file causes reads past the metadata buffer. LibFuzzer found
+    crashes in under one second against malformed inputs.
+  - `impact/observed_open_webui_skill_mention_regex_redos_t1499.yml` —
+    CVE-2026-59220 (CVSS 6.5). `SKILL_MENTION_RE` / `strip_re` use
+    overlapping quantifiers; a chat message containing `<$` with no
+    closing `>` triggers quadratic backtracking on the shared `asyncio`
+    event loop, blocking every other in-flight request, not just the
+    sender's.
+  - `privilege_escalation/observed_open_webui_arena_task_endpoint_submodel_bypass_t1548.yml` —
+    CVE-2026-59225 (CVSS 5.4). The normal chat route resolves an arena
+    wrapper's underlying model before re-checking that model's access
+    permission; task endpoints instead call
+    `generate_chat_completion()` directly, resolving arena fallback
+    AFTER the wrapper's own check and recursing with
+    `bypass_filter=True` — skipping the submodel's access check
+    entirely.
+  - `privilege_escalation/observed_open_webui_image_edit_permission_check_missing_t1548.yml` —
+    CVE-2026-59227 (CVSS 4.3). `POST /api/v1/images/edit` required only
+    a VERIFIED account — it never checked the deployment's global
+    image-edit switch or the caller's per-user image-generation
+    permission, letting any verified non-admin invoke server-side
+    image editing on the administrator's provider credentials.
+
+  All 4 validate_rule-clean, convert cleanly to Splunk + Elasticsearch.
+  INDEX.json regenerated (187→191), readme_stamp.py re-run, CHANGELOG
+  corpus claim updated 187→191, DEMO.md Summary re-read from the live
+  resource. Full suite: 607 passed. `claude plugin validate .` passed.
 
 - **Five more rules: four Open WebUI, one stable-diffusion.cpp sibling
   bug**:

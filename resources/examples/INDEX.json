@@ -9,7 +9,7 @@
     "apps/<wrg-app>/tests/fixtures/crypto_trace/sigma_rule_*.yml (2 observed)",
     "apps/<wrg-app>/tests/fixtures/expected_sigma_output.yml (5 detector goldens)"
   ],
-  "total_rules": 187,
+  "total_rules": 191,
   "categories": {
     "code_review": [
       "code_review/observed_ai_fingerprint_ai_prose.yml",
@@ -36,6 +36,7 @@
       "collection/observed_open_webui_model_metadata_knowledge_file_bypass_t1005.yml",
       "collection/observed_open_webui_shared_chat_file_ownership_bypass_t1005.yml",
       "collection/observed_open_webui_upload_knowledge_id_writeaccess_bypass_t1005.yml",
+      "collection/observed_stable_diffusion_cpp_ckpt_missing_bounds_check_oob_read_t1005.yml",
       "collection/observed_whatsapp_mcp_bridge_path_traversal_t1005.yml",
       "collection/template_t1005_data_from_local_system_archive_utility_staging.yml",
       "collection/template_t1114_001_local_email_collection_ost_pst_access.yml",
@@ -139,6 +140,7 @@
       "impact/observed_open_webui_automation_recurrence_dos_t1499.yml",
       "impact/observed_open_webui_calendar_event_destination_bypass_t1565_001.yml",
       "impact/observed_open_webui_folder_delete_ownership_bypass_t1485.yml",
+      "impact/observed_open_webui_skill_mention_regex_redos_t1499.yml",
       "impact/observed_open_webui_sync_cleanup_cross_kb_delete_t1485.yml",
       "impact/observed_sigma_rule_lazarus.yml",
       "impact/observed_sigma_rule_lockbit_btc.yml",
@@ -214,6 +216,8 @@
     ],
     "privilege_escalation": [
       "privilege_escalation/observed_mcp_toolbox_protocol_downgrade_scope_bypass_t1548.yml",
+      "privilege_escalation/observed_open_webui_arena_task_endpoint_submodel_bypass_t1548.yml",
+      "privilege_escalation/observed_open_webui_image_edit_permission_check_missing_t1548.yml",
       "privilege_escalation/observed_open_webui_terminal_ws_role_gate_bypass_t1548.yml",
       "privilege_escalation/observed_open_webui_url_idx_backend_bypass_t1548.yml",
       "privilege_escalation/template_t1098_003_account_manipulation_aws_iam_wildcard_admin_policy_created.yml",
@@ -248,6 +252,7 @@
       "execution/observed_pgadmin_ai_assistant_readonly_bypass_t1059.yml",
       "execution/observed_ragflow_agent_node_name_stored_xss_t1059_007.yml",
       "impact/observed_open_webui_automation_recurrence_dos_t1499.yml",
+      "impact/observed_open_webui_skill_mention_regex_redos_t1499.yml",
       "impact/observed_vllm_sparse_tensor_multimodal_dos_t1499.yml",
       "impact/observed_vllm_structured_outputs_regex_redos_t1499.yml",
       "impact/template_t1565_mcp_db_sql_readonly_write_bypass.yml",
@@ -300,6 +305,7 @@
     ],
     "file_event": [
       "collection/observed_claude_code_copy_tmp_symlink_t1552.yml",
+      "collection/observed_stable_diffusion_cpp_ckpt_missing_bounds_check_oob_read_t1005.yml",
       "collection/template_t1005_data_from_local_system_archive_utility_staging.yml",
       "collection/template_t1114_001_local_email_collection_ost_pst_access.yml",
       "credential_access/template_t1552_004_unsecured_credentials_private_keys_key_file_access.yml",
@@ -411,6 +417,8 @@
       "initial_access/observed_open_webui_playwright_subresource_ssrf_t1190.yml",
       "initial_access/observed_ruflo_mcp_bridge_unauth_terminal_execute_t1190.yml",
       "initial_access/template_t1189_drive_by_compromise_legacy_plugin_ua_payload_fetch.yml",
+      "privilege_escalation/observed_open_webui_arena_task_endpoint_submodel_bypass_t1548.yml",
+      "privilege_escalation/observed_open_webui_image_edit_permission_check_missing_t1548.yml",
       "privilege_escalation/observed_open_webui_url_idx_backend_bypass_t1548.yml",
       "resource_development/template_t1583_001_acquire_infrastructure_domains_lookalike_domain.yml",
       "resource_development/template_t1585_001_establish_accounts_social_media_signup_hosts.yml"
@@ -492,6 +500,7 @@
     ],
     "linux": [
       "collection/observed_claude_code_copy_tmp_symlink_t1552.yml",
+      "collection/observed_stable_diffusion_cpp_ckpt_missing_bounds_check_oob_read_t1005.yml",
       "credential_access/observed_mcp_kubernetes_log_injection_token_exfil_t1557.yml",
       "defense_evasion/observed_maxkb_sendto_fastopen_sandbox_bypass_t1562_001.yml",
       "execution/observed_apostrophecms_apos_create_password_injection_t1059_004.yml",
@@ -525,6 +534,7 @@
       "execution/observed_open_webui_model_profile_svg_xss_takeover_t1059_007.yml",
       "execution/observed_open_webui_socketio_session_hijack_t1059_007.yml",
       "impact/observed_open_webui_automation_recurrence_dos_t1499.yml",
+      "impact/observed_open_webui_skill_mention_regex_redos_t1499.yml",
       "initial_access/observed_open_webui_vega_resource_loader_ssrf_t1190.yml",
       "privilege_escalation/observed_open_webui_terminal_ws_role_gate_bypass_t1548.yml"
     ],
@@ -586,6 +596,8 @@
       "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
       "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml",
       "privilege_escalation/observed_mcp_toolbox_protocol_downgrade_scope_bypass_t1548.yml",
+      "privilege_escalation/observed_open_webui_arena_task_endpoint_submodel_bypass_t1548.yml",
+      "privilege_escalation/observed_open_webui_image_edit_permission_check_missing_t1548.yml",
       "privilege_escalation/observed_open_webui_url_idx_backend_bypass_t1548.yml"
     ],
     "vllm": [
@@ -686,371 +698,381 @@
   "_last_extension": {
     "date": "2026-08-11",
     "added": [
-      "collection/observed_open_webui_image_url_file_id_ocr_exfil_t1005.yml",
-      "collection/observed_open_webui_upload_knowledge_id_writeaccess_bypass_t1005.yml",
-      "discovery/observed_open_webui_signin_timing_account_enumeration_t1087.yml",
-      "execution/observed_stable_diffusion_cpp_ckpt_global_opcode_heap_overflow_t1059.yml",
-      "impact/observed_open_webui_calendar_event_destination_bypass_t1565_001.yml"
+      "collection/observed_stable_diffusion_cpp_ckpt_missing_bounds_check_oob_read_t1005.yml",
+      "impact/observed_open_webui_skill_mention_regex_redos_t1499.yml",
+      "privilege_escalation/observed_open_webui_arena_task_endpoint_submodel_bypass_t1548.yml",
+      "privilege_escalation/observed_open_webui_image_edit_permission_check_missing_t1548.yml"
     ],
-    "context": "INDEX regenerated from disk (drift-fix): total_rules 182 -> 187",
+    "context": "INDEX regenerated from disk (drift-fix): total_rules 187 -> 191",
     "previous_extension": {
       "date": "2026-08-11",
       "added": [
-        "collection/observed_open_webui_cache_serve_prefix_traversal_t1005.yml",
-        "collection/observed_open_webui_model_metadata_knowledge_file_bypass_t1005.yml",
-        "execution/observed_open_webui_mermaid_loose_security_xss_t1059_007.yml",
-        "execution/observed_open_webui_model_profile_svg_xss_takeover_t1059_007.yml",
-        "initial_access/observed_open_webui_milvus_collection_name_injection_t1190.yml"
+        "collection/observed_open_webui_image_url_file_id_ocr_exfil_t1005.yml",
+        "collection/observed_open_webui_upload_knowledge_id_writeaccess_bypass_t1005.yml",
+        "discovery/observed_open_webui_signin_timing_account_enumeration_t1087.yml",
+        "execution/observed_stable_diffusion_cpp_ckpt_global_opcode_heap_overflow_t1059.yml",
+        "impact/observed_open_webui_calendar_event_destination_bypass_t1565_001.yml"
       ],
-      "context": "INDEX regenerated from disk (drift-fix): total_rules 177 -> 182",
+      "context": "INDEX regenerated from disk (drift-fix): total_rules 182 -> 187",
       "previous_extension": {
         "date": "2026-08-11",
         "added": [
-          "collection/observed_open_webui_shared_chat_file_ownership_bypass_t1005.yml",
-          "execution/observed_open_webui_cross_origin_postmessage_prompt_injection_t1059.yml",
-          "execution/observed_stable_diffusion_cpp_ckpt_sign_confusion_heap_overflow_t1059.yml",
-          "impact/observed_vllm_audio_decompression_bomb_t1499.yml"
+          "collection/observed_open_webui_cache_serve_prefix_traversal_t1005.yml",
+          "collection/observed_open_webui_model_metadata_knowledge_file_bypass_t1005.yml",
+          "execution/observed_open_webui_mermaid_loose_security_xss_t1059_007.yml",
+          "execution/observed_open_webui_model_profile_svg_xss_takeover_t1059_007.yml",
+          "initial_access/observed_open_webui_milvus_collection_name_injection_t1190.yml"
         ],
-        "context": "INDEX regenerated from disk (drift-fix): total_rules 173 -> 177",
+        "context": "INDEX regenerated from disk (drift-fix): total_rules 177 -> 182",
         "previous_extension": {
           "date": "2026-08-11",
           "added": [
-            "impact/observed_vllm_audio_upload_pre_limit_memory_exhaustion_t1499.yml",
-            "impact/observed_vllm_mrope_prompt_embeds_assertion_crash_t1499.yml",
-            "initial_access/observed_open_webui_playwright_redirect_ssrf_bypass_t1190.yml",
-            "initial_access/observed_vllm_assert_security_check_optimized_mode_rce_t1195_002.yml"
+            "collection/observed_open_webui_shared_chat_file_ownership_bypass_t1005.yml",
+            "execution/observed_open_webui_cross_origin_postmessage_prompt_injection_t1059.yml",
+            "execution/observed_stable_diffusion_cpp_ckpt_sign_confusion_heap_overflow_t1059.yml",
+            "impact/observed_vllm_audio_decompression_bomb_t1499.yml"
           ],
-          "context": "INDEX regenerated from disk (drift-fix): total_rules 169 -> 173",
+          "context": "INDEX regenerated from disk (drift-fix): total_rules 173 -> 177",
           "previous_extension": {
             "date": "2026-08-11",
             "added": [
-              "impact/observed_vllm_sparse_tensor_multimodal_dos_t1499.yml",
-              "impact/observed_vllm_structured_outputs_regex_redos_t1499.yml",
-              "initial_access/observed_vllm_hardcoded_trust_remote_code_bypass_t1195_002.yml"
+              "impact/observed_vllm_audio_upload_pre_limit_memory_exhaustion_t1499.yml",
+              "impact/observed_vllm_mrope_prompt_embeds_assertion_crash_t1499.yml",
+              "initial_access/observed_open_webui_playwright_redirect_ssrf_bypass_t1190.yml",
+              "initial_access/observed_vllm_assert_security_check_optimized_mode_rce_t1195_002.yml"
             ],
-            "context": "INDEX regenerated from disk (drift-fix): total_rules 166 -> 169",
+            "context": "INDEX regenerated from disk (drift-fix): total_rules 169 -> 173",
             "previous_extension": {
               "date": "2026-08-11",
               "added": [
-                "credential_access/observed_sglang_server_info_credential_leak_t1552.yml",
-                "execution/observed_sglang_dumper_subsystem_sandbox_escape_t1059.yml",
-                "execution/observed_sglang_lora_adapter_safeunpickler_bypass_rce_t1059.yml",
-                "execution/observed_sglang_weights_from_disk_pickle_rce_t1059.yml",
-                "exfiltration/observed_sglang_nccl_weight_broadcast_exfil_t1041.yml",
-                "initial_access/observed_sglang_expert_backup_zeromq_pull_rce_t1190.yml"
+                "impact/observed_vllm_sparse_tensor_multimodal_dos_t1499.yml",
+                "impact/observed_vllm_structured_outputs_regex_redos_t1499.yml",
+                "initial_access/observed_vllm_hardcoded_trust_remote_code_bypass_t1195_002.yml"
               ],
-              "context": "INDEX regenerated from disk (drift-fix): total_rules 160 -> 166",
+              "context": "INDEX regenerated from disk (drift-fix): total_rules 166 -> 169",
               "previous_extension": {
                 "date": "2026-08-11",
                 "added": [
-                  "collection/observed_nvidia_triton_mlflow_model_name_traversal_t1005.yml",
-                  "credential_access/observed_open_webui_oauth_token_exchange_audience_confusion_t1528.yml",
-                  "initial_access/observed_open_webui_nat64_ipv6_transition_ssrf_t1190.yml",
-                  "initial_access/observed_open_webui_playwright_subresource_ssrf_t1190.yml",
-                  "initial_access/observed_open_webui_vega_resource_loader_ssrf_t1190.yml"
+                  "credential_access/observed_sglang_server_info_credential_leak_t1552.yml",
+                  "execution/observed_sglang_dumper_subsystem_sandbox_escape_t1059.yml",
+                  "execution/observed_sglang_lora_adapter_safeunpickler_bypass_rce_t1059.yml",
+                  "execution/observed_sglang_weights_from_disk_pickle_rce_t1059.yml",
+                  "exfiltration/observed_sglang_nccl_weight_broadcast_exfil_t1041.yml",
+                  "initial_access/observed_sglang_expert_backup_zeromq_pull_rce_t1190.yml"
                 ],
-                "context": "INDEX regenerated from disk (drift-fix): total_rules 155 -> 160",
+                "context": "INDEX regenerated from disk (drift-fix): total_rules 160 -> 166",
                 "previous_extension": {
                   "date": "2026-08-11",
                   "added": [
-                    "collection/observed_open_webui_knowledge_file_id_cross_user_read_t1005.yml",
-                    "credential_access/observed_open_webui_tool_source_field_readmission_t1552.yml",
-                    "impact/observed_open_webui_automation_recurrence_dos_t1499.yml",
-                    "impact/observed_open_webui_sync_cleanup_cross_kb_delete_t1485.yml"
+                    "collection/observed_nvidia_triton_mlflow_model_name_traversal_t1005.yml",
+                    "credential_access/observed_open_webui_oauth_token_exchange_audience_confusion_t1528.yml",
+                    "initial_access/observed_open_webui_nat64_ipv6_transition_ssrf_t1190.yml",
+                    "initial_access/observed_open_webui_playwright_subresource_ssrf_t1190.yml",
+                    "initial_access/observed_open_webui_vega_resource_loader_ssrf_t1190.yml"
                   ],
-                  "context": "INDEX regenerated from disk (drift-fix): total_rules 151 -> 155",
+                  "context": "INDEX regenerated from disk (drift-fix): total_rules 155 -> 160",
                   "previous_extension": {
                     "date": "2026-08-11",
                     "added": [
-                      "execution/observed_open_webui_katex_stack_overflow_xss_t1059_007.yml",
-                      "execution/observed_open_webui_terminal_preview_iframe_sandbox_t1059_007.yml",
-                      "impact/observed_open_webui_folder_delete_ownership_bypass_t1485.yml",
-                      "initial_access/observed_open_webui_dns_rebind_toctou_ssrf_t1190.yml",
-                      "privilege_escalation/observed_open_webui_terminal_ws_role_gate_bypass_t1548.yml"
+                      "collection/observed_open_webui_knowledge_file_id_cross_user_read_t1005.yml",
+                      "credential_access/observed_open_webui_tool_source_field_readmission_t1552.yml",
+                      "impact/observed_open_webui_automation_recurrence_dos_t1499.yml",
+                      "impact/observed_open_webui_sync_cleanup_cross_kb_delete_t1485.yml"
                     ],
-                    "context": "INDEX regenerated from disk (drift-fix): total_rules 146 -> 151",
+                    "context": "INDEX regenerated from disk (drift-fix): total_rules 151 -> 155",
                     "previous_extension": {
                       "date": "2026-08-11",
                       "added": [
-                        "collection/observed_f5_tts_finetune_project_name_traversal_t1005.yml",
-                        "execution/observed_open_webui_socketio_session_hijack_t1059_007.yml",
-                        "privilege_escalation/observed_open_webui_url_idx_backend_bypass_t1548.yml"
+                        "execution/observed_open_webui_katex_stack_overflow_xss_t1059_007.yml",
+                        "execution/observed_open_webui_terminal_preview_iframe_sandbox_t1059_007.yml",
+                        "impact/observed_open_webui_folder_delete_ownership_bypass_t1485.yml",
+                        "initial_access/observed_open_webui_dns_rebind_toctou_ssrf_t1190.yml",
+                        "privilege_escalation/observed_open_webui_terminal_ws_role_gate_bypass_t1548.yml"
                       ],
-                      "context": "INDEX regenerated from disk (drift-fix): total_rules 143 -> 146",
+                      "context": "INDEX regenerated from disk (drift-fix): total_rules 146 -> 151",
                       "previous_extension": {
                         "date": "2026-08-11",
                         "added": [
-                          "collection/observed_gradio_fileexplorer_path_traversal_t1005.yml",
-                          "execution/observed_ragflow_agent_node_name_stored_xss_t1059_007.yml",
-                          "initial_access/observed_gradio_file_fetch_ssrf_metadata_t1190.yml"
+                          "collection/observed_f5_tts_finetune_project_name_traversal_t1005.yml",
+                          "execution/observed_open_webui_socketio_session_hijack_t1059_007.yml",
+                          "privilege_escalation/observed_open_webui_url_idx_backend_bypass_t1548.yml"
                         ],
-                        "context": "INDEX regenerated from disk (drift-fix): total_rules 140 -> 143",
+                        "context": "INDEX regenerated from disk (drift-fix): total_rules 143 -> 146",
                         "previous_extension": {
                           "date": "2026-08-11",
                           "added": [
-                            "collection/observed_ollama_gguf_heap_overread_exfil_t1005.yml",
-                            "credential_access/observed_mem0_unauth_config_apikey_ssrf_t1552.yml",
-                            "execution/observed_code_runner_mcp_unauth_run_code_t1059.yml",
-                            "execution/observed_gpt_sovits_webui_shell_injection_t1059.yml",
-                            "persistence/observed_ollama_windows_update_rce_startup_t1547_001.yml"
+                            "collection/observed_gradio_fileexplorer_path_traversal_t1005.yml",
+                            "execution/observed_ragflow_agent_node_name_stored_xss_t1059_007.yml",
+                            "initial_access/observed_gradio_file_fetch_ssrf_metadata_t1190.yml"
                           ],
-                          "context": "INDEX regenerated from disk (drift-fix): total_rules 135 -> 140",
+                          "context": "INDEX regenerated from disk (drift-fix): total_rules 140 -> 143",
                           "previous_extension": {
                             "date": "2026-08-11",
                             "added": [
-                              "defense_evasion/observed_maxkb_frame_introspection_result_spoofing_t1036.yml",
-                              "defense_evasion/observed_maxkb_sendto_fastopen_sandbox_bypass_t1562_001.yml",
-                              "execution/observed_autogpt_redis_pickle_cache_poisoning_rce_t1059.yml",
-                              "initial_access/observed_agenticmail_mcp_http_unauth_masterkey_tools_t1190.yml"
+                              "collection/observed_ollama_gguf_heap_overread_exfil_t1005.yml",
+                              "credential_access/observed_mem0_unauth_config_apikey_ssrf_t1552.yml",
+                              "execution/observed_code_runner_mcp_unauth_run_code_t1059.yml",
+                              "execution/observed_gpt_sovits_webui_shell_injection_t1059.yml",
+                              "persistence/observed_ollama_windows_update_rce_startup_t1547_001.yml"
                             ],
-                            "context": "INDEX regenerated from disk (drift-fix): total_rules 131 -> 135",
+                            "context": "INDEX regenerated from disk (drift-fix): total_rules 135 -> 140",
                             "previous_extension": {
                               "date": "2026-08-11",
                               "added": [
-                                "execution/observed_agno_clickhouse_metadata_sqli_t1059.yml",
-                                "initial_access/observed_microsoft_apm_symlink_dereference_deploy_t1195_002.yml"
+                                "defense_evasion/observed_maxkb_frame_introspection_result_spoofing_t1036.yml",
+                                "defense_evasion/observed_maxkb_sendto_fastopen_sandbox_bypass_t1562_001.yml",
+                                "execution/observed_autogpt_redis_pickle_cache_poisoning_rce_t1059.yml",
+                                "initial_access/observed_agenticmail_mcp_http_unauth_masterkey_tools_t1190.yml"
                               ],
-                              "context": "INDEX regenerated from disk (drift-fix): total_rules 129 -> 131",
+                              "context": "INDEX regenerated from disk (drift-fix): total_rules 131 -> 135",
                               "previous_extension": {
                                 "date": "2026-08-11",
                                 "added": [
-                                  "credential_access/observed_mcp_kubernetes_log_injection_token_exfil_t1557.yml",
-                                  "execution/observed_fastgpt_sandbox_regex_bypass_import_t1059_007.yml",
-                                  "initial_access/observed_gitlab_mcp_server_unauth_pat_abuse_t1190.yml"
+                                  "execution/observed_agno_clickhouse_metadata_sqli_t1059.yml",
+                                  "initial_access/observed_microsoft_apm_symlink_dereference_deploy_t1195_002.yml"
                                 ],
-                                "context": "INDEX regenerated from disk (drift-fix): total_rules 126 -> 129",
+                                "context": "INDEX regenerated from disk (drift-fix): total_rules 129 -> 131",
                                 "previous_extension": {
                                   "date": "2026-08-11",
                                   "added": [
-                                    "credential_access/observed_librechat_mcp_oauth_resource_mismatch_t1528.yml",
-                                    "execution/observed_apostrophecms_apos_create_password_injection_t1059_004.yml",
-                                    "execution/observed_banks_prompt_jinja2_ssti_t1059.yml",
-                                    "exfiltration/observed_openclaw_mcp_header_redirect_leak_t1567.yml"
+                                    "credential_access/observed_mcp_kubernetes_log_injection_token_exfil_t1557.yml",
+                                    "execution/observed_fastgpt_sandbox_regex_bypass_import_t1059_007.yml",
+                                    "initial_access/observed_gitlab_mcp_server_unauth_pat_abuse_t1190.yml"
                                   ],
-                                  "context": "INDEX regenerated from disk (drift-fix): total_rules 122 -> 126",
+                                  "context": "INDEX regenerated from disk (drift-fix): total_rules 126 -> 129",
                                   "previous_extension": {
                                     "date": "2026-08-11",
                                     "added": [
-                                      "collection/observed_github_copilot_fetchpage_file_uri_exfil_t1005.yml",
-                                      "execution/observed_ragflow_canvas_jinja2_ssti_t1059.yml"
+                                      "credential_access/observed_librechat_mcp_oauth_resource_mismatch_t1528.yml",
+                                      "execution/observed_apostrophecms_apos_create_password_injection_t1059_004.yml",
+                                      "execution/observed_banks_prompt_jinja2_ssti_t1059.yml",
+                                      "exfiltration/observed_openclaw_mcp_header_redirect_leak_t1567.yml"
                                     ],
-                                    "context": "INDEX regenerated from disk (drift-fix): total_rules 120 -> 122",
+                                    "context": "INDEX regenerated from disk (drift-fix): total_rules 122 -> 126",
                                     "previous_extension": {
                                       "date": "2026-08-11",
                                       "added": [
-                                        "execution/observed_langroid_sqlchatagent_llm_rce_t1059.yml",
-                                        "execution/observed_pgadmin_ai_assistant_readonly_bypass_t1059.yml",
-                                        "initial_access/observed_kong_konnect_mcp_indirect_prompt_injection_t1190.yml"
+                                        "collection/observed_github_copilot_fetchpage_file_uri_exfil_t1005.yml",
+                                        "execution/observed_ragflow_canvas_jinja2_ssti_t1059.yml"
                                       ],
-                                      "context": "INDEX regenerated from disk (drift-fix): total_rules 117 -> 120",
+                                      "context": "INDEX regenerated from disk (drift-fix): total_rules 120 -> 122",
                                       "previous_extension": {
                                         "date": "2026-08-11",
                                         "added": [
-                                          "execution/observed_windows_mcp_wildcard_cors_powershell_t1059_001.yml",
-                                          "initial_access/observed_network_ai_empty_default_secret_t1190.yml",
-                                          "lateral_movement/observed_foreman_mcp_session_id_disclosure_t1563.yml"
+                                          "execution/observed_langroid_sqlchatagent_llm_rce_t1059.yml",
+                                          "execution/observed_pgadmin_ai_assistant_readonly_bypass_t1059.yml",
+                                          "initial_access/observed_kong_konnect_mcp_indirect_prompt_injection_t1190.yml"
                                         ],
-                                        "context": "INDEX regenerated from disk (drift-fix): total_rules 114 -> 117",
+                                        "context": "INDEX regenerated from disk (drift-fix): total_rules 117 -> 120",
                                         "previous_extension": {
                                           "date": "2026-08-11",
                                           "added": [
-                                            "execution/observed_flowise_custom_mcp_header_spoof_rce_t1059.yml",
-                                            "initial_access/observed_mcp_pinot_unauth_confused_deputy_t1190.yml",
-                                            "privilege_escalation/observed_mcp_toolbox_protocol_downgrade_scope_bypass_t1548.yml"
+                                            "execution/observed_windows_mcp_wildcard_cors_powershell_t1059_001.yml",
+                                            "initial_access/observed_network_ai_empty_default_secret_t1190.yml",
+                                            "lateral_movement/observed_foreman_mcp_session_id_disclosure_t1563.yml"
                                           ],
-                                          "context": "INDEX regenerated from disk (drift-fix): total_rules 111 -> 114",
+                                          "context": "INDEX regenerated from disk (drift-fix): total_rules 114 -> 117",
                                           "previous_extension": {
                                             "date": "2026-08-11",
                                             "added": [
-                                              "collection/observed_claude_code_copy_tmp_symlink_t1552.yml",
-                                              "execution/observed_praisonai_claude_gha_branch_injection_t1059_004.yml",
-                                              "initial_access/observed_agenticmail_bridge_wake_unverified_sender_t1566.yml"
+                                              "execution/observed_flowise_custom_mcp_header_spoof_rce_t1059.yml",
+                                              "initial_access/observed_mcp_pinot_unauth_confused_deputy_t1190.yml",
+                                              "privilege_escalation/observed_mcp_toolbox_protocol_downgrade_scope_bypass_t1548.yml"
                                             ],
-                                            "context": "INDEX regenerated from disk (drift-fix): total_rules 108 -> 111",
+                                            "context": "INDEX regenerated from disk (drift-fix): total_rules 111 -> 114",
                                             "previous_extension": {
                                               "date": "2026-08-11",
                                               "added": [
-                                                "collection/observed_whatsapp_mcp_bridge_path_traversal_t1005.yml",
-                                                "initial_access/observed_claude_code_action_mcp_json_pr_rce_t1195_002.yml",
-                                                "initial_access/observed_ruflo_mcp_bridge_unauth_terminal_execute_t1190.yml",
-                                                "persistence/observed_claude_code_worktree_git_confusion_t1546_004.yml"
+                                                "collection/observed_claude_code_copy_tmp_symlink_t1552.yml",
+                                                "execution/observed_praisonai_claude_gha_branch_injection_t1059_004.yml",
+                                                "initial_access/observed_agenticmail_bridge_wake_unverified_sender_t1566.yml"
                                               ],
-                                              "context": "INDEX regenerated from disk (drift-fix): total_rules 104 -> 108",
+                                              "context": "INDEX regenerated from disk (drift-fix): total_rules 108 -> 111",
                                               "previous_extension": {
                                                 "date": "2026-08-11",
                                                 "added": [
-                                                  "exfiltration/observed_miasma_github_graphql_exfil_t1567_001.yml",
-                                                  "initial_access/observed_miasma_binding_gyp_command_substitution_t1195_002.yml",
-                                                  "persistence/observed_miasma_ai_ide_config_poisoning_t1546.yml"
+                                                  "collection/observed_whatsapp_mcp_bridge_path_traversal_t1005.yml",
+                                                  "initial_access/observed_claude_code_action_mcp_json_pr_rce_t1195_002.yml",
+                                                  "initial_access/observed_ruflo_mcp_bridge_unauth_terminal_execute_t1190.yml",
+                                                  "persistence/observed_claude_code_worktree_git_confusion_t1546_004.yml"
                                                 ],
-                                                "context": "INDEX regenerated from disk (drift-fix): total_rules 101 -> 104",
+                                                "context": "INDEX regenerated from disk (drift-fix): total_rules 104 -> 108",
                                                 "previous_extension": {
-                                                  "date": "2026-08-06",
+                                                  "date": "2026-08-11",
                                                   "added": [
-                                                    "collection/observed_diffusers_weight_map_path_traversal_t1005.yml"
+                                                    "exfiltration/observed_miasma_github_graphql_exfil_t1567_001.yml",
+                                                    "initial_access/observed_miasma_binding_gyp_command_substitution_t1195_002.yml",
+                                                    "persistence/observed_miasma_ai_ide_config_poisoning_t1546.yml"
                                                   ],
-                                                  "context": "INDEX regenerated from disk (drift-fix): total_rules 100 -> 101",
+                                                  "context": "INDEX regenerated from disk (drift-fix): total_rules 101 -> 104",
                                                   "previous_extension": {
-                                                    "date": "2026-07-08",
+                                                    "date": "2026-08-06",
                                                     "added": [
-                                                      "initial_access/observed_tanstack_pwn_request_actions_cache_poisoning_t1195_002.yml"
+                                                      "collection/observed_diffusers_weight_map_path_traversal_t1005.yml"
                                                     ],
-                                                    "context": "INDEX regenerated from disk (drift-fix): total_rules 99 -> 100",
+                                                    "context": "INDEX regenerated from disk (drift-fix): total_rules 100 -> 101",
                                                     "previous_extension": {
                                                       "date": "2026-07-08",
                                                       "added": [
-                                                        "initial_access/observed_sharepoint_cve_2026_58644_w3wp_shell_spawn_t1190.yml"
+                                                        "initial_access/observed_tanstack_pwn_request_actions_cache_poisoning_t1195_002.yml"
                                                       ],
-                                                      "context": "INDEX regenerated from disk (drift-fix): total_rules 98 -> 99",
+                                                      "context": "INDEX regenerated from disk (drift-fix): total_rules 99 -> 100",
                                                       "previous_extension": {
                                                         "date": "2026-07-08",
                                                         "added": [
-                                                          "command_and_control/observed_ncentral_cve_2026_18577_cloudflared_persistence_t1572.yml"
+                                                          "initial_access/observed_sharepoint_cve_2026_58644_w3wp_shell_spawn_t1190.yml"
                                                         ],
-                                                        "context": "INDEX regenerated from disk (drift-fix): total_rules 97 -> 98",
+                                                        "context": "INDEX regenerated from disk (drift-fix): total_rules 98 -> 99",
                                                         "previous_extension": {
                                                           "date": "2026-07-08",
                                                           "added": [
-                                                            "credential_access/observed_storm_2949_azure_mgmt_plane_credential_harvest_t1552.yml"
+                                                            "command_and_control/observed_ncentral_cve_2026_18577_cloudflared_persistence_t1572.yml"
                                                           ],
-                                                          "context": "INDEX regenerated from disk (drift-fix): total_rules 96 -> 97",
+                                                          "context": "INDEX regenerated from disk (drift-fix): total_rules 97 -> 98",
                                                           "previous_extension": {
                                                             "date": "2026-07-08",
                                                             "added": [
-                                                              "initial_access/template_t1189_drive_by_compromise_legacy_plugin_ua_payload_fetch.yml"
+                                                              "credential_access/observed_storm_2949_azure_mgmt_plane_credential_harvest_t1552.yml"
                                                             ],
-                                                            "context": "INDEX regenerated from disk (drift-fix): total_rules 95 -> 96",
+                                                            "context": "INDEX regenerated from disk (drift-fix): total_rules 96 -> 97",
                                                             "previous_extension": {
                                                               "date": "2026-07-08",
                                                               "added": [
-                                                                "discovery/template_t1082_system_information_discovery_recon_commands.yml"
+                                                                "initial_access/template_t1189_drive_by_compromise_legacy_plugin_ua_payload_fetch.yml"
                                                               ],
-                                                              "context": "INDEX regenerated from disk (drift-fix): total_rules 94 -> 95",
+                                                              "context": "INDEX regenerated from disk (drift-fix): total_rules 95 -> 96",
                                                               "previous_extension": {
                                                                 "date": "2026-07-08",
                                                                 "added": [
-                                                                  "command_and_control/observed_keyv_cacheable_npm_worm_eth_c2_t1195_002.yml"
+                                                                  "discovery/template_t1082_system_information_discovery_recon_commands.yml"
                                                                 ],
-                                                                "context": "INDEX regenerated from disk (drift-fix): total_rules 93 -> 94",
+                                                                "context": "INDEX regenerated from disk (drift-fix): total_rules 94 -> 95",
                                                                 "previous_extension": {
                                                                   "date": "2026-07-08",
                                                                   "added": [
-                                                                    "defense_evasion/template_t1574_hijack_execution_flow_dll_search_order_hijack_side_loading.yml",
-                                                                    "discovery/template_t1083_file_and_directory_discovery_recon_commands.yml",
-                                                                    "execution/template_t1204_user_execution_downloaded_file_follow_through.yml",
-                                                                    "exfiltration/template_t1567_001_exfiltration_to_cloud_storage.yml",
-                                                                    "impact/template_t1485_data_destruction_secure_wipe_tooling_mass_deletion.yml"
+                                                                    "command_and_control/observed_keyv_cacheable_npm_worm_eth_c2_t1195_002.yml"
                                                                   ],
-                                                                  "context": "INDEX regenerated from disk (drift-fix): total_rules 88 -> 93",
+                                                                  "context": "INDEX regenerated from disk (drift-fix): total_rules 93 -> 94",
                                                                   "previous_extension": {
                                                                     "date": "2026-07-08",
                                                                     "added": [
-                                                                      "code_review/observed_ai_fingerprint_hallucinated_import.yml"
+                                                                      "defense_evasion/template_t1574_hijack_execution_flow_dll_search_order_hijack_side_loading.yml",
+                                                                      "discovery/template_t1083_file_and_directory_discovery_recon_commands.yml",
+                                                                      "execution/template_t1204_user_execution_downloaded_file_follow_through.yml",
+                                                                      "exfiltration/template_t1567_001_exfiltration_to_cloud_storage.yml",
+                                                                      "impact/template_t1485_data_destruction_secure_wipe_tooling_mass_deletion.yml"
                                                                     ],
-                                                                    "context": "INDEX regenerated from disk (drift-fix): total_rules 87 -> 88",
+                                                                    "context": "INDEX regenerated from disk (drift-fix): total_rules 88 -> 93",
                                                                     "previous_extension": {
                                                                       "date": "2026-07-08",
                                                                       "added": [
-                                                                        "command_and_control/observed_unc1069_axios_waveshaper_t1195_002.yml"
+                                                                        "code_review/observed_ai_fingerprint_hallucinated_import.yml"
                                                                       ],
-                                                                      "context": "INDEX regenerated from disk (drift-fix): total_rules 86 -> 87",
+                                                                      "context": "INDEX regenerated from disk (drift-fix): total_rules 87 -> 88",
                                                                       "previous_extension": {
                                                                         "date": "2026-07-08",
                                                                         "added": [
-                                                                          "credential_access/template_t1552_004_unsecured_credentials_private_keys_key_file_access.yml",
-                                                                          "initial_access/template_t1195_002_compromise_software_supply_chain_ci_package_manager_lolbin_spawn.yml",
-                                                                          "persistence/template_t1546_event_triggered_execution_ifeo_debugger_key_persistence.yml"
+                                                                          "command_and_control/observed_unc1069_axios_waveshaper_t1195_002.yml"
                                                                         ],
-                                                                        "context": "INDEX regenerated from disk (drift-fix): total_rules 83 -> 86",
+                                                                        "context": "INDEX regenerated from disk (drift-fix): total_rules 86 -> 87",
                                                                         "previous_extension": {
                                                                           "date": "2026-07-08",
                                                                           "added": [
-                                                                            "code_review/observed_ai_fingerprint_ai_prose.yml",
-                                                                            "code_review/observed_ai_fingerprint_ai_provenance.yml",
-                                                                            "code_review/observed_ai_fingerprint_unicode_watermark.yml"
+                                                                            "credential_access/template_t1552_004_unsecured_credentials_private_keys_key_file_access.yml",
+                                                                            "initial_access/template_t1195_002_compromise_software_supply_chain_ci_package_manager_lolbin_spawn.yml",
+                                                                            "persistence/template_t1546_event_triggered_execution_ifeo_debugger_key_persistence.yml"
                                                                           ],
-                                                                          "context": "INDEX regenerated from disk (drift-fix): total_rules 80 -> 83",
+                                                                          "context": "INDEX regenerated from disk (drift-fix): total_rules 83 -> 86",
                                                                           "previous_extension": {
                                                                             "date": "2026-07-08",
                                                                             "added": [
-                                                                              "collection/template_t1114_001_local_email_collection_ost_pst_access.yml",
-                                                                              "lateral_movement/template_t1021_006_remote_services_winrm_remote_command_execution.yml",
-                                                                              "persistence/template_t1053_005_scheduled_task_creation_from_scripting_host.yml",
-                                                                              "privilege_escalation/template_t1548_002_uac_bypass_via_auto_elevating_binary.yml"
+                                                                              "code_review/observed_ai_fingerprint_ai_prose.yml",
+                                                                              "code_review/observed_ai_fingerprint_ai_provenance.yml",
+                                                                              "code_review/observed_ai_fingerprint_unicode_watermark.yml"
                                                                             ],
-                                                                            "context": "INDEX regenerated from disk (drift-fix): total_rules 76 -> 80",
+                                                                            "context": "INDEX regenerated from disk (drift-fix): total_rules 80 -> 83",
                                                                             "previous_extension": {
                                                                               "date": "2026-07-08",
                                                                               "added": [
-                                                                                "privilege_escalation/template_t1098_003_account_manipulation_aws_iam_wildcard_admin_policy_created.yml"
+                                                                                "collection/template_t1114_001_local_email_collection_ost_pst_access.yml",
+                                                                                "lateral_movement/template_t1021_006_remote_services_winrm_remote_command_execution.yml",
+                                                                                "persistence/template_t1053_005_scheduled_task_creation_from_scripting_host.yml",
+                                                                                "privilege_escalation/template_t1548_002_uac_bypass_via_auto_elevating_binary.yml"
                                                                               ],
-                                                                              "context": "INDEX regenerated from disk (drift-fix): total_rules 75 -> 76",
+                                                                              "context": "INDEX regenerated from disk (drift-fix): total_rules 76 -> 80",
                                                                               "previous_extension": {
                                                                                 "date": "2026-07-08",
                                                                                 "added": [
-                                                                                  "credential_access/template_t1110_003_password_spraying_distinct_account_count.yml",
-                                                                                  "impact/template_t1486_t1490_ransomware_chain_temporal.yml"
+                                                                                  "privilege_escalation/template_t1098_003_account_manipulation_aws_iam_wildcard_admin_policy_created.yml"
                                                                                 ],
-                                                                                "context": "INDEX regenerated from disk (drift-fix): total_rules 73 -> 75",
+                                                                                "context": "INDEX regenerated from disk (drift-fix): total_rules 75 -> 76",
                                                                                 "previous_extension": {
                                                                                   "date": "2026-07-08",
                                                                                   "added": [
-                                                                                    "credential_access/template_gh_pat_token_type_confusion_t1552.yml",
-                                                                                    "credential_access/template_t1005_mcp_db_sql_lfi_local_file_read.yml",
-                                                                                    "credential_access/template_t1552_005_mcp_db_sql_ssrf_internal_metadata_target.yml",
-                                                                                    "defense_evasion/template_audit_log_gap_t1070.yml",
-                                                                                    "defense_evasion/template_scanner_crash_defense_evasion_t1027.yml",
-                                                                                    "impact/template_t1565_mcp_db_sql_readonly_write_bypass.yml",
-                                                                                    "initial_access/observed_jellyfin_ffmpeg_arg_injection_lfi_t1190.yml",
-                                                                                    "persistence/observed_photo_zip_nodejs_run_key_persistence_t1547_001.yml"
+                                                                                    "credential_access/template_t1110_003_password_spraying_distinct_account_count.yml",
+                                                                                    "impact/template_t1486_t1490_ransomware_chain_temporal.yml"
                                                                                   ],
-                                                                                  "context": "INDEX regenerated from disk (drift-fix): total_rules 68 -> 73",
+                                                                                  "context": "INDEX regenerated from disk (drift-fix): total_rules 73 -> 75",
                                                                                   "previous_extension": {
-                                                                                    "date": "2026-06-02",
+                                                                                    "date": "2026-07-08",
                                                                                     "added": [
-                                                                                      "command_and_control/template_t1071_004_dns_tunneling_exfil_high_volume_unique_subdomain.yml",
-                                                                                      "credential_access/observed_gh_pat_token_type_confusion_t1552.yml",
-                                                                                      "credential_access/template_t1078_infostealer_credential_replay_burst.yml",
-                                                                                      "defense_evasion/observed_audit_log_gap_t1070.yml",
-                                                                                      "defense_evasion/observed_scanner_crash_defense_evasion_t1027.yml",
-                                                                                      "initial_access/observed_megalodon_github_actions_base64_payload_t1195_002.yml"
+                                                                                      "credential_access/template_gh_pat_token_type_confusion_t1552.yml",
+                                                                                      "credential_access/template_t1005_mcp_db_sql_lfi_local_file_read.yml",
+                                                                                      "credential_access/template_t1552_005_mcp_db_sql_ssrf_internal_metadata_target.yml",
+                                                                                      "defense_evasion/template_audit_log_gap_t1070.yml",
+                                                                                      "defense_evasion/template_scanner_crash_defense_evasion_t1027.yml",
+                                                                                      "impact/template_t1565_mcp_db_sql_readonly_write_bypass.yml",
+                                                                                      "initial_access/observed_jellyfin_ffmpeg_arg_injection_lfi_t1190.yml",
+                                                                                      "persistence/observed_photo_zip_nodejs_run_key_persistence_t1547_001.yml"
                                                                                     ],
-                                                                                    "context": "",
+                                                                                    "context": "INDEX regenerated from disk (drift-fix): total_rules 68 -> 73",
                                                                                     "previous_extension": {
-                                                                                      "date": "2026-06-01",
+                                                                                      "date": "2026-06-02",
                                                                                       "added": [
-                                                                                        "execution/observed_gogs_rebase_rce_t1059.yml"
+                                                                                        "command_and_control/template_t1071_004_dns_tunneling_exfil_high_volume_unique_subdomain.yml",
+                                                                                        "credential_access/observed_gh_pat_token_type_confusion_t1552.yml",
+                                                                                        "credential_access/template_t1078_infostealer_credential_replay_burst.yml",
+                                                                                        "defense_evasion/observed_audit_log_gap_t1070.yml",
+                                                                                        "defense_evasion/observed_scanner_crash_defense_evasion_t1027.yml",
+                                                                                        "initial_access/observed_megalodon_github_actions_base64_payload_t1195_002.yml"
                                                                                       ],
                                                                                       "context": "",
                                                                                       "previous_extension": {
-                                                                                        "date": "2026-05-24",
+                                                                                        "date": "2026-06-01",
                                                                                         "added": [
-                                                                                          "exfiltration/observed_socks5_null_byte_egress_t1041_extension.yml",
-                                                                                          "initial_access/observed_clawhavoc_claude_skills_t1195_002.yml"
+                                                                                          "execution/observed_gogs_rebase_rce_t1059.yml"
                                                                                         ],
                                                                                         "context": "",
                                                                                         "previous_extension": {
                                                                                           "date": "2026-05-24",
                                                                                           "added": [
-                                                                                            "exfiltration/observed_socks5_null_byte_egress_t1041.yml",
-                                                                                            "initial_access/observed_nx_console_t1195_002.yml",
-                                                                                            "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml"
+                                                                                            "exfiltration/observed_socks5_null_byte_egress_t1041_extension.yml",
+                                                                                            "initial_access/observed_clawhavoc_claude_skills_t1195_002.yml"
                                                                                           ],
                                                                                           "context": "",
                                                                                           "previous_extension": {
-                                                                                            "date": "2026-05-23",
+                                                                                            "date": "2026-05-24",
                                                                                             "added": [
-                                                                                              "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
-                                                                                              "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
-                                                                                              "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml"
+                                                                                              "exfiltration/observed_socks5_null_byte_egress_t1041.yml",
+                                                                                              "initial_access/observed_nx_console_t1195_002.yml",
+                                                                                              "initial_access/observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml"
                                                                                             ],
                                                                                             "context": "",
                                                                                             "previous_extension": {
                                                                                               "date": "2026-05-23",
                                                                                               "added": [
-                                                                                                "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
+                                                                                                "initial_access/template_t1190_exploit_public_facing_app_path_traversal_dot_dot_pattern.yml",
+                                                                                                "initial_access/template_t1190_exploit_public_facing_app_sqli_auth_bypass_pattern.yml",
+                                                                                                "initial_access/template_t1190_exploit_public_facing_app_xss_reflected_script_pattern.yml"
                                                                                               ],
-                                                                                              "context": ""
+                                                                                              "context": "",
+                                                                                              "previous_extension": {
+                                                                                                "date": "2026-05-23",
+                                                                                                "added": [
+                                                                                                  "credential_access/observed_kali365_oauth_device_code_phishing_t1528.yml"
+                                                                                                ],
+                                                                                                "context": ""
+                                                                                              }
                                                                                             }
                                                                                           }
                                                                                         }
