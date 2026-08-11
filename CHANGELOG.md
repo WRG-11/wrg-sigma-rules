@@ -13,9 +13,43 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 117 rules.
+Corpus 100 → 120 rules.
 
 ### Added
+
+- **Three prompt-injection-chain vendor-disclosed CVE rules** — sourced
+  after checking whether `sigma_scout` (this monorepo's deterministic
+  vendor-blog discovery funnel) had anything queued first; its 4-feed
+  registry (GTIG/Microsoft/Cisco Talos/Unit42) returned an empty
+  shortlist and one dead feed URL at authoring time, so these three came
+  from the same `cve_lookup` + first-party-advisory process as the ten
+  above:
+
+  - `execution/observed_langroid_sqlchatagent_llm_rce_t1059.yml` —
+    CVE-2026-25879 (CVSS 9.8). Langroid's `SQLChatAgent` executed
+    LLM-generated SQL with no validation; prompt injection (including
+    indirect, via data the agent reads back) could coerce it into
+    emitting `COPY ... FROM PROGRAM`/`xp_cmdshell`-class primitives,
+    reaching RCE on the database host when the configured role permits
+    it. Filed under `execution`, not `credential_access` — this is
+    command execution reached through a SQL interface, not a
+    credential-theft primitive.
+  - `execution/observed_pgadmin_ai_assistant_readonly_bypass_t1059.yml` —
+    CVE-2026-12045 (CVSS 9.4). pgAdmin 4's AI Assistant wrapped
+    LLM-generated SQL in `BEGIN TRANSACTION READ ONLY` but never
+    restricted it to one statement; a payload starting with
+    `COMMIT`/`END`/`ROLLBACK`/`ABORT` terminates that wrapper early,
+    so everything after runs in ordinary autocommit mode.
+  - `initial_access/observed_kong_konnect_mcp_indirect_prompt_injection_t1190.yml` —
+    CVE-2026-13341. Kong's `mcp-konnect` server returned gateway
+    analytics metadata (attacker-fully-controlled HTTP headers, e.g.
+    User-Agent) to the AI agent without neutralization. The rule detects
+    only the host-observable delivery vector (instruction-shaped header
+    content); the advisory's separate path-manipulation half is not
+    attempted since no example malformed identifier is quoted to key on.
+
+  All three `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Three more MCP-ecosystem vendor-disclosed CVE rules**:
 

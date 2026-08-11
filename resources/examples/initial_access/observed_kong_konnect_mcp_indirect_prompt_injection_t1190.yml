@@ -1,0 +1,77 @@
+title: Kong Konnect MCP server -- T1190 analytics-metadata indirect prompt injection + path manipulation
+id: b209d809-128b-4fa0-a3dd-c677af195f64
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-13341 (GHSA-7767-3m3w-2p44), a
+  self-reported advisory for Kong's `mcp-konnect` server, prior to 1.0.0.
+
+  Two combined weaknesses. First: when a caller used the MCP server's
+  analytics tools to retrieve request data, gateway-side metadata (e.g.
+  User-Agent and other HTTP header content an attacker fully controls, by
+  sending it as a normal request to the gateway) was returned to the AI
+  agent WITHOUT sufficient neutralization -- the model could interpret
+  attacker-supplied header content as instructions or markup rather than
+  inert data (indirect prompt injection). Second: path manipulation in
+  certain control-plane and group identifiers meant these IDs were not
+  validated, so a crafted identifier could redirect the resulting API
+  request to unintended Konnect endpoints, exposing plugin configuration
+  data, internal hostnames, or other operational metadata using the
+  calling user's own token. The fix neutralizes untrusted analytics
+  fields, enforces UUID validation on control-plane/group identifiers,
+  encodes path segments and pagination values, and disables raw
+  plugin-config output by default.
+
+  Detection logic flags the first-order, host-observable half of this
+  chain: a request to the Kong Gateway (whose header content later feeds
+  Konnect's analytics-to-MCP pipeline) whose User-Agent or other captured
+  header contains instruction-shaped content -- imperative phrasing
+  aimed at an AI agent rather than a browser/client identifier string --
+  since that header is the actual delivery vector for the prompt
+  injection an MCP client would otherwise ingest downstream.
+
+  Aggregated from 1 first-party vendor security advisory (Kong, via GHSA),
+  fixed in 1.0.0.
+references:
+- https://github.com/Kong/mcp-konnect/security/advisories/GHSA-7767-3m3w-2p44
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_instruction_shaped_user_agent:
+    cs(User-Agent)|contains:
+    - 'ignore previous instructions'
+    - 'ignore all previous'
+    - 'system:'
+    - 'you are now'
+    - 'new instructions:'
+  condition: selection_instruction_shaped_user_agent
+falsepositives:
+- A deployment already upgraded to mcp-konnect 1.0.0+, where untrusted
+  analytics fields are neutralized before reaching the AI agent -- a
+  matching header on a fixed deployment is logged but no longer
+  interpreted as instructions downstream
+- A security researcher or red-team exercise deliberately testing prompt-
+  injection resilience against a patched or unrelated system -- this rule
+  flags the SHAPE of the header content, not confirmed exploitation
+  against a vulnerable mcp-konnect instance specifically
+- Legitimate but unusually-phrased User-Agent strings from internal
+  tooling/scripts that coincidentally match one of these phrases -- narrow
+  in practice given the specific imperative phrasing selected, but not
+  impossible
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule does not attempt to detect the path-manipulation
+  half of the advisory (crafted control-plane/group identifiers), since
+  no example malformed identifier is quoted in the advisory to key on
+level: medium
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_13341
+- wrg.observed.source.kong_ghsa_7767_3m3w_2p44
+- wrg.observed.vector.mcp_analytics_indirect_prompt_injection
+- wrg.observed.vector.header_delivered_instruction_content
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access
