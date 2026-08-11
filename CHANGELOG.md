@@ -1000,6 +1000,17 @@ Corpus 100 → 222 rules.
   against `yaml.safe_load_all` before being wired in — the stamp script
   stays stdlib-only, so the counting is by hand, but not unverified.
 
+- **`.claude-plugin/plugin.json` is stamped too — the most public stale
+  number of the three.** Its `description` said "Ships a 100-rule published
+  corpus" while the corpus held 222, and that field is what a marketplace
+  listing renders. A JSON file cannot carry an HTML-comment marker, so it
+  gets a regex rewriter under the same contract as the shields badge, which
+  had the same limitation for the same reason. `PLUGIN_CLAIMS` covers the
+  rule count and the tactic count; `--check` fails on drift in either.
+
+  Same reach defect, third instance in one file's history — README's marked
+  numbers were correct the whole time.
+
 ### Added
 
 - **`tests/test_lucene_convert_claim.py`** — converts the entire live corpus
