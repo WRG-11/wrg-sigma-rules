@@ -13,9 +13,48 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 160 rules.
+Corpus 100 → 166 rules. `observed_*` count crosses 100.
 
 ### Added
+
+- **Six SGLang rules — a brand-new runtime family for this corpus**,
+  from a coordinated multi-CVE disclosure series (independent researcher
+  + SGLang's own GHSA advisories, same week) plus one CERT/CC-noted bug
+  verified directly against the cited source file:
+
+  - `execution/observed_sglang_lora_adapter_safeunpickler_bypass_rce_t1059.yml` —
+    CVE-2026-15969 (CVSS 9.8). `/load_lora_adapter_from_tensors`'s
+    `SafeUnpickler` denylist is incomplete; a crafted base64-pickle
+    payload reaches unauthenticated RCE.
+  - `execution/observed_sglang_dumper_subsystem_sandbox_escape_t1059.yml` —
+    CVE-2026-15971 (CVSS 9.8). The optional dumper subsystem
+    (`DUMPER_SERVER_PORT`) enables sandbox escape on ordinary inference
+    requests once enabled.
+  - `execution/observed_sglang_weights_from_disk_pickle_rce_t1059.yml` —
+    CVE-2026-15976 (CVSS 9.8). `/update_weights_from_disk` falls back to
+    `torch.load(weights_only=False)` — PyTorch's own docs call this
+    unsafe for untrusted input — on `.bin` files pulled from a
+    caller-directed HuggingFace repo.
+  - `credential_access/observed_sglang_server_info_credential_leak_t1552.yml` —
+    CVE-2026-15977 (CVSS 7.5). `/server_info` returns API keys and SSL
+    keyfile info when only `--admin-api-key` is configured.
+  - `exfiltration/observed_sglang_nccl_weight_broadcast_exfil_t1041.yml` —
+    CVE-2026-15978 (CVSS 7.5). With no API key configured, two endpoints
+    chained trigger NCCL distributed weight broadcasting then a data
+    transfer — exfiltrates the entire served model.
+  - `initial_access/observed_sglang_expert_backup_zeromq_pull_rce_t1190.yml` —
+    CVE-2026-14890 (CVSS 9.1). A ZeroMQ PULL socket bound to a routable
+    interface has no auth and no deserialization safeguard; verified
+    directly against `expert_backup_manager.py` (bind address, port
+    formula, and the client-count-only gate quoted from the source
+    itself, not just the advisory).
+
+  All six `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch. Deliberately excluded from this batch: llama.cpp's
+  CVE-2026-17500/17501 (already named and rejected in this corpus's
+  Diffusers rule's own description — availability-only crashes with no
+  signal beyond "the server died") and the already-covered
+  CVE-2026-65920.
 
 - **Five more CVE rules from earlier W-cohort radar batches the same
   day** (05:00-07:00 + one earlier 2026-08-04 batch), one from a

@@ -1,0 +1,76 @@
+title: SGLang expert-backup ZeroMQ PULL socket -- T1190 no-auth deserialization on a routable interface
+id: a907a710-ce67-41e7-82f7-529ccf4a66d8
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-14890 (CVSS 9.1 CRITICAL),
+  affecting SGLang's expert-parallel backup subsystem.
+
+  `python/sglang/srt/elastic_ep/expert_backup_manager.py` opens a ZeroMQ
+  PULL socket bound to a ROUTABLE network interface (not loopback):
+  `self.recv_from_expert_backup_client.bind(f"tcp://{get_local_ip_auto()}:
+  {PORT_BASE + server_args.node_rank * 2}")`, where `PORT_BASE` comes
+  from the `SGLANG_BACKUP_PORT_BASE` environment variable. The only gate
+  before the socket accepts and processes incoming data is a plain
+  count of connected clients against `server_args.tp_size` (verified
+  directly in the source: `while num_ready_clients < server_args.tp_size`)
+  -- no authentication, and no deserialization safeguard on what it
+  receives. When this feature is enabled and the port is reachable over
+  the network, a remote attacker can send a malicious pickle payload to
+  the PULL socket and achieve unauthenticated RCE. This is mechanistically
+  distinct from the other SGLang pickle RCEs in this corpus (HTTP-endpoint
+  triggered): this one is reached over a raw ZeroMQ TCP socket with no
+  HTTP framing at all.
+
+  Detection logic flags an inbound TCP connection to the computed
+  expert-backup port (`SGLANG_BACKUP_PORT_BASE` plus an even offset for
+  the node rank) from a source address outside the deployment's known
+  cluster-node range -- the expert-backup channel is designed for
+  intra-cluster communication only, so any external source reaching it
+  is the anomaly.
+
+  Aggregated from 2 independent sources (CERT/CC's vulnerability note +
+  direct verification against the cited source file, which was read to
+  confirm the bind address, port formula, and absence of authentication
+  quoted above), no patched version confirmed in the summary available
+  at authoring time.
+references:
+- https://www.kb.cert.org/vuls/id/326070
+- https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/elastic_ep/expert_backup_manager.py
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: network_connection
+  product: linux
+detection:
+  selection_sglang_backup_port_range:
+    DestinationPort|gte: 30000
+    DestinationPort|lte: 40000
+  selection_process_context:
+    Image|contains: sglang
+  condition: selection_sglang_backup_port_range and selection_process_context
+falsepositives:
+- A deployment already upgraded to a fixed version once one ships, where
+  the PULL socket either requires authentication or is bound to loopback
+  only when the deployment is single-node -- a matching connection on a
+  fixed deployment would either be rejected or unreachable from outside
+- Legitimate intra-cluster traffic between an operator's own SGLang
+  nodes performing normal expert-parallel weight synchronization -- this
+  rule's port range is a coarse placeholder (the advisory does not state
+  `SGLANG_BACKUP_PORT_BASE`'s default value), so deployment requires
+  substituting the actual configured base port and excluding known
+  cluster-node source addresses
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_14890
+- wrg.observed.source.cert_cc_vuls_326070
+- wrg.observed.source.direct_source_verification
+- wrg.observed.vector.zeromq_pull_no_auth
+- wrg.observed.vector.pickle_deserialization_rce
+- wrg.observed.cluster.sglang_2026_08_disclosure_series
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.initial_access
