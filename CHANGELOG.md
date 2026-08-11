@@ -13,9 +13,47 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 135 rules.
+Corpus 100 → 140 rules.
 
 ### Added
+
+- **Five more CVE rules; one candidate (AWS Bedrock AgentCore
+  install_packages) rejected** — its source offered only a speculative,
+  self-admitted "potentially" example rather than a quoted real payload:
+
+  - `credential_access/observed_mem0_unauth_config_apikey_ssrf_t1552.yml` —
+    CVE-2026-59706 (CVSS 9.2). mem0's config API leaks plaintext LLM API
+    keys via an unauthenticated `GET`, and a separate `PUT` endpoint's
+    caller-controlled `ollama_base_url` reaches internal/metadata
+    addresses with no validation.
+  - `collection/observed_ollama_gguf_heap_overread_exfil_t1005.yml` —
+    CVE-2026-7482 (CVSS 8.8). Ollama's GGUF quantization path trusted a
+    file's declared tensor offset/size without validating against actual
+    file length, reading past the heap; the leaked bytes (env vars, API
+    keys, other users' conversations) can be smuggled out via `/api/push`
+    baked into the resulting model artifact.
+  - `persistence/observed_ollama_windows_update_rce_startup_t1547_001.yml` —
+    chained CVE-2026-42248 + CVE-2026-42249. Windows update verification
+    unconditionally returns success (no signature check) AND the update
+    path is built from unvalidated HTTP response headers passed to
+    `filepath.Join` (traversal) — together, silent auto-update writes an
+    unsigned executable straight into the Startup folder. No patched
+    version confirmed by maintainers at authoring time, stated explicitly.
+  - `execution/observed_code_runner_mcp_unauth_run_code_t1059.yml` —
+    CVE-2026-5029. Code Runner MCP Server's `/mcp` endpoint (port 3088,
+    HTTP transport) has no auth at all; `run-code` executes arbitrary
+    submitted source via `child_process.exec()`. Unfixed in all versions
+    at authoring time.
+  - `execution/observed_gpt_sovits_webui_shell_injection_t1059.yml` —
+    CVE-2026-63766 (CVSS 9.3). GPT-SoVITS's `webui.py` interpolates
+    Gradio textbox values into `Popen(cmd, shell=True)` across four
+    handlers; the project's own `clean_path()` strips quotes/whitespace
+    but not shell metacharacters.
+
+  All five `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch. (One YAML syntax slip caught during validation: an
+  unquoted falsepositives list item starting with `selection_name:` was
+  parsed as a mapping key rather than list-item text — fixed by quoting.)
 
 - **Four more CVE rules**, widening beyond the MCP/npm themes into
   code-sandbox internals:
