@@ -13,9 +13,34 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 114 rules.
+Corpus 100 → 117 rules.
 
 ### Added
+
+- **Three more MCP-ecosystem vendor-disclosed CVE rules**:
+
+  - `initial_access/observed_network_ai_empty_default_secret_t1190.yml` —
+    CVE-2026-48814 (CVSS 9.1). An "incomplete prior fix" case: an earlier
+    advisory (CVE-2026-46701) closed the CORS hole, but the deeper bug —
+    an empty-string default secret that the authorization check treats as
+    always-authorized — survived untouched, leaving all 22 MCP tools
+    reachable to any non-browser caller.
+  - `execution/observed_windows_mcp_wildcard_cors_powershell_t1059_001.yml` —
+    CVE-2026-48989 (CVSS 8.9). Wildcard CORS on an unauthenticated MCP
+    control plane exposed a `PowerShell` tool that runs caller-controlled
+    commands via `-EncodedCommand`; detection targets that specific
+    process-execution artifact.
+  - `lateral_movement/observed_foreman_mcp_session_id_disclosure_t1563.yml` —
+    CVE-2026-12112 (Red Hat/Bugzilla 2488031). `foreman-mcp-server` caches
+    authenticated sessions keyed by a non-secret `mcp-session-id`, logs
+    every new one at INFO level, and never re-validates the
+    `foreman_token` after the first request — the rule detects the
+    disclosure half of the chain and says explicitly that the log-source
+    signal alone cannot distinguish routine logging from active
+    hijacking, since the vulnerable behavior is systemic on every session.
+
+  All three `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch.
 
 - **Three MCP-ecosystem vendor-disclosed CVE rules**, selected for
   mechanism diversity rather than repeating the same unauthenticated-
