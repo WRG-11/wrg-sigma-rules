@@ -13,9 +13,37 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 100 → 151 rules.
+Corpus 100 → 155 rules.
 
 ### Added
+
+- **Four more Open WebUI CVE rules, remaining W-cohort radar output from
+  the same 2026-08-11 batch**:
+
+  - `collection/observed_open_webui_knowledge_file_id_cross_user_read_t1005.yml` —
+    CVE-2026-70487. Inline knowledge attachments skip the per-file read
+    filter; a guessable file id returns another user's indexed chunks.
+  - `impact/observed_open_webui_sync_cleanup_cross_kb_delete_t1485.yml` —
+    CVE-2026-70488. Sync-cleanup authorizes write on the URL's knowledge
+    base but acts on body-supplied ids without checking they belong to
+    it — write access to KB-A deletes files from KB-B.
+  - `impact/observed_open_webui_automation_recurrence_dos_t1499.yml` —
+    CVE-2026-70489 (CVSS 6.5). Minutely/hourly recurrence rules anchor at
+    a fixed `2000-01-01` epoch and walk forward synchronously — a single
+    `FREQ=MINUTELY` rule enumerates ~25 years on the same event loop
+    serving every other user's traffic. First `T1499` (DoS) rule in this
+    corpus.
+  - `credential_access/observed_open_webui_tool_source_field_readmission_t1552.yml` —
+    CVE-2026-70491 (CVSS 6.5). `ToolResponse` deliberately omits
+    `source`/`specs`; a sibling model (`ToolUserResponse`) permits extra
+    fields and handlers spread the full model dump, re-admitting them —
+    non-admin read access leaks tool source with embedded API keys.
+
+  All four `validate_rule`-clean and convert cleanly to Splunk +
+  Elasticsearch. (A third instance of the same YAML footgun as the last
+  two rounds — a falsepositives line containing `` `text: like this` ``
+  parsed as a mapping key on the colon inside the backticks — caught and
+  fixed by quoting the whole line.)
 
 - **Five more Open WebUI CVE rules, sourced from WinstonRedGuard's own
   `ai_runtime_cve_radar` sentry** (cohort W in the monorepo this plugin
