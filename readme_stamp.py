@@ -216,6 +216,17 @@ BADGES = {
     "sigma_rule_count": re.compile(r"(img\.shields\.io/badge/sigma__rules-)(\d+)(-)"),
 }
 
+# A JSON manifest cannot carry an HTML comment either -- the same problem the
+# shields badge has, and the same remedy: locate the value by its own regex,
+# under the same contract (rewritten from ground truth, `--check` fails on
+# drift). This one matters most: plugin.json's `description` is what a
+# marketplace listing renders, so a stale count here is the single most public
+# number in the repo. It read "100-rule" while the corpus held 222.
+PLUGIN_CLAIMS = {
+    "sigma_rule_count": re.compile(r"(Ships a )(\d+)(-rule published corpus)"),
+    "tactic_category_count": re.compile(r"(spanning )(\d+)( MITRE ATT&CK tactics)"),
+}
+
 # Markers each stamped file MUST contain; an absence here is a warning.
 # Every file is still rewritten for *every* known metric -- a stray marker
 # gets updated wherever it sits. These sets only say which absences are
@@ -243,8 +254,8 @@ _DEMO_MARKERS = frozenset(
 )
 
 
-def _stamp_targets() -> dict[Path, tuple[frozenset[str], bool]]:
-    """file -> (required markers, whether BADGES apply), resolved NOW.
+def _stamp_targets() -> dict[Path, tuple[frozenset[str], bool, dict[str, re.Pattern[str]]]]:
+    """file -> (required markers, whether BADGES apply, regex claims), resolved NOW.
 
     Deliberately a function, not a module-level dict. A dict built at import
     time freezes whatever ``README`` pointed at then, so a caller that
@@ -257,12 +268,17 @@ def _stamp_targets() -> dict[Path, tuple[frozenset[str], bool]]:
     same reason -- the two must move together -- and is skipped when absent,
     so a caller pointing ``README`` at a scratch directory stamps only that.
     """
-    targets: dict[Path, tuple[frozenset[str], bool]] = {
-        README: (_README_MARKERS, True)
+    targets: dict[Path, tuple[frozenset[str], bool, dict[str, re.Pattern[str]]]] = {
+        README: (_README_MARKERS, True, {})
     }
     demo = README.parent / DEMO.name
     if demo.exists():
-        targets[demo] = (_DEMO_MARKERS, False)
+        targets[demo] = (_DEMO_MARKERS, False, {})
+    plugin = README.parent / ".claude-plugin" / "plugin.json"
+    if plugin.exists():
+        # No markers of its own -- an empty `expected` keeps the absence of
+        # all nine from printing nine warnings on a JSON file.
+        targets[plugin] = (frozenset(), False, PLUGIN_CLAIMS)
     return targets
 
 
@@ -292,6 +308,7 @@ def stamp_text(
     *,
     expected: frozenset[str] | None = None,
     apply_badges: bool = True,
+    claims: dict[str, re.Pattern[str]] | None = None,
     label: str = "README",
 ) -> tuple[str, list[tuple[str, str, str]]]:
     """Return (rewritten_text, drift) where drift is a list of
@@ -323,23 +340,37 @@ def stamp_text(
         if not regex.search(text) and (expected is None or name in expected):
             print(f"warning: marker {name!r} not found in {label}", file=sys.stderr)
 
-    if apply_badges:
-        for name, regex in BADGES.items():
+    def _rewrite_by_regex(
+        current: str, patterns: dict[str, re.Pattern[str]], kind: str
+    ) -> str:
+        """Shared path for values a marker cannot reach (badge URL, JSON string).
+
+        Each pattern is a three-group regex: (prefix)(value)(suffix). Same
+        contract as the markers -- rewritten from ground truth, drift recorded.
+        """
+        for name, regex in patterns.items():
             value = str(METRICS[name](root))
 
-            def _badge_repl(
+            def _repl(
                 match: re.Match[str], _name: str = name, _value: str = value
             ) -> str:
                 old = match.group(2)
                 if old != _value:
-                    drift.append((f"{_name} (badge)", old, _value))
+                    drift.append((f"{_name} ({kind})", old, _value))
                 return match.group(1) + _value + match.group(3)
 
-            out = regex.sub(_badge_repl, out)
+            current = regex.sub(_repl, current)
             if not regex.search(text):
                 print(
-                    f"warning: badge for {name!r} not found in {label}", file=sys.stderr
+                    f"warning: {kind} for {name!r} not found in {label}",
+                    file=sys.stderr,
                 )
+        return current
+
+    if apply_badges:
+        out = _rewrite_by_regex(out, BADGES, "badge")
+    if claims:
+        out = _rewrite_by_regex(out, claims, "claim")
 
     return out, drift
 
@@ -364,13 +395,14 @@ def main(argv: list[str] | None = None) -> int:
     total_drift = 0
     wrote: list[str] = []
 
-    for path, (expected, badges) in targets.items():
+    for path, (expected, badges, claims) in targets.items():
         original = _read(path)
         rewritten, drift = stamp_text(
             original,
             REPO_ROOT,
             expected=expected,
             apply_badges=badges,
+            claims=claims,
             label=path.name,
         )
         total_drift += len(drift)
