@@ -242,6 +242,34 @@ def test_main_reports_missing_readme(
     assert rs.main([]) == 2
 
 
+def test_plugin_claim_is_rewritten_from_ground_truth(tmp_path: Path) -> None:
+    """plugin.json states the count as prose; a JSON file cannot hold a marker.
+
+    Third instance of the same reach problem: README's markers stayed correct
+    through the corpus going 101 -> 222 while DEMO.md's prose AND this
+    manifest's `description` both sat at "100". The manifest is the most
+    public of the three -- it is what a marketplace listing renders.
+    """
+    corpus = tmp_path / "resources" / "examples" / "execution"
+    corpus.mkdir(parents=True)
+    for name in ("a.yml", "b.yml", "c.yml"):
+        _write_rule(corpus / name, "test")
+
+    text = "Ships a 100-rule published corpus spanning 9 MITRE ATT&CK tactics."
+    out, drift = rs.stamp_text(
+        text,
+        tmp_path,
+        expected=frozenset(),
+        apply_badges=False,
+        claims=rs.PLUGIN_CLAIMS,
+        label="plugin.json",
+    )
+
+    assert "Ships a 3-rule published corpus" in out
+    assert "spanning 1 MITRE ATT&CK tactics" in out
+    assert ("sigma_rule_count (claim)", "100", "3") in drift
+
+
 def test_main_leaves_the_real_demo_alone_when_readme_is_redirected(
     tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"
 ) -> None:

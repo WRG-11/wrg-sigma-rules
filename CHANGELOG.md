@@ -11,7 +11,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
-## [Unreleased]
+## [1.5.0] - 2026-08-12
 
 Corpus 100 → 222 rules.
 
@@ -999,6 +999,17 @@ Corpus 100 → 222 rules.
   OpenSearch-PPL convert all 222. Each hand-rolled count was cross-checked
   against `yaml.safe_load_all` before being wired in — the stamp script
   stays stdlib-only, so the counting is by hand, but not unverified.
+
+- **`.claude-plugin/plugin.json` is stamped too — the most public stale
+  number of the three.** Its `description` said "Ships a 100-rule published
+  corpus" while the corpus held 222, and that field is what a marketplace
+  listing renders. A JSON file cannot carry an HTML-comment marker, so it
+  gets a regex rewriter under the same contract as the shields badge, which
+  had the same limitation for the same reason. `PLUGIN_CLAIMS` covers the
+  rule count and the tactic count; `--check` fails on drift in either.
+
+  Same reach defect, third instance in one file's history — README's marked
+  numbers were correct the whole time.
 
 ### Added
 
