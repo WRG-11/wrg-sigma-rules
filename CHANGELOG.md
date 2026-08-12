@@ -11,7 +11,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
-## [Unreleased]
+## [1.5.0] - 2026-08-12
 
 Corpus 100 → 222 rules.
 
