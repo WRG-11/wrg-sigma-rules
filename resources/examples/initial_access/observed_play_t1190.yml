@@ -1,0 +1,41 @@
+title: Play Ransomware -- T1190
+id: a72451ed-d436-5635-9185-1200bcafcf5c
+status: test
+description: Breach intel signature for actor play, MITRE technique T1190. Derived
+  from 3 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1190/
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-352a
+- https://www.ic3.gov/CSA/2023/231218.pdf
+- https://www.bleepingcomputer.com/news/security/fbi-play-ransomware-breached-300-organizations-worldwide/
+- https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001857154&type=8-K
+- https://www.bleepingcomputer.com/news/security/krispy-kreme-cyberattack-impacts-online-orders-and-operations/
+- https://www.ransomware.live/id/Q29ybGV5IE1GR0BwbGF5
+- https://www.ransomware.live/id/VXJzY2hlbCBMYWJvcmF0b3JpZXNAcGxheQ==
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-04'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_webshell:
+    ParentImage|endswith:
+    - \w3wp.exe
+    - \httpd.exe
+    - \nginx.exe
+    Image|endswith:
+    - \cmd.exe
+    - \powershell.exe
+    - \bash
+    - \sh
+  condition: selection_webshell
+falsepositives:
+- A legitimate patch-management or vulnerability-scanning tool spawning a shell on
+  the web-server host during authorized remediation work
+level: medium
+tags:
+- attack.t1190
+- wrg.observed.actor.play
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access

@@ -1,0 +1,36 @@
+title: Dire Wolf -- T1490
+id: 438370f3-2bdb-594b-9bb4-acbe47a5600f
+status: test
+description: Breach intel signature for actor direwolf, MITRE technique T1490. Derived
+  from 0 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1490/
+- https://www.csoonline.com/article/4042182/singapore-issues-critical-alert-on-dire-wolf-ransomware-targeting-global-tech-and-manufacturing-firms.html
+- https://www.levelblue.com/blogs/spiderlabs-blog/dire-wolf-strikes-new-ransomware-group-targeting-global-sectors
+- https://www.halcyon.ai/threat-group/dire-wolf
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-19'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_vss_delete:
+    Image|endswith:
+    - \vssadmin.exe
+    - \wmic.exe
+    - \wbadmin.exe
+    CommandLine|contains:
+    - delete shadows
+    - shadowcopy delete
+    - delete catalog
+  condition: selection_vss_delete
+falsepositives:
+- Authorized backup/DR software or IT administrators clearing old shadow copies
+  as part of scheduled disk-space maintenance
+level: medium
+tags:
+- attack.t1490
+- wrg.observed.actor.direwolf
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

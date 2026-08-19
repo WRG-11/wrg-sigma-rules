@@ -1,0 +1,39 @@
+title: Xpl0itrs -- T1195
+id: cc8b417f-0185-5026-98df-b99bfd056bed
+status: test
+description: Breach intel signature for actor xpl0itrs, MITRE technique T1195. Derived
+  from 0 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1195/
+- https://www.dataminr.com/resources/intel-brief/xpl0itrs-leak-site-launch/
+- https://www.dataminr.com/resources/intel-brief/xpl0itrs-claims-breach-of-spotify-openai-treasury-trustpilot/
+- https://www.dataminr.com/resources/intel-brief/xpl0itrs-claims-rapidfort-breach/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-19'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_unsigned_install:
+    Image|contains:
+    - \AppData\Local\Temp\
+    - \Downloads\
+    - \Installers\
+    Image|endswith:
+    - .exe
+    - .msi
+    - .dll
+  filter_signed:
+    Signed: 'true'
+  condition: selection_unsigned_install and not filter_signed
+falsepositives:
+- An IT-sanctioned unsigned internal tool or a portable app deployed intentionally
+  without a code-signing certificate, run directly from a Downloads or Installers
+  staging folder
+level: medium
+tags:
+- attack.t1195
+- wrg.observed.actor.xpl0itrs
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access

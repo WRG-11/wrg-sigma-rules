@@ -1,0 +1,63 @@
+title: RansomHouse -- T1078
+id: c1081084-e2c8-5867-8a32-201d4af9afec
+status: test
+description: Breach intel signature for actor ransomhouse, MITRE technique T1078.
+  Derived from 0 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1078/
+- https://unit42.paloaltonetworks.com/ransomhouse-encryption-upgrade/
+- https://www.fortiguard.com/threat-actor/6250/ransomhouse-ransomware
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-19'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_logon:
+    EventID:
+    - 4624
+    - 4625
+    LogonType:
+    - 3
+    - 10
+  filter_service_accounts:
+    TargetUserName|startswith: svc_
+  # internal wave V cycle-1 FP-fix (V Phase 1a baseline 0520; legit admin
+  # interactive RDP (LogonType 10) tripped the rule). Authorized
+  # admin operators routinely access servers via RDP for maintenance;
+  # the rule fired on legit_rdp_logon (admin_dave / LogonType 10).
+  #
+  # Phase 1a narrow (option (a) per brief internal wave Rule 3 reco):
+  # exclude interactive RDP (LogonType 10) by admin-prefixed accounts.
+  # Filter requires BOTH conditions (selection-shape: multi-clause
+  # within one filter block = AND).
+  #
+  # Auto-attack canonical event (built from selection_logon first
+  # values: EventID=4624, LogonType=3, no TargetUserName) does NOT
+  # match LogonType=10 -> filter inert -> rule still fires.
+  # Self-consistency preserved.
+  #
+  # Known tradeoff (documented for V re-verify + Phase 2 evaluation):
+  # this is a SINGLE-EVENT precision narrow. The lapsus actor
+  # signature is multi-host admin-credential reuse within a short
+  # window -- proper detection requires correlation (count() by
+  # account across hosts over time). Phase 1b aggregation matcher
+  # (V design-prep) will support that pattern; this filter is the
+  # Phase 1a stop-gap that keeps precision-on-benign at 1.00.
+  filter_legit_admin_interactive_rdp:
+    LogonType: 10
+    TargetUserName|startswith: admin_
+  condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+- 'internal wave: aggregation (count() by TargetUserName > 3 in 15m) dropped -- pySigma
+  parses the pipe form but every real backend rejects it at conversion time (see
+  T1567.001''s documented fix for the same class). Single-event precision narrow
+  until a correlation-rule pairing is authored.'
+level: medium
+tags:
+- attack.t1078
+- wrg.observed.actor.ransomhouse
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access

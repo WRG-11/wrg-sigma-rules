@@ -1,0 +1,39 @@
+title: Blackwater -- T1133
+id: 06132b2b-d662-593c-afba-a574591e4abe
+status: test
+description: Breach intel signature for actor blackwater, MITRE technique T1133. Derived
+  from 0 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1133/
+- https://www.galaxywarden.com/blog/breach/shenzhen-gongjin-electronics-blackwater-2026-04
+- https://socradar.io/free-tools/ransomware-intelligence/groups/blackwater
+- https://www.ransomware.live/group/blackwater
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-19'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_remote_service:
+    EventID: 4624
+    LogonType: 10
+  filter_internal_source:
+    IpAddress|startswith:
+    - '10.'
+    - '172.'
+    - 192.168.
+    - '-'
+  condition: selection_remote_service and not filter_internal_source
+falsepositives:
+- Pattern library v1 -- review for environment-specific tuning before deployment
+- 'internal wave: aggregation (count() by IpAddress > 5 in 10m) dropped -- pySigma parses
+  the pipe form but every real backend rejects it at conversion time (see T1567.001''s
+  documented fix for the same class). Single-event precision narrow until a correlation-rule
+  pairing is authored.'
+level: medium
+tags:
+- attack.t1133
+- wrg.observed.actor.blackwater
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access
