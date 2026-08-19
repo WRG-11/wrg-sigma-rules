@@ -120,6 +120,26 @@ _ASCII_NORMALISE = {
 CHAR_CAP_PER_RULE = 4000  # 2000 was too tight for verbose rules; bumped to 4000.
 
 
+
+def _first_document(raw: str) -> Any | None:
+    """Return a sigma file's BASE document.
+
+    A correlation rule is two documents: the base rule plus a `correlation`
+    doc carrying the threshold. `yaml.safe_load` raises `ComposerError` on
+    such a stream -- measured on this corpus, 18 of 253 files. The base
+    document is the first one with a `detection:` block (the correlation doc
+    has none).
+
+    `None` means only "no document had a detection block"; a parse error
+    propagates to the caller rather than being swallowed.
+    """
+    docs = [d for d in yaml.safe_load_all(raw) if isinstance(d, dict)]
+    for d in docs:
+        if "detection" in d:
+            return d
+    return docs[0] if docs else None
+
+
 def redact_llm_safe(text: str) -> str:
     """Apply 4-rule LLM-safe redaction discipline."""
     out = text
@@ -277,8 +297,15 @@ def _existing_rule_date(path: Path) -> str | None:
     if not path.is_file():
         return None
     try:
-        existing = yaml.safe_load(path.read_text(encoding="utf-8"))
-    except yaml.YAMLError:
+        existing = _first_document(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        # This `return None` used to disable the date-regression guard
+        # SILENTLY: correlation rules raised ComposerError under
+        # `safe_load` and the guard then behaved as if the file did not
+        # exist. Reaching here now means a genuine parse failure, and it
+        # must not be quiet.
+        print(f"  WARN: {path.name} unparseable, date-regression guard "
+              f"COULD NOT MEASURE it: {exc}", file=sys.stderr)
         return None
     if not isinstance(existing, dict):
         return None
@@ -483,7 +510,7 @@ def render_observed_breach_rules() -> list[tuple[str, str, dict[str, Any]]]:
             print(f"  WARN: observed fixture missing: {src_path}")
             continue
         raw = src_path.read_text(encoding="utf-8")
-        rule_doc = yaml.safe_load(raw)
+        rule_doc = _first_document(raw)
         # Strip actor-bound tags; replace with wrg.observed prefix.
         new_tags: list[str] = []
         for tag in rule_doc.get("tags", []):
@@ -526,7 +553,7 @@ def render_crypto_trace_rules() -> list[tuple[str, str, dict[str, Any]]]:
         raw = src_path.read_text(encoding="utf-8")
         # Strip leading comment block (yaml safe_load handles it but we want
         # clean output).
-        rule_doc = yaml.safe_load(raw)
+        rule_doc = _first_document(raw)
         # Augment tags + categorize as impact (T1657 Financial Theft).
         tags = list(rule_doc.get("tags", []))
         tags.append("wrg.observed")

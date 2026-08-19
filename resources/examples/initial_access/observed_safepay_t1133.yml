@@ -1,0 +1,63 @@
+title: SafePay -- T1133 (base)
+name: safepay_t1133_remote_service_base
+id: c180c8b1-04b7-5e44-beb0-04a4884f576b
+status: test
+description: Base event match for the SafePay T1133 external-remote-service logon
+  burst correlation below -- a single non-internal RDP/remote logon, on its own, is
+  not the alert.
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2025-07-03'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_remote_service:
+    EventID: 4624
+    LogonType: 10
+  filter_internal_source:
+    IpAddress|startswith:
+    - '10.'
+    - '172.'
+    - 192.168.
+    - '-'
+  condition: selection_remote_service and not filter_internal_source
+level: informational
+tags:
+- attack.t1133
+---
+title: SafePay -- T1133
+id: 5d7806e0-1c0b-5ed9-831f-fa6c140e4f01
+status: test
+description: Breach intel signature for actor safepay, MITRE technique T1133. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1133/
+- https://www.bitdefender.com/en-us/blog/businessinsights/safepay-ransomware-attacks-ttps
+- https://www.infosecurity-magazine.com/news-features/unmasking-safepay-ransomware-group/
+- https://www.checkpoint.com/cyber-hub/threat-prevention/ransomware/safepay-ransomware/
+- https://attack.mitre.org/techniques/T1486/
+- https://www.bleepingcomputer.com/news/security/ingram-micro-says-ransomware-attack-affected-42-000-people/
+- https://www.cybersecuritydive.com/news/ingram-micro-progress-operations-attack/752438/
+- https://fieldeffect.com/blog/it-provider-ingram-micro-hit-by-safepay-ransomware
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2025-07-03'
+correlation:
+  type: event_count
+  rules:
+  - safepay_t1133_remote_service_base
+  group-by:
+  - IpAddress
+  timespan: 10m
+  condition:
+    gt: 5
+falsepositives:
+- Authorized remote-access VPN/RDS gateway usage by traveling or remote employees
+  connecting from residential ISPs
+level: high
+tags:
+- attack.t1133
+- wrg.observed.actor.safepay
+- wrg.severity.high
+- wrg.correlation
+- wrg.observed
+- wrg.tactic.initial_access

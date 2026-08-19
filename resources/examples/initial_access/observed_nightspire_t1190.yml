@@ -1,0 +1,38 @@
+title: NightSpire -- T1190
+id: b21bb787-2ba2-5749-95a0-1222cecd7460
+status: test
+description: Breach intel signature for actor nightspire, MITRE technique T1190. Derived
+  from 0 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1190/
+- https://socradar.io/blog/dark-web-profile-nightspire-ransomware/
+- https://www.picussecurity.com/resource/blog/nightspire-ransomware-attack-chain-tools-and-tactics
+- https://blog.barracuda.com/2026/05/01/nightspire-wannabe-warlords-in-ransomwares-shadow-realm
+- https://www.ransomware.live/group/nightspire
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-19'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_webshell:
+    ParentImage|endswith:
+    - \w3wp.exe
+    - \httpd.exe
+    - \nginx.exe
+    Image|endswith:
+    - \cmd.exe
+    - \powershell.exe
+    - \bash
+    - \sh
+  condition: selection_webshell
+falsepositives:
+- Scheduled web-application maintenance scripts (cache-clear, log-rotation) that
+  spawn cmd.exe/powershell.exe from the IIS/Apache/Nginx worker process
+level: medium
+tags:
+- attack.t1190
+- wrg.observed.actor.nightspire
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access

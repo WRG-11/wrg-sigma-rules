@@ -1,0 +1,65 @@
+title: ShinyHunters -- T1213 (base)
+name: shinyhunters_t1213_repo_access_base
+id: 6c2104c1-a153-53f9-adf7-649e0c180d3a
+status: test
+description: Base event match for the ShinyHunters T1213 repository-access burst correlation
+  below -- a single repo/API request, on its own, is not the alert.
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-05-12'
+logsource:
+  category: webserver
+  product: windows
+detection:
+  selection_repo_access:
+    cs-uri-stem|contains:
+    - /_api/
+    - /sites/
+    - /wiki/
+    - /confluence/
+    sc-status:
+    - 200
+    - 206
+  condition: selection_repo_access
+level: informational
+tags:
+- attack.t1213
+---
+title: ShinyHunters -- T1213
+id: 50949fc1-d03a-53e8-9a10-5a92039c911c
+status: test
+description: Breach intel signature for actor shinyhunters, MITRE technique T1213.
+  Derived from 2 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1213/
+- https://www.justice.gov/usao-wdwa/pr/seattle-area-man-charged-cyberattacks-multiple-companies-and-individuals-and
+- https://www.bleepingcomputer.com/tag/shinyhunters/
+- https://databreaches.net/?s=shinyhunters
+- https://about.att.com/story/2024/addressing-data-set-released-on-dark-web.html
+- https://www.bleepingcomputer.com/news/security/atandt-confirms-data-breach-impacting-73-million-customers/
+- https://www.instructure.com/about/security
+- https://databreaches.net/?s=instructure
+- https://ransomware.live/group/shinyhunters
+- https://www.ic3.gov/PSA/2026/PSA260515
+- 'FBI PSA Number: I-051526-PSA (2026-05-15)'
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-05-12'
+correlation:
+  type: event_count
+  rules:
+  - shinyhunters_t1213_repo_access_base
+  group-by:
+  - cs-uri-stem
+  timespan: 10m
+  condition:
+    gt: 10
+falsepositives:
+- Normal high-volume internal collaboration traffic against SharePoint/Confluence
+  during business hours
+level: high
+tags:
+- attack.t1213
+- wrg.observed.actor.shinyhunters
+- wrg.severity.high
+- wrg.correlation
+- wrg.observed
+- wrg.tactic.collection

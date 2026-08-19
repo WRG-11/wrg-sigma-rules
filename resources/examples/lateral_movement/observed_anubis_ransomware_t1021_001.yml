@@ -1,0 +1,33 @@
+title: Anubis (ransomware) -- T1021.001
+id: a4a2805c-f310-5361-919e-52c71da2fe57
+status: test
+description: Breach intel signature for actor anubis_ransomware, MITRE technique T1021.001.
+  Derived from 2 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1021/001/
+- https://www.bleepingcomputer.com/news/security/anubis-ransomware-adds-wiper-to-destroy-files-beyond-recovery/
+- https://www.trendmicro.com/en_us/research/25/f/anubis-a-closer-look-at-an-emerging-ransomware.html
+- https://attack.mitre.org/techniques/T1486/
+- https://www.cyberdaily.au/security/11768-exclusive-hackers-publish-alleged-patient-data-and-cctv-footage-following-medical-centre-cyber-incident
+- https://www.redpacketsecurity.com/anubis-ransomware-victim-pound-road-medical-centre/
+- https://www.breachsense.com/breaches/pound-road-medical-centre-data-breach/
+- https://www.ransomware.live/id/U2luZ2luZyBSaXZlciBIZWFsdGggU3lzdGVtQGFudWJpcw==
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-03'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_rdp:
+    EventID: 4624
+    LogonType: 10
+  condition: selection_rdp
+falsepositives:
+- Authorized IT-admin or helpdesk interactive RDP sessions for routine remote support
+level: medium
+tags:
+- attack.t1021.001
+- wrg.observed.actor.anubis_ransomware
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.lateral_movement

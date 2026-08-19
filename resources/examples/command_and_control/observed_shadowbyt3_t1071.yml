@@ -1,0 +1,63 @@
+title: ShadowByt3$ -- T1071 (base)
+name: shadowbyt3_t1071_c2_beacon_base
+id: 53d1b353-e232-59ea-b873-9df419eac70a
+status: test
+description: Base event match for the ShadowByt3$ T1071 C2-beacon burst correlation
+  below -- a single outbound scripting-host connection, on its own, is not the alert.
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-03'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_c2_http:
+    DestinationPort:
+    - 80
+    - 443
+    - 8080
+    - 8443
+    Image|endswith:
+    - \powershell.exe
+    - \cmd.exe
+    - \wscript.exe
+    - \mshta.exe
+    - \rundll32.exe
+  condition: selection_c2_http
+level: informational
+tags:
+- attack.t1071
+---
+title: ShadowByt3$ -- T1071
+id: 8274e0ce-8dfe-5873-ba8e-fd19f9c9188a
+status: test
+description: Breach intel signature for actor shadowbyt3, MITRE technique T1071. Derived
+  from 2 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1071/
+- https://barricadecyber.com/cti-report-shadowbyt3-ransomware-group/
+- https://www.ransomware.live/group/ShadowByt3$
+- https://socradar.io/free-tools/ransomware-intelligence/groups/shadowbyt3
+- https://www.ransomware.live/id/Q3JvcHdpc2UgKFN5bmdlbnRhIEdyb3VwKUBzaGFkb3dieXQzJA==
+- https://www.ransomware.live/id/TGVhZCBDb21wYW55IChMZWFkZXJzaGlwIEJvdWxldmFyZClAc2hhZG93Ynl0MyQ=
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-03'
+correlation:
+  type: event_count
+  rules:
+  - shadowbyt3_t1071_c2_beacon_base
+  group-by:
+  - DestinationHostname
+  timespan: 30m
+  condition:
+    gt: 30
+falsepositives:
+- Legitimate RMM or automation tooling making frequent outbound HTTPS calls from a
+  scripting-host process
+level: informational
+tags:
+- attack.t1071
+- wrg.observed.actor.shadowbyt3
+- wrg.severity.informational
+- wrg.correlation
+- wrg.observed
+- wrg.tactic.command_and_control

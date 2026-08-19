@@ -11,6 +11,68 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [Unreleased]
+
+Corpus 222 -> 253 rules (+31 observed actor-bound rules).
+
+### Added
+
+- **31 observed actor rules**, every one bound to an actor with at least one
+  recorded incident in the upstream breach catalog. Tactic spread:
+  initial_access 15, credential_access 3, impact 3, collection 2, execution 2,
+  exfiltration 2, lateral_movement 2, command_and_control 1, defense_evasion 1.
+  No new tactic directory -- all 14 categories already existed.
+- All 31 carry `status: test`, lifting the corpus test tier from 8 to 39
+  (3.6% -> 15.4% of 253). `status: stable` remains 0; nothing here is
+  deploy-without-review.
+
+### Changed
+
+- **Eight rules moved from deprecated pipe-aggregation syntax to real Sigma
+  correlation documents.** They previously carried
+  `condition: selection | count() by <field> > N in Nm`, which pySigma rejects
+  outright (`SigmaConditionError: the pipe syntax ... has been deprecated and
+  replaced by Sigma correlations`) -- not a lint warning, a hard parse failure.
+  Each is now a two-document file: the base rule matches single events, and a
+  `---`-separated correlation document carries the threshold. The counting
+  intent is preserved exactly (same group-by field, same window, same
+  threshold); a strict `> N` becomes `condition: {gte: N+1}`, since "more than
+  N" means "N+1 or more" and writing `gte: N` would silently widen every one of
+  them by one event. Correlation rules: 10 -> 18.
+- The correlation type on those rules is `event_count`, not `value_count`.
+  `value_count` counts distinct values of a named field and pySigma requires a
+  `field:` reference for it; none of these entries had one, and all of them
+  group by a field while counting events. The label had been wrong from the
+  start and nothing read it closely enough to notice.
+- Actor tags now use the `wrg.observed.actor.<id>` form the rest of the corpus
+  already used (778 existing occurrences), replacing the `wrg.actor.<id>` form
+  the generator emitted. Bare `wrg.observed` added alongside.
+- `falsepositives` on skeleton rules now opens with Sigma's own `Unknown`
+  convention instead of a developer to-do ("Phase 6 v1 placeholder detection --
+  bind to a real pattern before deployment"). That field is read by whoever
+  deploys the rule; it should answer "what legitimate activity trips this",
+  not describe work we still owe ourselves.
+
+### Fixed
+
+- `scripts/migrate_sigma_corpus.py` reads multi-document rule files. Three
+  `yaml.safe_load` call sites raised `ComposerError` on the correlation pairs;
+  two of them had no handler and would crash the script outright, and the third
+  -- the date-regression guard -- swallowed the error as `return None`, which
+  silently disabled backdate protection for exactly the 18 rules that needed
+  it. Measured before the fix: 235 of 253 corpus files parsed, 18 did not.
+- Redaction now genericises internal wave-dispatch ids (`internal wave`).
+  The public corpus had zero prior instances; 7 leaked in across 3 of the
+  staged rules, two of them inside `falsepositives`. The reasoning in each
+  comment survives -- only the internal tracking number goes.
+
+### Notes
+
+- The DEMO coverage block is quoted from the live resource and was re-read off
+  it rather than incremented: rules 222 -> 253, incident rules 156 -> 187,
+  distinct techniques 87 -> 88. Pattern rules (66) and tactic groupings (14)
+  were already correct.
+
 ## [1.5.0] - 2026-08-12
 
 Corpus 100 → 222 rules.
