@@ -155,7 +155,7 @@ Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in
 ## Quality discipline
 
 - **4-Layer self-audit** per WRG audit methodology (trust-but-verify self-audit)
-- **<!-- METRIC:test_module_count -->18<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
+- **<!-- METRIC:test_module_count -->19<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch` + `pysigma-backend-opensearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
 - **`claude plugin validate` PASS** — not yet wired into CI (see [tests.yml](.github/workflows/tests.yml)); run it yourself with `claude plugin validate .` before relying on a dated claim here

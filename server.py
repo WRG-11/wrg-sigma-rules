@@ -22,7 +22,9 @@ Glama's MCP client connects via stdin/stdout; the server announces the
 """
 from __future__ import annotations
 
+import json
 import sys
+from pathlib import Path
 
 # MCP SDK 2.0 renamed the high-level server: `mcp.server.fastmcp.FastMCP`
 # became `mcp.server.MCPServer` and the old module was removed outright, so
@@ -37,8 +39,12 @@ import sys
 # resolutions available lands on the current API.
 try:  # mcp >= 2.0
     from mcp.server import MCPServer as _McpServer
+
+    _SDK_MAJOR = 2
 except ImportError:  # mcp 1.x
     from mcp.server.fastmcp import FastMCP as _McpServer
+
+    _SDK_MAJOR = 1
 
 from tools.convert_rule import register_convert_rule_tool
 from tools.draft_rule import register_draft_rule_tool
@@ -48,9 +54,49 @@ from tools.resources.canonical_patterns_resource import (
 from tools.resources.coverage_resource import register_coverage_resources
 from tools.validate_rule import register_validate_rule_tool
 
+_PLUGIN_JSON = Path(__file__).resolve().parent / ".claude-plugin" / "plugin.json"
+
+
+def _read_plugin_version(path: Path = _PLUGIN_JSON) -> str:
+    """Read the server version from the single source of truth.
+
+    Fails loudly instead of falling back to an unversioned server: a
+    missing or corrupt plugin.json is a build problem the operator needs
+    to see, not something this server should mask by announcing itself
+    without a version.
+    """
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"cannot read version from {path}: {exc}") from exc
+    version = data.get("version")
+    if not version:
+        raise RuntimeError(f"{path} has no 'version' field")
+    return version
+
+
+def _announced_version(server: object) -> str | None:
+    """Return the version currently set on ``server``, across both SDK majors.
+
+    ``mcp>=2.0``'s ``MCPServer`` takes ``version=`` directly and exposes it
+    as a top-level attribute. ``mcp`` 1.x's ``FastMCP`` has no ``version``
+    parameter at all -- the low-level ``Server`` it wraps does, so the 1.x
+    branch below sets it on the nested ``_mcp_server`` after construction.
+    """
+    return getattr(server, "version", None) or getattr(
+        getattr(server, "_mcp_server", None), "version", None
+    )
+
+
+_VERSION = _read_plugin_version()
+
 # Server name surfaces in MCP client tool catalogs; mirror the Claude Code
 # plugin name from .claude-plugin/plugin.json for cross-surface consistency.
-mcp = _McpServer("wrg-sigma-rules")
+if _SDK_MAJOR >= 2:
+    mcp = _McpServer("wrg-sigma-rules", version=_VERSION)
+else:
+    mcp = _McpServer("wrg-sigma-rules")
+    mcp._mcp_server.version = _VERSION
 
 register_draft_rule_tool(mcp)
 register_validate_rule_tool(mcp)

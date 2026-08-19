@@ -11,6 +11,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [Unreleased]
+
+Corpus 253 → 253 rules (no corpus change; MCP surface fix only).
+
+### Fixed
+
+- MCP server (`server.py`) now announces its version in the `initialize`
+  handshake, derived from `.claude-plugin/plugin.json` (single source of
+  truth — no second hardcoded literal). Previously the server advertised
+  only its bare name; a client had no way to tell which corpus revision
+  (rule count, correlation schema) it was talking to. Covers both supported
+  SDK majors: `mcp>=2.0`'s `MCPServer(version=...)` constructor param, and
+  `mcp` 1.x's `FastMCP`, which has no such param and needs the version set
+  on its nested low-level `Server` instead. A missing/corrupt
+  `plugin.json` now fails loudly at import time instead of silently
+  shipping an unversioned server. `scripts/mcp_stdio_smoke.py` asserts the
+  live handshake carries a non-empty `serverInfo.version`.
+
 ## [1.6.0] - 2026-08-19
 
 Corpus 222 -> 253 rules (+31 observed actor-bound rules).

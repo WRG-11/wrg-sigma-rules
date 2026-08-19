@@ -181,10 +181,20 @@ def main(argv: list[str]) -> int:
     if 1 not in responses:
         return _fail("no response to initialize", stderr=stderr_text)
     init_result = responses[1].get("result") or {}
-    server_name = (init_result.get("serverInfo") or {}).get("name")
+    server_info = init_result.get("serverInfo") or {}
+    server_name = server_info.get("name")
     if not server_name:
         return _fail(
             "initialize response carried no serverInfo.name", stderr=stderr_text
+        )
+    # The server used to advertise a bare name and no version at all, so a
+    # client had no way to tell which corpus revision it was talking to.
+    # This checks the live handshake, not just that server.py sets an
+    # attribute somewhere.
+    server_version = server_info.get("version")
+    if not server_version:
+        return _fail(
+            "initialize response carried no serverInfo.version", stderr=stderr_text
         )
 
     if 2 not in responses:
@@ -238,7 +248,7 @@ def main(argv: list[str]) -> int:
             stderr=stderr_text,
         )
 
-    print(f"OK: {server_name} announced {len(tools)} tool(s), "
+    print(f"OK: {server_name} v{server_version} announced {len(tools)} tool(s), "
           f"{len(resources)} resource(s) over stdio")
     print(f"    tools:     {', '.join(sorted(tools))}")
     print(f"    resources: {', '.join(sorted(resources))}")
