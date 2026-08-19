@@ -1,0 +1,46 @@
+title: Coinbase Cartel -- T1657
+id: 85de43e1-4d5b-54ca-b1ca-e10303321ce2
+status: test
+description: Breach intel signature for actor coinbase_cartel, MITRE technique T1657.
+  Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1657/
+- https://businessinsights.bitdefender.com/coinbase-cartel-ransomware-group-extortion-tactics
+- https://www.fortiguard.com/threat-actor/6386/coinbase-cartel-ransomware
+- https://socradar.io/blog/dark-web-profile-coinbasecartel/
+- https://attack.mitre.org/techniques/T1567/
+- https://cybersecuritynews.com/coinbase-cartel-targets-high-value-sectors/
+- https://www.infostealers.com/article/inside-the-coinbase-cartel-how-infostealer-credentials-fueled-a-100-company-ransomware-spree/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2025-09-01'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_crypto_payment_infrastructure:
+    DestinationHostname|contains:
+    - tornado.cash
+    - blender.io
+    - sinbad.io
+    - chipmixer.com
+    - wasabiwallet.io
+    - samourai-wallet.com
+    - joinmarket
+    - exch.cx
+    - fixedfloat.com
+    - exolix.com
+    - godex.io
+    - changenow.io
+    - xmrwallet.com
+    - mymonero.com
+  condition: selection_crypto_payment_infrastructure
+falsepositives:
+- Security researchers or compliance teams intentionally querying sanctioned mixer/exchange
+  domains for threat-intel or OFAC-screening purposes
+level: high
+tags:
+- attack.t1657
+- wrg.observed.actor.coinbase_cartel
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.impact

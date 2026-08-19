@@ -1,0 +1,54 @@
+title: TeamPCP / UNC6780 -- T1195
+id: 212b9157-dfa0-5f93-985a-5518a727916d
+status: test
+description: Breach intel signature for actor teampcp_unc6780, MITRE technique T1195.
+  Derived from 3 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1195/
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+- https://www.hudsonrock.com/blog/infostealers-just-spawned-a-5000-repo-github-supply-chain-attack
+- https://thehackernews.com/2026/05/megalodon-github-attack-targets-5561.html
+- https://www.stepsecurity.io/blog/megalodon-mass-github-actions-secret-exfiltration-across-5-500-public-repositories
+- https://cybernews.com/security/megalodon-github-5000-repos-backdooring-supply-chain-attack/
+- https://www.rescana.com/post/megalodon-supply-chain-attack-teampcp-compromises-5-561-github-repositories-via-malicious-ci-cd-workflows
+- https://safedep.io/megalodon-mass-github-repo-backdooring-ci-workflows/
+- https://www.securityweek.com/over-5500-github-repositories-infected-in-megalodon-supply-chain-attack/
+- https://www.theregister.com/security/2026/05/22/megalodon-chums-the-waters-in-55k-github-repo-poisonings/
+- https://openai.com/index/our-response-to-the-tanstack-npm-supply-chain-attack/
+- https://x.com/H4ckmanac
+- https://hackread.com/teampcp-mini-shai-hulud-worm-npm-pypi-packages/
+- https://www.stepsecurity.io/blog/mini-shai-hulud-is-back-a-self-spreading-supply-chain-attack-hits-the-npm-ecosystem
+- https://www.theregister.com/security/2026/05/15/openai-caught-in-tanstack-npm-supply-chain-chaos-after-employee-devices-compromised/
+- https://www.opswat.com/blog/mini-shai-hulud-tanstack-openai-and-the-npm-supply-chain-trap
+- https://www.kaspersky.com/blog/critical-supply-chain-attack-trivy-litellm-checkmarx-teampcp/55510/
+- https://www.sans.org/blog/when-security-scanner-became-weapon-inside-teampcp-supply-chain-campaign
+- https://arcticwolf.com/resources/blog/teampcp-supply-chain-attack-campaign-targets-trivy-checkmarx-kics-and-litellm-potential-downstream-impact-to-additional-projects/
+- https://labs.cloudsecurityalliance.org/research/csa-research-note-teampcp-unc6780-ai-developer-supply-chain/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-05-18'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_unsigned_install:
+    Image|contains:
+    - \AppData\Local\Temp\
+    - \Downloads\
+    - \Installers\
+    Image|endswith:
+    - .exe
+    - .msi
+    - .dll
+  filter_signed:
+    Signed: 'true'
+  condition: selection_unsigned_install and not filter_signed
+falsepositives:
+- A legitimate CI/build step installing a newly-published, unsigned open-source package
+  from the same Temp/Downloads staging path
+level: critical
+tags:
+- attack.t1195
+- wrg.observed.actor.teampcp_unc6780
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.initial_access

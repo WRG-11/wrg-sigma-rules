@@ -1,0 +1,63 @@
+title: The Gentlemen -- T1110 (base)
+name: thegentlemen_t1110_failed_logon_base
+id: 50cedc7c-d672-5c80-aaee-5f26a43386fb
+status: test
+description: Base event match for the The Gentlemen T1110 failed-logon burst correlation
+  below -- a single failed logon, on its own, is not the alert.
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-04'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_failed_logon:
+    EventID: 4625
+    LogonType:
+    - 2
+    - 3
+    - 10
+  condition: selection_failed_logon
+level: informational
+tags:
+- attack.t1110
+---
+title: The Gentlemen -- T1110
+id: 1ddbad82-a47e-50d4-80c2-19ca7f7ded83
+status: test
+description: Breach intel signature for actor thegentlemen, MITRE technique T1110.
+  Derived from 4 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1110/
+- https://research.checkpoint.com/2026/thus-spoke-the-gentlemen/
+- https://socradar.io/blog/dark-web-profile-the-gentlemen-ransomware/
+- https://thehackernews.com/2026/04/systembc-c2-server-reveals-1570-victims.html
+- https://attack.mitre.org/techniques/T1190/
+- https://www.bleepingcomputer.com/news/security/romanian-energy-provider-hit-by-gentlemen-ransomware-attack/
+- https://securityaffairs.com/186290/cyber-crime/romanias-oltenia-energy-complex-suffers-major-ransomware-attack.html
+- https://www.scworld.com/brief/gentlemen-ransomware-compromises-romanian-energy-producer
+- https://www.ransomware.live/id/RWRnZXdvb2QgU3VyZ2ljYWwgSG9zcGl0YWxAdGhlZ2VudGxlbWVu
+- https://www.ransomware.live/id/TWljaGlnYW4gU3VyZ2ljYWwgQ2VudGVyQHRoZWdlbnRsZW1lbg==
+- https://www.ransomware.live/id/U29qYSBkZSBQb3J0dWdhbEB0aGVnZW50bGVtZW4=
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-04'
+correlation:
+  type: event_count
+  rules:
+  - thegentlemen_t1110_failed_logon_base
+  group-by:
+  - SourceIP
+  timespan: 10m
+  condition:
+    gt: 10
+falsepositives:
+- A service account whose credential expired and is retrying against a load balancer,
+  or a shared workstation where multiple users mistype a password within the aggregation
+  window
+level: high
+tags:
+- attack.t1110
+- wrg.observed.actor.thegentlemen
+- wrg.severity.high
+- wrg.correlation
+- wrg.observed
+- wrg.tactic.credential_access

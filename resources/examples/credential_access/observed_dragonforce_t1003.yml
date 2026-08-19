@@ -1,0 +1,63 @@
+title: DragonForce -- T1003 (base)
+name: dragonforce_t1003_lsass_access_base
+id: f32606e6-ae37-5445-a0e3-f1f632b7a2c4
+status: test
+description: Base event match for the DragonForce T1003 LSASS-access burst correlation
+  below -- a single LSASS memory read, on its own, is not the alert.
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-05'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_lsass:
+    TargetImage|endswith: \lsass.exe
+    GrantedAccess:
+    - '0x1010'
+    - '0x1410'
+    - '0x1438'
+  condition: selection_lsass
+level: informational
+tags:
+- attack.t1003
+---
+title: DragonForce -- T1003
+id: c7efeb37-611a-537b-8f59-6475d2f8e472
+status: test
+description: Breach intel signature for actor dragonforce, MITRE technique T1003.
+  Derived from 4 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1003/
+- https://blog.barracuda.com/2025/06/09/dragonforce-ransomware-cartel-vs--everybody
+- https://www.trendmicro.com/vinfo/us/security/news/ransomware-spotlight/ransomware-spotlight-dragonforce
+- https://www.sophos.com/en-us/resources/video/who-are-dragonforce-and-how-the-ransomware-affiliate-ecosystem-is-changing
+- https://attack.mitre.org/techniques/T1486/
+- https://www.bleepingcomputer.com/news/security/co-op-confirms-data-theft-after-dragonforce-ransomware-claims-attack/
+- https://securityaffairs.com/177376/cyber-crime/dragonforce-group-claims-the-theft-of-data-after-co-op-cyberattack.html
+- https://www.bleepingcomputer.com/news/security/mands-says-customer-data-stolen-in-cyberattack-forces-password-resets/
+- https://www.theregister.com/2025/05/13/ms_confirms_customer_data_stolen/
+- https://www.computerweekly.com/news/366623685/Chaos-spreads-at-Co-op-MS-following-DragonForce-attacks
+- https://www.ransomware.live/id/Q29wYW1leEBkcmFnb25mb3JjZQ==
+- https://www.ransomware.live/id/UkVIQS1BQ1RJVkBkcmFnb25mb3JjZQ==
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-05'
+correlation:
+  type: event_count
+  rules:
+  - dragonforce_t1003_lsass_access_base
+  group-by:
+  - SourceImage
+  timespan: 5m
+  condition:
+    gt: 5
+falsepositives:
+- EDR/AV agents and admin-run credential-management tooling (e.g. authorized ProcDump/Windows
+  Error Reporting) performing legitimate LSASS memory reads
+level: high
+tags:
+- attack.t1003
+- wrg.observed.actor.dragonforce
+- wrg.severity.high
+- wrg.correlation
+- wrg.observed
+- wrg.tactic.credential_access

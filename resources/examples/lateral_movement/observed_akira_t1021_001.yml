@@ -1,0 +1,38 @@
+title: Akira -- T1021.001
+id: e47013b3-6368-52ef-8176-959ca9f0808e
+status: test
+description: Breach intel signature for actor akira, MITRE technique T1021.001. Derived
+  from 7 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1021/001/
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-109a
+- https://blog.talosintelligence.com/akira-ransomware/
+- https://www.ic3.gov/CSA/2024/240418.pdf
+- https://www.bleepingcomputer.com/news/security/cisco-vpn-zero-day-exploited-by-akira-ransomware/
+- https://www.ransomware.live/id/Q2hlcm9rZWUgRGlzdHJpYnV0aW5nIENvQGFraXJh
+- https://www.ransomware.live/id/S2Vubm9uIFdvcmxkd2lkZUBha2lyYQ==
+- https://www.ransomware.live/id/Tm9ydGhlcm4gT2hpbyBSZWdpb25hbCBNdWx0aXBsZSBMaXN0aW5nIFNlcnZpY2VAYWtpcmE=
+- https://www.ransomware.live/id/T2FrcyBQYXJrQGFraXJh
+- https://www.ransomware.live/id/U3VucmlzZSwgVG9zY2FuYSBDb3VudHJ5IENsdWIsIEFuZGFsdXNpYUNvdW50cnkgQ2x1Yi5AYWtpcmE=
+- https://www.ransomware.live/id/VC9DQ0kgTWFudWZhY3R1cmluZ0Bha2lyYQ==
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-05'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_rdp:
+    EventID: 4624
+    LogonType: 10
+  condition: selection_rdp
+falsepositives:
+- Authorized IT-admin interactive RDP sessions for routine maintenance (see the T1078
+  rule's filter_legit_admin_interactive_rdp for the same distinction applied to logon-burst
+  detection)
+level: medium
+tags:
+- attack.t1021.001
+- wrg.observed.actor.akira
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.lateral_movement
