@@ -1,4 +1,4 @@
-"""Unit tests for server.py's version derivation (R89-1135b).
+"""Unit tests for server.py's version derivation.
 
 stdlib + pytest only; no network. Exercises `_read_plugin_version` /
 `_announced_version` directly against `tmp_path` fixtures so a change to the

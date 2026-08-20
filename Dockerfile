@@ -30,6 +30,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy server entrypoint + tool source. Skills/tests/scripts stay out via
 # .dockerignore — Glama runs the MCP server, not the Claude Code plugin
 # surface.
+# The version comes from a single source: plugin.json. server.py raises an
+# explicit error when it cannot read it (no silent fallback), so this line
+# is not optional -- .dockerignore carries a matching negative rule.
+COPY .claude-plugin/plugin.json ./.claude-plugin/
 COPY server.py .
 COPY tools/ ./tools/
 

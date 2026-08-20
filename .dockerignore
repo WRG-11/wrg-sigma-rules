@@ -6,6 +6,11 @@
 .git/
 .github/
 .claude-plugin/
+# ...but let plugin.json ITSELF through: server.py reads the version from
+# it and raises RuntimeError when it is missing. Directory out, one file in.
+# Measured: without this line the image BUILDS but the server never starts
+# -- FileNotFoundError: /app/.claude-plugin/plugin.json
+!.claude-plugin/plugin.json
 skills/
 prompts/
 scripts/
