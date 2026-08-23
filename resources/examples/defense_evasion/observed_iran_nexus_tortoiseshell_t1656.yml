@@ -1,0 +1,41 @@
+title: Iran-nexus Tortoiseshell (Imperial Kitten / TA456) recruitment-deception cluster
+  — T1656
+id: e375afaf-fee4-5750-b973-645667117cb6
+status: test
+description: Breach intel signature for actor iran_nexus_tortoiseshell, MITRE technique
+  T1656. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1656/
+- https://attack.mitre.org/groups/G0107/
+- https://about.fb.com/news/2021/07/taking-action-against-hackers-in-iran/
+- https://www.proofpoint.com/us/blog/threat-insight/i-knew-you-were-trouble-ta456-targets-defense-contractor-alluring-social-media
+author: WRG Breach Intel — Phase 6
+date: '2021-07-08'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_persona_generation_tooling:
+    Image|endswith:
+    - \powershell.exe
+    - \python.exe
+    - \pythonw.exe
+    - \node.exe
+    - \cscript.exe
+    - \wscript.exe
+    CommandLine|contains:
+    - thispersondoesnotexist
+    - faker
+    - persona_factory
+    - fake-name-generator
+    - stylegan
+    - generated-photos
+  condition: selection_persona_generation_tooling
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1656
+- wrg.observed
+- wrg.observed.actor.iran_nexus_tortoiseshell
+- wrg.severity.medium

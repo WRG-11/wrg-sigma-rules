@@ -13,7 +13,27 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Corpus 253 → 253 rules (no corpus change; MCP surface fix only).
+Corpus 253 → 278 rules (ten new actors) plus an MCP surface fix.
+
+### Added
+
+- Corpus 253 → 278 rules: ten new threat actors from the WRG breach catalog,
+  and one new technique the corpus did not carry (T1567.002, exfiltration to
+  cloud storage). Actors: barracuda, emperador, genesis, global_secret_group,
+  iran_nexus_tortoiseshell, kairos, ms13_089, panzer, securotrop,
+  shai_hulud_npm_worm.
+  - This is a deliberately narrow slice. The generation queue held 105
+    candidate rules; the other 80 mapped onto actors and techniques already
+    covered, so shipping them would have grown the corpus without widening its
+    coverage. Measured on both axes: of 105, exactly 25 brought a new actor or
+    a new technique. The 80 repeats stay in the queue.
+  - Placement is by corpus precedent, not by a fixed convention — the corpus
+    has no consistent rule for where a multi-tactic technique lives, so each
+    rule follows where its technique already sits. 24 of 25 placed by precedent,
+    1 (kairos T1567.002) by the MITRE tactic mapping since T1567.002 was new.
+  - All 25 pass pySigma validation. OPSEC-scanned before shipping: no
+    victim-level personal data, no real addresses, English only.
+
 
 ### Fixed
 

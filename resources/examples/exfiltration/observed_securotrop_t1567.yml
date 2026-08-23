@@ -1,0 +1,55 @@
+title: Securotrop — T1567 (base)
+name: wrg_4de062498c4f5330
+id: 4de06249-8c4f-5330-84f6-fad1a27c8aa4
+status: test
+description: Base event match for Breach intel signature for actor securotrop, MITRE
+  technique T1567. Derived from 1 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2025-10-02'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567
+---
+title: Securotrop — T1567
+id: 5c593e08-2bd6-5704-9a0b-8375df17d331
+status: test
+description: Breach intel signature for actor securotrop, MITRE technique T1567. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1567/
+- https://www.suspectfile.com/a-young-ransomware-group-an-ancient-risk-securotrop-the-interview/
+- https://www.hookphish.com/blog/ransomware-group-securotrop-hits-structural-component-systems/
+- https://www.ransomware.live/group/securotrop
+author: WRG Breach Intel — Phase 6
+date: '2025-10-02'
+correlation:
+  type: event_count
+  rules:
+  - wrg_4de062498c4f5330
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1567
+- wrg.observed
+- wrg.observed.actor.securotrop
+- wrg.severity.medium
+- wrg.correlation

@@ -1,0 +1,55 @@
+title: Kairos — T1567.002 (base)
+name: wrg_59097843fef05cab
+id: 59097843-fef0-5cab-a5c2-4a64921fb1b5
+status: test
+description: Base event match for Breach intel signature for actor kairos, MITRE technique
+  T1567.002. Derived from 1 observed incident(s) in the WRG breach catalog; the correlation
+  document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2025-05-18'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567.002
+---
+title: Kairos — T1567.002
+id: 29d6d6bc-dc86-5218-8a37-e2a94a506159
+status: test
+description: Breach intel signature for actor kairos, MITRE technique T1567.002. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1567/002/
+- https://socradar.io/blog/dark-web-profile-kairos-extortion-group/
+- https://malpedia.caad.fkie.fraunhofer.de/actor/kairos
+- https://securityaffairs.com/194750/security/u-s-government-agency-paid-1m-to-data-extortion-group-kairos.html
+author: WRG Breach Intel — Phase 6
+date: '2025-05-18'
+correlation:
+  type: event_count
+  rules:
+  - wrg_59097843fef05cab
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1567.002
+- wrg.observed
+- wrg.observed.actor.kairos
+- wrg.severity.high
+- wrg.correlation

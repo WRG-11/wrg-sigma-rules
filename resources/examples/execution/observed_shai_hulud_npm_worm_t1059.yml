@@ -1,0 +1,38 @@
+title: Shai-Hulud (npm worm) — T1059
+id: 2163f040-cbb7-5941-bbde-f01c58800b2c
+status: test
+description: Breach intel signature for actor shai_hulud_npm_worm, MITRE technique
+  T1059. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1059/
+- https://www.stepsecurity.io/blog/binding-gyp-npm-supply-chain-attack-spreads-like-worm
+- https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/
+- https://unit42.paloaltonetworks.com/npm-supply-chain-attack/
+- https://snyk.io/blog/node-gyp-supply-chain-compromise-self-propagating-npm-worm-binding-gyp/
+- https://attack.mitre.org/techniques/T1195/002/
+- https://cybersecuritynews.com/binding-gyp-supply-chain-attack-compromises-dozens-of-npm-packages/
+author: WRG Breach Intel — Phase 6
+date: '2026-06-03'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_shell_spawn:
+    Image|endswith:
+    - \cmd.exe
+    - \powershell.exe
+    - \wscript.exe
+    - \cscript.exe
+    CommandLine|contains:
+    - Invoke-
+    - DownloadString
+    - FromBase64String
+  condition: selection_shell_spawn
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1059
+- wrg.observed
+- wrg.observed.actor.shai_hulud_npm_worm
+- wrg.severity.high

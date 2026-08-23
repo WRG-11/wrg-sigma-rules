@@ -1,0 +1,57 @@
+title: Panzer — T1486 (base)
+name: wrg_1e852b3619a35812
+id: 1e852b36-19a3-5812-b126-00b2cb94c519
+status: test
+description: Base event match for Breach intel signature for actor panzer, MITRE technique
+  T1486. Derived from 1 observed incident(s) in the WRG breach catalog; the correlation
+  document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-08-10'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_extension:
+    TargetFilename|endswith:
+    - .encrypted
+    - .locked
+    - .enc
+    - .crypto
+    - .lockbit
+    - .alphv
+    - .akira
+    - .clop
+  condition: selection_extension
+level: informational
+tags:
+- attack.t1486
+---
+title: Panzer — T1486
+id: a014006e-f760-5f70-9b60-426bc20b8b62
+status: test
+description: Breach intel signature for actor panzer, MITRE technique T1486. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1486/
+- https://www.ransomlook.io/group/panzer
+- https://www.hookphish.com/blog/ransomware-group-panzer-hits-the-minor-food-group/
+author: WRG Breach Intel — Phase 6
+date: '2026-08-10'
+correlation:
+  type: event_count
+  rules:
+  - wrg_1e852b3619a35812
+  group-by:
+  - Image
+  timespan: 5m
+  condition:
+    gte: 21
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: informational
+tags:
+- attack.t1486
+- wrg.observed
+- wrg.observed.actor.panzer
+- wrg.severity.info
+- wrg.correlation
