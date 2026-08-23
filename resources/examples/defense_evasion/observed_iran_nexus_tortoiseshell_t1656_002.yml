@@ -1,0 +1,71 @@
+title: Iran-nexus Tortoiseshell (Imperial Kitten / TA456) recruitment-deception cluster
+  — T1656.002 (base)
+name: wrg_3c5e55c0da7459b5
+id: 3c5e55c0-da74-59b5-96ab-fc6ca37e996b
+status: test
+description: Base event match for Breach intel signature for actor iran_nexus_tortoiseshell,
+  MITRE technique T1656.002. Derived from 1 observed incident(s) in the WRG breach
+  catalog; the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2021-07-08'
+logsource:
+  category: proxy
+  product: windows
+detection:
+  selection_brand_persona_profile_edit:
+    cs-host|contains:
+    - linkedin.com
+    - x.com
+    - twitter.com
+    - facebook.com
+    - github.com
+    - medium.com
+    cs-uri-stem|contains:
+    - /profile/edit
+    - /settings/profile
+    - /me/edit
+    - /i/profile
+    - /edit-profile
+    cs-uri-query|re: .*(displayName|bio|company|jobTitle|title)=.*(CEO|CFO|CTO|director|VP|founder|spokesperson|journalist|reporter|professor|researcher|analyst).*
+  filter_corporate_brand_tooling:
+    cs-user-agent|contains:
+    - BrandProtection
+    - ExecutiveBranding
+    - RecruiterAPI
+    - HRTooling
+  condition: selection_brand_persona_profile_edit and not filter_corporate_brand_tooling
+level: informational
+tags:
+- attack.t1656.002
+---
+title: Iran-nexus Tortoiseshell (Imperial Kitten / TA456) recruitment-deception cluster
+  — T1656.002
+id: 0406f2bb-4bd0-5d83-84a0-f5f3ef9c989e
+status: test
+description: Breach intel signature for actor iran_nexus_tortoiseshell, MITRE technique
+  T1656.002. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1656/002/
+- https://attack.mitre.org/groups/G0107/
+- https://about.fb.com/news/2021/07/taking-action-against-hackers-in-iran/
+- https://www.proofpoint.com/us/blog/threat-insight/i-knew-you-were-trouble-ta456-targets-defense-contractor-alluring-social-media
+author: WRG Breach Intel — Phase 6
+date: '2021-07-08'
+correlation:
+  type: event_count
+  rules:
+  - wrg_3c5e55c0da7459b5
+  group-by:
+  - cs-host
+  timespan: 30m
+  condition:
+    gte: 6
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1656.002
+- wrg.observed
+- wrg.observed.actor.iran_nexus_tortoiseshell
+- wrg.severity.medium
+- wrg.correlation

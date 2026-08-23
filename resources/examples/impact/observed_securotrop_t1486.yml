@@ -1,0 +1,58 @@
+title: Securotrop — T1486 (base)
+name: wrg_57e8557514d45b52
+id: 57e85575-14d4-5b52-87ec-c471f444164f
+status: test
+description: Base event match for Breach intel signature for actor securotrop, MITRE
+  technique T1486. Derived from 1 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2025-10-02'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_extension:
+    TargetFilename|endswith:
+    - .encrypted
+    - .locked
+    - .enc
+    - .crypto
+    - .lockbit
+    - .alphv
+    - .akira
+    - .clop
+  condition: selection_extension
+level: informational
+tags:
+- attack.t1486
+---
+title: Securotrop — T1486
+id: bda90b09-0a7b-588b-9fa2-85a4bd90a3db
+status: test
+description: Breach intel signature for actor securotrop, MITRE technique T1486. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1486/
+- https://www.suspectfile.com/a-young-ransomware-group-an-ancient-risk-securotrop-the-interview/
+- https://www.hookphish.com/blog/ransomware-group-securotrop-hits-structural-component-systems/
+- https://www.ransomware.live/group/securotrop
+author: WRG Breach Intel — Phase 6
+date: '2025-10-02'
+correlation:
+  type: event_count
+  rules:
+  - wrg_57e8557514d45b52
+  group-by:
+  - Image
+  timespan: 5m
+  condition:
+    gte: 21
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1486
+- wrg.observed
+- wrg.observed.actor.securotrop
+- wrg.severity.medium
+- wrg.correlation

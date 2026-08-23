@@ -1,0 +1,55 @@
+title: Iran-nexus Tortoiseshell (Imperial Kitten / TA456) recruitment-deception cluster
+  — T1585 (base)
+name: wrg_7b41f2029401532d
+id: 7b41f202-9401-532d-a625-2d86380623d5
+status: test
+description: Base event match for Breach intel signature for actor iran_nexus_tortoiseshell,
+  MITRE technique T1585. Derived from 1 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2021-07-08'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_anomalous_account_creation_burst:
+    EventID:
+    - 4720
+    - 4722
+    - 4738
+  condition: selection_anomalous_account_creation_burst
+level: informational
+tags:
+- attack.t1585
+---
+title: Iran-nexus Tortoiseshell (Imperial Kitten / TA456) recruitment-deception cluster
+  — T1585
+id: e58d08f5-d64b-5f6b-901a-fd1d7da12bf6
+status: test
+description: Breach intel signature for actor iran_nexus_tortoiseshell, MITRE technique
+  T1585. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1585/
+- https://attack.mitre.org/groups/G0107/
+- https://about.fb.com/news/2021/07/taking-action-against-hackers-in-iran/
+- https://www.proofpoint.com/us/blog/threat-insight/i-knew-you-were-trouble-ta456-targets-defense-contractor-alluring-social-media
+author: WRG Breach Intel — Phase 6
+date: '2021-07-08'
+correlation:
+  type: event_count
+  rules:
+  - wrg_7b41f2029401532d
+  group-by:
+  - SubjectUserName
+  timespan: 1h
+  condition:
+    gte: 6
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1585
+- wrg.observed
+- wrg.observed.actor.iran_nexus_tortoiseshell
+- wrg.severity.medium
+- wrg.correlation

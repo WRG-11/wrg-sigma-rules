@@ -1,0 +1,49 @@
+title: Iran-nexus Tortoiseshell (Imperial Kitten / TA456) recruitment-deception cluster
+  — T1566.002
+id: ab46b7fb-30b0-52c1-81c4-b34f4daf3450
+status: test
+description: Breach intel signature for actor iran_nexus_tortoiseshell, MITRE technique
+  T1566.002. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1566/002/
+- https://attack.mitre.org/groups/G0107/
+- https://about.fb.com/news/2021/07/taking-action-against-hackers-in-iran/
+- https://www.proofpoint.com/us/blog/threat-insight/i-knew-you-were-trouble-ta456-targets-defense-contractor-alluring-social-media
+author: WRG Breach Intel — Phase 6
+date: '2021-07-08'
+logsource:
+  category: email
+  product: windows
+detection:
+  selection_phish_link_indicator:
+    Subject|contains:
+    - verify your account
+    - password expir
+    - urgent action required
+    - security alert
+    - account suspended
+    - reset your password
+    URLs|contains:
+    - /verify/
+    - /reset/
+    - /secure/
+    - /confirm/
+    - /update-info/
+    - /auth/login?next=
+  filter_known_safe_workflow:
+    Sender|endswith:
+    - '@docusign.net'
+    - '@adobesign.com'
+    - '@mailchimp.com'
+    - '@sendgrid.net'
+    - '@notifications.google.com'
+    - '@accounts.google.com'
+  condition: selection_phish_link_indicator and not filter_known_safe_workflow
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1566.002
+- wrg.observed
+- wrg.observed.actor.iran_nexus_tortoiseshell
+- wrg.severity.medium

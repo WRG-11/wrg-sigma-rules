@@ -3,7 +3,7 @@
 [![tests](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml/badge.svg)](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml)
 [![release](https://img.shields.io/github/v/release/WRG-11/wrg-sigma-rules)](https://github.com/WRG-11/wrg-sigma-rules/releases)
 [![last commit](https://img.shields.io/github/last-commit/WRG-11/wrg-sigma-rules)](https://github.com/WRG-11/wrg-sigma-rules/commits/main)
-[![sigma rules](https://img.shields.io/badge/sigma__rules-253-1f6feb)](resources/examples/INDEX.json)
+[![sigma rules](https://img.shields.io/badge/sigma__rules-278-1f6feb)](resources/examples/INDEX.json)
 [![license](https://img.shields.io/github/license/WRG-11/wrg-sigma-rules)](LICENSE)
 [![python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](requirements.txt)
 
@@ -19,8 +19,8 @@ Production-grade sigma detection rule writing, validation, and conversion for SO
 
 - **3 MCP tools**: `draft_rule` (NL → sigma YAML) + `validate_rule` (pySigma + best-practice linter) + `convert_rule` (sigma → Splunk/Elastic/OpenSearch/Wazuh/Kibana query)
 - **3 Claude Code skills**: sigma-rule-writer + sigma-rule-reviewer + threat-coverage-gap-analyzer
-- **<!-- METRIC:sigma_rule_count -->253<!-- /METRIC:sigma_rule_count --> published sigma rule corpus**: <!-- METRIC:tactic_category_count -->14<!-- /METRIC:tactic_category_count --> ATT&CK tactic categories (templates + observed campaign rules). Every rule carries a sigma `status:` — none of them `stable`; see [rule status](#rule-status) for the breakdown and what it means before you deploy one
-- **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages). Re-measured against the full <!-- METRIC:sigma_rule_count -->253<!-- /METRIC:sigma_rule_count -->-rule corpus on 2026-08-12 (80 rules at the first measurement, 101 at the previous restatement; the count is marked now, so it re-measures instead of being carried forward): Splunk and OpenSearch-PPL convert every rule; the Lucene-family targets (Elastic, Kibana, Wazuh, OpenSearch) fail on the <!-- METRIC:correlation_rule_count -->18<!-- /METRIC:correlation_rule_count --> correlation rules, because that backend cannot express them — `convert_rule` reports this as a capability gap and names the targets that can
+- **<!-- METRIC:sigma_rule_count -->278<!-- /METRIC:sigma_rule_count --> published sigma rule corpus**: <!-- METRIC:tactic_category_count -->14<!-- /METRIC:tactic_category_count --> ATT&CK tactic categories (templates + observed campaign rules). Every rule carries a sigma `status:` — none of them `stable`; see [rule status](#rule-status) for the breakdown and what it means before you deploy one
+- **Multi-backend conversion**: Splunk SPL, Elastic/Kibana Lucene, OpenSearch Lucene + PPL, Wazuh verified (pySigma 1.x + 3 backend packages). Re-measured against the full <!-- METRIC:sigma_rule_count -->278<!-- /METRIC:sigma_rule_count -->-rule corpus on 2026-08-12 (80 rules at the first measurement, 101 at the previous restatement; the count is marked now, so it re-measures instead of being carried forward): Splunk and OpenSearch-PPL convert every rule; the Lucene-family targets (Elastic, Kibana, Wazuh, OpenSearch) fail on the <!-- METRIC:correlation_rule_count -->36<!-- /METRIC:correlation_rule_count --> correlation rules, because that backend cannot express them — `convert_rule` reports this as a capability gap and names the targets that can
 - **Logsource-aware output**: `config={"pipeline": "sysmon"}` maps Sigma's abstract logsource to the product's real event selection — without it a `process_creation` rule converts to a query that matches events of every type
 - **WRG ecosystem anchor**: 6+ months threat-intel discipline + 100+ actor TTP corpus + observed_* rules (Mini Shai-Hulud npm worm, Nx campaign 4-vector cluster, SOCKS5 silent-fix, ClawHavoc Claude Skills, Lazarus, LockBit, LAPSUS, AI-fingerprint)
 - **Live demo**: see [`DEMO.md`](DEMO.md) for end-to-end tool invocation on Mini Shai-Hulud rule (pySigma 1.x + Splunk + Elastic real output)
@@ -31,7 +31,7 @@ The sigma-rule niche in the Anthropic Claude Code plugin marketplace is **empty*
 
 (For scale, the same count on 2026-05-23 found 200+ plugins and one security plugin. The marketplace grew more than tenfold in under three months; the sigma count stayed at zero.)
 
-WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: <!-- METRIC:sigma_rule_count -->253<!-- /METRIC:sigma_rule_count --> canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
+WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: <!-- METRIC:sigma_rule_count -->278<!-- /METRIC:sigma_rule_count --> canonical sigma rules + actor catalog + pySigma integration + Pattern-driven detection-engineering discipline. This plugin packages that capability for the broader Anthropic ecosystem.
 
 ## What's included
 
@@ -47,7 +47,7 @@ WRG (WinstonRedGuard) has accumulated 6+ months of threat-intel infrastructure: 
 - `sigma-rule-reviewer` — paste rule for quality review + improvement suggestions
 - `threat-coverage-gap-analyzer` — MITRE ATT&CK coverage analysis vs your existing corpus
 
-### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->253<!-- /METRIC:sigma_rule_count --> rules across <!-- METRIC:tactic_category_count -->14<!-- /METRIC:tactic_category_count --> ATT&CK tactic categories)
+### Sigma rule corpus (<!-- METRIC:sigma_rule_count -->278<!-- /METRIC:sigma_rule_count --> rules across <!-- METRIC:tactic_category_count -->14<!-- /METRIC:tactic_category_count --> ATT&CK tactic categories)
 
 | Tactic | Coverage |
 |---|---|
@@ -80,7 +80,7 @@ uses it literally rather than aspirationally:
 
 | `status:` | Count | What it means here |
 |---|---|---|
-| `test` | <!-- METRIC:status_test_count -->39<!-- /METRIC:status_test_count --> | Derived from a real, cited incident — the `observed_*` campaign rules |
+| `test` | <!-- METRIC:status_test_count -->64<!-- /METRIC:status_test_count --> | Derived from a real, cited incident — the `observed_*` campaign rules |
 | `experimental` | <!-- METRIC:status_experimental_count -->214<!-- /METRIC:status_experimental_count --> | Canonical detection shapes; many describe themselves as synthetic exemplars in their own `description:` |
 | `stable` | <!-- METRIC:status_stable_count -->0<!-- /METRIC:status_stable_count --> | Deliberately unused |
 
