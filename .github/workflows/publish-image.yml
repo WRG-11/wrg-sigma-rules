@@ -1,14 +1,13 @@
 name: publish-image
 
-# Prepared, not activated: this only runs on a GitHub Release being
-# published, never on an ordinary push -- so adding this file does not, by
-# itself, publish anything. The Dockerfile is already built + stdio-smoked on
-# every push (tests.yml's `docker` job); this job additionally PUSHES that
-# same image to GHCR, but only at a release boundary, so `ghcr.io/wrg-11/
-# wrg-sigma-rules-mcp` does not exist until the first release chooses to
-# create it. Review the tag/visibility implications before cutting that
-# first release -- a public GHCR package is a new, separately-visible surface
-# from the repo itself.
+# Activated: this only runs on a GitHub Release being published, never on
+# an ordinary push -- so a push alone does not publish anything. The
+# Dockerfile is already built + stdio-smoked on every push (tests.yml's
+# `docker` job); this job additionally PUSHES that same image to GHCR at
+# each release boundary. `ghcr.io/wrg-11/wrg-sigma-rules-mcp` has existed
+# since the v1.4.0 release (2026-08-05) and has pushed successfully on
+# every release since (v1.5.0, v1.6.0, v1.7.0) -- it is a public GHCR
+# package, a separately-visible surface from the repo itself.
 
 on:
   release:
