@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "NKJPCorpusReader.header(fileids=../../../../etc/passwd)"}},
+  {"expect_match": false, "event": {"Message": "NKJPCorpusReader.header(fileids=1M-013.xml)"}}
+]

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "authorizationUrl built resource=https://fake-mcp.com/mcp"}},
+  {"expect_match": false, "event": {"Message": "authorizationUrl built resource=https://real-mcp.com/mcp resource-origin-match: true"}}
+]

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/v1/completions", "cs-body": "{\"prompt_embeds\":\"base64...\"}"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/v1/completions", "cs-body": "{\"prompt\":\"hello world\"}"}}
+]

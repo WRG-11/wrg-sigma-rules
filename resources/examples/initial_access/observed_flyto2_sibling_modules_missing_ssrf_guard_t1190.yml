@@ -3,7 +3,7 @@ id: 511e1f08-b378-4796-9ffe-ca46cf2f9523
 status: experimental
 description: |
   Vendor-disclosed detection for CVE-2026-67428 (GHSA-pgwh-4jj4-qm8v,
-  CVSS 8.6 HIGH), affecting Flyto2 Core (`flyto-core`) <= 2.26.6.
+  CVSS 8.5 HIGH), affecting Flyto2 Core (`flyto-core`) <= 2.26.6.
 
   Flyto2's SSRF guard (`validate_url_with_env_config`) is per-module
   with no global egress interception, and a wide set of HTTP-emitting
@@ -30,8 +30,7 @@ description: |
   Aggregated from 1 first-party vendor security advisory (flyto-core, via
   GHSA and NVD, citing every affected module by name, the exact source
   file with zero guard-call hits, and a live proof of concept
-  contrasting guarded vs. unguarded behavior on identical input), not
-  yet fixed at time of publication.
+  contrasting guarded vs. unguarded behavior on identical input), fixed in flyto-core 2.26.7+ (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/advisories/GHSA-pgwh-4jj4-qm8v
 - https://attack.mitre.org/techniques/T1190/

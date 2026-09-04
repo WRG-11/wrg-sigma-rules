@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"ParentImage": "C:\\Users\\dev\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe", "CommandLine": "code --install-extension nrwl.angular-console@18.95.0"}},
+  {"expect_match": true, "event": {"ParentImage": "C:\\Users\\dev\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe", "Image": "C:\\Windows\\System32\\curl.exe", "CommandLine": "curl -X POST https://api.github.com/graphql -d @.npmrc"}},
+  {"expect_match": true, "event": {"CommandLine": "cosign sign-blob --identity-token=eyJ... artifact.tar.gz"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Users\\dev\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe", "CommandLine": "code --install-extension esbenp.prettier-vscode"}}
+]

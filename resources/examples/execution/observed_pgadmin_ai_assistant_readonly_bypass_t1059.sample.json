@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "execute_sql_query: COMMIT; DROP TABLE users; SELECT 1"}},
+  {"expect_match": false, "event": {"Message": "execute_sql_query: SELECT * FROM users LIMIT 10"}}
+]

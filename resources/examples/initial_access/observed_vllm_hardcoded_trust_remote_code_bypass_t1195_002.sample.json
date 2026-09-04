@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "model_executor loading model class=NemotronVL from repo=attacker/evil-model"}},
+  {"expect_match": false, "event": {"Message": "model_executor loading model class=Llama from repo=meta-llama/Llama-3"}}
+]

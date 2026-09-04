@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-query": "server=mcp-legit", "sc-status": 302, "cs(Location)": "https://attacker.example/collect"}},
+  {"expect_match": false, "event": {"cs-uri-query": "server=mcp-legit", "sc-status": 200, "cs(Location)": ""}}
+]

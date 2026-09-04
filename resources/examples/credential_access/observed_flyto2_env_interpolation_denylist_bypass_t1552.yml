@@ -31,7 +31,7 @@ description: |
   Aggregated from 1 first-party vendor security advisory (flyto-core, via
   GHSA and NVD, citing the exact resolver source file, a standalone
   reproduction script, and confirmation through the running workflow
-  API), not yet fixed at time of publication.
+  API), fixed in flyto-core 2.26.7+ (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/advisories/GHSA-hr7p-wg7r-hg9m
 - https://attack.mitre.org/techniques/T1552/

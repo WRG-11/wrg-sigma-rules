@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"c-uri": "/mcp", "cs-method": "POST", "cs-uri-query": "tool=terminal_execute"}},
+  {"expect_match": false, "event": {"c-uri": "/mcp", "cs-method": "POST", "cs-uri-query": "tool=terminal_execute", "cs(Authorization)": "Bearer mcp-token"}}
+]

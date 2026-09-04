@@ -26,8 +26,7 @@ description: |
   Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
   GHSA, citing the exact permission check, the missing type-binding
   logic, and a step-by-step reproduction with the actual API key
-  permission set and observed 200 OK response), not yet fixed at time
-  of publication.
+  permission set and observed 200 OK response), fixed in Flowise 3.1.3 (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-p5w8-m249-4r4v
 - https://attack.mitre.org/techniques/T1485/

@@ -31,8 +31,7 @@ description: |
   GHSA, citing the exact validator source file, the ASCII-only `\b`
   root cause, PEP 3131 NFKC normalization as the mechanism, and a
   runnable proof of concept confirming `validate() === true` on the
-  malicious payload before it achieves host RCE), not yet fixed at
-  time of publication.
+  malicious payload before it achieves host RCE), fixed in Flowise 3.1.3 (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-52fh-8v99-63c2
 - https://attack.mitre.org/techniques/T1027/

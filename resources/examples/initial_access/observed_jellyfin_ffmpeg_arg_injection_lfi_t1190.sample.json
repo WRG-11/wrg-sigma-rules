@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "/usr/lib/jellyfin-ffmpeg/ffmpeg", "CommandLine": "ffmpeg -i input.mkv -vf drawtext=textfile=/etc/passwd:fontcolor=white output.mkv"}},
+  {"expect_match": false, "event": {"Image": "/usr/lib/jellyfin-ffmpeg/ffmpeg", "CommandLine": "ffmpeg -i input.mkv -c:v h264 output.mkv"}},
+  {"expect_match": false, "event": {"Image": "/usr/bin/vlc", "CommandLine": "vlc -vf drawtext=textfile=/etc/passwd input.mkv"}}
+]

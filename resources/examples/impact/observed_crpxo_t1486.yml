@@ -1,0 +1,59 @@
+title: CRPxO — T1486 (base)
+name: wrg_09881c80e6d45f91
+id: 09881c80-e6d4-5f91-8092-fd445bf394db
+status: test
+description: Base event match for Breach intel signature for actor crpxo, MITRE technique
+  T1486. Derived from 1 observed incident(s) in the WRG breach catalog; the correlation
+  document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-08-01'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_extension:
+    TargetFilename|endswith:
+    - .encrypted
+    - .locked
+    - .enc
+    - .crypto
+    - .lockbit
+    - .alphv
+    - .akira
+    - .clop
+  condition: selection_extension
+level: informational
+tags:
+- attack.t1486
+---
+title: CRPxO — T1486
+id: 1d928cd0-9d90-51f5-a2b4-bc7583167440
+status: test
+description: Breach intel signature for actor crpxo, MITRE technique T1486. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://socradar.io/free-tools/ransomware-intelligence/groups/crpxo
+- https://cyberpress.org/crpx0-ransomware-claims-hyundai-turkey-breach/
+- https://www.scworld.com/brief/new-crpx0-malware-campaign-uses-onlyfans-lure-for-crypto-theft-and-ransomware
+- https://www.ransomware.live/group/CRPxO
+author: WRG Breach Intel — Phase 6
+date: '2026-08-01'
+correlation:
+  type: event_count
+  rules:
+  - wrg_09881c80e6d45f91
+  group-by:
+  - Image
+  timespan: 5m
+  condition:
+    gte: 21
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: low
+tags:
+- attack.t1486
+- wrg.observed
+- wrg.observed.actor.crpxo
+- wrg.severity.low
+- wrg.correlation
+- attack.impact

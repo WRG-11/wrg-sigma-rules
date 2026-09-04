@@ -43,7 +43,7 @@ detection:
   selection_high_ratio_codec_near_limit:
     cs-uri-query|contains: opus
   selection_near_size_limit:
-    cs-bytes: '>20971520'
+    cs-bytes|gt: 20971520
   condition: selection_audio_transcription_endpoint and selection_high_ratio_codec_near_limit and selection_near_size_limit
 falsepositives:
 - A deployment already upgraded to 0.23.1rc0+, where decoded PCM output

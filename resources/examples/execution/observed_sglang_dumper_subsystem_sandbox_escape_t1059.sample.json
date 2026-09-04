@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"CommandLine": "python3 -m sglang.launch_server --model-path m --env DUMPER_SERVER_PORT=9001"}},
+  {"expect_match": false, "event": {"CommandLine": "python3 -m sglang.launch_server --model-path m"}}
+]

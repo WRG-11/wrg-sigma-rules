@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "{\"function_calling\":\"legacy\",\"features\":{\"image_generation\":true}}"}},
+  {"expect_match": false, "event": {"Message": "{\"function_calling\":\"native\",\"features\":{\"image_generation\":true}}"}}
+]

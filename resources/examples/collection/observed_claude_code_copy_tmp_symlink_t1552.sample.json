@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"TargetFilename": "/tmp/claude/response.md", "Image": "/usr/bin/ln", "CommandLine": "ln -s /home/victim/.ssh/id_rsa /tmp/claude/response.md"}},
+  {"expect_match": false, "event": {"TargetFilename": "/tmp/claude/other.txt", "Image": "/usr/bin/ln", "CommandLine": "ln -s foo bar"}}
+]

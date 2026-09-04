@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"TargetFilename": "/models/truncated.ckpt", "Image": "/usr/local/bin/sd"}},
+  {"expect_match": false, "event": {"TargetFilename": "/models/checkpoint.safetensors", "Image": "/usr/local/bin/sd"}}
+]

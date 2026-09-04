@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/api/chat/completions"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/api/chat/completions", "cs(Referer)": "https://webui.example.com/chat"}}
+]

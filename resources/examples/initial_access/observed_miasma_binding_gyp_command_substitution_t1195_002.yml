@@ -1,3 +1,66 @@
+title: Miasma npm worm -- T1195.002 gyp-rebuild step (base)
+name: miasma_binding_gyp_rebuild_base
+id: fbea7c04-a141-42e0-a05f-767eb67ac4da
+status: test
+description: Base event match for the Miasma binding.gyp correlation below -- a
+  node-gyp rebuild/configure step spawned by an npm-family package manager, on
+  its own, is not the alert.
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_gyp_rebuild:
+    ParentImage|endswith:
+    - \npm.cmd
+    - \npm.exe
+    - \npm-cli.js
+    - \pnpm.cmd
+    - \pnpm.exe
+    - \yarn.cmd
+    - \yarn.exe
+    - \bun.exe
+    CommandLine|contains:
+    - node-gyp rebuild
+    - node-gyp configure
+  condition: selection_gyp_rebuild
+level: informational
+tags:
+- attack.t1195.002
+---
+title: Miasma npm worm -- T1195.002 Bun-runtime fetch/exec (base)
+name: miasma_binding_gyp_bun_fetch_base
+id: f7396a22-03d4-4e54-8869-62276964430d
+status: test
+description: Base event match for the Miasma binding.gyp correlation below -- a
+  Bun runtime binary being downloaded or executed, on its own, is not the alert
+  (a developer's own legitimate use of Bun as a JS runtime looks identical in
+  isolation).
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_bun_runtime_fetch_or_exec:
+    Image|endswith:
+    - \bun.exe
+    - \curl.exe
+    - \wget.exe
+    - \powershell.exe
+    - \pwsh.exe
+    CommandLine|contains:
+    - bun.sh
+    - bun-linux
+    - bun-windows
+    - bun-darwin
+    - bun.exe
+  condition: selection_bun_runtime_fetch_or_exec
+level: informational
+tags:
+- attack.t1059.007
+---
 title: Miasma npm worm -- T1195.002 binding.gyp gyp command-substitution code execution
 id: 0c9ed708-b102-4d0f-b1b2-053a69c315ca
 status: experimental
@@ -25,11 +88,17 @@ description: |
   Bun instead of Node -- process-tree monitoring that only watches for
   `node.exe` child processes never sees the credential-theft stage.
 
-  Detection logic flags a `node-gyp`/gyp-driven build step spawned by an
-  npm-family package manager that is immediately followed by a Bun binary
-  being downloaded and executed as a child of the same install lineage --
-  Bun has no legitimate reason to appear inside a `node-gyp rebuild` step,
-  which is a native-addon compile action, not a JS runtime swap.
+  Detection logic (CORRELATION, revised 2026-09-04 -- see this corpus's
+  rule-defects report): the ORIGINAL single-event `and` condition combining
+  a gyp-rebuild step and a Bun-runtime fetch/exec could never fire, since
+  the two are separate process-creation events that never share one log
+  record. This rule now expresses the two stages as a `temporal_ordered`
+  correlation over two base rules: a node-gyp rebuild/configure step
+  spawned by an npm-family package manager, FOLLOWED BY a Bun runtime
+  binary being downloaded and executed on the same host within a short
+  window -- Bun has no legitimate reason to appear inside a `node-gyp
+  rebuild` step, which is a native-addon compile action, not a JS runtime
+  swap.
 
   Sourced from two independent technical write-ups (StepSecurity primary
   disclosure, Snyk corroboration quoting the same 157-byte `binding.gyp`
@@ -45,39 +114,17 @@ references:
 - https://attack.mitre.org/techniques/T1059/007/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-08-11'
-logsource:
-  category: process_creation
-  product: windows
-detection:
-  selection_gyp_rebuild:
-    ParentImage|endswith:
-    - \npm.cmd
-    - \npm.exe
-    - \npm-cli.js
-    - \pnpm.cmd
-    - \pnpm.exe
-    - \yarn.cmd
-    - \yarn.exe
-    - \bun.exe
-    CommandLine|contains:
-    - node-gyp rebuild
-    - node-gyp configure
-  selection_bun_runtime_fetch_or_exec:
-    Image|endswith:
-    - \bun.exe
-    - \curl.exe
-    - \wget.exe
-    - \powershell.exe
-    - \pwsh.exe
-    CommandLine|contains:
-    - bun.sh
-    - bun-linux
-    - bun-windows
-    - bun-darwin
-    - bun.exe
-  condition: selection_gyp_rebuild and selection_bun_runtime_fetch_or_exec
+correlation:
+  type: temporal_ordered
+  rules:
+  - miasma_binding_gyp_rebuild_base
+  - miasma_binding_gyp_bun_fetch_base
+  group-by:
+  - Computer
+  timespan: 5m
 falsepositives:
 - A developer or CI runner that legitimately uses Bun as its primary JS runtime for an unrelated project, where a native-addon build step and a Bun invocation happen to occur close together for reasons unconnected to this campaign -- correlate with a preceding `binding.gyp`-triggered `node-gyp` step from a freshly-installed package, not a long-lived project's own build pipeline
+- The `Computer`-level group-by correlates same-host activity, not same-process-tree activity -- a host running many concurrent, unrelated npm installs and Bun workloads could coincidentally satisfy the ordering within the 5-minute window; narrow further with a process-tree/session correlation field if your log source provides one
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: high
 tags:
@@ -90,3 +137,4 @@ tags:
 - wrg.severity.high
 - wrg.observed
 - wrg.tactic.initial_access
+- wrg.correlation

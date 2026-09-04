@@ -33,7 +33,7 @@ description: |
   GHSA, citing the exact source file and line numbers, a standalone
   reproduction against real Pyodide, and independent verification
   against a live `flowise@3.1.2` install with owner-uid confirmation),
-  not yet fixed at time of publication.
+  fixed in Flowise 3.1.3 (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-4j8x-x6v7-w9rq
 - https://attack.mitre.org/techniques/T1059/

@@ -3,8 +3,10 @@ id: 4c5d6e7f-8091-4a23-bc3d-4e5f60718293
 status: experimental
 description: |
   Vendor-disclosed detection for CVE-2026-59219 (GHSA-855v-hq7w-jmjw,
-  CVSS 5.9 MEDIUM), affecting Open WebUI's realtime authentication
-  surfaces from v0.9.0 until v0.10.0, when Redis is configured.
+  CVSS 7.1 HIGH -- corrected 2026-09-04 via live GHSA lookup, the rule's
+  original authoring understated this score), affecting Open WebUI's
+  realtime authentication surfaces from v0.9.0 until v0.10.0, when Redis
+  is configured.
 
   HTTP auth (`get_current_user` in `utils/auth.py`) rejects a JWT
   whose `jti` is recorded as revoked in Redis (via sign-out or OIDC
@@ -67,13 +69,13 @@ falsepositives:
   logging most infrastructure log sources do not capture by default --
   this rule flags the coarser signal of both event classes appearing
   together
-level: medium
+level: high
 tags:
 - attack.t1550
 - wrg.observed.cve.cve_2026_59219
 - wrg.observed.source.open_webui_ghsa_855v_hq7w_jmjw
 - wrg.observed.vector.revocation_check_missing_on_realtime_path
 - wrg.observed.vector.http_only_defense
-- wrg.severity.medium
+- wrg.severity.high
 - wrg.observed
 - wrg.tactic.credential_access

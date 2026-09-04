@@ -3,8 +3,9 @@ id: 3b4c5d6e-7f80-4912-ab2c-3d4e5f607182
 status: experimental
 description: |
   Vendor-disclosed detection for CVE-2026-59714 (GHSA-x2ff-v5v8-m75m,
-  CVSS 6.5 MEDIUM), affecting Open WebUI chat completions from v0.9.5
-  until v0.10.0.
+  CVSS 7.1 HIGH -- corrected 2026-09-04 via live GHSA lookup, the rule's
+  original authoring understated this score), affecting Open WebUI chat
+  completions from v0.9.5 until v0.10.0.
 
   Submitting a chat completion request with a `channel:`-prefixed
   `chat_id` skipped the entire ownership/membership verification block
@@ -66,13 +67,13 @@ falsepositives:
   deployment; this rule requires application-level logging of chat-
   completions request bodies, which most infrastructure log sources do
   not capture by default
-level: medium
+level: high
 tags:
 - attack.t1565.001
 - wrg.observed.cve.cve_2026_59714
 - wrg.observed.source.open_webui_ghsa_x2ff_v5v8_m75m
 - wrg.observed.vector.ownership_check_skipped_on_prefix
 - wrg.observed.vector.unchecked_primary_key_write
-- wrg.severity.medium
+- wrg.severity.high
 - wrg.observed
 - wrg.tactic.impact

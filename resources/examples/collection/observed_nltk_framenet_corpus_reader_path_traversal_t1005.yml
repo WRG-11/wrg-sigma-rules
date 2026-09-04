@@ -32,8 +32,7 @@ description: |
   Aggregated from 1 first-party vendor security advisory (nltk, via
   GHSA and NVD, citing the exact function, the string-vs-PathPointer
   distinction, the two sibling reachable code paths, and a runnable
-  proof of concept with `ENFORCE = True` explicitly enabled), not yet
-  fixed at time of publication.
+  proof of concept with `ENFORCE = True` explicitly enabled), fixed in NLTK 3.10.0 (PR #3581, verified via live GitHub changelog lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/nltk/nltk/security/advisories/GHSA-xh95-f55m-82fw
 - https://attack.mitre.org/techniques/T1005/

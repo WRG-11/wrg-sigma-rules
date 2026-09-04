@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.crypto"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\Users\\victim\\Documents\\report.docx"}}
+]

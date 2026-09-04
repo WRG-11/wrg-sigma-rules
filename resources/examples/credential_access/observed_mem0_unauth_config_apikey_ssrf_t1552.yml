@@ -24,10 +24,21 @@ description: |
   range -- each is exploitable on its own, so either alone is a hit
   worth investigating.
 
-  Aggregated from 2 independent sources (mem0ai's own commit fixing the
-  issue + VulnCheck's corroborating write-up), no CVE-published patched
-  version stated beyond the fix commit
-  `a3154d59e52386d4e1189c1f5f44819868f76514`.
+  Status correction (2026-09-04, live verification): the commit this rule
+  originally cited as "the fix" (`a3154d59e52386d4e1189c1f5f44819868f76514`)
+  is NOT a fix for this vulnerability -- its own commit message reads
+  "fix(docs): fix broken metadata filtering examples (#5317)", an unrelated
+  documentation change. The actual tracking issue, GitHub #6081, was closed
+  2026-07-06 with the maintainers' own comment: "we have sunsetted
+  openmemory, so we won't be taking issue or pr." This is WONTFIX-BY-
+  DEPRECATION, not a patched vulnerability -- the affected OpenMemory
+  component has been discontinued rather than fixed, so there is no
+  version number to check a deployment against; any still-running
+  OpenMemory instance remains exposed indefinitely by the vendor's own
+  choice not to patch a sunset product.
+
+  Aggregated from 2 independent sources (VulnCheck's write-up + the
+  project's own GitHub issue tracker, corroborating the wontfix status).
 references:
 - https://www.vulncheck.com/advisories/mem0-server-side-request-forgery-and-plaintext-api-key-exposure-via-unauthenticated-config-endpoints
 - https://github.com/mem0ai/mem0/commit/a3154d59e52386d4e1189c1f5f44819868f76514
@@ -54,10 +65,11 @@ detection:
     - 'ollama_base_url":"http://169.254.'
   condition: selection_config_disclosure or selection_ssrf_via_ollama_url
 falsepositives:
-- A deployment that has since applied the fix commit -- a matching
-  request on a patched deployment would be rejected by the now-present
-  auth/validation layer rather than returning secrets or reaching the
-  target address
+- 'There is no patched-version negative case for this rule -- the
+  vulnerable OpenMemory component was discontinued (WONTFIX-by-
+  deprecation, GitHub #6081), not fixed, so a matching request should be
+  treated as needing manual review regardless of when the deployment was
+  stood up, not filtered against a "fixed deployment" assumption'
 - 'config-disclosure selection: a legitimate authenticated admin request
   whose Authorization header the log source failed to capture -- verify
   against a log source known to reliably record request headers before

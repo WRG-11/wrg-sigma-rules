@@ -29,7 +29,7 @@ description: |
   Aggregated from 1 first-party vendor security advisory (nltk, via
   GHSA and NVD, citing the exact source file, line numbers for
   `add_root()`/`XML_Tool`, and a runnable proof of concept with an
-  out-of-root secret marker), not yet fixed at time of publication.
+  out-of-root secret marker), fixed in NLTK 3.10.0 (PR #3579, verified via live GitHub changelog lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/nltk/nltk/security/advisories/GHSA-6hm5-jgcp-p838
 - https://attack.mitre.org/techniques/T1005/

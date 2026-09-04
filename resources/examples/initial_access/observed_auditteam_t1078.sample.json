@@ -1,0 +1,7 @@
+[
+  {"expect_match": true, "event": {"EventID": 4624, "LogonType": 3, "TargetUserName": "jsmith"}},
+  {"expect_match": true, "event": {"EventID": 4625, "LogonType": 10, "TargetUserName": "contractor_ext"}},
+  {"expect_match": false, "event": {"EventID": 4624, "LogonType": 3, "TargetUserName": "svc_backup"}},
+  {"expect_match": false, "event": {"EventID": 4624, "LogonType": 10, "TargetUserName": "admin_dave"}},
+  {"expect_match": false, "event": {"EventID": 4634, "LogonType": 3, "TargetUserName": "jsmith"}}
+]

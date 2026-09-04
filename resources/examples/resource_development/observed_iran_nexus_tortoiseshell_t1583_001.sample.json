@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"cs-uri-query": "/track?ref=new-domain=true", "cs-host": "bbc-news.press-alert.com"}},
+  {"expect_match": false, "event": {"cs-uri-query": "/track?ref=organic", "cs-host": "bbc-news.press-alert.com"}},
+  {"expect_match": false, "event": {"cs-uri-query": "/track?ref=new-domain=true", "cs-host": "randomsite.com"}}
+]

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "GET /api/terminals/ws?session_id=abc%3Fuser_id%3Dadmin"}},
+  {"expect_match": false, "event": {"Message": "GET /api/terminals/ws?session_id=abc123"}}
+]

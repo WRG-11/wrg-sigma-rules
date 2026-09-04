@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/terminal/serveUrl", "cs-uri-query": "file=evil.html"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/terminal/serveUrl", "cs-uri-query": "file=readme.txt"}}
+]

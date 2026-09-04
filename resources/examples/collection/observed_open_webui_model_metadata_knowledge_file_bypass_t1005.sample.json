@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "model update meta.knowledge=[{file_id: f-victim}] file_owner_match: false"}},
+  {"expect_match": false, "event": {"Message": "model update meta.knowledge=[{file_id: f-own}] file_owner_match: true"}}
+]

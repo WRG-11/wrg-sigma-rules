@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"counterparty_address": "bc1qjnt7vjqyzpyjs6ne5xfu44p4uy4xyl0vudr4dp", "counterparty_chain": "btc"}},
+  {"expect_match": false, "event": {"counterparty_address": "bc1qjnt7vjqyzpyjs6ne5xfu44p4uy4xyl0vudr4dp", "counterparty_chain": "eth"}},
+  {"expect_match": false, "event": {"counterparty_address": "bc1qzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "counterparty_chain": "btc"}}
+]

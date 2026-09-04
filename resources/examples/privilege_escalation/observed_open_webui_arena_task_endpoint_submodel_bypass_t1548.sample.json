@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/api/v1/tasks/moa/completions"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/api/chat/completions"}}
+]

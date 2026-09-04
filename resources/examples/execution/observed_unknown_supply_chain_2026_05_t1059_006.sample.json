@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Python312\\python.exe", "ParentImage": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"}},
+  {"expect_match": true, "event": {"Image": "C:\\Python312\\pythonw.exe", "ParentImage": "C:\\Windows\\System32\\mshta.exe"}},
+  {"expect_match": false, "event": {"Image": "C:\\Python312\\python.exe", "ParentImage": "C:\\Windows\\explorer.exe"}}
+]

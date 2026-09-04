@@ -1,0 +1,101 @@
+title: TeamPCP / UNC6780 — T1078 (base)
+name: wrg_74454a20763d5183
+id: 74454a20-763d-5183-a70d-a9d1b14b398e
+status: test
+description: Base event match for Breach intel signature for actor teampcp_unc6780,
+  MITRE technique T1078. Derived from 3 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-05-18'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_logon:
+    EventID:
+    - 4624
+    - 4625
+    LogonType:
+    - 3
+    - 10
+  filter_service_accounts:
+    TargetUserName|startswith: svc_
+  # R89-33b V cycle-1 FP-fix (V Phase 1a baseline 0520; legit admin
+  # interactive RDP (LogonType 10) tripped the rule). Authorized
+  # admin operators routinely access servers via RDP for maintenance;
+  # the rule fired on legit_rdp_logon (admin_dave / LogonType 10).
+  #
+  # Phase 1a narrow (option (a) per brief R89-33b Rule 3 reco):
+  # exclude interactive RDP (LogonType 10) by admin-prefixed accounts.
+  # Filter requires BOTH conditions (selection-shape: multi-clause
+  # within one filter block = AND).
+  #
+  # Auto-attack canonical event (built from selection_logon first
+  # values: EventID=4624, LogonType=3, no TargetUserName) does NOT
+  # match LogonType=10 -> filter inert -> rule still fires.
+  # Self-consistency preserved.
+  #
+  # Known tradeoff (documented for V re-verify + Phase 2 evaluation):
+  # this is a SINGLE-EVENT precision narrow. The lapsus actor
+  # signature is multi-host admin-credential reuse within a short
+  # window -- proper detection requires correlation (count() by
+  # account across hosts over time). Phase 1b aggregation matcher
+  # (V design-prep) will support that pattern; this filter is the
+  # Phase 1a stop-gap that keeps precision-on-benign at 1.00.
+  filter_legit_admin_interactive_rdp:
+    LogonType: 10
+    TargetUserName|startswith: admin_
+  condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
+level: informational
+tags:
+- attack.t1078
+---
+title: TeamPCP / UNC6780 — T1078
+id: e0c7a47e-b852-50da-b299-2b64fcbd2cd9
+status: test
+description: Breach intel signature for actor teampcp_unc6780, MITRE technique T1078.
+  Derived from 3 observed incident(s) in the WRG breach catalog.
+references:
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+- https://www.hudsonrock.com/blog/infostealers-just-spawned-a-5000-repo-github-supply-chain-attack
+- https://thehackernews.com/2026/05/megalodon-github-attack-targets-5561.html
+- https://www.stepsecurity.io/blog/megalodon-mass-github-actions-secret-exfiltration-across-5-500-public-repositories
+- https://cybernews.com/security/megalodon-github-5000-repos-backdooring-supply-chain-attack/
+- https://www.rescana.com/post/megalodon-supply-chain-attack-teampcp-compromises-5-561-github-repositories-via-malicious-ci-cd-workflows
+- https://safedep.io/megalodon-mass-github-repo-backdooring-ci-workflows/
+- https://www.securityweek.com/over-5500-github-repositories-infected-in-megalodon-supply-chain-attack/
+- https://www.theregister.com/security/2026/05/22/megalodon-chums-the-waters-in-55k-github-repo-poisonings/
+- https://openai.com/index/our-response-to-the-tanstack-npm-supply-chain-attack/
+- https://x.com/H4ckmanac
+- https://hackread.com/teampcp-mini-shai-hulud-worm-npm-pypi-packages/
+- https://www.stepsecurity.io/blog/mini-shai-hulud-is-back-a-self-spreading-supply-chain-attack-hits-the-npm-ecosystem
+- https://www.theregister.com/security/2026/05/15/openai-caught-in-tanstack-npm-supply-chain-chaos-after-employee-devices-compromised/
+- https://www.opswat.com/blog/mini-shai-hulud-tanstack-openai-and-the-npm-supply-chain-trap
+- https://www.kaspersky.com/blog/critical-supply-chain-attack-trivy-litellm-checkmarx-teampcp/55510/
+- https://www.sans.org/blog/when-security-scanner-became-weapon-inside-teampcp-supply-chain-campaign
+- https://arcticwolf.com/resources/blog/teampcp-supply-chain-attack-campaign-targets-trivy-checkmarx-kics-and-litellm-potential-downstream-impact-to-additional-projects/
+- https://labs.cloudsecurityalliance.org/research/csa-research-note-teampcp-unc6780-ai-developer-supply-chain/
+author: WRG Breach Intel — Phase 6
+date: '2026-05-18'
+correlation:
+  type: event_count
+  rules:
+  - wrg_74454a20763d5183
+  group-by:
+  - TargetUserName
+  timespan: 15m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: critical
+tags:
+- attack.t1078
+- wrg.observed
+- wrg.observed.actor.teampcp_unc6780
+- wrg.severity.critical
+- wrg.correlation
+- attack.stealth
+- attack.persistence
+- attack.privilege-escalation
+- attack.initial-access

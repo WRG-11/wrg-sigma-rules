@@ -31,7 +31,7 @@ description: |
   a disclosed advisory citing all five affected node source files, the
   TypeORM `entities`/`subscribers`/`migrations` code-loading mechanism
   by name, and a fully reproduced reverse shell with `uid=0(root)`
-  confirmation), not yet fixed at time of publication.
+  confirmation), fixed in Flowise 3.1.3 (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-g32j-mmxr-gfq5
 - https://attack.mitre.org/techniques/T1059/

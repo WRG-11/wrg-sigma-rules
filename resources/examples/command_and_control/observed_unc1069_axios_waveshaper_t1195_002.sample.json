@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"QueryName": "sfrclak.com"}},
+  {"expect_match": true, "event": {"DestinationIp": "142.11.206.73", "DestinationPort": 8000}},
+  {"expect_match": false, "event": {"DestinationIp": "142.11.206.73", "DestinationPort": 443}},
+  {"expect_match": false, "event": {"QueryName": "registry.npmjs.org", "ParentImage": "C:\\Program Files\\nodejs\\npm.cmd"}}
+]

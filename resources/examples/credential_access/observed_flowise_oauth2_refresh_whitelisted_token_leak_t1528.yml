@@ -24,8 +24,7 @@ description: |
 
   Aggregated from 1 first-party vendor security advisory (FlowiseAI, via
   GHSA, citing the exact route file, line numbers, and a Docker-validated
-  proof distinguishing "credential not found" from "unauthorized"), not
-  yet fixed at time of publication.
+  proof distinguishing "credential not found" from "unauthorized"), fixed in Flowise 3.1.3 (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-qgvm-j2hm-6m38
 - https://attack.mitre.org/techniques/T1528/

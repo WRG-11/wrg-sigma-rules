@@ -1,0 +1,92 @@
+title: ShinyHunters — T1078 (base)
+name: wrg_541c9329ea0d5f4a
+id: 541c9329-ea0d-5f4a-b8e2-5499a8402f15
+status: test
+description: Base event match for Breach intel signature for actor shinyhunters, MITRE
+  technique T1078. Derived from 2 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-05-12'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_logon:
+    EventID:
+    - 4624
+    - 4625
+    LogonType:
+    - 3
+    - 10
+  filter_service_accounts:
+    TargetUserName|startswith: svc_
+  # R89-33b V cycle-1 FP-fix (V Phase 1a baseline 0520; legit admin
+  # interactive RDP (LogonType 10) tripped the rule). Authorized
+  # admin operators routinely access servers via RDP for maintenance;
+  # the rule fired on legit_rdp_logon (admin_dave / LogonType 10).
+  #
+  # Phase 1a narrow (option (a) per brief R89-33b Rule 3 reco):
+  # exclude interactive RDP (LogonType 10) by admin-prefixed accounts.
+  # Filter requires BOTH conditions (selection-shape: multi-clause
+  # within one filter block = AND).
+  #
+  # Auto-attack canonical event (built from selection_logon first
+  # values: EventID=4624, LogonType=3, no TargetUserName) does NOT
+  # match LogonType=10 -> filter inert -> rule still fires.
+  # Self-consistency preserved.
+  #
+  # Known tradeoff (documented for V re-verify + Phase 2 evaluation):
+  # this is a SINGLE-EVENT precision narrow. The lapsus actor
+  # signature is multi-host admin-credential reuse within a short
+  # window -- proper detection requires correlation (count() by
+  # account across hosts over time). Phase 1b aggregation matcher
+  # (V design-prep) will support that pattern; this filter is the
+  # Phase 1a stop-gap that keeps precision-on-benign at 1.00.
+  filter_legit_admin_interactive_rdp:
+    LogonType: 10
+    TargetUserName|startswith: admin_
+  condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
+level: informational
+tags:
+- attack.t1078
+---
+title: ShinyHunters — T1078
+id: 7bfeedfd-c1fb-5811-a147-f62d012fa404
+status: test
+description: Breach intel signature for actor shinyhunters, MITRE technique T1078.
+  Derived from 2 observed incident(s) in the WRG breach catalog.
+references:
+- https://www.justice.gov/usao-wdwa/pr/seattle-area-man-charged-cyberattacks-multiple-companies-and-individuals-and
+- https://www.bleepingcomputer.com/tag/shinyhunters/
+- https://databreaches.net/?s=shinyhunters
+- https://about.att.com/story/2024/addressing-data-set-released-on-dark-web.html
+- https://www.bleepingcomputer.com/news/security/atandt-confirms-data-breach-impacting-73-million-customers/
+- https://www.instructure.com/about/security
+- https://databreaches.net/?s=instructure
+- https://ransomware.live/group/shinyhunters
+- https://www.ic3.gov/PSA/2026/PSA260515
+- 'FBI PSA Number: I-051526-PSA (2026-05-15)'
+author: WRG Breach Intel — Phase 6
+date: '2026-05-12'
+correlation:
+  type: event_count
+  rules:
+  - wrg_541c9329ea0d5f4a
+  group-by:
+  - TargetUserName
+  timespan: 15m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1078
+- wrg.observed
+- wrg.observed.actor.shinyhunters
+- wrg.severity.high
+- wrg.correlation
+- attack.stealth
+- attack.persistence
+- attack.privilege-escalation
+- attack.initial-access

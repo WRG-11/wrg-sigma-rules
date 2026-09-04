@@ -1,0 +1,76 @@
+title: TeamPCP / UNC6780 — T1071 (base)
+name: wrg_9b77e2699a4c5224
+id: 9b77e269-9a4c-5224-927e-93d344524a26
+status: test
+description: Base event match for Breach intel signature for actor teampcp_unc6780,
+  MITRE technique T1071. Derived from 3 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-05-18'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_c2_http:
+    DestinationPort:
+    - 80
+    - 443
+    - 8080
+    - 8443
+    Image|endswith:
+    - \powershell.exe
+    - \cmd.exe
+    - \wscript.exe
+    - \mshta.exe
+    - \rundll32.exe
+  condition: selection_c2_http
+level: informational
+tags:
+- attack.t1071
+---
+title: TeamPCP / UNC6780 — T1071
+id: 9f4263c8-8726-5d99-95bf-6c8ab1ee2dfe
+status: test
+description: Breach intel signature for actor teampcp_unc6780, MITRE technique T1071.
+  Derived from 3 observed incident(s) in the WRG breach catalog.
+references:
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+- https://www.hudsonrock.com/blog/infostealers-just-spawned-a-5000-repo-github-supply-chain-attack
+- https://thehackernews.com/2026/05/megalodon-github-attack-targets-5561.html
+- https://www.stepsecurity.io/blog/megalodon-mass-github-actions-secret-exfiltration-across-5-500-public-repositories
+- https://cybernews.com/security/megalodon-github-5000-repos-backdooring-supply-chain-attack/
+- https://www.rescana.com/post/megalodon-supply-chain-attack-teampcp-compromises-5-561-github-repositories-via-malicious-ci-cd-workflows
+- https://safedep.io/megalodon-mass-github-repo-backdooring-ci-workflows/
+- https://www.securityweek.com/over-5500-github-repositories-infected-in-megalodon-supply-chain-attack/
+- https://www.theregister.com/security/2026/05/22/megalodon-chums-the-waters-in-55k-github-repo-poisonings/
+- https://openai.com/index/our-response-to-the-tanstack-npm-supply-chain-attack/
+- https://x.com/H4ckmanac
+- https://hackread.com/teampcp-mini-shai-hulud-worm-npm-pypi-packages/
+- https://www.stepsecurity.io/blog/mini-shai-hulud-is-back-a-self-spreading-supply-chain-attack-hits-the-npm-ecosystem
+- https://www.theregister.com/security/2026/05/15/openai-caught-in-tanstack-npm-supply-chain-chaos-after-employee-devices-compromised/
+- https://www.opswat.com/blog/mini-shai-hulud-tanstack-openai-and-the-npm-supply-chain-trap
+- https://www.kaspersky.com/blog/critical-supply-chain-attack-trivy-litellm-checkmarx-teampcp/55510/
+- https://www.sans.org/blog/when-security-scanner-became-weapon-inside-teampcp-supply-chain-campaign
+- https://arcticwolf.com/resources/blog/teampcp-supply-chain-attack-campaign-targets-trivy-checkmarx-kics-and-litellm-potential-downstream-impact-to-additional-projects/
+- https://labs.cloudsecurityalliance.org/research/csa-research-note-teampcp-unc6780-ai-developer-supply-chain/
+author: WRG Breach Intel — Phase 6
+date: '2026-05-18'
+correlation:
+  type: event_count
+  rules:
+  - wrg_9b77e2699a4c5224
+  group-by:
+  - DestinationHostname
+  timespan: 30m
+  condition:
+    gte: 31
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: critical
+tags:
+- attack.t1071
+- wrg.observed
+- wrg.observed.actor.teampcp_unc6780
+- wrg.severity.critical
+- wrg.correlation
+- attack.command-and-control

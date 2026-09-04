@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"cs-host": "10.0.0.5:3088", "cs-uri-query": "/mcp?{\"method\":\"tools/call\",\"params\":{\"name\":\"run-code\"}}"}},
+  {"expect_match": false, "event": {"cs-host": "10.0.0.5:3088", "cs-uri-query": "/mcp?{\"method\":\"tools/call\",\"params\":{\"name\":\"run-code\"}}", "cs(Authorization)": "Bearer eyJ..."}},
+  {"expect_match": false, "event": {"cs-host": "10.0.0.5:8080", "cs-uri-query": "/mcp?{\"method\":\"tools/call\",\"params\":{\"name\":\"list-tools\"}}"}}
+]

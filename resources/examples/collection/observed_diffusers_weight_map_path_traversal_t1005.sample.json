@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"TargetFilename": "C:\\models\\repo\\..\\secret\\SECRET.safetensors"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\models\\repo\\model.safetensors"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\models\\repo\\..\\other\\config.json"}}
+]

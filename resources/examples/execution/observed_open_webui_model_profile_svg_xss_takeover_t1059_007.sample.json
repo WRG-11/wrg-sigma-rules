@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "model update profile_image_url=data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+"}},
+  {"expect_match": false, "event": {"Message": "model update profile_image_url=https://cdn.example.com/models/logo.png"}}
+]

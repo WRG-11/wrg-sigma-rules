@@ -27,7 +27,7 @@ description: |
   GHSA, citing the exact route mount, the two controller functions and
   what each does and doesn't check, and a full reproduction with the
   actual API key and observed 200 OK responses for both list and
-  delete), not yet fixed at time of publication.
+  delete), fixed in Flowise 3.1.3 (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-wp74-f5hh-5f3r
 - https://attack.mitre.org/techniques/T1485/

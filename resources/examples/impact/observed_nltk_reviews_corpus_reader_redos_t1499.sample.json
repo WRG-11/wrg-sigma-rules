@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "ReviewsCorpusReader.reviews() call exceeded timeout while parsing a 98000-word bracket-less line"}},
+  {"expect_match": false, "event": {"Message": "ReviewsCorpusReader.reviews() call completed, 40 reviews parsed"}}
+]

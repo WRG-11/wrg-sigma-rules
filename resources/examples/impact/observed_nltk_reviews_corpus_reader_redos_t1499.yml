@@ -30,7 +30,7 @@ description: |
   Aggregated from 1 first-party vendor security advisory (nltk, via
   GHSA and NVD, citing the exact regex, source file and line numbers,
   and a runnable proof of concept comparing vulnerable vs. bounded-fix
-  growth curves), not yet fixed at time of publication.
+  growth curves), fixed in NLTK 3.10.0 (PR #3583, verified via live GitHub changelog lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/nltk/nltk/security/advisories/GHSA-fg7f-2386-8897
 - https://attack.mitre.org/techniques/T1499/

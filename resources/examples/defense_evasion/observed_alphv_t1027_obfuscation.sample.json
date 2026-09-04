@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -enc SGVsbG8gV29ybGQh"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -nop -w hidden ZXZpbCBwYXlsb2FkIHZlcnkgbG9uZyBiYXNlNjQgYmxvYiByZXBlYXRlZCB0byBwYXNzIHRoZSAyMDAgY2hhcmFjdGVyIHRocmVzaG9sZCBmb3IgdGhpcyBydWxlIHRvIG1hdGNoIHRoZSBsb25nX2Jhc2U2NF9ibG9iIHNlbGVjdGlvbiBzdWNjZXNzZnVsbHkgd2l0aG91dCB0aGUgLWVuYyBmbGFn"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -NoProfile -EncodedCommand SGVsbG8="}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "dir C:\\"}}
+]

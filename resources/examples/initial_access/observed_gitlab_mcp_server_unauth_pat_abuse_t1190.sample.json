@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/sse", "cs-uri-query": "tool=delete_repository"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/sse", "cs-uri-query": "tool=delete_repository", "cs(Authorization)": "Bearer pat_abc"}}
+]

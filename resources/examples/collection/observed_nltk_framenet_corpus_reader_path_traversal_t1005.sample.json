@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "FramenetCorpusReader.frame() called with name=../../../../etc/passwd"}},
+  {"expect_match": false, "event": {"Message": "FramenetCorpusReader.frame() called with name=Abandonment"}}
+]

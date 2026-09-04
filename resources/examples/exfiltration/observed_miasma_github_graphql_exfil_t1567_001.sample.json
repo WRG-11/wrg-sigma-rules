@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"ParentImage": "C:\\Program Files\\nodejs\\npm.cmd", "CommandLine": "node exfil.js --mutation createCommitOnBranch --token stolen"}},
+  {"expect_match": true, "event": {"ParentImage": "C:\\Users\\dev\\AppData\\Roaming\\npm\\pnpm.cmd", "CommandLine": "node upload.js results/results-1738291.json to nemean-hydra-34343"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Program Files\\nodejs\\npm.cmd", "CommandLine": "npm install express"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "curl -X POST https://api.github.com/graphql -d createCommitOnBranch"}}
+]

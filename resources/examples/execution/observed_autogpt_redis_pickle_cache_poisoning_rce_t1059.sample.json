@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"ParentCommandLine": "python3 -m autogpt.backend", "ParentImage": "/usr/bin/python3", "Image": "/bin/sh"}},
+  {"expect_match": false, "event": {"ParentCommandLine": "python3 -m autogpt.backend", "ParentImage": "/usr/bin/python3", "Image": "/usr/bin/python3"}}
+]

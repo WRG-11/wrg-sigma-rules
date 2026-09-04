@@ -34,7 +34,7 @@ description: |
   GHSA, citing the exact source line for the vulnerable spread, a
   7-step taint trace from route registration to RCE, and a fully
   reproduced Docker-based exploit with proof-file and credential-file
-  read confirmation), not yet fixed at time of publication.
+  read confirmation), fixed in Flowise 3.1.3 (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-3769-jgqc-cxm7
 - https://attack.mitre.org/techniques/T1611/

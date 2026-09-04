@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"ParentImage": "C:\\Windows\\System32\\inetsrv\\httpd.exe", "Image": "C:\\Windows\\System32\\cmd.exe"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\inetsrv\\httpd.exe", "Image": "C:\\Program Files\\Notepad++\\notepad++.exe"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\svchost.exe", "Image": "C:\\Windows\\System32\\cmd.exe"}}
+]

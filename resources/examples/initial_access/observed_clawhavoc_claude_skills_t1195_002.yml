@@ -1,51 +1,11 @@
-title: ClawHavoc Claude Code Skills malicious skill execution -- T1195.002 Nx campaign 4th vector (Docker 2026-05 horror-stories Issue 1)
-id: b0e7961a-f220-41ad-9d65-dab19c15239c
-status: experimental
-description: 'Campaign-bound sigma detection for the ClawHavoc Claude Code Skills
-  malicious skill cluster (Docker AI Coding Agent Horror Stories Issue 1 anchor,
-  May 2026; 335+ malicious skills observed across the public Claude Code skills
-  ecosystem). Fourth and final vector of the Nx campaign supply-chain cluster
-  (sister vectors already in corpus: Mini Shai-Hulud npm + s1ngularity Nx CLI +
-  nx-console VS Code extension). Attack chain:
-
-  (1) Attacker publishes a malicious Claude Code skill (`.claude/skills/<name>/SKILL.md`)
-  to a public skills ecosystem (npm-style index OR direct curl install snippet
-  in a blog post / Stack Overflow answer / AI-coding tutorial).
-  (2) Victim developer installs the skill into their workspace under
-  `.claude/skills/<malicious-name>/`. Skill content includes a `SKILL.md` with
-  high-coverage description that surfaces aggressively for many common prompts.
-  (3) Claude Code surfaces the malicious skill on a routine prompt. The skill
-  declares broad tool access (Read + Write + Bash + Edit) and executes its
-  payload during routine workflow.
-  (4) Payload sweeps credential locations (`.aws/credentials`, `.npmrc`,
-  `.ssh/`, GitHub tokens, environment variables, 1Password vault, kubeconfig),
-  bulk-exfils over HTTPS POST to attacker infrastructure, optionally pivots to
-  other tools (npm install of secondary stage). Some variants hide their
-  presence via T1564 (Hide Artifacts) by renaming themselves or backdating
-  filesystem timestamps.
-
-  Detection logic targets two surfaces: (a) suspicious Claude Code child
-  processes spawned during skill execution context (PowerShell / curl / wget
-  / node touching credential files OR egressing to non-developer-typical
-  destinations); (b) anomalous Claude skill directory write events
-  (`.claude/skills/` writes outside of the developer-initiated install
-  workflow, OR writes to skill metadata files combined with credential-file
-  read events within a short window).
-
-  Sister cluster (Nx campaign 4-vector cluster -- THIS RULE COMPLETES THE
-  CLUSTER): cross-reference observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml
-  (1st vector) + observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml (2nd
-  vector) + observed_nx_console_t1195_002.yml (3rd vector) in the same corpus.
-
-  Source: Tier 1 first-party Docker engineering blog post (docker.com/blog/
-  ai-coding-agent-horror-stories-security-risks 2026-05). Aggregated from
-  1 first-party Docker disclosure (Issue 1 of 5-issue serial roadmap).'
-references:
-- https://attack.mitre.org/techniques/T1195/002/
-- https://attack.mitre.org/techniques/T1059/001/
-- https://attack.mitre.org/techniques/T1552/001/
-- https://attack.mitre.org/techniques/T1564/
-- https://www.docker.com/blog/ai-coding-agent-horror-stories-security-risks
+title: ClawHavoc Claude Code Skills -- skill install/egress touchpoint (base)
+name: clawhavoc_skill_install_egress_base
+id: 9c850d8a-0d5a-4a30-a2a0-4ae28c284e23
+status: test
+description: Base event match for the ClawHavoc correlation below -- a Claude
+  Code/Cursor-attributed process touching `.claude/skills/`/`SKILL.md`, on its
+  own, is not the alert (an ordinary developer installing a legitimate skill
+  looks identical).
 author: WinstonRedGuard -- sigma plugin observed rules (derived from Docker disclosure)
 date: '2026-05-24'
 logsource:
@@ -67,6 +27,25 @@ detection:
     - .claude/skills/
     - .claude\skills\
     - SKILL.md
+  condition: selection_claude_skill_install_egress
+level: informational
+tags:
+- attack.t1195.002
+---
+title: ClawHavoc Claude Code Skills -- post-install credential scan, bulk egress, or artifact hiding (base)
+name: clawhavoc_post_install_suspicious_base
+id: 62efec82-2802-4237-9d48-eed1aa8fe8be
+status: test
+description: Base event match for the ClawHavoc correlation below -- a
+  post-install process touching credential locations, egressing via a
+  bulk-POST-shaped command, or hiding its own artifacts, on its own, is not
+  the alert.
+author: WinstonRedGuard -- sigma plugin observed rules (derived from Docker disclosure)
+date: '2026-05-24'
+logsource:
+  category: process_creation
+  product: windows
+detection:
   selection_post_install_credential_scan:
     ParentImage|endswith:
     - \node.exe
@@ -106,11 +85,84 @@ detection:
     - Set-ItemProperty -Name LastWriteTime
     - mv .claude/skills/
     - rename SKILL.md
-  condition: selection_claude_skill_install_egress and (selection_post_install_credential_scan or selection_post_install_bulk_egress or selection_hide_artifacts_indicator)
+  condition: selection_post_install_credential_scan or selection_post_install_bulk_egress or selection_hide_artifacts_indicator
+level: informational
+tags:
+- attack.t1552.001
+- attack.t1564
+---
+title: ClawHavoc Claude Code Skills malicious skill execution -- T1195.002 Nx campaign 4th vector (Docker 2026-05 horror-stories Issue 1)
+id: b0e7961a-f220-41ad-9d65-dab19c15239c
+status: experimental
+description: |
+  Campaign-bound sigma detection for the ClawHavoc Claude Code Skills
+  malicious skill cluster (Docker AI Coding Agent Horror Stories Issue 1 anchor,
+  May 2026; 335+ malicious skills observed across the public Claude Code skills
+  ecosystem). Fourth vector of the Nx campaign supply-chain cluster (sister
+  vectors already in corpus: Mini Shai-Hulud npm + s1ngularity Nx CLI +
+  nx-console VS Code extension). Attack chain:
+
+  (1) Attacker publishes a malicious Claude Code skill (`.claude/skills/<name>/SKILL.md`)
+  to a public skills ecosystem (npm-style index OR direct curl install snippet
+  in a blog post / Stack Overflow answer / AI-coding tutorial).
+  (2) Victim developer installs the skill into their workspace under
+  `.claude/skills/<malicious-name>/`. Skill content includes a `SKILL.md` with
+  high-coverage description that surfaces aggressively for many common prompts.
+  (3) Claude Code surfaces the malicious skill on a routine prompt. The skill
+  declares broad tool access (Read + Write + Bash + Edit) and executes its
+  payload during routine workflow.
+  (4) Payload sweeps credential locations (`.aws/credentials`, `.npmrc`,
+  `.ssh/`, GitHub tokens, environment variables, 1Password vault, kubeconfig),
+  bulk-exfils over HTTPS POST to attacker infrastructure, optionally pivots to
+  other tools (npm install of secondary stage). Some variants hide their
+  presence via T1564 (Hide Artifacts) by renaming themselves or backdating
+  filesystem timestamps.
+
+  Detection logic (CORRELATION, revised 2026-09-04 -- see this corpus's
+  rule-defects report): the ORIGINAL single-event condition (install-touchpoint
+  AND (credential-scan OR bulk-egress OR hide-artifacts)) could never fire
+  against the actual attack chain as narrated above -- the skill-install
+  touchpoint and the post-install payload activity are separate
+  process-creation events, AND the two selections' own `ParentImage` sets did
+  not even overlap on the credential-scan branch (`claude.exe`/`cursor.exe`
+  vs. `node.exe`/`powershell.exe`), making that branch structurally
+  unreachable regardless of event timing. This rule now expresses the two
+  stages as a `temporal_ordered` correlation: a Claude Code/Cursor-attributed
+  skill-install/egress touchpoint, FOLLOWED BY a post-install process either
+  touching a credential location, bulk-egressing, or hiding its own artifacts,
+  on the same host within a short window.
+
+  Sister cluster (Nx campaign cluster -- THIS RULE COMPLETES THE ORIGINAL
+  4-VECTOR SET, a 5th vector -- Megalodon -- was added later, see that rule's
+  own honesty note on its uncited sourcing): cross-reference
+  observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml (1st vector) +
+  observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml (2nd vector) +
+  observed_nx_console_t1195_002.yml (3rd vector) in the same corpus.
+
+  Source: Tier 1 first-party Docker engineering blog post (docker.com/blog/
+  ai-coding-agent-horror-stories-security-risks 2026-05). Aggregated from
+  1 first-party Docker disclosure (Issue 1 of 5-issue serial roadmap).
+references:
+- https://attack.mitre.org/techniques/T1195/002/
+- https://attack.mitre.org/techniques/T1059/001/
+- https://attack.mitre.org/techniques/T1552/001/
+- https://attack.mitre.org/techniques/T1564/
+- https://www.docker.com/blog/ai-coding-agent-horror-stories-security-risks
+author: WinstonRedGuard -- sigma plugin observed rules (derived from Docker disclosure)
+date: '2026-05-24'
+correlation:
+  type: temporal_ordered
+  rules:
+  - clawhavoc_skill_install_egress_base
+  - clawhavoc_post_install_suspicious_base
+  group-by:
+  - Computer
+  timespan: 5m
 falsepositives:
 - Legitimate developer install of a public skill into `.claude/skills/` with broad tool permissions for a personal workflow (review skill provenance + publisher reputation; pin known-safe skill source) -- exclude known-trusted publisher identities
 - AI coding assistant tutorials / educational content that demonstrate skill install + credential reading (e.g., legitimate `aws sts get-caller-identity` example) -- exclude by tutorial-marker comment in SKILL.md
 - Build pipeline that legitimately reads `.npmrc` / `GITHUB_TOKEN` as part of CI workflow (exclude by source-host CI runner hostname or session-user svc-account)
+- The `Computer`-level group-by correlates same-host activity, not same-process-tree activity -- a developer machine running many concurrent, unrelated Claude Code sessions and credential-adjacent tooling could coincidentally satisfy the ordering within the 5-minute window; narrow further with a process-tree/session correlation field if your log source provides one
 - Pattern library v1 -- review for environment-specific tuning before deployment; Claude Code product attribution and skill execution surface require environment-specific log source tuning
 level: high
 tags:
@@ -128,3 +180,4 @@ tags:
 - wrg.severity.high
 - wrg.observed
 - wrg.tactic.initial_access
+- wrg.correlation

@@ -31,7 +31,7 @@ description: |
   GHSA, citing the exact four-item blocklist source, the
   `npm_config_yes` mechanism by name, a working PoC MCP config, and a
   table of five additional untreated bypass variables across the other
-  permitted interpreters), not yet fixed at time of publication.
+  permitted interpreters), fixed in Flowise 3.1.3 (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/FlowiseAI/Flowise/security/advisories/GHSA-xc48-889x-5qmw
 - https://attack.mitre.org/techniques/T1562/001/

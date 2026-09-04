@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-query": "image_url=http://[64:ff9b::a9fe:a9fe]/latest/meta-data/"}},
+  {"expect_match": false, "event": {"cs-uri-query": "image_url=https://cdn.example.com/photo.png"}}
+]
