@@ -1,0 +1,60 @@
+title: Play Ransomware — T1021.002 (base)
+id: ae84d470-e68f-5cf2-85f2-475f8d18a8ba
+name: wrg_ae84d470e68f5cf2
+status: test
+description: Breach intel signature for actor play, MITRE technique T1021.002. Derived from 3 observed
+  incident(s) in the WRG breach catalog.
+author: WRG Breach Intel — Phase 6
+date: '2026-06-04'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_admin_share:
+    EventID: 5140
+    ShareName|contains:
+    - ADMIN$
+    - C$
+    - IPC$
+  filter_local_machine_account:
+    AccountName|endswith: $
+  condition: selection_admin_share and not filter_local_machine_account
+level: medium
+tags:
+- attack.t1021.002
+- wrg.observed
+- wrg.observed.actor.play
+- wrg.severity.medium
+- wrg.correlation
+---
+title: Play Ransomware — T1021.002
+id: 3157354e-88b1-51c1-923a-9830ca5a9f49
+status: test
+description: Counting correlation over the base rule. The base rule matches single events; this document
+  carries the threshold.
+correlation:
+  type: event_count
+  rules:
+  - wrg_ae84d470e68f5cf2
+  group-by:
+  - ShareName
+  timespan: 15m
+  condition:
+    gte: 4
+references:
+- https://attack.mitre.org/techniques/T1021/002/
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-352a
+- https://www.ic3.gov/CSA/2023/231218.pdf
+- https://www.bleepingcomputer.com/news/security/fbi-play-ransomware-breached-300-organizations-worldwide/
+- https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001857154&type=8-K
+- https://www.bleepingcomputer.com/news/security/krispy-kreme-cyberattack-impacts-online-orders-and-operations/
+- https://www.ransomware.live/id/Q29ybGV5IE1GR0BwbGF5
+- https://www.ransomware.live/id/VXJzY2hlbCBMYWJvcmF0b3JpZXNAcGxheQ==
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+tags:
+- attack.t1021.002
+- wrg.observed
+- wrg.observed.actor.play
+- wrg.severity.medium
+- wrg.correlation

@@ -20,12 +20,12 @@ detection:
     - 10
   filter_service_accounts:
     TargetUserName|startswith: svc_
-  # R89-33b V cycle-1 FP-fix (V Phase 1a baseline 0520; legit admin
+  # false-positive fix (first tuning cycle): legitimate admin
   # interactive RDP (LogonType 10) tripped the rule). Authorized
   # admin operators routinely access servers via RDP for maintenance;
   # the rule fired on legit_rdp_logon (admin_dave / LogonType 10).
   #
-  # Phase 1a narrow (option (a) per brief R89-33b Rule 3 reco):
+  # Narrow exclusion (chosen over a broader filter):
   # exclude interactive RDP (LogonType 10) by admin-prefixed accounts.
   # Filter requires BOTH conditions (selection-shape: multi-clause
   # within one filter block = AND).

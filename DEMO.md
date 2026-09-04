@@ -204,7 +204,7 @@ With `config={"pipeline": "sysmon"}`:
 
 The difference is the leading `EventID=1`. Without it the query matches *any*
 event carrying an `Image` field, not just process creation -- it runs, returns
-results, and is scoped wrong. <!-- METRIC:windows_product_count -->137<!-- /METRIC:windows_product_count --> of the <!-- METRIC:sigma_rule_count -->289<!-- /METRIC:sigma_rule_count --> corpus rules
+results, and is scoped wrong. <!-- METRIC:windows_product_count -->142<!-- /METRIC:windows_product_count --> of the <!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count --> corpus rules
 are `product: windows`, so this is the common case rather than an edge one.
 
 ---
@@ -238,9 +238,9 @@ Rule: `resources/examples/credential_access/template_t1110_brute_force_high_volu
 This is a backend limit, not a defect in the rule, and the envelope says so
 rather than returning a bare parse error that reads as "your rule is broken".
 The Lucene-family targets (`elastic`, `kibana`, `wazuh`, `opensearch`) all
-share it: measured across the corpus, they convert <!-- METRIC:lucene_convert_count -->239<!-- /METRIC:lucene_convert_count --> of
-<!-- METRIC:sigma_rule_count -->289<!-- /METRIC:sigma_rule_count --> rules while `splunk` and `opensearch-ppl` convert all
-<!-- METRIC:sigma_rule_count -->289<!-- /METRIC:sigma_rule_count -->. All four Lucene targets fail on exactly the same
+share it: measured across the corpus, they convert <!-- METRIC:lucene_convert_count -->242<!-- /METRIC:lucene_convert_count --> of
+<!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count --> rules while `splunk` and `opensearch-ppl` convert all
+<!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count -->. All four Lucene targets fail on exactly the same
 set — the correlation rules — and on nothing else.
 
 ---
@@ -253,8 +253,8 @@ stale against the rules. Reading it returns markdown beginning:
 ```markdown
 ## Summary
 
-- Rules: 289
-- Incident rules (observed_*): 223
+- Rules: 294
+- Incident rules (observed_*): 228
 - Pattern rules (template_*): 66
 - Distinct ATT&CK techniques covered: 89
 - Tactic groupings: 14

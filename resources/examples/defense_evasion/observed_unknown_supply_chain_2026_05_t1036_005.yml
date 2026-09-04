@@ -1,0 +1,37 @@
+title: Unknown (JDownloader supply-chain 2026-05) — T1036.005
+id: ee545b17-b3cb-5a2b-855a-4e42ffbc15a7
+status: test
+description: Breach intel signature for actor unknown_supply_chain_2026_05, MITRE
+  technique T1036.005. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1036/005/
+- https://attack.mitre.org/techniques/T1195/
+- https://www.bleepingcomputer.com/news/security/jdownloader-supply-chain-attack-delivers-python-rat/
+author: WRG Breach Intel — Phase 6
+date: '2026-05-06'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_legit_name_anomalous_path:
+    OriginalFileName:
+    - svchost.exe
+    - lsass.exe
+    - explorer.exe
+    - csrss.exe
+    - winlogon.exe
+    - services.exe
+    - spoolsv.exe
+  filter_canonical_path:
+    Image|startswith:
+    - C:\Windows\System32\
+    - C:\Windows\SysWOW64\
+  condition: selection_legit_name_anomalous_path and not filter_canonical_path
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1036.005
+- wrg.observed
+- wrg.observed.actor.unknown_supply_chain_2026_05
+- wrg.severity.high
