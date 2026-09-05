@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"CommandLine": "git fetch origin pull/42/head:poc;mkdir${IFS}-p${IFS}/tmp/p0canary"}},
+  {"expect_match": false, "event": {"CommandLine": "git fetch origin pull/42/head:feature-branch-name"}}
+]

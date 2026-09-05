@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\vssadmin.exe", "CommandLine": "vssadmin.exe delete shadows /all /quiet"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\wbadmin.exe", "CommandLine": "wbadmin delete catalog -quiet"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\vssadmin.exe", "CommandLine": "vssadmin.exe list shadows"}}
+]

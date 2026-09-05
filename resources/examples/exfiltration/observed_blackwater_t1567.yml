@@ -1,0 +1,55 @@
+title: Blackwater — T1567 (base)
+name: wrg_3a419e638b8752b2
+id: 3a419e63-8b87-52b2-8d6c-737487faf742
+status: test
+description: Base event match for Breach intel signature for actor blackwater, MITRE
+  technique T1567. Derived from 1 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-04-29'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567
+---
+title: Blackwater — T1567
+id: 35c4b9b1-88e3-5bc8-aced-8caa0ffe4ecf
+status: test
+description: Breach intel signature for actor blackwater, MITRE technique T1567. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://www.galaxywarden.com/blog/breach/shenzhen-gongjin-electronics-blackwater-2026-04
+- https://socradar.io/free-tools/ransomware-intelligence/groups/blackwater
+- https://www.ransomware.live/group/blackwater
+author: WRG Breach Intel — Phase 6
+date: '2026-04-29'
+correlation:
+  type: event_count
+  rules:
+  - wrg_3a419e638b8752b2
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: informational
+tags:
+- attack.t1567
+- wrg.observed
+- wrg.observed.actor.blackwater
+- wrg.severity.info
+- wrg.correlation
+- attack.exfiltration

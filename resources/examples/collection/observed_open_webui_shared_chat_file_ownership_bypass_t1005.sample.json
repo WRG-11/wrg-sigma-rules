@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "chat file_id=f-victim123 attached; chat share created; has_access_to_file check for f-victim123"}},
+  {"expect_match": false, "event": {"Message": "chat message sent, no file_id attached"}}
+]

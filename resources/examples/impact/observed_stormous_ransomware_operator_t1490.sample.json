@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\wmic.exe", "CommandLine": "wmic shadowcopy delete"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\vssadmin.exe", "CommandLine": "vssadmin delete shadows /all"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\wmic.exe", "CommandLine": "wmic process list"}}
+]

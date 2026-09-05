@@ -1,0 +1,64 @@
+title: LAPSUS$ — T1556 (base)
+id: 7753566a-7b67-5fab-99ee-d9a4761cb177
+name: wrg_7753566a7b675fab
+status: test
+description: Breach intel signature for actor lapsus, MITRE technique T1556. Derived from 5 observed incident(s)
+  in the WRG breach catalog.
+author: WRG Breach Intel — Phase 6
+date: '2026-05-10'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_auth_mod:
+    EventID:
+    - 4670
+    - 4738
+    - 4720
+    ObjectName|contains:
+    - MFA
+    - MultiFactor
+    - Authenticator
+  condition: selection_auth_mod
+level: high
+tags:
+- attack.t1556
+- wrg.observed
+- wrg.observed.actor.lapsus
+- wrg.severity.high
+- wrg.correlation
+---
+title: LAPSUS$ — T1556
+id: 7d1af02a-a69f-5a2f-9677-fdcc72718e61
+status: test
+description: Counting correlation over the base rule. The base rule matches single events; this document
+  carries the threshold.
+correlation:
+  type: event_count
+  rules:
+  - wrg_7753566a7b675fab
+  group-by:
+  - ObjectName
+  timespan: 1m
+  condition:
+    gte: 4
+references:
+- https://attack.mitre.org/techniques/T1556/
+- https://www.microsoft.com/en-us/security/blog/2022/03/22/dev-0537-criminal-actor-targeting-organizations-for-data-exfiltration-and-destruction/
+- https://attack.mitre.org/groups/G1004/
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a
+- https://www.bbc.com/news/technology-60836910
+- https://www.bbc.com/news/technology-60661195
+- https://sec.okta.com/scenariobimpact
+- https://www.bleepingcomputer.com/news/security/vodafone-portugal-confirms-cyberattack-disrupted-services-nationwide/
+- https://www.theregister.com/2022/02/08/vodafone_portugal_cyberattack/
+- https://twitter.com/AlvieriD
+- https://www.bleepingcomputer.com/tag/vodafone/
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+tags:
+- attack.t1556
+- wrg.observed
+- wrg.observed.actor.lapsus
+- wrg.severity.high
+- wrg.correlation

@@ -11,6 +11,52 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [1.8.0] - 2026-09-05
+
+Corpus 278 → 294 rules, seven rule-logic fixes, and a new sample-match gate
+wired into CI.
+
+### Added
+
+- **Corpus 278 → 294 rules (16 new).** Two independent sources, measured
+  separately rather than merged blindly:
+  - **11 from the `sigma_rule_farmer` queue.** The queue held 36 candidates
+    and 25 of them were already in the corpus — the farmer's own `INDEX.json`
+    claimed `shipped: 0` and was stale, confirmed by a near-identical diff on
+    `barracuda_t1567`. Only the 11 genuinely new ones were taken and the 25
+    overlapping files were left untouched. Actors: Blackwater, Crpxo,
+    ShinyHunters, TeamPCP/UNC6780, Unknown-supply-chain-2025-03.
+  - **5 from the internal mirror**, selected on the same criterion this
+    changelog used for `[1.7.0]`: a rule ships when it brings a **new actor or
+    a new technique**, not merely a new actor×technique pair. Of 69 mirror-only
+    rules, exactly 5 met it, carrying five techniques the corpus did not have —
+    T1021.002, T1036.005, T1199, T1556, T1588. The other 64 map onto actors and
+    techniques already covered and stay in the queue, which is the same call
+    `[1.7.0]` made about its own 80 repeats.
+- **`scripts/sample_match_gate.py`** — checks that a rule's `.sample.json`
+  sidecar actually matches the rule's detection logic, with `gt`/`lt` modifier
+  and `N of <prefix>*` support. Wired into `.github/workflows/tests.yml`, so it
+  runs on every PR instead of waiting to be invoked by hand.
+- **`scripts/detection_note_gap.py`** — reports which rules no detection note
+  mentions.
+- **162 `.sample.json` sidecars and 66 detection notes.** Every one of the 223
+  actor-, CVE- and campaign-bound `observed_*` rules is now named in at least
+  one note.
+
+### Fixed
+
+- **Seven real rule-logic defects**, each proven by mutation test: the fix was
+  reverted, the test went red, the fix was restored.
+- **29 rules with CVSS or status inconsistencies**, corrected against live
+  `gh api` queries rather than against memory.
+
+### Note on the counts
+
+Every number here was re-measured from disk, not incremented: `INDEX.json` via
+`migrate_sigma_corpus.py --regenerate-index`, README/DEMO/plugin.json via
+`readme_stamp.py`, and DEMO's quoted `## Summary` read back off
+`coverage_resource.coverage_matrix_body()`.
+
 ## [1.7.0] - 2026-08-23
 
 Corpus 253 → 278 rules (ten new actors) plus an MCP surface fix.

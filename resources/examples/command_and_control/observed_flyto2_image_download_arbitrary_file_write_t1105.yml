@@ -3,7 +3,7 @@ id: 138c0966-8764-4279-8dc6-52ec65c33d19
 status: experimental
 description: |
   Vendor-disclosed detection for CVE-2026-67429 (GHSA-2956-977x-2w3r,
-  CVSS 8.6 HIGH), affecting Flyto2 Core (`flyto-core`)'s
+  CVSS 10.0 CRITICAL), affecting Flyto2 Core (`flyto-core`)'s
   `image.download` module and its file-writing siblings.
 
   `image.download` in `src/core/modules/atomic/image/download.py`
@@ -35,7 +35,10 @@ description: |
   GHSA and NVD, citing the exact source file, a runnable reproduction
   script contrasting `file.write` vs. `image.download` on the same
   escape target, and a list of every other affected file-writing
-  module), not yet fixed at time of publication.
+  module), fixed in flyto-core 2.26.7+ (verified via live GHSA lookup,
+  2026-09-04 -- the rule's original authoring predates the vendor's
+  patch release and understated the CVSS score; this note corrects both
+  stale claims, not the detection logic itself).
 references:
 - https://github.com/advisories/GHSA-2956-977x-2w3r
 - https://attack.mitre.org/techniques/T1105/
@@ -71,13 +74,13 @@ falsepositives:
   deployment; this rule requires application-level logging of workflow
   module parameters, which most infrastructure log sources do not
   capture by default
-level: high
+level: critical
 tags:
 - attack.t1105
 - wrg.observed.cve.cve_2026_67429
 - wrg.observed.source.flyto_core_ghsa_2956_977x_2w3r
 - wrg.observed.vector.caller_controlled_validation_base
 - wrg.observed.vector.arbitrary_file_write_outside_sandbox
-- wrg.severity.high
+- wrg.severity.critical
 - wrg.observed
 - wrg.tactic.command_and_control

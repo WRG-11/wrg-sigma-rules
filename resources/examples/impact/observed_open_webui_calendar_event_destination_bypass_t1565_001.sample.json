@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/api/v1/calendars/events/ev-1/update", "cs-body": "calendar_id=cal-foreign-user"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/api/v1/calendars/events/ev-1/view", "cs-body": ""}}
+]

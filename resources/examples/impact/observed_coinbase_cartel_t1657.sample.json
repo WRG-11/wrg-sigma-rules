@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"DestinationHostname": "relayer.tornado.cash"}},
+  {"expect_match": true, "event": {"DestinationHostname": "api.wasabiwallet.io"}},
+  {"expect_match": false, "event": {"DestinationHostname": "api.coinbase.com"}}
+]

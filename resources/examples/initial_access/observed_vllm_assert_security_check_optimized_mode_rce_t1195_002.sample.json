@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"CommandLine": "python3 -O -m vllm.entrypoints.openai.api_server --model m"}},
+  {"expect_match": false, "event": {"CommandLine": "python3 -m vllm.entrypoints.openai.api_server --model m"}}
+]

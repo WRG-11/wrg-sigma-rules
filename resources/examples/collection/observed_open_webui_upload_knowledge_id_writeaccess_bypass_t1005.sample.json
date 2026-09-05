@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/api/v1/files/", "cs-body": "metadata={\"knowledge_id\":\"kb-readonly-1\"}"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/api/v1/files/", "cs-body": "filename=notes.txt"}}
+]

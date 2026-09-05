@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "normalize_dsl node name=<img src=x onerror=alert(1)>"}},
+  {"expect_match": false, "event": {"Message": "normalize_dsl node name=Summarize Document"}}
+]

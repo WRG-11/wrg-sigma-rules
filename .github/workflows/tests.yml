@@ -125,6 +125,18 @@ jobs:
       - name: Report fingerprint-sharing rule groups (advisory, never fails)
         run: python scripts/duplicate_rule_check.py
 
+      # Gate, not advisory: a rule whose sidecar .sample.json no longer
+      # matches its own detection: logic is a real regression (the rule
+      # changed, or the sample did, and nobody re-checked the pairing) --
+      # not something to note and move past. Rules with NO sample yet are
+      # NOT failed here (--require-samples is not passed); the corpus is
+      # still filling in sidecar coverage, and forcing every status:test
+      # rule to carry one before this gate can run would block unrelated
+      # PRs on backlog this job did not create. 2026-09-04: 151/212 rules
+      # carry a sample, 0 currently failing -- this gate has headroom.
+      - name: Verify sidecar samples still match their rule's own logic
+        run: python scripts/sample_match_gate.py
+
   dependency-licenses:
     # Advisory, not a gate: a transitive dependency's license can change on a
     # routine bump without that being a real problem, and failing the build
@@ -182,6 +194,9 @@ jobs:
     # before merge instead of only after, in the Security tab.
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      security-events: write  # required by upload-sarif below
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -192,12 +207,27 @@ jobs:
           python-version: "3.12"
 
       - name: Install bandit
-        run: python -m pip install bandit
+        run: python -m pip install "bandit[sarif]"
 
       # server.py and tools/ parse untrusted rule/log content (SECURITY.md's
       # own stated scope); scripts/ builds and runs a Docker image. scan both.
-      - name: Run bandit
+      - name: Run bandit (fails the PR check on a finding)
         run: python -m bandit -r server.py tools/ scripts/ -ll
+
+      # Same scan, SARIF output, run unconditionally: a finding should reach
+      # the Security tab whether or not it also failed the check above, and
+      # `if: always()` is what keeps this step from being skipped the moment
+      # the human-readable run exits non-zero.
+      - name: Run bandit (SARIF for the Security tab)
+        if: always()
+        run: python -m bandit -r server.py tools/ scripts/ -ll -f sarif -o bandit-results.sarif
+
+      - name: Upload SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938  # v4.37.9
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit
 
   docker:
     runs-on: ubuntu-latest

@@ -1,0 +1,65 @@
+title: Unknown (tj-actions/reviewdog GHA Supply-chain 2025-03) — T1552 (base)
+name: wrg_aa99d41f98d05859
+id: aa99d41f-98d0-5859-bb4e-a11c0f2e76d7
+status: test
+description: Base event match for Breach intel signature for actor unknown_supply_chain_2025_03,
+  MITRE technique T1552. Derived from 1 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2025-03-14'
+logsource:
+  category: proxy
+detection:
+  selection_printer_admin_paths:
+    cs-uri-stem|contains:
+    - /addrbook
+    - /kmaddrbook
+    - /cgi-bin/dynamic
+    - /getPassword
+    - /network/smb
+    - /getSMBCredentials
+    - /scanner/credentials
+  filter_browser_admin_session:
+    cs-user-agent|contains:
+    - Mozilla
+    - Chrome
+    - Safari
+    - Edge
+  condition: selection_printer_admin_paths and not filter_browser_admin_session
+level: informational
+tags:
+- attack.t1552
+---
+title: Unknown (tj-actions/reviewdog GHA Supply-chain 2025-03) — T1552
+id: 56df0670-18b9-5bab-9768-090c68ff2711
+status: test
+description: Breach intel signature for actor unknown_supply_chain_2025_03, MITRE
+  technique T1552. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://unit42.paloaltonetworks.com/github-actions-supply-chain-attack/
+- https://www.wiz.io/blog/github-action-tj-actions-changed-files-supply-chain-attack-cve-2025-30066
+- https://www.cisa.gov/news-events/alerts/2025/03/18/supply-chain-compromise-third-party-tj-actionschanged-files-cve-2025-30066-and-reviewdogaction
+- https://www.stepsecurity.io/blog/harden-runner-detection-tj-actions-changed-files-action-is-compromised
+- https://github.com/advisories/ghsa-mrrh-fwg8-r2c3
+- https://github.com/advisories/GHSA-qmg3-hpqr-gqvc
+author: WRG Breach Intel — Phase 6
+date: '2025-03-14'
+correlation:
+  type: event_count
+  rules:
+  - wrg_aa99d41f98d05859
+  group-by:
+  - cs-uri-stem
+  timespan: 10m
+  condition:
+    gte: 6
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1552
+- wrg.observed
+- wrg.observed.actor.unknown_supply_chain_2025_03
+- wrg.severity.high
+- wrg.correlation
+- attack.credential-access

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/api/create", "cs-method": "POST"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/api/generate", "cs-method": "POST"}}
+]

@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Users\\dev\\Downloads\\changed-files-installer.exe"}},
+  {"expect_match": false, "event": {"Image": "C:\\Users\\dev\\Downloads\\changed-files-installer.exe", "Signed": "true"}},
+  {"expect_match": false, "event": {"Image": "C:\\Program Files\\App\\app.exe"}}
+]

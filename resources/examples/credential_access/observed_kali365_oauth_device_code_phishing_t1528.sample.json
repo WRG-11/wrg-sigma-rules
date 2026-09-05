@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"AuthenticationProtocol": "deviceCode", "ResultType": "0", "AppDisplayName": "Outlook Mobile"}},
+  {"expect_match": false, "event": {"AuthenticationProtocol": "deviceCode", "ResultType": "0", "AppDisplayName": "Azure CLI"}},
+  {"expect_match": false, "event": {"AuthenticationProtocol": "deviceCode", "ResultType": "50126", "AppDisplayName": "Outlook Mobile"}},
+  {"expect_match": false, "event": {"AuthenticationProtocol": "password", "ResultType": "0", "AppDisplayName": "Outlook Mobile"}}
+]

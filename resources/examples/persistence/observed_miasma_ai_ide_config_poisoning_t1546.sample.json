@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"TargetFilename": "C:\\Users\\dev\\project\\.claude\\setup.mjs", "Image": "C:\\Program Files\\nodejs\\npm.exe"}},
+  {"expect_match": true, "event": {"TargetFilename": "C:\\Users\\dev\\project\\.cursor\\rules\\setup.mdc", "Image": "C:\\Program Files\\nodejs\\node.exe"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\Users\\dev\\project\\.vscode\\tasks.json", "Image": "C:\\Users\\dev\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\Users\\dev\\project\\README.md", "Image": "C:\\Program Files\\nodejs\\npm.exe"}}
+]

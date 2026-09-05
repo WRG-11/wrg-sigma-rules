@@ -43,7 +43,7 @@ detection:
     - /v1/audio/transcriptions
     - /v1/audio/translations
   selection_oversized_upload:
-    cs-bytes: '>26214400'
+    cs-bytes|gt: 26214400
   condition: selection_audio_endpoint and selection_oversized_upload
 falsepositives:
 - A deployment already upgraded to 0.24.0+, where the size limit is

@@ -1,0 +1,61 @@
+title: ShinyHunters — T1110 (base)
+name: wrg_4045af4f3b495c90
+id: 4045af4f-3b49-5c90-a5ee-d792b47c5b53
+status: test
+description: Base event match for Breach intel signature for actor shinyhunters, MITRE
+  technique T1110. Derived from 2 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-05-12'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_failed_logon:
+    EventID: 4625
+    LogonType:
+    - 2
+    - 3
+    - 10
+  condition: selection_failed_logon
+level: informational
+tags:
+- attack.t1110
+---
+title: ShinyHunters — T1110
+id: 96a68db8-63c1-5008-b747-08e457f97cc5
+status: test
+description: Breach intel signature for actor shinyhunters, MITRE technique T1110.
+  Derived from 2 observed incident(s) in the WRG breach catalog.
+references:
+- https://www.justice.gov/usao-wdwa/pr/seattle-area-man-charged-cyberattacks-multiple-companies-and-individuals-and
+- https://www.bleepingcomputer.com/tag/shinyhunters/
+- https://databreaches.net/?s=shinyhunters
+- https://about.att.com/story/2024/addressing-data-set-released-on-dark-web.html
+- https://www.bleepingcomputer.com/news/security/atandt-confirms-data-breach-impacting-73-million-customers/
+- https://www.instructure.com/about/security
+- https://databreaches.net/?s=instructure
+- https://ransomware.live/group/shinyhunters
+- https://www.ic3.gov/PSA/2026/PSA260515
+- 'FBI PSA Number: I-051526-PSA (2026-05-15)'
+author: WRG Breach Intel — Phase 6
+date: '2026-05-12'
+correlation:
+  type: event_count
+  rules:
+  - wrg_4045af4f3b495c90
+  group-by:
+  - SourceIP
+  timespan: 10m
+  condition:
+    gte: 11
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1110
+- wrg.observed
+- wrg.observed.actor.shinyhunters
+- wrg.severity.high
+- wrg.correlation
+- attack.credential-access

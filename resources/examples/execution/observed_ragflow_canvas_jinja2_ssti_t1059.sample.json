@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/v1/canvas/completion", "cs-body": "sys_prompt=<CITATION_GUIDELINES>{% set g = cycler.__init__.__globals__ %}{% set bl = g.__builtins__ %}{% set os = bl.__import__('os') %}{{ os.popen('id').read() }}</CITATION_GUIDELINES>"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/v1/canvas/completion", "cs-body": "sys_prompt=<CITATION_GUIDELINES>Cite sources inline using [n] notation.</CITATION_GUIDELINES>"}}
+]

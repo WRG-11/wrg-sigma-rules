@@ -22,12 +22,12 @@ detection:
     - 10
   filter_service_accounts:
     TargetUserName|startswith: svc_
-  # internal wave V cycle-1 FP-fix (V Phase 1a baseline 0520; legit admin
+  # false-positive fix (first tuning cycle): legitimate admin
   # interactive RDP (LogonType 10) tripped the rule). Authorized
   # admin operators routinely access servers via RDP for maintenance;
   # the rule fired on legit_rdp_logon (admin_dave / LogonType 10).
   #
-  # Phase 1a narrow (option (a) per brief internal wave Rule 3 reco):
+  # Narrow exclusion (chosen over a broader filter):
   # exclude interactive RDP (LogonType 10) by admin-prefixed accounts.
   # Filter requires BOTH conditions (selection-shape: multi-clause
   # within one filter block = AND).
@@ -50,7 +50,7 @@ detection:
   condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
 falsepositives:
 - Pattern library v1 -- review for environment-specific tuning before deployment
-- 'internal wave: aggregation (count() by TargetUserName > 3 in 15m) dropped -- pySigma
+- 'an internal tuning cycle: aggregation (count() by TargetUserName > 3 in 15m) dropped -- pySigma
   parses the pipe form but every real backend rejects it at conversion time (see
   T1567.001''s documented fix for the same class). Single-event precision narrow
   until a correlation-rule pairing is authored.'

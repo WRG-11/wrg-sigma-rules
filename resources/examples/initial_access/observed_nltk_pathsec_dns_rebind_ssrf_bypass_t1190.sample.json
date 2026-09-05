@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Image": "/usr/bin/python3", "CommandLine": "python3 -c 'nltk.download(\"punkt\")'", "DestinationIp": "169.254.169.254"}},
+  {"expect_match": false, "event": {"Image": "/usr/bin/python3", "CommandLine": "python3 -c 'nltk.download(\"punkt\")'", "DestinationIp": "8.8.8.8"}}
+]

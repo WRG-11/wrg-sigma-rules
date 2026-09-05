@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Message": "created new session, mcp-session-id=7f3a9c1e-...", "LevelName": "INFO"}},
+  {"expect_match": false, "event": {"Message": "created new session, mcp-session-id=7f3a9c1e-...", "LevelName": "DEBUG"}},
+  {"expect_match": false, "event": {"Message": "request processed successfully", "LevelName": "INFO"}}
+]

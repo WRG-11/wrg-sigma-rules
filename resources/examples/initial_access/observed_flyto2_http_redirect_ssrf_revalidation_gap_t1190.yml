@@ -3,7 +3,7 @@ id: 1e1e13a9-d9cb-41a8-8323-8a538d87070d
 status: experimental
 description: |
   Vendor-disclosed detection for CVE-2026-67424 (GHSA-c9hr-64h3-gxpc,
-  CVSS 8.6 HIGH), affecting Flyto2 Core (`flyto-core`) <= 2.26.6.
+  CVSS 8.5 HIGH), affecting Flyto2 Core (`flyto-core`) <= 2.26.6.
 
   Flyto2's `http.get`, `http.request`, and `http.batch` modules call
   `validate_url_with_env_config()` before issuing a request -- the
@@ -27,8 +27,7 @@ description: |
 
   Aggregated from 1 first-party vendor security advisory (flyto-core, via
   GHSA and NVD, citing the exact source files, line numbers, and a live
-  proof of concept confirming the redirect-to-loopback bypass), not yet
-  fixed at time of publication.
+  proof of concept confirming the redirect-to-loopback bypass), fixed in flyto-core 2.26.7+ (verified via live GHSA lookup, 2026-09-04 -- the rule's original authoring predates the vendor's patch release; this note corrects a stale claim, not the detection logic itself).
 references:
 - https://github.com/advisories/GHSA-c9hr-64h3-gxpc
 - https://attack.mitre.org/techniques/T1190/
@@ -48,12 +47,12 @@ detection:
     - 307
     - 308
   selection_internal_destination:
-    r-dst:
-    - '10.'
-    - '172.16.'
-    - '192.168.'
-    - '127.'
-    - '169.254.'
+    r-dst|cidr:
+    - '10.0.0.0/8'
+    - '172.16.0.0/12'
+    - '192.168.0.0/16'
+    - '127.0.0.0/8'
+    - '169.254.0.0/16'
   condition: selection_outbound_http_module_call and selection_redirect_response_code and selection_internal_destination
 falsepositives:
 - A deployment already upgraded past the fix, where each hop's

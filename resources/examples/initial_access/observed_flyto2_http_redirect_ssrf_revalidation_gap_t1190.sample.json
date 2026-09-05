@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Image": "/opt/flyto/http_module", "c-status": 302, "r-dst": "169.254.169.254"}},
+  {"expect_match": false, "event": {"Image": "/opt/flyto/http_module", "c-status": 200, "r-dst": "93.184.216.34"}}
+]

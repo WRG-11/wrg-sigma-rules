@@ -1,46 +1,10 @@
-title: s1ngularity Nx CLI token exfiltration -- T1195.002 npm supply chain campaign (Docker 2026-05 horror-stories Issue 1)
-id: b3a30935-4a3c-4844-ba8e-a39b1d750b9b
-status: experimental
-description: 'Campaign-bound sigma detection for the s1ngularity Nx command-line
-  supply chain compromise (Docker AI Coding Agent Horror Stories Issue 1 anchor,
-  May 2026; 1000+ developer tokens exfiltrated). Part of the broader Nx campaign
-  4-vector cluster alongside Mini Shai-Hulud npm, ClawHavoc Claude Skills, and
-  nx-console VS Code extension. Attack chain:
-
-  (1) Compromised Nx CLI installer (npm install -g nx affected version range)
-  triggers post-install hook with elevated developer-machine privileges.
-  (2) Credential harvest sweeps known token locations -- ~/.npmrc, GitHub PAT
-  files, ~/.aws/credentials, environment variables matching NPM_TOKEN /
-  GITHUB_TOKEN / AWS_ACCESS_KEY patterns.
-  (3) Bulk exfiltration over HTTPS POST to attacker-controlled endpoints
-  with batching to avoid single-request size telemetry.
-  (4) Persistent foothold via modified package-lock.json + worm propagation
-  to downstream project npm scripts.
-
-  Detection logic flags npm install events targeting the Nx package family
-  followed by post-install child processes that touch credential files OR egress
-  to non-developer-typical destinations. Cross-references the broader Nx
-  campaign cluster -- correlate hits with observed_mini_shai_hulud_npm_supply_chain_c2_t1071,
-  observed_nx_console_t1195_002, and observed_clawhavoc_claude_skills_t1195_002
-  (4-vector cluster COMPLETE) in the same corpus for campaign-wide
-  detection coverage.
-
-  Sister context: GitGuardian 2026 report 28.65M secret-leak baseline + AI-commit
-  token-leak rate 3.2 percent vs human-baseline 1.5 percent (Docker article
-  quantitative anchor); Docker philosophy explicit "sandboxing structural over
-  detection" (sbx CLI microVM) -- WRG complementary detection-as-code layer
-  fills the Docker-acknowledged detection gap. Source: Tier 1 first-party
-  Docker engineering blog post (docker.com/blog/ai-coding-agent-horror-stories
-  -security-risks 2026-05).
-
-  Aggregated from 1 first-party Docker disclosure (Issue 1 of 5-issue serial
-  roadmap).'
-references:
-- https://attack.mitre.org/techniques/T1195/002/
-- https://attack.mitre.org/techniques/T1552/001/
-- https://attack.mitre.org/techniques/T1041/
-- https://attack.mitre.org/techniques/T1059/004/
-- https://www.docker.com/blog/ai-coding-agent-horror-stories-security-risks
+title: s1ngularity Nx CLI token exfiltration -- Nx install step (base)
+name: s1ngularity_nx_install_base
+id: fe118be0-6775-4394-b039-562938fb0925
+status: test
+description: Base event match for the s1ngularity Nx correlation below -- an npm
+  install targeting the Nx package family, on its own, is not the alert (legitimate
+  new-project bootstrap looks identical).
 author: WinstonRedGuard -- sigma plugin observed rules (derived from Docker disclosure)
 date: '2026-05-24'
 logsource:
@@ -61,6 +25,24 @@ detection:
     - install @nrwl/nx
     - install -g nx
     - 'nx@'
+  condition: selection_npm_install_nx_family
+level: informational
+tags:
+- attack.t1195.002
+---
+title: s1ngularity Nx CLI token exfiltration -- post-install credential scan or bulk egress (base)
+name: s1ngularity_nx_post_install_suspicious_base
+id: 7ae7d624-ead6-463d-917c-767d4f08b626
+status: test
+description: Base event match for the s1ngularity Nx correlation below -- a
+  post-install process touching known credential-file locations, OR egressing via
+  a bulk-POST-shaped command, on its own, is not the alert.
+author: WinstonRedGuard -- sigma plugin observed rules (derived from Docker disclosure)
+date: '2026-05-24'
+logsource:
+  category: process_creation
+  product: windows
+detection:
   selection_post_install_credential_scan:
     ParentImage|endswith:
     - \node.exe
@@ -86,11 +68,78 @@ detection:
     - -X POST
     - Invoke-WebRequest
     - Invoke-RestMethod
-  condition: selection_npm_install_nx_family and (selection_post_install_credential_scan or selection_post_install_bulk_egress)
+  condition: selection_post_install_credential_scan or selection_post_install_bulk_egress
+level: informational
+tags:
+- attack.t1552.001
+- attack.t1041
+---
+title: s1ngularity Nx CLI token exfiltration -- T1195.002 npm supply chain campaign (Docker 2026-05 horror-stories Issue 1)
+id: b3a30935-4a3c-4844-ba8e-a39b1d750b9b
+status: experimental
+description: |
+  Campaign-bound sigma detection for the s1ngularity Nx command-line
+  supply chain compromise (Docker AI Coding Agent Horror Stories Issue 1 anchor,
+  May 2026; 1000+ developer tokens exfiltrated). Part of the broader Nx campaign
+  4-vector cluster alongside Mini Shai-Hulud npm, ClawHavoc Claude Skills, and
+  nx-console VS Code extension. Attack chain:
+
+  (1) Compromised Nx CLI installer (npm install -g nx affected version range)
+  triggers post-install hook with elevated developer-machine privileges.
+  (2) Credential harvest sweeps known token locations -- ~/.npmrc, GitHub PAT
+  files, ~/.aws/credentials, environment variables matching NPM_TOKEN /
+  GITHUB_TOKEN / AWS_ACCESS_KEY patterns.
+  (3) Bulk exfiltration over HTTPS POST to attacker-controlled endpoints
+  with batching to avoid single-request size telemetry.
+  (4) Persistent foothold via modified package-lock.json + worm propagation
+  to downstream project npm scripts.
+
+  Detection logic (CORRELATION, revised 2026-09-04 -- see this corpus's
+  rule-defects report): the ORIGINAL single-event condition (install AND
+  (credential-scan OR bulk-egress)) could never fire against the actual
+  attack chain, since the install step and the post-install child-process
+  activity are separate process-creation events that never share one log
+  record. This rule now expresses the two stages as a `temporal_ordered`
+  correlation: an Nx-family npm install, FOLLOWED BY a post-install process
+  either touching a known credential-file location or egressing via a
+  bulk-POST-shaped command, on the same host within a short window.
+  Cross-references the broader Nx campaign cluster -- correlate hits with
+  observed_mini_shai_hulud_npm_supply_chain_c2_t1071,
+  observed_nx_console_t1195_002, and observed_clawhavoc_claude_skills_t1195_002
+  (this corpus's "Nx campaign" cluster, five vectors total including this
+  one) for campaign-wide detection coverage.
+
+  Sister context: GitGuardian 2026 report 28.65M secret-leak baseline + AI-commit
+  token-leak rate 3.2 percent vs human-baseline 1.5 percent (Docker article
+  quantitative anchor); Docker philosophy explicit "sandboxing structural over
+  detection" (sbx CLI microVM) -- WRG complementary detection-as-code layer
+  fills the Docker-acknowledged detection gap. Source: Tier 1 first-party
+  Docker engineering blog post (docker.com/blog/ai-coding-agent-horror-stories
+  -security-risks 2026-05).
+
+  Aggregated from 1 first-party Docker disclosure (Issue 1 of 5-issue serial
+  roadmap).
+references:
+- https://attack.mitre.org/techniques/T1195/002/
+- https://attack.mitre.org/techniques/T1552/001/
+- https://attack.mitre.org/techniques/T1041/
+- https://attack.mitre.org/techniques/T1059/004/
+- https://www.docker.com/blog/ai-coding-agent-horror-stories-security-risks
+author: WinstonRedGuard -- sigma plugin observed rules (derived from Docker disclosure)
+date: '2026-05-24'
+correlation:
+  type: temporal_ordered
+  rules:
+  - s1ngularity_nx_install_base
+  - s1ngularity_nx_post_install_suspicious_base
+  group-by:
+  - Computer
+  timespan: 5m
 falsepositives:
 - Legitimate Nx CLI install at safe versions for new project bootstrap -- pin version range against Docker disclosure indicators of compromise (IoC) and exclude known-safe versions
 - Build pipeline that reads .npmrc / GITHUB_TOKEN as part of normal CI workflow -- exclude by source-host identity (CI runner hostname) or session-user (svc account)
 - Developer-tool egress with curl / Invoke-WebRequest is common in install scripts that fetch supplementary assets -- combine with credential-file scan selection to reduce false positives
+- The `Computer`-level group-by correlates same-host activity, not same-process-tree activity -- a developer machine running many concurrent, unrelated npm installs and credential-adjacent tooling could coincidentally satisfy the ordering within the 5-minute window; narrow further with a process-tree/session correlation field if your log source provides one
 - Pattern library v1 -- review for environment-specific tuning before deployment
 level: high
 tags:
@@ -107,3 +156,4 @@ tags:
 - wrg.severity.high
 - wrg.observed
 - wrg.tactic.initial_access
+- wrg.correlation

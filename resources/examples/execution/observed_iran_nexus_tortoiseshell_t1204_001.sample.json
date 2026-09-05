@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"cs-referer": "https://www.linkedin.com/messaging/thread/98213", "cs-host": "secure-verify.account-portal.com"}},
+  {"expect_match": false, "event": {"cs-referer": "https://www.linkedin.com/messaging/thread/98213", "cs-host": "secure-verify.sharepoint.com"}},
+  {"expect_match": false, "event": {"cs-referer": "https://news.google.com/rss", "cs-host": "secure-verify.account-portal.com"}}
+]

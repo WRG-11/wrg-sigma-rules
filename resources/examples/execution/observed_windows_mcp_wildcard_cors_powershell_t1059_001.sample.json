@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell -EncodedCommand Y2FsYy5leGU=", "ParentImage": "C:\\tools\\windows-mcp.exe", "ParentCommandLine": "windows_mcp --http"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell -Command Get-Process", "ParentImage": "C:\\Windows\\explorer.exe", "ParentCommandLine": "explorer.exe"}}
+]

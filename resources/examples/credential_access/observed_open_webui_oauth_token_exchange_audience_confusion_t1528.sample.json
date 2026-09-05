@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/oauth/github/token/exchange", "cs-method": "POST"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/oauth/github/authorize", "cs-method": "GET"}}
+]

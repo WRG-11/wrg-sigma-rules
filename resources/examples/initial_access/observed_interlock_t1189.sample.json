@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"cs-user-agent": "Mozilla/5.0 (compatible; Java/1.8.0_202)", "cs-uri-stem": "/downloads/itsupporttool.exe"}},
+  {"expect_match": true, "event": {"cs-user-agent": "Shockwave Flash", "cs-uri-stem": "/plugins/installer.jar"}},
+  {"expect_match": false, "event": {"cs-user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0", "cs-uri-stem": "/downloads/itsupporttool.exe"}},
+  {"expect_match": false, "event": {"cs-user-agent": "Mozilla/5.0 (compatible; Java/1.8.0_202)", "cs-uri-stem": "/page/index.html"}}
+]

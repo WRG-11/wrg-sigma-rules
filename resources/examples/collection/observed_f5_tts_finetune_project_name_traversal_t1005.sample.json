@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-query": "project_name=/tmp/EVIL"}},
+  {"expect_match": false, "event": {"cs-uri-query": "project_name=my_voice_model"}}
+]

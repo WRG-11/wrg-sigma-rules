@@ -1,0 +1,38 @@
+title: APT45 — T1588
+id: e0d4ff12-67ef-57bf-9f8d-91a3e2474ce6
+status: test
+description: Breach intel signature for actor apt45, MITRE technique T1588. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1588/
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+- https://attack.mitre.org/techniques/T1190/
+author: WRG Breach Intel — Phase 6
+date: '2026-05-11'
+logsource:
+  category: dns_query
+  product: windows
+detection:
+  selection_threat_intel_lookup:
+    EventID: 22
+    QueryName|contains:
+    - virustotal.com
+    - hybrid-analysis.com
+    - any.run
+    - joesandbox.com
+    - abuse.ch
+    - crt.sh
+  filter_security_tooling_host:
+    Image|endswith:
+    - \msedge.exe
+    - \chrome.exe
+    - \firefox.exe
+  condition: selection_threat_intel_lookup and not filter_security_tooling_host
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1588
+- wrg.observed
+- wrg.observed.actor.apt45
+- wrg.severity.high

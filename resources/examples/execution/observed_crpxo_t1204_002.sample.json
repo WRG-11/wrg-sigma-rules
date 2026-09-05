@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Users\\victim\\Downloads\\invoice_update.exe", "ParentImage": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"}},
+  {"expect_match": true, "event": {"Image": "C:\\Users\\victim\\AppData\\Local\\Temp\\Temporary Internet Files\\setup.msi", "ParentImage": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"}},
+  {"expect_match": false, "event": {"Image": "C:\\Users\\victim\\Downloads\\invoice_update.exe", "ParentImage": "C:\\Windows\\System32\\cmd.exe"}},
+  {"expect_match": false, "event": {"Image": "C:\\Program Files\\App\\app.exe", "ParentImage": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"}}
+]
