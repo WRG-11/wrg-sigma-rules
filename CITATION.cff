@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use these detection rules in research or writing, please cite them as below."
+title: "wrg-sigma-rules"
+abstract: >-
+  Sigma detection rules for observed ransomware operators and threat actors,
+  with multi-backend conversion (Splunk, Elastic/Kibana, OpenSearch, Wazuh),
+  an MCP server, and CI-pinned corpus claims. Rules are sourced from observed
+  incidents rather than generated from technique lists.
+type: software
+authors:
+  - name: "WRG-11"
+repository-code: "https://github.com/WRG-11/wrg-sigma-rules"
+license: MIT
+version: 1.8.0
+date-released: "2026-09-05"
+keywords:
+  - sigma-rules
+  - detection-engineering
+  - detection-as-code
+  - threat-detection
+  - ransomware
+  - mitre-attack
