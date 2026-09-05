@@ -20,7 +20,7 @@ detection:
     - 10
   filter_service_accounts:
     TargetUserName|startswith: svc_
-  # false-positive fix (first tuning cycle) (V Phase 1a baseline 0520; legit admin
+  # false-positive fix (first tuning cycle): legitimate admin
   # interactive RDP (LogonType 10) tripped the rule). Authorized
   # admin operators routinely access servers via RDP for maintenance;
   # the rule fired on legit_rdp_logon (admin_dave / LogonType 10).
