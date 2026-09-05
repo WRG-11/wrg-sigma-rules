@@ -52,6 +52,8 @@ Usage:
 """
 from __future__ import annotations
 
+import ast
+
 import argparse
 import ipaddress
 import json
@@ -145,22 +147,87 @@ def _expand_of_expressions(condition: str, selection_results: dict[str, bool]) -
     return _OF_EXPR_RE.sub(replace, condition)
 
 
+def _eval_node(node: ast.AST, names: dict[str, bool]) -> object:
+    """Evaluate one node of a Sigma condition. Anything unlisted is an error.
+
+    An allowlist, not a sandbox: the grammar this needs is `and` / `or` /
+    `not` over selection names, plus the `sum([bool(x), ...]) >= n` shape
+    that `_expand_of_expressions` produces for `N of prefix*`. Every other
+    node type -- attribute access, subscripts, arbitrary calls, lambdas --
+    raises rather than being evaluated, so there is nothing to escape from.
+    """
+    if isinstance(node, ast.Expression):
+        return _eval_node(node.body, names)
+    if isinstance(node, ast.BoolOp):
+        vals = (_eval_node(v, names) for v in node.values)
+        if isinstance(node.op, ast.And):
+            return all(vals)
+        if isinstance(node.op, ast.Or):
+            return any(vals)
+        raise EvaluatorError(f"unsupported boolean operator: {type(node.op).__name__}")
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+        return not _eval_node(node.operand, names)
+    if isinstance(node, ast.Name):
+        if node.id not in names:
+            raise EvaluatorError(f"unknown selection name: {node.id!r}")
+        return names[node.id]
+    if isinstance(node, ast.Constant):
+        return node.value
+    if isinstance(node, ast.List):
+        return [_eval_node(e, names) for e in node.elts]
+    if isinstance(node, ast.Compare):
+        left = _eval_node(node.left, names)
+        for op, comp in zip(node.ops, node.comparators):
+            right = _eval_node(comp, names)
+            if isinstance(op, ast.GtE):
+                ok = left >= right
+            elif isinstance(op, ast.Gt):
+                ok = left > right
+            elif isinstance(op, ast.LtE):
+                ok = left <= right
+            elif isinstance(op, ast.Lt):
+                ok = left < right
+            elif isinstance(op, ast.Eq):
+                ok = left == right
+            else:
+                raise EvaluatorError(f"unsupported comparison: {type(op).__name__}")
+            if not ok:
+                return False
+            left = right
+        return True
+    if isinstance(node, ast.Call):
+        if not isinstance(node.func, ast.Name) or node.func.id not in {"sum", "bool"}:
+            raise EvaluatorError("only sum() and bool() may be called in a condition")
+        args = [_eval_node(a, names) for a in node.args]
+        if node.keywords:
+            raise EvaluatorError("keyword arguments are not allowed in a condition")
+        return sum(args[0]) if node.func.id == "sum" else bool(args[0])
+    raise EvaluatorError(f"unsupported expression element: {type(node).__name__}")
+
+
 def _evaluate_condition(condition: str, selection_results: dict[str, bool]) -> bool:
-    # Sigma's condition grammar (and/or/not/parens over selection names) is
-    # already Python-boolean-shaped. Evaluated in a namespace holding ONLY
-    # the selections' own bool results, no builtins -- this is this repo's
-    # own trusted YAML, not untrusted input, and the namespace can express
-    # nothing beyond true/false combination. Sigma's wildcard-count syntax
-    # (``1 of selection_*``, ``all of selection_dns_*``, ``2 of selection_*``)
-    # is expanded to plain and/or/sum() first, since eval() cannot parse it
-    # directly.
+    """Evaluate a Sigma condition over already-computed selection results.
+
+    Parsed and walked with `ast`, never `eval`. The grammar is small enough
+    that an allowlisting walker is shorter than the argument for why an
+    `eval` would be safe -- and it does not have to be re-argued each time a
+    scanner flags it (bandit B307, which this repo's CI fails on, and it
+    carries no `# nosec` anywhere else).
+
+    Sigma's wildcard-count syntax (`1 of selection_*`, `all of
+    selection_dns_*`, `2 of selection_*`) is expanded to plain and/or/sum()
+    first, because that shape is what the walker understands.
+    """
+    expanded = _expand_of_expressions(condition, selection_results)
     try:
-        expanded = _expand_of_expressions(condition, selection_results)
+        tree = ast.parse(expanded, mode="eval")
+    except SyntaxError as exc:
+        raise EvaluatorError(f"condition {condition!r} could not be parsed: {exc}") from exc
+    try:
+        return bool(_eval_node(tree, selection_results))
     except EvaluatorError:
         raise
-    try:
-        return bool(eval(expanded, {"__builtins__": {}}, selection_results))  # noqa: S307
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 -- any walker failure is a condition failure
         raise EvaluatorError(f"condition {condition!r} could not be evaluated: {exc}") from exc
 
 
