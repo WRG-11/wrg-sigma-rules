@@ -38,6 +38,8 @@ Usage:
 """
 from __future__ import annotations
 
+from urllib.parse import urlsplit
+
 import argparse
 import json
 import re
@@ -65,19 +67,37 @@ def _source_kind(url: str) -> str:
     Order matters: a GHSA path is checked before the bare-github fallback,
     since every GHSA URL is also a github.com URL.
     """
-    if "github.com" in url and "/security/advisories/GHSA-" in url:
-        return "ghsa (gh api repos/<owner>/<repo>/security-advisories/<id>)"
-    if "github.com" in url and "/issues/" in url:
-        return "github_issue (gh api repos/<owner>/<repo>/issues/<n>)"
-    if "github.com" in url and "/commit" in url:
-        return "github_commit (gh api repos/<owner>/<repo>/commits/<sha>)"
-    if "github.com" in url:
+    try:
+        parcali = urlsplit(url)
+    except ValueError:
+        return "other (WebFetch)"
+    host = (parcali.hostname or "").lower()
+    yol = parcali.path or ""
+
+    def _konak(alan: str) -> bool:
+        """Tam alan ya da onun bir alt alani -- substring DEGIL.
+
+        `"github.com" in url` bir konak kontrolu degildir: `evil.com/?x=
+        github.com` de gecer. CodeQL bunu `py/incomplete-url-substring-
+        sanitization` diye yedi kez isaretledi ve hakliydi. Burada bir
+        guvenlik karari verilmiyor (bu bir siniflandirici), ama yanlis
+        siniflandirma da yanlis: o URL GitHub degil.
+        """
+        return host == alan or host.endswith("." + alan)
+
+    if _konak("github.com"):
+        if "/security/advisories/GHSA-" in yol:
+            return "ghsa (gh api repos/<owner>/<repo>/security-advisories/<id>)"
+        if "/issues/" in yol:
+            return "github_issue (gh api repos/<owner>/<repo>/issues/<n>)"
+        if "/commit" in yol:
+            return "github_commit (gh api repos/<owner>/<repo>/commits/<sha>)"
         return "github_other (gh api or gh api contents)"
-    if "vulncheck.com" in url:
+    if _konak("vulncheck.com"):
         return "vulncheck (WebFetch; observed timeouts -- retry before giving up)"
-    if "kb.cert.org" in url:
+    if _konak("kb.cert.org"):
         return "cert_cc (WebFetch)"
-    if "attack.mitre.org" in url:
+    if _konak("attack.mitre.org"):
         return "mitre_attack (background only, not a primary source)"
     return "other (WebFetch)"
 
