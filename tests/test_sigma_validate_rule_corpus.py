@@ -10,8 +10,8 @@ sister pattern, MATURE cluster):
   pytest.importorskip("sigma") ensures ALL 51 tests SKIP when pySigma is
   not installed, and ALL 51 PASS when it is -- scaffold-cross-validation.
 
-Delta-1: brief targeted apps/wrg_actor_watch/sigma_rules/*.yml (path
-  absent in repo); actual corpus lives in resources/examples/**/*.yml
+Delta-1: the original brief targeted a rule path that does not exist in
+  this repository; the actual corpus lives in resources/examples/**/*.yml
   (migration artifact). 51 rules discovered at collection time.
 """
 from __future__ import annotations

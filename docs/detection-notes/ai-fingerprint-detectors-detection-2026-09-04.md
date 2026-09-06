@@ -1,8 +1,8 @@
 <!--
 Companion detection note covering EIGHT sibling Sigma rules -- a DIFFERENT kind of rule than every other
 note in this corpus's docs/detection-notes/. These are not vendor-disclosed CVE detections; they are the
-Sigma-rule form of WRG's own ai_fingerprint_sigma detectors (a code-review tool identifying AI-generated
-content, tracked in the WRG monorepo's apps/wrg_ai_fingerprint_sigma). No GHSA/CVE exists for any of
+Sigma-rule form of WRG's own AI-fingerprint detectors (a code-review tool identifying AI-generated
+content, maintained upstream and published here as Sigma). No GHSA/CVE exists for any of
 these -- there is no vulnerability being detected, only a behavioral/stylistic signature.
 - resources/examples/code_review/observed_ai_fingerprint_ai_prose.yml
 - resources/examples/code_review/observed_ai_fingerprint_ai_provenance.yml
@@ -63,4 +63,4 @@ Unlike the rest of this corpus, none of these eight rules indicate an attack in 
 
 ---
 
-*Detection content from WinstonRedGuard (WRG-11). Code-review signature detection, not vulnerability detection — these are the Sigma-rule form of the wrg_ai_fingerprint_sigma tool's own detectors. Background reference: [Google Cloud Threat Intelligence: AI Vulnerability Exploitation for Initial Access](https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access).*
+*Detection content from WinstonRedGuard (WRG-11). Code-review signature detection, not vulnerability detection — these are the Sigma-rule form of that tool's own detectors. Background reference: [Google Cloud Threat Intelligence: AI Vulnerability Exploitation for Initial Access](https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access).*

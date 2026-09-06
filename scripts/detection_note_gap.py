@@ -68,36 +68,36 @@ def _source_kind(url: str) -> str:
     since every GHSA URL is also a github.com URL.
     """
     try:
-        parcali = urlsplit(url)
+        parts = urlsplit(url)
     except ValueError:
         return "other (WebFetch)"
-    host = (parcali.hostname or "").lower()
-    yol = parcali.path or ""
+    host = (parts.hostname or "").lower()
+    path = parts.path or ""
 
-    def _konak(alan: str) -> bool:
-        """Tam alan ya da onun bir alt alani -- substring DEGIL.
+    def _is_host(domain: str) -> bool:
+        """Exact domain or a subdomain of it -- NOT a substring.
 
-        `"github.com" in url` bir konak kontrolu degildir: `evil.com/?x=
-        github.com` de gecer. CodeQL bunu `py/incomplete-url-substring-
-        sanitization` diye yedi kez isaretledi ve hakliydi. Burada bir
-        guvenlik karari verilmiyor (bu bir siniflandirici), ama yanlis
-        siniflandirma da yanlis: o URL GitHub degil.
+        `"github.com" in url` is not a host check: `evil.com/?x=github.com`
+        passes it too. CodeQL flagged that shape seven times as
+        `py/incomplete-url-substring-sanitization`, and it was right. No
+        security decision is made here (this is a classifier), but a wrong
+        classification is still wrong: that URL is not GitHub.
         """
-        return host == alan or host.endswith("." + alan)
+        return host == domain or host.endswith("." + domain)
 
-    if _konak("github.com"):
-        if "/security/advisories/GHSA-" in yol:
+    if _is_host("github.com"):
+        if "/security/advisories/GHSA-" in path:
             return "ghsa (gh api repos/<owner>/<repo>/security-advisories/<id>)"
-        if "/issues/" in yol:
+        if "/issues/" in path:
             return "github_issue (gh api repos/<owner>/<repo>/issues/<n>)"
-        if "/commit" in yol:
+        if "/commit" in path:
             return "github_commit (gh api repos/<owner>/<repo>/commits/<sha>)"
         return "github_other (gh api or gh api contents)"
-    if _konak("vulncheck.com"):
+    if _is_host("vulncheck.com"):
         return "vulncheck (WebFetch; observed timeouts -- retry before giving up)"
-    if _konak("kb.cert.org"):
+    if _is_host("kb.cert.org"):
         return "cert_cc (WebFetch)"
-    if _konak("attack.mitre.org"):
+    if _is_host("attack.mitre.org"):
         return "mitre_attack (background only, not a primary source)"
     return "other (WebFetch)"
 
