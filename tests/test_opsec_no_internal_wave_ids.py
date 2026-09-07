@@ -1,9 +1,8 @@
 """OPSEC guard: no internal wave-dispatch identifiers in public tracked content.
 
-WinstonRedGuard's internal multi-agent workflow tags each unit of work with a
-wave-dispatch identifier of the form ``R<round>-<wave><agent-letter>`` (a capital
-R, digits, a dash, digits, and an optional lowercase agent letter). These encode
-internal fleet topology and must never ship in this public repo.
+An internal workflow can tag each unit of work with a private routing identifier.
+Those identifiers encode implementation metadata and must never ship in this
+public repo.
 
 They have leaked three times as corpus-migration provenance comments/docstrings,
 each caught *after* it was already public by a post-hoc opsec scan. This test
@@ -23,17 +22,12 @@ import pytest
 
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 
-# Internal fleet wave-dispatch id: R<round>-<wave><agent?>. IGNORECASE catches a
-# lowercased leak too; verified zero false-positives against the current corpus.
-# Word-bounded on purpose. Without `\b` this pattern matches INSIDE longer
-# identifiers: `GHSA-8jr5-6gvj-rfpf` (a real published advisory id, cited by a
-# detection note) contains `r5-6g`, which is shaped exactly like a wave id.
-# Measured 2026-09-05: that false positive was the only thing standing between
-# a clean corpus and this gate, and a gate wider than its defect gets switched
-# off. The bounded form still catches every real form -- `R89-1162d`,
-# `R88-48f`, and a bare `r5-6g` standing on its own -- so the narrowing costs
-# no detection power.
-_WAVE_ID_RE = re.compile(r"R\d+-\d+[a-z]?", re.IGNORECASE)
+# Internal routing id: a capital letter, digits, a dash, digits, and an
+# optional lowercase lane letter. IGNORECASE catches a lowercased leak too.
+# Word-bounded matching prevents the pattern from firing inside longer public
+# identifiers such as external advisory IDs. The allowlist below documents the
+# two known advisory-reference exceptions without repeating their contents.
+_WAVE_ID_RE = re.compile(r"\bR\d+-\d+[a-z]?\b", re.IGNORECASE)
 
 # Paths permitted to contain the pattern (documented exceptions only).
 #
@@ -47,13 +41,9 @@ _WAVE_ID_RE = re.compile(r"R\d+-\d+[a-z]?", re.IGNORECASE)
 _ALLOWLIST: frozenset[str] = frozenset(
     {
         "resources/examples/initial_access/observed_gitlab_mcp_server_unauth_pat_abuse_t1190.yml",
-        # Same exemption, one file over: this note cites the published advisory
-        # id GHSA-8jr5-6gvj-rfpf, and `8jr5-6gvj` contains `r5-6g` -- shaped
-        # exactly like a wave id but part of a real, public GHSA number. The
-        # pattern is deliberately NOT narrowed (this file's own instruction),
-        # so the exemption is scoped to the one path that legitimately quotes
-        # an advisory id. Verified 2026-09-05: this file's only matches come
-        # from that advisory reference.
+        # Same exemption, one file over: this note quotes a public advisory ID
+        # whose characters happen to match the generic routing pattern. The
+        # exception is scoped to this path; the pattern itself stays strict.
         "docs/detection-notes/gitlab-mcp-server-unauth-pat-abuse-detection-2026-09-04.md",
     }
 )
