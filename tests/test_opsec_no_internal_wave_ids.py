@@ -27,13 +27,13 @@ _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 # lowercased leak too; verified zero false-positives against the current corpus.
 # Word-bounded on purpose. Without `\b` this pattern matches INSIDE longer
 # identifiers: `GHSA-8jr5-6gvj-rfpf` (a real published advisory id, cited by a
-# detection note) contains `r5-6g`, which is shaped exactly like a wave id.
+# detection note) embeds a run shaped exactly like a wave id.
 # Measured 2026-09-05: that false positive was the only thing standing between
 # a clean corpus and this gate, and a gate wider than its defect gets switched
-# off. The bounded form still catches every real form -- `R89-1162d`,
-# `R88-48f`, and a bare `r5-6g` standing on its own -- so the narrowing costs
+# off. The bounded form still catches every real wave id (a full
+# `R<round>-<wave><agent>` token or a bare lowercase run) -- so the narrowing costs
 # no detection power.
-_WAVE_ID_RE = re.compile(r"R\d+-\d+[a-z]?", re.IGNORECASE)
+_WAVE_ID_RE = re.compile(r"\bR\d+-\d+[a-z]?\b", re.IGNORECASE)
 
 # Paths permitted to contain the pattern (documented exceptions only).
 #
@@ -48,7 +48,7 @@ _ALLOWLIST: frozenset[str] = frozenset(
     {
         "resources/examples/initial_access/observed_gitlab_mcp_server_unauth_pat_abuse_t1190.yml",
         # Same exemption, one file over: this note cites the published advisory
-        # id GHSA-8jr5-6gvj-rfpf, and `8jr5-6gvj` contains `r5-6g` -- shaped
+        # id GHSA-8jr5-6gvj-rfpf, whose `8jr5-6gvj` component embeds a run -- shaped
         # exactly like a wave id but part of a real, public GHSA number. The
         # pattern is deliberately NOT narrowed (this file's own instruction),
         # so the exemption is scoped to the one path that legitimately quotes
