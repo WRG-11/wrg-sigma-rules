@@ -1,21 +1,23 @@
-title: Template -- Network Denial of Service (DDoS mitigation event)
+title: Template -- Network Denial of Service (Cloudflare L7 DDoS block)
 id: 8394c08c-046d-4a5d-a642-d10a9bc5adbd
 status: test
-description: Detect a DDoS mitigation action recorded by a network security control. This is a canonical telemetry pattern, not an attribution claim.
+description: Detect a Cloudflare Firewall Events record where the L7 DDoS control blocked a request. This is a product-specific canonical telemetry pattern, not an attribution claim.
 references:
 - https://attack.mitre.org/techniques/T1498/
+- https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/zone/firewall_events/
 author: WinstonRedGuard -- sigma plugin canonical templates
 date: '2026-09-10'
 logsource:
   category: firewall
+  product: cloudflare
 detection:
-  selection_mitigation:
-    Action|contains: DDoS
-    Disposition|contains: blocked
-  condition: selection_mitigation
+  selection_l7_ddos_block:
+    Source: l7ddos
+    Action: block
+  condition: selection_l7_ddos_block
 falsepositives:
-- An administrator deliberately enables a DDoS simulation or mitigation drill against a test service
-- A protection provider blocks a flash-crowd event whose traffic resembles an attack
+- An approved DDoS exercise against a non-production zone deliberately triggers the protection
+- A large flash-crowd event is classified as L7 DDoS by the provider and requires incident review
 level: high
 tags:
 - attack.t1498

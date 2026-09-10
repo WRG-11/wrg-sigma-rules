@@ -2,15 +2,15 @@
   {
     "expect_match": true,
     "event": {
-      "Action": "DDoS mitigation",
-      "Disposition": "blocked"
+      "Source": "l7ddos",
+      "Action": "block"
     }
   },
   {
     "expect_match": false,
     "event": {
-      "Action": "DDoS mitigation",
-      "Disposition": "allowed"
+      "Source": "l7ddos",
+      "Action": "allow"
     }
   }
 ]

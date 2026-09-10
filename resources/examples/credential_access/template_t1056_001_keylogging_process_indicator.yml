@@ -1,23 +1,26 @@
-title: 'Template -- Input Capture: Keylogging (process indicator)'
+title: 'Template -- Input Capture: Keylogging (PowerShell keyboard hook)'
 id: b1b24466-4d14-49a1-aea2-d6da2c5088bc
 status: test
-description: Detect an explicitly named keylogging process with a keylogging command-line indicator. This canonical pattern requires environment-specific allowlisting before deployment.
+description: Detect PowerShell invoking the Windows SetWindowsHookEx keyboard-hook API. This is a narrow process-creation pattern; use EDR API telemetry for broader keylogging coverage.
 references:
 - https://attack.mitre.org/techniques/T1056/001/
+- https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
 author: WinstonRedGuard -- sigma plugin canonical templates
 date: '2026-09-10'
 logsource:
   category: process_creation
   product: windows
 detection:
-  selection_process:
-    Image|contains: keylog
-  selection_command:
-    CommandLine|contains: --start-keylogging
+  selection_powershell:
+    Image|endswith:
+    - \powershell.exe
+    - \pwsh.exe
+  selection_keyboard_hook:
+    CommandLine|contains: SetWindowsHookEx
   condition: all of selection_*
 falsepositives:
-- An approved accessibility or QA recorder deliberately captures keyboard input during a documented test
-- A corporate endpoint-monitoring product uses a clearly named keylogging component under an approved policy
+- An approved accessibility or QA test invokes a keyboard hook from a documented PowerShell script
+- A defensive simulation or endpoint-management script intentionally exercises the API
 level: high
 tags:
 - attack.t1056.001

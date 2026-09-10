@@ -694,6 +694,9 @@
     "clickhouse": [
       "execution/observed_agno_clickhouse_metadata_sqli_t1059.yml"
     ],
+    "cloudflare": [
+      "impact/template_t1498_network_denial_of_service_ddos_mitigation_event.yml"
+    ],
     "database": [
       "execution/observed_langroid_sqlchatagent_llm_rce_t1059.yml"
     ],
@@ -823,7 +826,6 @@
       "impact/observed_vllm_audio_decompression_bomb_t1499.yml",
       "impact/observed_vllm_audio_upload_pre_limit_memory_exhaustion_t1499.yml",
       "impact/observed_vllm_mrope_prompt_embeds_assertion_crash_t1499.yml",
-      "impact/template_t1498_network_denial_of_service_ddos_mitigation_event.yml",
       "initial_access/observed_agenticmail_mcp_http_unauth_masterkey_tools_t1190.yml",
       "initial_access/observed_flyto2_sibling_modules_missing_ssrf_guard_t1190.yml",
       "initial_access/observed_gitlab_mcp_server_unauth_pat_abuse_t1190.yml",
