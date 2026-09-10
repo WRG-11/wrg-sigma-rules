@@ -87,7 +87,7 @@ detection:
   authentication-modification events (`EventID 4670`/`4738`) targeting
   MFA-related objects.
 - **Browser password store extraction (T1555 sub-variant)**: replace
-  LSASS selection with browser credential store file access -- 
+  LSASS selection with browser credential store file access --
   `\Google\Chrome\User Data\*\Login Data`, `\Mozilla\Firefox\Profiles\
   *\logins.json`, etc.
 
