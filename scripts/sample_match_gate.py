@@ -334,6 +334,10 @@ def check_rule(rule_path: Path) -> RuleCheck:
         return check
     if isinstance(cases, dict):
         cases = [cases]
+    if not isinstance(cases, list):
+        check.ok = False
+        check.sample_results.append("ERR: sample file must contain an object or list of objects")
+        return check
 
     saw_positive = False
     saw_negative = False
@@ -347,7 +351,17 @@ def check_rule(rule_path: Path) -> RuleCheck:
             "sequence to prove its threshold, not only a base-rule event"
         )
     for i, case in enumerate(cases):
+        if not isinstance(case, dict):
+            check.ok = False
+            check.sample_results.append(f"case[{i}]: ERR (case must be an object)")
+            continue
         expect = case.get("expect_match")
+        if not isinstance(expect, bool):
+            check.ok = False
+            check.sample_results.append(
+                f"case[{i}]: ERR (expect_match must be a boolean)"
+            )
+            continue
         event = case.get("event", {})
         if expect is True:
             saw_positive = True
@@ -365,6 +379,8 @@ def check_rule(rule_path: Path) -> RuleCheck:
                 # selection with one ``event``. Keep that useful unit test;
                 # a new ``events`` case exercises the actual threshold.
                 target = next((doc for doc in docs if "detection" in doc), rule_doc)
+                if not isinstance(event, dict):
+                    raise EvaluatorError("event must be an object")
                 fired = rule_fires(target, event)
         except EvaluatorError as exc:
             check.sample_results.append(f"case[{i}]: ERR ({exc})")

@@ -81,3 +81,25 @@ correlation:
     result = gate.check_rule(rule)
     assert not result.ok
     assert any("requires an 'events' sequence" in item for item in result.sample_results)
+
+
+def test_sidecar_rejects_non_boolean_expectation(tmp_path: Path) -> None:
+    rule = tmp_path / "rule.yml"
+    rule.write_text(
+        """title: Rule
+id: 11111111-1111-4111-8111-111111111111
+status: test
+logsource: {category: process_creation}
+detection:
+  selection: {EventID: 1}
+  condition: selection
+""",
+        encoding="utf-8",
+    )
+    rule.with_suffix(".sample.json").write_text(
+        '[{"expect_match": "true", "event": {"EventID": 1}}]',
+        encoding="utf-8",
+    )
+    result = gate.check_rule(rule)
+    assert not result.ok
+    assert any("expect_match must be a boolean" in item for item in result.sample_results)
