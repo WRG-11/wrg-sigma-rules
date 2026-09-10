@@ -90,6 +90,13 @@ _PLACEHOLDER_FALSEPOSITIVE_RES: tuple[re.Pattern[str], ...] = (
 # fill in. A shipped rule containing it matches the literal string.
 _SCAFFOLD_MARKER = "REPLACE_ME"
 
+# A deliberately narrow ReDoS smoke test. It catches the common ``(a+)+``
+# and ``(.*)*`` shapes without pretending that a static linter can prove a
+# pattern safe in every target SIEM regex engine.
+_NESTED_UNBOUNDED_QUANTIFIER_RE = re.compile(
+    r"\((?:[^()\\]|\\.)*[+*](?:[^()\\]|\\.)*\)[+*]"
+)
+
 
 def _is_placeholder_falsepositive(entry: str) -> bool:
     """True if *entry* is placeholder text rather than a real scenario."""
@@ -108,6 +115,34 @@ def _find_scaffold_markers(node: Any, path: str = "") -> list[str]:
     elif isinstance(node, str) and _SCAFFOLD_MARKER in node:
         hits.append(path or "(root)")
     return hits
+
+
+def _iter_detection_fields(
+    node: Any, path: str = "detection"
+) -> list[tuple[str, str, Any]]:
+    """Return field specifications below detection selections.
+
+    Selection names themselves are mappings too, so only keys containing a
+    Sigma modifier are considered fields. This intentionally ignores
+    ``condition`` and nested boolean grouping names.
+    """
+    found: list[tuple[str, str, Any]] = []
+    if isinstance(node, dict):
+        for key, value in node.items():
+            child_path = f"{path}.{key}"
+            if isinstance(key, str) and "|" in key:
+                found.append((child_path, key, value))
+            elif key != "condition":
+                found.extend(_iter_detection_fields(value, child_path))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            found.extend(_iter_detection_fields(value, f"{path}[{index}]"))
+    return found
+
+
+def _has_nested_unbounded_quantifier(pattern: str) -> bool:
+    """Return whether *pattern* has a simple catastrophic-backtracking shape."""
+    return bool(_NESTED_UNBOUNDED_QUANTIFIER_RE.search(pattern))
 # Versions 1-8 (RFC 4122 + RFC 9562 UUIDv6/v7/v8) share the same variant
 # nibble encoding; the nil UUID (all zeros) is RFC 4122's one explicit
 # exception and is accepted as an alternate branch.
@@ -422,7 +457,7 @@ def _schema_checks(rule: Any) -> list[dict[str, Any]]:
 
 
 def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
-    """Best-practices linter -- 6 rules covering known SOC pain points.
+    """Best-practices linter covering known SOC pain points.
 
     Returns ``(warnings, mitre_tags_found)`` -- the caller tuple-unpacks both.
     """
@@ -540,6 +575,36 @@ def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
 
     detection = rule.get("detection")
     if isinstance(detection, dict):
+        for field_path, field_spec, value in _iter_detection_fields(detection):
+            modifiers = field_spec.split("|")[1:]
+            values = value if isinstance(value, list) else [value]
+            if "contains" in modifiers and any(
+                isinstance(item, str) and not item.strip() for item in values
+            ):
+                warnings.append(
+                    {
+                        "rule": "broad_contains_value",
+                        "message": (
+                            f"{field_path} has an empty contains value; it matches "
+                            "every non-empty event value and is almost certainly an "
+                            "accidental high-noise rule"
+                        ),
+                    }
+                )
+            if "re" in modifiers and any(
+                isinstance(item, str) and _has_nested_unbounded_quantifier(item)
+                for item in values
+            ):
+                warnings.append(
+                    {
+                        "rule": "unsafe_regex_shape",
+                        "message": (
+                            f"{field_path} contains a nested unbounded regex quantifier; "
+                            "it can cause catastrophic backtracking in SIEM regex engines"
+                        ),
+                    }
+                )
+
         condition = detection.get("condition")
         if isinstance(condition, str) and condition.strip() in {
             "selection",
@@ -583,6 +648,21 @@ def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
                     ),
                 }
             )
+
+    logsource = rule.get("logsource")
+    if isinstance(logsource, dict) and not any(
+        isinstance(logsource.get(key), str) and logsource[key].strip()
+        for key in ("product", "category", "service")
+    ):
+        warnings.append(
+            {
+                "rule": "logsource_underspecified",
+                "message": (
+                    "logsource has no product, category, or service; this rule cannot "
+                    "be routed to meaningful telemetry"
+                ),
+            }
+        )
 
     return warnings, mitre_found
 

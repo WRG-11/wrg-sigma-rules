@@ -11,6 +11,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [Unreleased] - 2026-09-10
+
+Corpus 294 → 296 rules: two source-honest canonical templates from the
+`sigma_rule_farmer` coverage queue, each with matching and non-matching
+sidecar evidence.
+
+### Added
+
+- **T1498 Network Denial of Service** DDoS-mitigation-event template.
+- **T1056.001 Input Capture: Keylogging** process-indicator template.
+- New `status:test` rules now require a `.sample.json` sidecar in CI. The 33
+  pre-policy gaps are an explicit reviewed baseline rather than an invisible
+  exception.
+- Linter warnings for an empty `contains` value, nested unbounded regex
+  quantifiers, and logsource blocks that cannot route to telemetry.
+
 ## [1.8.0] - 2026-09-05
 
 Corpus 278 → 294 rules, seven rule-logic fixes, and a new sample-match gate

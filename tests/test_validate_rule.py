@@ -618,6 +618,30 @@ def test_clean_rule_has_neither_falsepositive_warning() -> None:
     assert "falsepositives_empty" not in rules
 
 
+def test_empty_contains_value_is_flagged_as_broad() -> None:
+    import yaml
+
+    doc = yaml.safe_load(_rule_with_falsepositives(["Administrative deployment scripts"]))
+    doc["detection"]["selection"] = {"Image|contains": ""}
+    assert "broad_contains_value" in _lint_rules(yaml.safe_dump(doc, sort_keys=False))
+
+
+def test_nested_unbounded_regex_is_flagged() -> None:
+    import yaml
+
+    doc = yaml.safe_load(_rule_with_falsepositives(["Administrative deployment scripts"]))
+    doc["detection"]["selection"] = {"CommandLine|re": "(a+)+"}
+    assert "unsafe_regex_shape" in _lint_rules(yaml.safe_dump(doc, sort_keys=False))
+
+
+def test_logsource_without_routing_fields_is_flagged() -> None:
+    import yaml
+
+    doc = yaml.safe_load(_rule_with_falsepositives(["Administrative deployment scripts"]))
+    doc["logsource"] = {}
+    assert "logsource_underspecified" in _lint_rules(yaml.safe_dump(doc, sort_keys=False))
+
+
 _BASE_PLUS_CORRELATION = """\
 title: Failed logon (base)
 name: failed_logon_base

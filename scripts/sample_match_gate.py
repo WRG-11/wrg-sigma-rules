@@ -23,12 +23,10 @@ examples). Two kinds of entries are meaningful:
   shown to reject anything, which is exactly the asymmetry this gate is
   built to catch.
 
-This is advisory, same spirit as duplicate_rule_check.py -- it does not
-fail on a missing sample by default, since the sidecar convention is new
-and retrofitting 212 observed_* rules is its own project, not a side
-effect of running this script once. ``--require-samples`` promotes missing
-samples on ``status: test`` rules from a warning to a failure, for use once
-the sidecar becomes a real authoring requirement.
+This is advisory by default. ``--require-samples`` applies the requirement
+to every ``status: test`` rule. ``--require-new-samples`` makes it a CI
+authoring policy today: existing debt is enumerated in a reviewed baseline,
+but any new status:test rule without a sidecar fails the build.
 
 Evaluator scope (deliberately NOT a full Sigma implementation): supports
 the modifier set actually observed across this corpus's rules --
@@ -47,7 +45,8 @@ the same way a probe that ran and found nothing does.
 
 Usage:
     python scripts/sample_match_gate.py                    # advisory report
-    python scripts/sample_match_gate.py --require-samples  # status:test needs a sample
+    python scripts/sample_match_gate.py --require-samples  # every status:test needs a sample
+    python scripts/sample_match_gate.py --require-new-samples --baseline resources/examples/SAMPLE_EXCEPTION_BASELINE.json
     python scripts/sample_match_gate.py --json out.json
 """
 from __future__ import annotations
@@ -317,10 +316,28 @@ def check_rule(rule_path: Path) -> RuleCheck:
     return check
 
 
+def _load_baseline(path: Path) -> set[str]:
+    """Read the explicit, reviewable allowlist for pre-policy sample debt."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"could not read sample baseline {path}: {exc}") from exc
+    rules = payload.get("missing_status_test_samples") if isinstance(payload, dict) else None
+    if not isinstance(rules, list) or not all(isinstance(rule, str) for rule in rules):
+        raise ValueError(
+            f"sample baseline {path} must contain a string-list 'missing_status_test_samples'"
+        )
+    return set(rules)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--require-samples", action="store_true",
                         help="fail if any status:test rule has no sidecar sample")
+    parser.add_argument("--require-new-samples", action="store_true",
+                        help="fail missing status:test samples not listed in --baseline")
+    parser.add_argument("--baseline", metavar="PATH", default=None,
+                        help="reviewed allowlist for status:test rules predating this policy")
     parser.add_argument("--json", metavar="PATH", default=None)
     args = parser.parse_args(argv)
 
@@ -328,10 +345,21 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[sample-match-gate] ERROR: {EXAMPLES_DIR} not found -- run from repo root", file=sys.stderr)
         return 2
 
-    checks = [check_rule(p) for p in sorted(EXAMPLES_DIR.rglob("observed_*.yml"))]
+    if args.require_new_samples and not args.baseline:
+        parser.error("--require-new-samples requires --baseline")
+
+    checks = [check_rule(p) for p in sorted(EXAMPLES_DIR.rglob("*.yml"))]
     with_sample = [c for c in checks if c.has_sample]
     without_sample_test_status = [c for c in checks if not c.has_sample and c.status == "test"]
     failing = [c for c in with_sample if not c.ok]
+    baseline: set[str] = set()
+    if args.baseline:
+        try:
+            baseline = _load_baseline(Path(args.baseline))
+        except ValueError as exc:
+            print(f"[sample-match-gate] ERROR: {exc}", file=sys.stderr)
+            return 2
+    newly_missing = [c for c in without_sample_test_status if c.relpath not in baseline]
 
     print(f"[sample-match-gate] {len(with_sample)}/{len(checks)} observed_* rules have a sidecar sample")
     for c in with_sample:
@@ -352,6 +380,7 @@ def main(argv: list[str] | None = None) -> int:
                 for c in with_sample
             ],
             "test_status_missing_sample": [c.relpath for c in without_sample_test_status],
+            "new_test_status_missing_sample": [c.relpath for c in newly_missing],
         }
         Path(args.json).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
@@ -360,6 +389,12 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if args.require_samples and without_sample_test_status:
         print(f"\n[sample-match-gate] FAIL: --require-samples set, {len(without_sample_test_status)} status:test rule(s) missing a sample")
+        return 1
+    if args.require_new_samples and newly_missing:
+        print(
+            f"\n[sample-match-gate] FAIL: {len(newly_missing)} new status:test rule(s) "
+            "missing a sample (not in the reviewed baseline)"
+        )
         return 1
     print("\n[sample-match-gate] ok")
     return 0

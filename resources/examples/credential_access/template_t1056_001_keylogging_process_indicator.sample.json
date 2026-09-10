@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "Image": "C:\\Users\\Public\\keylogger.exe",
+      "CommandLine": "keylogger.exe --start-keylogging"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "Image": "C:\\Program Files\\approved-recorder.exe",
+      "CommandLine": "approved-recorder.exe --start-keylogging"
+    }
+  }
+]

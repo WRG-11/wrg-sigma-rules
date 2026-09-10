@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "Action": "DDoS mitigation",
+      "Disposition": "blocked"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "Action": "DDoS mitigation",
+      "Disposition": "allowed"
+    }
+  }
+]

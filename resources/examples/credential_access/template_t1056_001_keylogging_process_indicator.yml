@@ -1,0 +1,25 @@
+title: 'Template -- Input Capture: Keylogging (process indicator)'
+id: b1b24466-4d14-49a1-aea2-d6da2c5088bc
+status: test
+description: Detect an explicitly named keylogging process with a keylogging command-line indicator. This canonical pattern requires environment-specific allowlisting before deployment.
+references:
+- https://attack.mitre.org/techniques/T1056/001/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-10'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_process:
+    Image|contains: keylog
+  selection_command:
+    CommandLine|contains: --start-keylogging
+  condition: all of selection_*
+falsepositives:
+- An approved accessibility or QA recorder deliberately captures keyboard input during a documented test
+- A corporate endpoint-monitoring product uses a clearly named keylogging component under an approved policy
+level: high
+tags:
+- attack.t1056.001
+- wrg.template
+- wrg.tactic.credential_access

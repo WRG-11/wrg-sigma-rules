@@ -144,13 +144,12 @@ jobs:
       # matches its own detection: logic is a real regression (the rule
       # changed, or the sample did, and nobody re-checked the pairing) --
       # not something to note and move past. Rules with NO sample yet are
-      # NOT failed here (--require-samples is not passed); the corpus is
-      # still filling in sidecar coverage, and forcing every status:test
-      # rule to carry one before this gate can run would block unrelated
-      # PRs on backlog this job did not create. 2026-09-04: 151/212 rules
-      # carry a sample, 0 currently failing -- this gate has headroom.
+      # New status:test rules MUST carry a sidecar. The explicit baseline
+      # names only legacy debt, so it cannot silently exempt a new rule.
       - name: Verify sidecar samples still match their rule's own logic
-        run: python scripts/sample_match_gate.py
+        run: >-
+          python scripts/sample_match_gate.py --require-new-samples
+          --baseline resources/examples/SAMPLE_EXCEPTION_BASELINE.json
 
   dependency-licenses:
     # Advisory, not a gate: a transitive dependency's license can change on a
