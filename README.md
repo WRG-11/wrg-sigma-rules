@@ -125,6 +125,21 @@ success. The repo ships that plugin manifest plus `.mcp.json`, which wires
 configuration at this checkout per
 [the plugin docs](https://code.claude.com/docs/en/plugins).
 
+### Codex
+
+The same stdio MCP server is also packaged as a Codex plugin. From a local
+clone of this repository, add its marketplace and install the plugin:
+
+```bash
+codex plugin marketplace add .
+codex plugin add wrg-sigma-rules@wrg-11
+```
+
+Start a new Codex task after installation so its MCP tools and the Sigma
+writer, reviewer, and coverage-analysis skills are discovered. The Codex
+adapter remains intentionally thin: `server.py`, `tools/`, and the rule corpus
+are shared with the Claude Code surface rather than duplicated.
+
 ## Quick example
 
 Validate + convert a corpus rule end-to-end, from the repo root (commands from [`DEMO.md`](DEMO.md), captured against pySigma 1.x + the Splunk and Elasticsearch backends):

@@ -1,0 +1,20 @@
+{
+  "name": "wrg-11",
+  "interface": {
+    "displayName": "Wrg 11"
+  },
+  "plugins": [
+    {
+      "name": "wrg-sigma-rules",
+      "source": {
+        "source": "local",
+        "path": "./plugins/wrg-sigma-rules"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Security"
+    }
+  ]
+}

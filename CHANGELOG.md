@@ -18,6 +18,10 @@ wired into CI.
 
 ### Added
 
+- **Codex plugin distribution.** `plugins/wrg-sigma-rules/` now exposes the
+  existing stdio MCP server plus Sigma writer, reviewer, and coverage-analysis
+  skills through the repo-local `wrg-11` Codex marketplace. The adapter shares
+  the canonical server and corpus rather than forking their implementation.
 - **Corpus 278 → 294 rules (16 new).** Two independent sources, measured
   separately rather than merged blindly:
   - **11 from the `sigma_rule_farmer` queue.** The queue held 36 candidates
