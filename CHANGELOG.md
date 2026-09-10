@@ -11,11 +11,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
-## [Unreleased] - 2026-09-10
+## [1.9.0] - 2026-09-10
 
 Corpus 294 → 296 rules: two source-honest canonical templates from the
 `sigma_rule_farmer` coverage queue, each with matching and non-matching
-sidecar evidence.
+sidecar evidence. This release also broadens client support and rewrites the
+README.
 
 ### Added
 
@@ -32,6 +33,14 @@ sidecar evidence.
   CI. The 41 historic placeholder entries now name concrete benign scenarios;
   a one-selection condition is correctly recognised as valid, and corpus CI
   now verifies every rule with the validator's full strict mode.
+- **Cursor and any-MCP-client support.** The stdio server now documents setup
+  for Cursor and other MCP-capable clients (Cline, Continue, Zed, Windsurf)
+  next to the Claude Code and Codex plugins.
+
+### Changed
+
+- README rewritten for a tighter, professional structure. All corpus counts
+  stay behind `readme_stamp` markers.
 
 ## [1.8.0] - 2026-09-05
 
