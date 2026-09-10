@@ -194,6 +194,8 @@ Sigma rule contributions welcome. Submit YAML to `resources/examples/<tactic>/` 
 - `observed_*` prefix for incident-specific rules
 - `template_*` prefix for canonical pattern templates
 - pySigma validation passing via `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`
+- Corpus CI rejects broad empty matches, unsafe nested regexes, unroutable
+  logsource blocks, draft scaffolding and deprecated aggregation-pipe syntax.
 
 Read [`CONTRIBUTING.md`](CONTRIBUTING.md) first if the rule claims to detect
 something observed in the wild. It sets out the sourcing bar — attribution,

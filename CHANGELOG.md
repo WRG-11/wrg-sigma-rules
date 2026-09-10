@@ -26,6 +26,10 @@ sidecar evidence.
   a same-group event sequence that proves both sides of their threshold.
 - Linter warnings for an empty `contains` value, nested unbounded regex
   quantifiers, and logsource blocks that cannot route to telemetry.
+- **Zero-debt linter gate.** Empty broad matches, unsafe regex shapes,
+  underspecified logsource, unreplaced scaffolding and deprecated pipe
+  conditions are now blocking in corpus CI. Existing default-condition and
+  false-positive wording debt remains explicitly advisory until remediated.
 
 ## [1.8.0] - 2026-09-05
 
