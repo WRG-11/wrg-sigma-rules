@@ -606,19 +606,26 @@ def _linter_warnings(rule: dict[str, Any]) -> tuple[list[dict[str, Any]], list[s
                 )
 
         condition = detection.get("condition")
-        if isinstance(condition, str) and condition.strip() in {
-            "selection",
-            "selection_1",
-        }:
-            # Bare ``condition: selection`` is the scaffold default --
-            # not an error, but flag as a smell so the writer iterates.
+        selection_blocks = [
+            name
+            for name, value in detection.items()
+            if name != "condition" and isinstance(value, dict)
+        ]
+        if (
+            isinstance(condition, str)
+            and condition.strip() in {"selection", "selection_1"}
+            and len(selection_blocks) > 1
+        ):
+            # A bare condition is only scaffold-like when it leaves other
+            # selection/filter blocks unused. For an intentional single
+            # selection it is the normal, clearest Sigma spelling.
             warnings.append(
                 {
                     "rule": "condition_default",
                     "message": (
-                        "condition is the scaffold default ('selection'); "
-                        "consider tightening with filters once the rule "
-                        "is field-tested"
+                        "condition uses only the scaffold-default selection "
+                        "while other selection/filter blocks exist; review "
+                        "whether those blocks were accidentally omitted"
                     ),
                 }
             )

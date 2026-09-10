@@ -44,10 +44,8 @@ _CORPUS_RULES = _collect_corpus_rules()
 # almost everything, a regex that can consume disproportionate SIEM CPU, a
 # rule with no route to telemetry, or unfinished/unconvertible scaffolding.
 #
-# ``condition_default`` remains advisory because a simple one-selection rule
-# can legitimately use that concise Sigma condition. The previous 41
-# placeholder false-positive entries were replaced with concrete scenarios,
-# so that warning joins the zero-debt gate.
+# A one-selection condition is valid and is no longer warned on. Every
+# remaining warning category is zero-debt and therefore blocking.
 _BLOCKING_LINTER_RULES = frozenset(
     {
         "broad_contains_value",
@@ -56,6 +54,7 @@ _BLOCKING_LINTER_RULES = frozenset(
         "draft_scaffold_left_in",
         "deprecated_pipe_condition",
         "falsepositives_placeholder",
+        "condition_default",
     }
 )
 
@@ -122,6 +121,15 @@ def test_corpus_rule_schema_valid(rule_path: Path) -> None:
     ]
     assert not blocking_warnings, (
         f"{rule_path.name} has blocking linter warning(s): {blocking_warnings}"
+    )
+
+    strict_result = validate_rule_body(yaml_content, strict=True)
+    strict_warnings = [
+        error for error in strict_result["schema_errors"]
+        if error.get("kind") == "linter_strict"
+    ]
+    assert not strict_warnings, (
+        f"{rule_path.name} fails strict linter mode: {strict_warnings}"
     )
 
 

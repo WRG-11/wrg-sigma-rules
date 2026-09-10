@@ -30,7 +30,8 @@ sidecar evidence.
   underspecified logsource, unreplaced scaffolding and deprecated pipe
   conditions and placeholder false-positive text are now blocking in corpus
   CI. The 41 historic placeholder entries now name concrete benign scenarios;
-  default-condition is advisory because it can be valid for a single selection.
+  a one-selection condition is correctly recognised as valid, and corpus CI
+  now verifies every rule with the validator's full strict mode.
 
 ## [1.8.0] - 2026-09-05
 
