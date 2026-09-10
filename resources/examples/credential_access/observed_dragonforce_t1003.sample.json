@@ -1,0 +1,67 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      },
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      },
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      },
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      },
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      },
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      },
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      },
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      },
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      },
+      {
+        "TargetImage": "\\lsass.exe",
+        "GrantedAccess": "0x1010",
+        "SourceImage": "sample-group"
+      }
+    ]
+  }
+]

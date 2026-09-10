@@ -1,0 +1,176 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": ".encrypted",
+        "Image": "sample-group"
+      }
+    ]
+  }
+]

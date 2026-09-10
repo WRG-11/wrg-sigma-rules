@@ -1,0 +1,117 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 2,
+        "SourceIP": "sample-group"
+      }
+    ]
+  }
+]

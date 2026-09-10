@@ -1,0 +1,12 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "OriginalFileName": "svchost.exe"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {}
+  }
+]

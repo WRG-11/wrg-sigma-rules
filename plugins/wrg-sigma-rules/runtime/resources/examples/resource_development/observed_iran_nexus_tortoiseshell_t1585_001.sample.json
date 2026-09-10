@@ -1,0 +1,56 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      },
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      },
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      },
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      },
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      },
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      },
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      },
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      },
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      },
+      {
+        "cs-host": "x.com",
+        "cs-uri-stem": "/signup"
+      }
+    ]
+  }
+]

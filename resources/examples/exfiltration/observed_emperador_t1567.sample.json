@@ -1,0 +1,33 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "DestinationHostname": "mega.nz"
+      },
+      {
+        "DestinationHostname": "mega.nz"
+      },
+      {
+        "DestinationHostname": "mega.nz"
+      },
+      {
+        "DestinationHostname": "mega.nz"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "DestinationHostname": "mega.nz"
+      },
+      {
+        "DestinationHostname": "mega.nz"
+      },
+      {
+        "DestinationHostname": "mega.nz"
+      }
+    ]
+  }
+]

@@ -1,0 +1,40 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "EventID": 4670,
+        "ObjectName": "MFA"
+      },
+      {
+        "EventID": 4670,
+        "ObjectName": "MFA"
+      },
+      {
+        "EventID": 4670,
+        "ObjectName": "MFA"
+      },
+      {
+        "EventID": 4670,
+        "ObjectName": "MFA"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "EventID": 4670,
+        "ObjectName": "MFA"
+      },
+      {
+        "EventID": 4670,
+        "ObjectName": "MFA"
+      },
+      {
+        "EventID": 4670,
+        "ObjectName": "MFA"
+      }
+    ]
+  }
+]
