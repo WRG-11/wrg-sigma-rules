@@ -142,6 +142,36 @@ and the rule corpus, so its installed cache does not rely on checkout-relative
 paths. Maintain that snapshot with `python scripts/sync_codex_runtime.py`; CI
 fails if it diverges from the canonical sources.
 
+### Cursor
+
+Cursor speaks MCP directly, so the same stdio server works with no plugin
+manifest. Add it to your project `.cursor/mcp.json` (or the global
+`~/.cursor/mcp.json`), pointing at your clone:
+
+```json
+{
+  "mcpServers": {
+    "wrg-sigma-rules": {
+      "command": "python",
+      "args": ["/path/to/wrg-sigma-rules/server.py"],
+      "cwd": "/path/to/wrg-sigma-rules",
+      "env": { "PYTHONPATH": "/path/to/wrg-sigma-rules" }
+    }
+  }
+}
+```
+
+Replace `/path/to/wrg-sigma-rules` with your clone path, then reload Cursor's
+MCP servers. The Sigma tools appear under the `wrg-sigma-rules` entry.
+
+### Any MCP client
+
+`server.py` is a standard stdio MCP server, so any MCP-capable client can load
+it. Cline, Continue, Zed and Windsurf use the same `mcpServers` block shown for
+Cursor above. MCP is model-agnostic: the client's underlying model does not
+change what the server exposes, so a Claude, GPT, DeepSeek, Llama or Grok
+backend reaches the identical Sigma tooling.
+
 ## Quick example
 
 Validate + convert a corpus rule end-to-end, from the repo root (commands from [`DEMO.md`](DEMO.md), captured against pySigma 1.x + the Splunk and Elasticsearch backends):
