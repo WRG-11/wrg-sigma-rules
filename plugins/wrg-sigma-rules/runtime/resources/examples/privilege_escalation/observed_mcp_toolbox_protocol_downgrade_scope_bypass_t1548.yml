@@ -1,0 +1,88 @@
+title: MCP Toolbox for Databases -- T1548 protocol-version downgrade scope-enforcement bypass
+id: 46156388-5f93-4540-b526-0f2cfb0bd0d1
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-11719 (fixed via
+  googleapis/mcp-toolbox PRs #3049 and #3335), an authenticated
+  authorization-bypass vulnerability in Google's MCP Toolbox for Databases.
+
+  Only the newest protocol version handler (2025-11-25) correctly enforced
+  per-tool `scopesRequired` restrictions. Three older, still-supported
+  protocol version handlers (2025-06-18, 2025-03-26, and 2024-11-05) omitted
+  that check entirely. An authenticated client holding only a low-privilege
+  token (e.g. `read`) could reach a high-privilege tool (e.g. `admin`) by
+  simply declaring one of the older versions in the `MCP-Protocol-Version`
+  HTTP header -- or by omitting the header entirely, which the server
+  defaults to the vulnerable 2024-11-05 handler rather than the current,
+  enforcing one. The vulnerability is a version-selection trapdoor, not a
+  broken JWT/token check: the caller's credentials are genuinely
+  authenticated throughout, only the SCOPE they should be limited to is
+  what the older handlers forgot to verify.
+
+  Detection logic flags an authenticated MCP request whose
+  `MCP-Protocol-Version` header is either absent or set to one of the three
+  vulnerable legacy values, invoking a tool name that matches this
+  deployment's own configured admin/high-privilege tool set -- the
+  header value plus tool-name pairing is the discriminator, since either
+  alone (an old header on a read-only tool, or an admin-tool call with the
+  current header) is unremarkable.
+
+  Mapped to the T1548 parent technique (Abuse Elevation Control Mechanism)
+  rather than a sub-technique: none of the existing sub-techniques
+  (sudo/sudo-caching, bypass user account control, elevated execution with
+  prompt, temporary elevated cloud access, TCC manipulation) describes "an
+  application-layer protocol-version selector that silently disables its
+  own newest authorization check", so this rule does not force a fit that
+  is not there.
+
+  Aggregated from 1 first-party vendor disclosure (Google/googleapis, via
+  the merged fix PRs), fixed in v1.3.0 (2026-05-21) and a follow-up field-
+  shadowing correction (PR #3335).
+references:
+- https://github.com/googleapis/mcp-toolbox/pull/3049
+- https://github.com/googleapis/mcp-toolbox/pull/3335
+- https://attack.mitre.org/techniques/T1548/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: webserver
+  product: ""
+detection:
+  selection_legacy_or_missing_protocol_header:
+    cs(MCP-Protocol-Version)|contains:
+    - '2025-06-18'
+    - '2025-03-26'
+    - '2024-11-05'
+  selection_missing_protocol_header:
+    cs(MCP-Protocol-Version): null
+  selection_admin_tier_tool_call:
+    cs-uri-query|contains:
+    - admin
+    - '"scope":"admin"'
+  condition: (selection_legacy_or_missing_protocol_header or selection_missing_protocol_header) and selection_admin_tier_tool_call
+falsepositives:
+- A deployment already upgraded to 1.3.0+, where every protocol-version
+  handler (including the legacy ones) now enforces `scopesRequired` -- a
+  matching request on a fixed deployment is correctly rejected server-side
+  rather than granted, so a hit there reflects a probe, not exploitation
+- A caller genuinely authorized for the admin-tier tool who happens to use
+  an older client library that still declares a legacy protocol version --
+  correlate with the caller's actual granted scopes (if the log source
+  captures the JWT claims) to distinguish a legitimate admin from a
+  low-privilege token exploiting the downgrade
+- '`admin`/`"scope":"admin"` substring matching in the query string is a
+  coarse proxy for "high-privilege tool" -- this deployment-specific
+  detail needs tuning against the actual tool names configured with
+  elevated `scopesRequired` in a given MCP Toolbox instance'
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1548
+- wrg.observed.cve.cve_2026_11719
+- wrg.observed.source.googleapis_mcp_toolbox_pr_3049_3335
+- wrg.observed.vector.protocol_version_downgrade
+- wrg.observed.vector.mcp_scope_enforcement_gap
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.privilege_escalation

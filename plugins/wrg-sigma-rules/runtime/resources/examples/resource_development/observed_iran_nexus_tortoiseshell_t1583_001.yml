@@ -1,0 +1,45 @@
+title: Iran-nexus Tortoiseshell (Imperial Kitten / TA456) recruitment-deception cluster
+  — T1583.001
+id: fcaa790d-ca3a-5f9a-be10-b0a1cca743ea
+status: test
+description: Breach intel signature for actor iran_nexus_tortoiseshell, MITRE technique
+  T1583.001. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1583/001/
+- https://attack.mitre.org/groups/G0107/
+- https://about.fb.com/news/2021/07/taking-action-against-hackers-in-iran/
+- https://www.proofpoint.com/us/blog/threat-insight/i-knew-you-were-trouble-ta456-targets-defense-contractor-alluring-social-media
+author: WRG Breach Intel — Phase 6
+date: '2021-07-08'
+logsource:
+  category: proxy
+  product: windows
+detection:
+  selection_new_domain_hint:
+    cs-uri-query|contains:
+    - newly_registered
+    - new-domain=true
+    - domain_age_days=
+    - first_seen_domain=
+  selection_narrative_lookalike_domain:
+    cs-host|re:
+    - .*(vodafone|bbc|cnn|reuters|nato|gov)[-.]?(tr|uk|eu|news|media|press)[-.].*
+    - .*(tr|uk|eu|news|media|press)[-.]?(vodafone|bbc|cnn|reuters|nato|gov)[-.].*
+  filter_legitimate_news_outlets:
+    cs-host:
+    - bbc.com
+    - bbc.co.uk
+    - reuters.com
+    - apnews.com
+    - aa.com.tr
+    - trthaber.com
+  condition: selection_new_domain_hint and selection_narrative_lookalike_domain and
+    not filter_legitimate_news_outlets
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1583.001
+- wrg.observed
+- wrg.observed.actor.iran_nexus_tortoiseshell
+- wrg.severity.medium

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "chat request inline knowledge file_id=f-victim authorized: false"}},
+  {"expect_match": false, "event": {"Message": "chat request inline knowledge file_id=f-own authorized: true"}}
+]

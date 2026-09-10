@@ -1,0 +1,81 @@
+title: AgenticMail bridge-wake -- T1566 unverified-sender inbound email resumes a privileged agent session
+id: 8a8765af-0497-4f8a-b8ec-576d5253130d
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-57495 (GHSA-fq4x-789w-jg5h,
+  CVSS 8.2 HIGH), a self-reported advisory for AgenticMail, which gives AI
+  agents real email addresses.
+
+  Prior to the patched versions, `handleBridgeMail` (`dispatcher.ts:2045`)
+  acted on any inbound email routed to the bridge inbox WITHOUT verifying
+  the sender is the operator, then called `planBridgeWake()` and
+  `composeBridgeWakePrompt` (`host-bridge.ts:141`), which embeds the
+  attacker-controlled `from`/`subject`/`preview` fields VERBATIM into the
+  prompt a resumed agent session reads. `resumeBridgeSession`
+  (`bridge-wake.ts:103`) then runs that prompt with
+  `permissionMode: 'bypassPermissions'` -- an indirect prompt injection
+  into a fully-privileged agent (Bash/Write/Edit/WebFetch plus the
+  agenticmail MCP toolbelt) running as the operator's own OAuth identity.
+  The advisory notes a sibling handler in the same codebase
+  (`inbound.ts:102`, the operator-query email-reply hook) DOES gate on
+  `isOperatorReplySender(replyFrom, config.operatorEmail)` -- the
+  higher-privilege bridge-wake path had no equivalent check, which is the
+  precise asymmetry the fix closes.
+
+  Detection logic flags an AgenticMail bridge-wake event whose own log
+  output shows `resumeBridgeSession`/`bypassPermissions` firing without a
+  corresponding `isOperatorReplySender` gate having run first -- on an
+  unpatched install this condition is systemic (every inbound email to the
+  bridge triggers it, not only attacker-sent ones), which is stated plainly
+  in falsepositives below rather than implied as attack-specific.
+
+  Aggregated from 1 first-party vendor security advisory (agenticmail, via
+  GHSA and NVD), fixed in @agenticmail/claudecode 0.2.39,
+  @agenticmail/codex 0.1.33, @agenticmail/core 0.9.43,
+  @agenticmail/openclaw 0.5.71.
+references:
+- https://github.com/agenticmail/agenticmail/security/advisories/GHSA-fq4x-789w-jg5h
+- https://attack.mitre.org/techniques/T1566/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: agenticmail
+detection:
+  selection_bridge_wake_bypass:
+    Message|contains:
+    - resumeBridgeSession
+  selection_bypass_permissions_mode:
+    Message|contains:
+    - bypassPermissions
+  filter_operator_sender_verified:
+    Message|contains:
+    - isOperatorReplySender
+  condition: selection_bridge_wake_bypass and selection_bypass_permissions_mode and not filter_operator_sender_verified
+falsepositives:
+- On an UNPATCHED install, this condition is not attack-specific -- it is
+  the normal shape of every bridge-wake event, since the vulnerability IS
+  that no sender check runs at all. A hit here answers "is this deployment
+  still running a vulnerable version and actively using the bridge-wake
+  feature", not "is this a confirmed attack" -- correlate the `from`
+  address against the configured operator identity out-of-band to make
+  that distinction
+- A deployment already upgraded to the patched versions, where a
+  legitimate operator-sent bridge-wake email now also logs an
+  `isOperatorReplySender` check -- the filter condition should then exclude
+  it; a hit on a patched install indicates either a log-format mismatch or
+  a genuinely unverified sender still reaching the bridge
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; log field names are inferred from the advisory's own source
+  citations (`dispatcher.ts`, `host-bridge.ts`, `bridge-wake.ts`), not from
+  a captured production log sample
+level: high
+tags:
+- attack.t1566
+- wrg.observed.cve.cve_2026_57495
+- wrg.observed.source.agenticmail_ghsa_fq4x_789w_jg5h
+- wrg.observed.vector.indirect_prompt_injection_email
+- wrg.observed.vector.privileged_agent_session_resume
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

@@ -1,0 +1,72 @@
+title: Open WebUI OAuth token exchange -- T1528 raw provider token accepted with no audience check
+id: 32190c42-10a0-4aaf-bb83-bfda07e52f63
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70482 (GHSA-rq84-p6rr-vf89,
+  CVSS 8.1 HIGH), affecting Open WebUI from 0.8.0 until 0.11.0.
+
+  When `ENABLE_OAUTH_TOKEN_EXCHANGE=True`,
+  `/oauth/{provider}/token/exchange` accepted a raw OAuth provider access
+  token and validated it by calling the provider's userinfo endpoint --
+  WITHOUT confirming which OAuth CLIENT the token was originally issued
+  to. Any party holding an access token minted for ANY client registered
+  with the same provider -- including applications the Open WebUI
+  operator never authorized and does not control -- could exchange that
+  token for a live Open WebUI session as the token's owner. This is a
+  classic audience-confusion bug: the endpoint checks "is this token
+  valid for this provider" instead of "was this token issued to MY
+  client".
+
+  This corpus already carries `observed_librechat_mcp_oauth_resource_mismatch_t1528`
+  for a similarly-shaped OAuth trust bug in a different product; that one
+  is a resource-metadata redirect, this one is missing audience/client
+  validation on token exchange -- distinct mechanisms, same
+  broader class of "the OAuth trust boundary was assumed rather than
+  checked".
+
+  Detection logic flags a token-exchange request whose provider userinfo
+  response succeeds but whose token was NOT issued to Open WebUI's own
+  registered client id -- the exact check the vulnerable endpoint skipped.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing both fix commits), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-rq84-p6rr-vf89
+- https://github.com/open-webui/open-webui/commit/b190dcf3caa00dc8b7b9c7312828298d9143f60d
+- https://github.com/open-webui/open-webui/commit/c4332be71e6e9c314e8a13b9d2819a6932561630
+- https://attack.mitre.org/techniques/T1528/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_token_exchange_endpoint:
+    cs-uri-stem|re: '/oauth/[^/]+/token/exchange$'
+  selection_method_post:
+    cs-method: POST
+  condition: selection_token_exchange_endpoint and selection_method_post
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where the endpoint validates
+  the token's issuing client before exchanging it -- a matching request
+  bearing a foreign-client token on a fixed deployment would be rejected
+- A deployment where `ENABLE_OAUTH_TOKEN_EXCHANGE` is not set (default
+  off) -- this endpoint is unreachable and this rule is moot in that
+  configuration
+- Legitimate token-exchange traffic from Open WebUI's own registered
+  client -- this rule flags every request to the endpoint since HTTP
+  proxy logs typically cannot inspect the token's issuing-client claim;
+  correlate with application-level OAuth audit logs to confirm a
+  foreign-client token was actually accepted
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1528
+- wrg.observed.cve.cve_2026_70482
+- wrg.observed.source.open_webui_ghsa_rq84_p6rr_vf89
+- wrg.observed.vector.oauth_audience_confusion
+- wrg.observed.vector.cross_client_token_reuse
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.credential_access

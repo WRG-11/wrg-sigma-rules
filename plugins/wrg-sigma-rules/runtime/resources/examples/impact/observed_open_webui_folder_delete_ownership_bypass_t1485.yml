@@ -1,0 +1,63 @@
+title: Open WebUI folders -- T1485 shared-write collaborator deletes owner's chat subtree
+id: 6222440e-564d-40a6-9898-abfac69943db
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70494 (GHSA-3cg5-48j3-v4gv,
+  CVSS 8.1 HIGH), affecting Open WebUI from 0.10.0 until 0.11.0.
+
+  The `DELETE /api/v1/folders/{id}` handler
+  (`backend/open_webui/routers/folders.py`) allowed a user granted WRITE
+  access to a shared chat folder to permanently delete chats and messages
+  belonging to the folder OWNER -- not merely their own contribution. The
+  deletion cascade is correctly bound to the folder owner's id, but the
+  SUBFOLDER check accepted any inherited write grant instead of requiring
+  actual ownership or administrator status. A collaborator with nothing
+  more than write access can therefore destroy the owner's entire
+  subtree, or force-move chats out of it when `delete_contents=false`.
+
+  Detection logic flags a `DELETE /api/v1/folders/{id}` request whose
+  caller is NOT the folder's owner -- the endpoint's own authorization
+  gap is precisely this: any write-grant holder passes where only
+  ownership/admin should.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact router file and PR), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-3cg5-48j3-v4gv
+- https://github.com/open-webui/open-webui/commit/915ef7d0798d3175819cedbb2f62d7bf0db78c98
+- https://github.com/open-webui/open-webui/pull/27003
+- https://attack.mitre.org/techniques/T1485/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_folder_delete_endpoint:
+    cs-uri-stem|re: '/api/v1/folders/[^/]+$'
+  selection_method_delete:
+    cs-method: DELETE
+  condition: selection_folder_delete_endpoint and selection_method_delete
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where the subfolder check
+  requires actual ownership or administrator status -- a matching
+  request from a non-owner on a fixed deployment would be rejected
+  rather than executing the delete
+- A folder owner legitimately deleting their own folder -- this rule
+  flags every DELETE to this endpoint since HTTP proxy logs typically
+  cannot capture the folder-ownership relationship on their own;
+  correlate the caller's identity against the folder's actual owner
+  (from application-level audit logs) to confirm an unauthorized
+  deletion rather than routine owner cleanup
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1485
+- wrg.observed.cve.cve_2026_70494
+- wrg.observed.source.open_webui_ghsa_3cg5_48j3_v4gv
+- wrg.observed.vector.inherited_write_grant_treated_as_ownership
+- wrg.observed.vector.shared_folder_cascade_delete
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.impact

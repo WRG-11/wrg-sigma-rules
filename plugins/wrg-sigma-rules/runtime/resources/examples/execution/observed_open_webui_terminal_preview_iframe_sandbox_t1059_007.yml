@@ -1,0 +1,71 @@
+title: Open WebUI terminal file-preview -- T1059.007 iframe grants allow-same-origin with allow-scripts
+id: f81520b1-9849-4d51-a691-63fcacb1e603
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70486 (GHSA-3xpf-xq7r-v8c5,
+  CVSS 8.2 HIGH), affecting Open WebUI from 0.9.0 until 0.11.0.
+
+  The terminal file-preview feature's `serveUrl` iframe branch always
+  granted BOTH `allow-same-origin` and `allow-scripts` sandbox attributes
+  for HTML files served from the application's own origin -- a
+  combination the iframe sandbox specification itself warns defeats
+  origin isolation, since script running with `allow-same-origin` can
+  read/manipulate the parent origin's storage. Any authenticated user
+  with access to a configured terminal server could preview a
+  self-crafted HTML file through this path, causing embedded script to
+  execute IN THE OPEN WEBUI ORIGIN -- reading the victim's session token
+  from `localStorage` and taking over their account, with the
+  possibility of server-side code execution if the victim held
+  administrator privileges or `workspace.functions` access.
+
+  Detection logic flags the resulting host-observable artifact: a
+  terminal file-preview request whose target is an HTML file (by
+  extension or content-type) served through the `serveUrl` path -- the
+  vulnerable code granted the dangerous sandbox combination
+  unconditionally for exactly this file type, so any HTML preview through
+  this route on an unpatched deployment IS the exposure, not merely a
+  precursor to it.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact PR), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-3xpf-xq7r-v8c5
+- https://github.com/open-webui/open-webui/commit/65a5fad7b97db99d490d81f4e0860282c3a4543c
+- https://github.com/open-webui/open-webui/pull/26907
+- https://attack.mitre.org/techniques/T1059/007/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_terminal_preview_endpoint:
+    cs-uri-stem|contains: serveUrl
+  selection_html_target:
+    cs-uri-query|contains:
+    - .html
+    - .htm
+  condition: selection_terminal_preview_endpoint and selection_html_target
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where the sandbox no longer
+  grants `allow-same-origin` together with `allow-scripts` for
+  same-origin HTML previews -- a matching request on a fixed deployment
+  still previews the file but without origin-isolation-breaking script
+  execution
+- Legitimate use of the terminal file-preview feature to review a
+  benign, non-malicious HTML file -- this rule cannot distinguish
+  intent from URL shape alone; the vulnerability is in the sandbox
+  configuration applying to every HTML preview, not in any specific
+  malicious pattern within the file
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1059.007
+- wrg.observed.cve.cve_2026_70486
+- wrg.observed.source.open_webui_ghsa_3xpf_xq7r_v8c5
+- wrg.observed.vector.iframe_sandbox_same_origin_plus_scripts
+- wrg.observed.vector.terminal_preview_origin_takeover
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

@@ -1,0 +1,80 @@
+title: Langroid SQLChatAgent -- T1059 LLM-generated SQL COPY-FROM-PROGRAM RCE via prompt injection
+id: f5edabe7-0354-4126-8e9f-75ad90061442
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-25879 (GHSA-mxfr-6hcw-j9rq,
+  CVSS 9.8 CRITICAL), a self-reported advisory for Langroid, a framework
+  for building LLM-powered applications.
+
+  Prior to 0.63.0, `SQLChatAgent` executed SQL produced by an LLM
+  (`run_query()`, `sql_chat_agent.py:474`) with no sanitization or
+  validation of what the model chose to emit. Because an LLM's output is
+  influenceable by prompt injection -- including INDIRECTLY, via data the
+  agent reads back from elsewhere -- an attacker who can shape any input
+  the agent later processes can coerce it into emitting a
+  `RunQueryTool` call carrying a dialect-specific dangerous primitive
+  rather than a plain query. When the configured database role holds
+  execute-adjacent privileges (`pg_execute_server_program` on Postgres,
+  `FILE` on MySQL, `xp_cmdshell` on MSSQL), this reaches full RCE on the
+  database host -- the advisory's own example is PostgreSQL's
+  `COPY log(content) FROM PROGRAM 'id';`. This is command execution
+  reached through a SQL interface, not a credential-theft primitive, so it
+  is filed under `execution` (T1059, command and scripting interpreter)
+  rather than `credential_access`.
+
+  Detection logic flags exactly the primitive that turns "the LLM ran a
+  query" into "the LLM ran a command": a `COPY ... FROM PROGRAM`
+  (Postgres), `LOAD_FILE`/`INTO OUTFILE` (MySQL), or `xp_cmdshell`
+  (MSSQL) statement appearing in database query-log content -- these
+  primitives have no reason to originate from a normal chat-agent query
+  workload, regardless of which application layer emitted them.
+
+  Aggregated from 1 first-party vendor security advisory (langroid, via
+  GHSA and NVD), fixed in 0.63.0 (SELECT-only sqlglot-parsed allowlist
+  with a dialect-aware dangerous-pattern blocklist;
+  `allow_dangerous_operations=True` restores the old behavior for
+  deployments that accept the risk deliberately).
+references:
+- https://github.com/langroid/langroid/security/advisories/GHSA-mxfr-6hcw-j9rq
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: database
+detection:
+  selection_postgres_copy_from_program:
+    Message|contains|all:
+    - 'COPY'
+    - 'FROM PROGRAM'
+  selection_mysql_file_primitives:
+    Message|contains:
+    - LOAD_FILE
+    - INTO OUTFILE
+    - INTO DUMPFILE
+  selection_mssql_xp_cmdshell:
+    Message|contains: xp_cmdshell
+  condition: selection_postgres_copy_from_program or selection_mysql_file_primitives or selection_mssql_xp_cmdshell
+falsepositives:
+- A deployment already upgraded to 0.63.0+ with the default SELECT-only
+  allowlist active -- these primitives would be rejected before reaching
+  the database, so a hit on a fixed, default-configured deployment
+  reflects a rejected attempt, not successful exploitation
+- A deployment that has deliberately set
+  `allow_dangerous_operations=True` for a trusted internal workload where
+  a DBA legitimately uses these same primitives for maintenance -- this
+  rule cannot distinguish an LLM-agent-issued query from a human DBA's
+  query by SQL content alone; correlate with the calling application
+  identity if the log source captures it
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_25879
+- wrg.observed.source.langroid_ghsa_mxfr_6hcw_j9rq
+- wrg.observed.vector.llm_generated_sql_prompt_injection
+- wrg.observed.vector.dialect_specific_rce_primitive
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

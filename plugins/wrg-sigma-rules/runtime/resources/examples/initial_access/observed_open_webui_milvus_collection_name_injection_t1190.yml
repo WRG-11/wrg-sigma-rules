@@ -1,0 +1,70 @@
+title: Open WebUI Milvus multitenancy -- T1190 unescaped collection name interpolated into a Milvus expression
+id: fc142bf8-d437-424b-8ca6-bdea71f52959
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54019 (GHSA-p5cp-r7rg-qpxc,
+  CVSS 6.5 MEDIUM), affecting Open WebUI prior to 0.9.6.
+
+  Open WebUI added collection-level ACL checks for its vector-store
+  backend, but the patch is bypassable when Milvus multitenancy mode is
+  enabled: the ACL layer allows unknown, non-knowledge-base collection
+  names to pass through as legacy/ephemeral collections. In Milvus
+  multitenancy mode, that user-controlled collection name becomes a
+  `resource_id` value that is interpolated DIRECTLY into a Milvus
+  query expression -- without escaping. This is explicitly an
+  INCOMPLETE FIX for an earlier bug (CVE-2026-44560): the prior patch
+  closed one path but left this multitenancy-specific injection point
+  open.
+
+  Detection logic flags a knowledge/collection-referencing request whose
+  collection-name parameter contains Milvus expression-language
+  metacharacters (quotes, boolean operators like `and`/`or` adjacent to
+  comparison syntax, or expression-breaking punctuation) rather than an
+  ordinary alphanumeric collection identifier -- the specific injection
+  surface this advisory describes.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the prior CVE-2026-44560 this is an incomplete fix
+  for), fixed in 0.9.6.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-p5cp-r7rg-qpxc
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_knowledge_collection_endpoint:
+    cs-uri-query|contains: collection_name
+  selection_milvus_expression_metacharacters:
+    cs-uri-query|contains:
+    - '%27'
+    - "'"
+    - ' and '
+    - ' or '
+  condition: selection_knowledge_collection_endpoint and selection_milvus_expression_metacharacters
+falsepositives:
+- A deployment already upgraded to 0.9.6+, where legacy/ephemeral
+  collection names are properly escaped before interpolation into a
+  Milvus expression, or Milvus multitenancy mode is not in use -- a
+  matching request on a fixed deployment (or a non-Milvus/non-
+  multitenancy backend) would not reach the vulnerable code path at all
+- A legitimate collection name that coincidentally contains the
+  substring "and"/"or" as part of an ordinary word (e.g. a
+  user-chosen collection named "sandbox") -- narrow in practice given
+  the specific metacharacter combination required, but a possible source
+  of noise
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; only applies to deployments configured with Milvus as the
+  vector-store backend AND multitenancy mode enabled
+level: medium
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_54019
+- wrg.observed.source.open_webui_ghsa_p5cp_r7rg_qpxc
+- wrg.observed.vector.incomplete_prior_fix
+- wrg.observed.vector.vector_db_expression_injection
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access

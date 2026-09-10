@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"query": "attacker-host\\x00trusted-suffix.com"}},
+  {"expect_match": true, "event": {"socks5_request_host": "evil\\u0000github.com", "dest_port": 1080, "request_method": "CONNECT"}},
+  {"expect_match": false, "event": {"query": "trusted-suffix.com"}},
+  {"expect_match": false, "event": {"socks5_request_host": "api.anthropic.com", "dest_port": 443, "request_method": "CONNECT"}}
+]

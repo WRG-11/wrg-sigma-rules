@@ -1,0 +1,65 @@
+title: Medusa Team -- T1005 (base)
+name: medusa_t1005_archive_staging_base
+id: eec23eae-8ab5-51ca-ab6d-d2719e710732
+status: test
+description: Base event match for the Medusa Team T1005 archive-staging burst correlation
+  below -- a single archive-utility invocation, on its own, is not the alert.
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2023-11-28'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_archive_staging:
+    Image|endswith:
+    - \7z.exe
+    - \rar.exe
+    - \winrar.exe
+    - \powershell.exe
+    CommandLine|contains:
+    - \Users\
+    - \Documents\
+    - \Desktop\
+    - .pst
+    - .docx
+    - .xlsx
+    - .pdf
+  condition: selection_archive_staging
+level: informational
+tags:
+- attack.t1005
+---
+title: Medusa Team -- T1005
+id: d956c59b-b168-5b1e-98bc-cd695e4c2383
+status: test
+description: Breach intel signature for actor medusa, MITRE technique T1005. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1005/
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa25-071a
+- https://www.bleepingcomputer.com/news/security/medusa-ransomware-hits-over-300-critical-infrastructure-orgs/
+- https://www.ic3.gov/CSA/2025/250312.pdf
+- https://www.bleepingcomputer.com/news/security/toyota-confirms-breach-after-medusa-ransomware-threatens-to-leak-data/
+- https://www.toyota-fs.de/ueber-uns/aktuelle-informationen
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2023-11-28'
+correlation:
+  type: event_count
+  rules:
+  - medusa_t1005_archive_staging_base
+  group-by:
+  - Image
+  timespan: 10m
+  condition:
+    gt: 5
+falsepositives:
+- IT or backup staff running scheduled archive-and-backup jobs against user document
+  directories
+level: medium
+tags:
+- attack.t1005
+- wrg.observed.actor.medusa
+- wrg.severity.medium
+- wrg.correlation
+- wrg.observed
+- wrg.tactic.collection

@@ -1,0 +1,54 @@
+title: Panzer — T1567 (base)
+name: wrg_dac629d0ecb2567c
+id: dac629d0-ecb2-567c-a7b8-eb909510312a
+status: test
+description: Base event match for Breach intel signature for actor panzer, MITRE technique
+  T1567. Derived from 1 observed incident(s) in the WRG breach catalog; the correlation
+  document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-08-10'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567
+---
+title: Panzer — T1567
+id: a02cb9ed-d371-54e5-88a1-4c939776be0c
+status: test
+description: Breach intel signature for actor panzer, MITRE technique T1567. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1567/
+- https://www.ransomlook.io/group/panzer
+- https://www.hookphish.com/blog/ransomware-group-panzer-hits-the-minor-food-group/
+author: WRG Breach Intel — Phase 6
+date: '2026-08-10'
+correlation:
+  type: event_count
+  rules:
+  - wrg_dac629d0ecb2567c
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: informational
+tags:
+- attack.t1567
+- wrg.observed
+- wrg.observed.actor.panzer
+- wrg.severity.info
+- wrg.correlation

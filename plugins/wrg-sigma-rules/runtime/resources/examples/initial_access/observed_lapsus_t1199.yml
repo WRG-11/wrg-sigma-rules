@@ -1,0 +1,40 @@
+title: LAPSUS$ — T1199
+id: c521dac3-17f0-506a-99c3-ae45f3a4819d
+status: test
+description: Breach intel signature for actor lapsus, MITRE technique T1199. Derived
+  from 5 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1199/
+- https://www.microsoft.com/en-us/security/blog/2022/03/22/dev-0537-criminal-actor-targeting-organizations-for-data-exfiltration-and-destruction/
+- https://attack.mitre.org/groups/G1004/
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a
+- https://www.bbc.com/news/technology-60836910
+- https://www.bbc.com/news/technology-60661195
+- https://sec.okta.com/scenariobimpact
+- https://www.bleepingcomputer.com/news/security/vodafone-portugal-confirms-cyberattack-disrupted-services-nationwide/
+- https://www.theregister.com/2022/02/08/vodafone_portugal_cyberattack/
+- https://twitter.com/AlvieriD
+- https://www.bleepingcomputer.com/tag/vodafone/
+author: WRG Breach Intel — Phase 6
+date: '2026-05-10'
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_trusted_logon:
+    EventID: 4624
+    LogonType:
+    - 3
+    - 10
+    AuthenticationPackageName: Kerberos
+  filter_internal:
+    WorkstationName|startswith: INT-
+  condition: selection_trusted_logon and not filter_internal
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1199
+- wrg.observed
+- wrg.observed.actor.lapsus
+- wrg.severity.high

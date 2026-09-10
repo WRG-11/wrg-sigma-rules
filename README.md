@@ -137,8 +137,10 @@ codex plugin add wrg-sigma-rules@wrg-11
 
 Start a new Codex task after installation so its MCP tools and the Sigma
 writer, reviewer, and coverage-analysis skills are discovered. The Codex
-adapter remains intentionally thin: `server.py`, `tools/`, and the rule corpus
-are shared with the Claude Code surface rather than duplicated.
+plugin contains a self-contained runtime snapshot of `server.py`, `tools/`,
+and the rule corpus, so its installed cache does not rely on checkout-relative
+paths. Maintain that snapshot with `python scripts/sync_codex_runtime.py`; CI
+fails if it diverges from the canonical sources.
 
 ## Quick example
 
@@ -170,7 +172,7 @@ Full captured outputs (validate JSON + Splunk SPL + Elasticsearch Lucene) are in
 ## Quality discipline
 
 - **4-Layer self-audit** per WRG audit methodology (trust-but-verify self-audit)
-- **<!-- METRIC:test_module_count -->20<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
+- **<!-- METRIC:test_module_count -->21<!-- /METRIC:test_module_count --> Python test modules** covering rule validation + tool integration smoke
 - **pySigma 1.x compat** + multi-backend conversion verified (`pysigma-backend-splunk` + `pysigma-backend-elasticsearch` + `pysigma-backend-opensearch`)
 - **LLM-safe output discipline**: ASCII-only output + error-path structure preserve
 - **`claude plugin validate` PASS** — not yet wired into CI (see [tests.yml](.github/workflows/tests.yml)); run it yourself with `claude plugin validate .` before relying on a dated claim here

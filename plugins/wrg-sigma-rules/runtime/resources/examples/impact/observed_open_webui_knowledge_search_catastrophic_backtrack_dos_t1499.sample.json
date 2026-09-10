@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "grep_knowledge_files pattern=(x|x)*y"}},
+  {"expect_match": false, "event": {"Message": "grep_knowledge_files pattern=invoice"}}
+]

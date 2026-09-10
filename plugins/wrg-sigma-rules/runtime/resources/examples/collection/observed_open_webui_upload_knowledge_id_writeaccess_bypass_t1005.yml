@@ -1,0 +1,63 @@
+title: Open WebUI file upload -- T1005 metadata.knowledge_id auto-links skip the write-access check
+id: 60395970-37a2-48d2-95c4-c5b9f1af9d23
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59217 (GHSA-7r7x-gjvr-448g,
+  CVSS 4.3 MEDIUM), affecting Open WebUI prior to 0.10.0.
+
+  The file-upload path accepts a `metadata.knowledge_id` field and
+  auto-links the uploaded file to that target knowledge base -- WITHOUT
+  applying the same write-access check that the dedicated
+  `/api/v1/knowledge/{id}/file/add` endpoint correctly enforces. A user
+  who holds only READ access to a knowledge base (not write) can
+  therefore add arbitrary files to it simply by uploading through the
+  general file-upload path and specifying that knowledge base's id in
+  `metadata.knowledge_id` -- reaching the same effective outcome as the
+  write-gated endpoint while going around its gate entirely.
+
+  Detection logic flags a file-upload request whose
+  `metadata.knowledge_id` field references a knowledge base the caller
+  holds only read (not write) access to -- the exact permission-level
+  mismatch this advisory describes, distinguishable from the
+  legitimately-gated `/file/add` endpoint's own correct behavior.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact fix commit and PR), fixed in 0.10.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-7r7x-gjvr-448g
+- https://github.com/open-webui/open-webui/commit/b7626f05fb92b24ab923ad81a037071ebd5623d1
+- https://github.com/open-webui/open-webui/pull/26001
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_upload_endpoint:
+    cs-uri-stem|contains: /api/v1/files/
+  selection_knowledge_id_metadata:
+    cs-body|contains: knowledge_id
+  condition: selection_upload_endpoint and selection_knowledge_id_metadata
+falsepositives:
+- A deployment already upgraded to 0.10.0+, where the upload path
+  applies the same write-access check `/file/add` already used -- a
+  matching upload from a read-only user on a fixed deployment would be
+  rejected
+- A legitimate upload from a user who genuinely holds write access to
+  the referenced knowledge base -- this rule flags every upload
+  carrying `metadata.knowledge_id` since HTTP proxy logs typically
+  cannot determine the caller's actual permission level; correlate
+  against application-level access-control logs to confirm a read-only
+  user performed the write
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_59217
+- wrg.observed.source.open_webui_ghsa_7r7x_gjvr_448g
+- wrg.observed.vector.alternate_path_missing_authz_check
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.collection

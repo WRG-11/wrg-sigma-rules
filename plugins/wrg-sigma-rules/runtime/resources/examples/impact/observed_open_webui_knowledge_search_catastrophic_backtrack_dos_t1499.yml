@@ -1,0 +1,71 @@
+title: Open WebUI knowledge search -- T1499 unbounded backtracking regex pins a worker for as long as the attacker wants
+id: 9c4d3e2f-7a1b-4c8e-9d6f-2b3a4c5d6e71
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70493 (GHSA-2f54-p244-32q6,
+  CVSS 6.5 MEDIUM), affecting Open WebUI's default-enabled built-in
+  `grep_knowledge_files` tool.
+
+  `build_matcher()` in `backend/open_webui/tools/knowledge_fs.py`
+  treats any caller-supplied pattern containing regex metacharacters as
+  a regex, compiles it with Python's backtracking `re` engine, and
+  returns an unbounded match function with no time limit anywhere on
+  the path. `grep_knowledge_files()` in `builtin.py` -- the default
+  handler an LLM reaches with `ENABLE_KB_EXEC` at its default `False` --
+  runs that matcher over every line of every reachable file
+  synchronously inside the event loop. A pattern like `(x|x)*y` against
+  a crafted subject line grows exponentially with subject length --
+  measured on the vulnerable code, 24 characters takes 1.2s, 28 takes
+  19s, 30 takes 74s -- and because it runs on the shared event loop, one
+  crafted search pins a CPU core and starves every other request the
+  worker is serving, not just the attacker's own.
+
+  Detection logic flags a knowledge-search tool invocation whose pattern
+  argument contains alternation combined with a repetition quantifier
+  applied to a group -- the exact overlapping-construct shape (e.g.
+  `(x|x)*`) this advisory's catastrophic-backtracking finding
+  demonstrates, against the tool this corpus's `builtin.py` handler
+  reaches by default.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact function names, source files, and a
+  reproducible growth table), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-2f54-p244-32q6
+- https://github.com/open-webui/open-webui/pull/27471
+- https://attack.mitre.org/techniques/T1499/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_knowledge_search_tool_call:
+    Message|contains: grep_knowledge_files
+  selection_alternation_with_repetition:
+    Message|re: '\([^)]*\|[^)]*\)[*+]'
+  condition: selection_knowledge_search_tool_call and selection_alternation_with_repetition
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where pattern matching moved
+  to the `regex` engine under a 2 second per-search timeout -- a
+  matching crafted pattern on a fixed deployment is aborted with an
+  error instead of pinning a worker
+- A legitimate knowledge-search query that happens to combine
+  alternation and a quantified group without triggering catastrophic
+  cost against the actual file content searched -- not every pattern of
+  this shape is exponential against every subject; correlate with
+  sustained high CPU on the serving worker to confirm actual impact
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of tool-call
+  arguments, which most infrastructure log sources do not capture by
+  default
+level: medium
+tags:
+- attack.t1499
+- wrg.observed.cve.cve_2026_70493
+- wrg.observed.source.open_webui_ghsa_2f54_p244_32q6
+- wrg.observed.vector.catastrophic_backtracking_regex
+- wrg.observed.vector.unbounded_tool_search_event_loop_block
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

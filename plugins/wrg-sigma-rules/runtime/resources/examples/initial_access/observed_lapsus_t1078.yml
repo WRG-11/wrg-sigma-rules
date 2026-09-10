@@ -1,0 +1,47 @@
+title: LAPSUS$ -- T1078
+id: b6d23664-a6e7-583a-b2fc-f54bd7ef04e6
+status: test
+description: Breach intel signature for actor lapsus, MITRE technique T1078. Derived from 1 observed incident(s) in the WRG
+  breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1078/
+- https://attack.mitre.org/groups/G1004/
+- https://www.bleepingcomputer.com/news/security/vodafone-portugal-confirms-cyberattack-disrupted-services-nationwide/
+- https://www.theregister.com/2022/02/08/vodafone_portugal_cyberattack/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-05-10'
+logsource:
+  category: authentication
+  product: windows
+detection:
+  selection_logon:
+    EventID:
+    - 4624
+    - 4625
+    LogonType:
+    - 3
+    - 10
+  filter_service_accounts:
+    TargetUserName|startswith: svc_
+  # FP-fix: authorized admin operators routinely access servers via RDP
+  # (LogonType 10) for maintenance; without this filter the rule fires on
+  # legitimate admin RDP logons. Filter requires BOTH conditions (Sigma
+  # selection-shape: multi-clause within one filter block = AND).
+  # Tradeoff: this is a single-event precision narrow. The LAPSUS$
+  # actor signature is multi-host admin-credential reuse within a
+  # short window -- proper detection requires correlation (count() by
+  # account across hosts over time). A future aggregation matcher will
+  # support that pattern; this filter is the stop-gap.
+  filter_legit_admin_interactive_rdp:
+    LogonType: 10
+    TargetUserName|startswith: admin_
+  condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
+falsepositives:
+- A genuine user travelling, whose logon location and device change legitimately
+level: high
+tags:
+- attack.t1078
+- wrg.observed.actor.lapsus
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"ParentCommandLine": "python webui.py", "CommandLine": "\"/root/asr_in\" -s tools/asr/funasr/funasr_asr.py -i \"foo\"; touch /tmp/pwned"}},
+  {"expect_match": false, "event": {"ParentCommandLine": "python webui.py", "CommandLine": "\"/root/asr_in\" -s tools/asr/funasr/funasr_asr.py -i \"/root/asr_out\""}}
+]

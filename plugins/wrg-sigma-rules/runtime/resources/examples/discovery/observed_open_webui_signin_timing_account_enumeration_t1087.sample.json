@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "POST /api/v1/auths/signin signin_attempt email=probe1@example.com"}},
+  {"expect_match": false, "event": {"Message": "POST /api/v1/auths/signout"}}
+]

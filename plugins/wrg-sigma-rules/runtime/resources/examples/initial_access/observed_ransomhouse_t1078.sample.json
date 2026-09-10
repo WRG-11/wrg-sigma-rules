@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"EventID": 4624, "LogonType": 3, "TargetUserName": "jdoe"}},
+  {"expect_match": true, "event": {"EventID": 4625, "LogonType": 10, "TargetUserName": "jdoe"}},
+  {"expect_match": false, "event": {"EventID": 4624, "LogonType": 10, "TargetUserName": "admin_dave"}},
+  {"expect_match": false, "event": {"EventID": 4624, "LogonType": 3, "TargetUserName": "svc_backup"}}
+]

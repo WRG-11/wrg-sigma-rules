@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "chat message stored: $$\\overbrace{\\overbrace{\\cdots}}$$<img src=x onerror=alert(1)>"}},
+  {"expect_match": false, "event": {"Message": "chat message stored: $$x^2 + y^2 = z^2$$ discussing the pythagorean theorem"}}
+]

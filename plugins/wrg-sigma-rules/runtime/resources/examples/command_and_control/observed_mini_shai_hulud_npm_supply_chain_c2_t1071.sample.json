@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"QueryName": "t.m-kosche.com"}},
+  {"expect_match": true, "event": {"DestinationIp": "185.95.159.32"}},
+  {"expect_match": false, "event": {"QueryName": "registry.npmjs.org"}}
+]

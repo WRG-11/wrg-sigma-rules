@@ -1,0 +1,68 @@
+title: Open WebUI tools API -- T1552 response-model field readmission leaks tool source + embedded credentials
+id: 5ee0593d-4e73-42ea-a462-210f1ccfc18f
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70491 (GHSA-3r7g-q6cg-q2vx,
+  CVSS 6.5 MEDIUM), affecting Open WebUI 0.10.2 and earlier.
+
+  `GET /api/v1/tools/`, `GET /api/v1/tools/list`, and
+  `GET /api/v1/tools/id/{id}` (`backend/open_webui/routers/tools.py`)
+  returned full Python tool source to authenticated NON-ADMIN,
+  read-only users. The response model `ToolResponse` deliberately omits
+  `source` and `specs` fields -- but a sibling model, `ToolUserResponse`,
+  permits EXTRA fields, and the route handlers spread a full tool model
+  dump into the response, re-admitting the fields `ToolResponse` was
+  built to omit. A non-admin user with nothing more than a read grant on
+  a tool can therefore pull another user's server-side tool source code
+  -- which commonly embeds hard-coded API keys, credentials, and
+  internal service URLs directly in the Python source.
+
+  Detection logic flags a response from one of the three affected
+  endpoints whose body contains a `source` field with non-empty Python
+  content -- the exact field `ToolResponse` was designed to omit, whose
+  presence in the response IS the vulnerability manifesting, not merely
+  a precursor to it.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact router file, the two response models by
+  name, and the PR), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-3r7g-q6cg-q2vx
+- https://github.com/open-webui/open-webui/commit/c05de13b4fca1ac8a17153782b46b3d0aacf491c
+- https://github.com/open-webui/open-webui/pull/27005
+- https://attack.mitre.org/techniques/T1552/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_tools_endpoint:
+    cs-uri-stem|contains: /api/v1/tools/
+  selection_source_field_in_response:
+    cs-uri-query|contains: 'source'
+  condition: selection_tools_endpoint and selection_source_field_in_response
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where `ToolUserResponse` no
+  longer re-admits the `source`/`specs` fields `ToolResponse` omits --
+  a matching request on a fixed deployment would receive a response
+  without tool source
+- This rule approximates the vulnerability from the REQUEST side (a
+  proxy/network log source typically cannot inspect response BODY
+  content); a request to these endpoints is not itself malicious, since
+  the same endpoints serve legitimate, authorized tool listing --
+  correlate with actual RESPONSE body content (application-level
+  logging) to confirm source-code disclosure occurred, rather than
+  treating every request as a hit
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1552
+- wrg.observed.cve.cve_2026_70491
+- wrg.observed.source.open_webui_ghsa_3r7g_q6cg_q2vx
+- wrg.observed.vector.response_model_field_readmission
+- wrg.observed.vector.tool_source_embedded_credentials
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.credential_access

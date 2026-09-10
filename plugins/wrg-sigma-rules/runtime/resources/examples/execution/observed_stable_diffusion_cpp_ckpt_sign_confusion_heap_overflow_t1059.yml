@@ -1,0 +1,74 @@
+title: stable-diffusion.cpp .ckpt loader -- T1059 SHORT_BINUNICODE sign confusion causes heap corruption
+id: c813ca55-d70f-4b96-877f-15ddce0deb34
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-47749 (GHSA-2c29-5hxg-fv9g,
+  CVSS 7.8 HIGH), affecting stable-diffusion.cpp prior to
+  master-584-0a7ae07.
+
+  The pickle `.ckpt` parser in `src/model.cpp` handles the
+  `SHORT_BINUNICODE` opcode's length field with a SIGN CONFUSION bug: the
+  length is read as if unsigned but the underlying storage permits a
+  negative signed value, which a crafted `.ckpt` file can supply. That
+  negative-interpreted-as-huge length is passed directly to `memcpy`,
+  causing immediate heap corruption -- a process crash at minimum, with
+  the advisory noting potential for code execution depending on heap
+  layout. Any application loading untrusted `.ckpt` checkpoint files
+  through affected stable-diffusion.cpp releases is exposed; the
+  advisory's own workaround (pending upgrade) is to load only trusted
+  `.safetensors` files instead of `.ckpt`, since `.safetensors` has no
+  pickle-based parsing path to exploit.
+
+  Detection logic flags a `.ckpt` model file whose SHORT_BINUNICODE
+  opcode (byte value `0x8c` in the pickle protocol) is immediately
+  followed by a length byte with its high bit set -- the specific
+  bit pattern that a correctly-signed parser would reject as invalid but
+  the vulnerable sign-confused one accepts and forwards to `memcpy`.
+
+  Aggregated from 1 first-party vendor security advisory (leejet, via
+  GHSA and NVD, citing the exact source file, opcode name, and root
+  cause), fixed in master-584-0a7ae07.
+references:
+- https://github.com/leejet/stable-diffusion.cpp/security/advisories/GHSA-2c29-5hxg-fv9g
+- https://github.com/leejet/stable-diffusion.cpp/commit/0a7ae07f948eff4611968a65a22bd7c7031ad74f
+- https://github.com/leejet/stable-diffusion.cpp/pull/1443
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: file_event
+  product: linux
+detection:
+  selection_ckpt_file_loaded:
+    TargetFilename|endswith: .ckpt
+  selection_sd_cpp_process:
+    Image|contains:
+    - sd
+    - stable-diffusion
+  condition: selection_ckpt_file_loaded and selection_sd_cpp_process
+falsepositives:
+- A deployment already upgraded past master-584-0a7ae07, where the
+  SHORT_BINUNICODE length field is correctly bounds-checked before use
+  -- a matching `.ckpt` load on a fixed build parses safely or rejects
+  the malformed length cleanly
+- A legitimate `.ckpt` file from a trusted source that happens to be
+  loaded during normal operation -- this rule cannot distinguish a
+  malicious crafted file from an ordinary one by filename/extension
+  alone, since the malicious byte pattern lives inside the file content;
+  the advisory's own recommended mitigation (prefer `.safetensors`,
+  which this rule cannot detect the absence of) is the stronger control
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires file-content inspection (the specific
+  opcode+length byte pattern) for a precise signal, which most
+  infrastructure log sources do not capture -- the file-event-only
+  selection here is a coarse proxy for "a .ckpt file was loaded at all"
+level: high
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_47749
+- wrg.observed.source.leejet_ghsa_2c29_5hxg_fv9g
+- wrg.observed.vector.pickle_opcode_sign_confusion
+- wrg.observed.vector.untrusted_ckpt_heap_corruption
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

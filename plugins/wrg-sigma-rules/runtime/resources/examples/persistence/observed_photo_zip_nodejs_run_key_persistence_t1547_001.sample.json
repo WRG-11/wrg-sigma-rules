@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"TargetObject": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Updater", "Details": "C:\\Users\\victim\\AppData\\Local\\Nodejs\\node.exe C:\\Users\\victim\\AppData\\Local\\Nodejs\\index.js"}},
+  {"expect_match": false, "event": {"TargetObject": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Dropbox", "Details": "C:\\Program Files\\Dropbox\\Dropbox.exe /systemstartup"}},
+  {"expect_match": false, "event": {"TargetObject": "HKCU\\Software\\SomeOtherKey\\Value", "Details": "C:\\Users\\victim\\AppData\\Local\\Nodejs\\node.exe script.js"}}
+]

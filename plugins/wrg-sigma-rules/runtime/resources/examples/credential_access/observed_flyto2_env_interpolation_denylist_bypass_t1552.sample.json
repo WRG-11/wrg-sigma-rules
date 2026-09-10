@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "POST /v1/workflow/run step_param=\"${env.AWS_SECRET_ACCESS_KEY}\""}},
+  {"expect_match": false, "event": {"Message": "POST /v1/workflow/run step_param=\"static text with no interpolation\""}}
+]

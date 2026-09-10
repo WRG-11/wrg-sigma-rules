@@ -1,0 +1,36 @@
+title: Unicode watermarking / homoglyph signature in source code
+id: 9e486fcf-547e-5ff7-815d-8c5b78d9eabc
+status: experimental
+description: 'Detects zero-width characters (U+200B/200C/200D, or a mid-file U+FEFF), a curated set of Cyrillic/Greek characters
+  substituted inside an otherwise-Latin identifier (homoglyph/IDN-homograph pattern), or curly/smart quotes (a Python
+  SyntaxError as a string delimiter, so any occurrence sits inside a string literal''s content or a comment). Mechanical,
+  high-precision signals typical of text copy-pasted from a chat UI or a deliberate steganographic watermark.
+
+
+  Aggregated from 1 fingerprint hit(s) across 1 file(s). Sample paths: apps/foo/bar.py.'
+references:
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+author: WinstonRedGuard -- sigma plugin ai-fingerprint observed rules
+date: '2026-08-04'
+logsource:
+  category: code_review
+  product: wrg_ai_fingerprint
+detection:
+  selection:
+    detector: unicode_watermark
+    evidence|contains:
+    - 'zero-width char U+200B at column 10'
+  condition: selection
+falsepositives:
+- Genuine multilingual comments/strings in non-Latin script (flagged only when a confusable character is embedded inside
+  an otherwise-Latin word, not for bare non-Latin text)
+- Copy-pasted text from a word processor (smart quotes) with no AI involvement
+level: medium
+tags:
+- attack.t1027
+- attack.t1036
+- wrg.ai_fingerprint
+- wrg.detector.unicode_watermark
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.code_review

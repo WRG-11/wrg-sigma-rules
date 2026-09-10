@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/file", "cs-uri-query": "root=%2fetc%2fpasswd"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/file", "cs-uri-query": "path=readme.md"}}
+]

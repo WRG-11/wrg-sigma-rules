@@ -1,0 +1,56 @@
+title: Genesis (ransomware) — T1567 (base)
+name: wrg_5513072ea8ee56cf
+id: 5513072e-a8ee-56cf-a9bc-e8edb29bacfa
+status: test
+description: Base event match for Breach intel signature for actor genesis, MITRE
+  technique T1567. Derived from 2 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2025-09-08'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567
+---
+title: Genesis (ransomware) — T1567
+id: 07398270-d972-5acd-8275-4194f49d1890
+status: test
+description: Breach intel signature for actor genesis, MITRE technique T1567. Derived
+  from 2 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1567/
+- https://www.comparitech.com/news/new-ransomware-gang-genesis-claims-9-data-breaches-including-optometrist-and-grocer/
+- https://sosransomware.com/en/ransomware-groups/genesis-ransomware-the-emergence-of-a-new-player-in-digital-extortion-in-2025/
+- https://www.ransomware.live/group/genesis
+- https://attack.mitre.org/techniques/T1486/
+author: WRG Breach Intel — Phase 6
+date: '2025-09-08'
+correlation:
+  type: event_count
+  rules:
+  - wrg_5513072ea8ee56cf
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1567
+- wrg.observed
+- wrg.observed.actor.genesis
+- wrg.severity.high
+- wrg.correlation

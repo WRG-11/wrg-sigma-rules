@@ -1,0 +1,38 @@
+title: APT45 -- T1027
+id: eea38eb6-606c-5548-b0b1-36dfaf7b1c5d
+status: test
+description: Breach intel signature for actor apt45, MITRE technique T1027. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1027/
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-05-11'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_encoded_powershell:
+    Image|endswith:
+    - \powershell.exe
+    - \pwsh.exe
+    CommandLine|contains:
+    - ' -enc '
+    - ' -EncodedCommand '
+    - ' -e '
+  selection_long_base64_blob:
+    CommandLine|re: '[A-Za-z0-9+/]{200,}={0,2}'
+  filter_legit_sccm_installer_encoded_ps:
+    CommandLine|contains: ' -NoProfile -EncodedCommand '
+  condition: (selection_encoded_powershell or selection_long_base64_blob) and not
+    filter_legit_sccm_installer_encoded_ps
+falsepositives:
+- Commercial installers and licensing wrappers that ship packed or obfuscated payloads
+level: high
+tags:
+- attack.t1027
+- wrg.observed.actor.apt45
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.defense_evasion

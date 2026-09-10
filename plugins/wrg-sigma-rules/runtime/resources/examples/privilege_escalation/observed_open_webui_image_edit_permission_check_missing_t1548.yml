@@ -1,0 +1,66 @@
+title: Open WebUI image edit -- T1548 verified-account-only gate skips the global switch and per-user permission
+id: 0d9f8d5f-9303-4056-9bc9-0c7bda81fc3b
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59227 (GHSA-rqj7-6wrp-6g2g,
+  CVSS 4.3 MEDIUM), affecting Open WebUI from 0.8.11 before 0.10.0.
+
+  `POST /api/v1/images/edit` required only that the caller hold a
+  VERIFIED account -- it never checked either the deployment's global
+  image-edit feature switch (which an administrator may have turned off
+  entirely) or the per-user image-generation permission (which an
+  administrator may have denied to specific users or roles). Any
+  non-admin user who is merely verified -- the lowest bar for
+  authentication in the system -- can therefore invoke server-side
+  image editing using the administrator-configured provider credentials
+  (API keys for the image-editing backend), regardless of either
+  control the operator believed was gating the feature.
+
+  Detection logic flags a request to `/api/v1/images/edit` from a
+  non-admin, non-image-generation-permitted user -- the exact
+  permission-check gap this advisory describes; the endpoint's own
+  access model was "any verified account", not the operator's intended
+  "global switch AND per-user permission".
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact fix commit and PR), fixed in 0.10.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-rqj7-6wrp-6g2g
+- https://github.com/open-webui/open-webui/commit/e038bab66dec8d17212eec35b5cb6d6b785a4200
+- https://github.com/open-webui/open-webui/pull/26009
+- https://attack.mitre.org/techniques/T1548/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_image_edit_endpoint:
+    cs-uri-stem|contains: /api/v1/images/edit
+  selection_method_post:
+    cs-method: POST
+  condition: selection_image_edit_endpoint and selection_method_post
+falsepositives:
+- A deployment already upgraded to 0.10.0+, where the endpoint checks
+  both the global image-edit switch and the per-user permission before
+  proceeding -- a matching request from a permission-lacking user on a
+  fixed deployment would be rejected
+- A legitimate image-edit request from a user who genuinely holds the
+  image-generation permission on a deployment where the feature is
+  enabled -- this rule flags every request to the endpoint since HTTP
+  proxy logs typically cannot determine the caller's actual granted
+  permissions or the deployment's feature-switch state; correlate with
+  application-level authorization logs to confirm a permission-lacking
+  user actually reached the endpoint
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1548
+- wrg.observed.cve.cve_2026_59227
+- wrg.observed.source.open_webui_ghsa_rqj7_6wrp_6g2g
+- wrg.observed.vector.verified_account_only_gate
+- wrg.observed.vector.provider_credential_reuse_bypass
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.privilege_escalation

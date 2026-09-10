@@ -1,0 +1,14 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "Message": "query executed: COPY log(content) FROM PROGRAM 'id > /tmp/pwned';"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "Message": "query executed: SELECT id, content FROM log WHERE created_at > now() - interval '1 day';"
+    }
+  }
+]

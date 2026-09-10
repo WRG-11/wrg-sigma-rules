@@ -1,0 +1,55 @@
+title: TanStack npm supply chain worm -- 'Pwn Request' pull_request_target + Actions cache poisoning (2026-05-11)
+id: b280d272-0d65-5b46-9a40-66a3382e006e
+status: experimental
+description: 'Real npm supply chain compromise, first published by TanStack''s own official postmortem and independently technically
+  confirmed by Orca Security, InfoQ, and others -- all agreeing on the same specific attack chain, not just the same narrative.
+  Between 2026-05-11 19:20-19:26 UTC, an attacker published 84 malicious versions across 42 @tanstack/* npm packages (later
+  expanded, per Orca''s tracking, to 373 malicious versions across 169 npm packages and 2 PyPI packages).
+
+
+  Attack chain (cross-source confirmed by TanStack''s postmortem + Orca Security): (1) attacker opens a pull request from
+  a fork against a workflow configured with the dangerous ''pull_request_target'' trigger (the well-known ''Pwn Request''
+  class of GitHub Actions misconfiguration, which runs with the base repository''s elevated permissions and secrets even though
+  triggered by untrusted fork content); (2) the attacker poisons the GitHub Actions cache with a malicious pnpm store; (3)
+  when a legitimate maintainer''s later merge triggers the release workflow, the poisoned cache is restored and attacker-controlled
+  code extracts the workflow''s OIDC token directly from the runner process''s own memory (/proc/<pid>/mem); (4) the stolen
+  OIDC token -- never a stolen long-lived credential -- is used to publish malicious package versions with valid npm provenance
+  attestations, meaning provenance verification alone would not have caught this.
+
+
+  This rule targets the initiating, detectable event: a pull_request_target-triggered workflow run whose pull request originates
+  from a fork rather than the base repository -- the precondition every source agrees the attack chain requires.'
+references:
+- https://tanstack.com/blog/npm-supply-chain-compromise-postmortem
+- https://orca.security/resources/blog/tanstack-npm-supply-chain-worm/
+- https://attack.mitre.org/techniques/T1195.002/
+- https://attack.mitre.org/techniques/T1552/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-05'
+logsource:
+  product: github
+  service: audit
+detection:
+  selection_workflow_run:
+    action: workflow_run
+  selection_pwn_request_trigger:
+    workflow_ref|contains: pull_request_target
+  selection_fork_origin:
+    pull_request.head.repo.fork: 'true'
+  condition: selection_workflow_run and selection_pwn_request_trigger and selection_fork_origin
+falsepositives:
+- A deliberately-hardened pull_request_target workflow that already restricts itself to read-only permissions and never checks
+  out or executes fork content (the safe pattern) -- confirm the workflow's actual permission/checkout behavior before escalating
+- Bot-authored dependency-update PRs from forks on repositories that legitimately use pull_request_target for label/triage
+  automation only
+level: high
+tags:
+- attack.t1195.002
+- attack.t1552
+- wrg.observed.campaign.tanstack_pwn_request
+- wrg.observed.vector.github_actions_pull_request_target
+- wrg.observed.vector.actions_cache_poisoning
+- wrg.observed.vector.oidc_token_memory_extraction
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

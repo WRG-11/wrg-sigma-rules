@@ -1,0 +1,72 @@
+title: F5-TTS finetune -- T1005 project_name os.path.join absolute-path base-dir bypass
+id: cde84e76-a05f-4492-a06b-acbdd1fe3fd9
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-43624 (CVSS 8.8 HIGH), affecting
+  F5-TTS through version 1.1.20.
+
+  The finetune Gradio handlers passed a caller-supplied `project_name`
+  directly to `os.path.join(base, project_name)` across roughly ten
+  call sites (`save_settings`, `load_settings`, `create_data_project`,
+  and others), with no validation that the result stayed within the
+  intended base directory. Because `os.path.join` discards its first
+  argument entirely when the second is an absolute path, a
+  `project_name` of `/tmp/EVIL` resolves the join to `/tmp/EVIL` --
+  completely outside `base` -- letting an unauthenticated attacker create
+  arbitrary directories with attacker-controlled JSON content at any
+  filesystem path writable by the server process. The fix's own
+  before/after test: `project_name="/tmp/F5TTS_PWND_pinyin"` created that
+  exact directory before the patch, and raises
+  `ValueError: invalid project_name: '/tmp/F5TTS_PWND_pinyin'` after it.
+
+  Detection logic flags a finetune-handler request whose `project_name`
+  value is an absolute path (starts with `/` or a Windows drive letter)
+  or contains a `..` traversal segment -- the two shapes the advisory's
+  own fix (`_safe_project_path()`, adding early rejection of absolute
+  paths, null bytes, and path separators, plus a `realpath()` containment
+  check) specifically targets.
+
+  Aggregated from 1 first-party vendor fix (SWivid/F5-TTS, via the merged
+  PR quoting the vulnerable pattern, the ten affected call sites, and the
+  before/after PoC verbatim), fixed via the same PR (no release version
+  number stated beyond the commit).
+references:
+- https://github.com/SWivid/F5-TTS/commit/2f53ded68e5f69e248ceb200a51ef4d1dc647936
+- https://github.com/SWivid/F5-TTS/pull/1294
+- https://www.vulncheck.com/advisories/f5-tts-path-traversal-via-finetune-gradio-py-create-data-project
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_finetune_endpoint:
+    cs-uri-query|contains: project_name
+  selection_absolute_or_traversal_project_name:
+    cs-uri-query|contains:
+    - 'project_name=/'
+    - 'project_name=%2F'
+    - 'project_name=..'
+    - 'project_name=C:'
+  condition: selection_finetune_endpoint and selection_absolute_or_traversal_project_name
+falsepositives:
+- A deployment already upgraded to the version containing this fix, where
+  `_safe_project_path()` rejects absolute paths, null bytes, and path
+  separators before any file operation -- a matching request on a fixed
+  deployment raises a `ValueError` rather than creating the directory
+- A legitimate project name that happens to start with a character this
+  rule's substring match treats as path-like for unrelated reasons --
+  narrow in practice given the specific patterns matched
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_43624
+- wrg.observed.source.swivid_f5_tts_pr_1294
+- wrg.observed.vector.os_path_join_absolute_path_bypass
+- wrg.observed.vector.unauthenticated_arbitrary_directory_write
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.collection

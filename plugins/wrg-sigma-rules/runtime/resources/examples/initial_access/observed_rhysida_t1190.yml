@@ -1,0 +1,36 @@
+title: Rhysida -- T1190
+id: ed5ba15c-77b5-56ab-9430-ee7f8a1f02d6
+status: test
+description: Breach intel signature for actor rhysida, MITRE technique T1190. Derived
+  from 0 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1190/
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-319a
+- https://www.cisa.gov/sites/default/files/2025-04/aa23-319a-stopransomware-rhysida-ransomware_2.pdf
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-19'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_webshell:
+    ParentImage|endswith:
+    - \w3wp.exe
+    - \httpd.exe
+    - \nginx.exe
+    Image|endswith:
+    - \cmd.exe
+    - \powershell.exe
+    - \bash
+    - \sh
+  condition: selection_webshell
+falsepositives:
+- A legitimate patch-management or vulnerability-scanning tool spawning a shell
+  on the web-server host during authorized remediation work
+level: medium
+tags:
+- attack.t1190
+- wrg.observed.actor.rhysida
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access

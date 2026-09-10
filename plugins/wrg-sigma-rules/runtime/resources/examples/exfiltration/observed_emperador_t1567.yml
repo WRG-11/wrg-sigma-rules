@@ -1,0 +1,54 @@
+title: Emperador — T1567 (base)
+name: wrg_4de4546fb08a5b0b
+id: 4de4546f-b08a-5b0b-a017-6d7a1fed2152
+status: test
+description: Base event match for Breach intel signature for actor emperador, MITRE
+  technique T1567. Derived from 1 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-08-12'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567
+---
+title: Emperador — T1567
+id: ad999bef-99e5-5a00-b0d3-eebfa9671432
+status: test
+description: Breach intel signature for actor emperador, MITRE technique T1567. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1567/
+- https://www.dexpose.io/emperador-ransomware-attack-targets-city-government-of-baguio/
+- https://malware.news/t/emperador-ransomware-attack-targets-city-government-of-baguio/124791
+author: WRG Breach Intel — Phase 6
+date: '2026-08-12'
+correlation:
+  type: event_count
+  rules:
+  - wrg_4de4546fb08a5b0b
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1567
+- wrg.observed
+- wrg.observed.actor.emperador
+- wrg.severity.medium
+- wrg.correlation

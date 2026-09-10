@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Subject": "Security Alert: verify your account now", "URLs": "https://evil-example.net/verify/step1", "Sender": "it-support@random-domain.com"}},
+  {"expect_match": false, "event": {"Subject": "Security Alert: verify your account now", "URLs": "https://evil-example.net/verify/step1", "Sender": "noreply@docusign.net"}},
+  {"expect_match": false, "event": {"Subject": "Weekly team newsletter", "URLs": "https://intranet.company.com/news", "Sender": "hr@company.com"}}
+]

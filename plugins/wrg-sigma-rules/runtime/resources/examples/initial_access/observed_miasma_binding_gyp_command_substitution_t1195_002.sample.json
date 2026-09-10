@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"ParentImage": "C:\\Program Files\\nodejs\\npm.cmd", "CommandLine": "node-gyp rebuild --release"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Program Files\\nodejs\\npm.cmd", "CommandLine": "npm install express"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "node-gyp rebuild --release"}}
+]

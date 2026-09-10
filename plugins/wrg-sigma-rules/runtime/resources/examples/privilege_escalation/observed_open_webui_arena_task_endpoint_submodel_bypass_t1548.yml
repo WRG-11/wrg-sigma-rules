@@ -1,0 +1,68 @@
+title: Open WebUI task endpoints -- T1548 arena wrapper access reaches a restricted underlying model via bypass_filter
+id: 73793635-0700-495d-a11d-71ee39bb71de
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59225 (GHSA-m3qf-58wf-w979,
+  CVSS 5.4 MEDIUM), affecting Open WebUI from 0.8.12 before 0.10.0.
+
+  An "arena" model in Open WebUI is a wrapper that randomly routes a
+  request to one of several underlying models. The normal chat route
+  resolves which underlying model an arena request landed on BEFORE the
+  final dispatch, and re-checks that resolved model's own access
+  permission -- so a user with only arena-wrapper access cannot reach a
+  restricted underlying model through ordinary chat. Task endpoints such
+  as `/api/v1/tasks/moa/completions`, however, call
+  `utils.chat.generate_chat_completion()` DIRECTLY, a different code
+  path where arena-fallback resolution happens AFTER the wrapper's own
+  access check and then recurses with `bypass_filter=True` -- skipping
+  the underlying submodel's access check entirely. An authenticated
+  non-admin user with read access only to the arena wrapper can reach a
+  restricted model behind it, purely by using the task endpoint instead
+  of the normal chat route.
+
+  Detection logic flags a request to a task-completion endpoint
+  (`/api/v1/tasks/*/completions`) whose resolved model, after arena
+  fallback, is one the requesting user has NO direct access grant for --
+  the exact submodel-access-check skip this advisory describes.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact function and the `bypass_filter=True`
+  mechanism by name), fixed in 0.10.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-m3qf-58wf-w979
+- https://github.com/open-webui/open-webui/commit/dc4924b66e655b315e3be4430a3e51b7d5c20acc
+- https://github.com/open-webui/open-webui/pull/26046
+- https://attack.mitre.org/techniques/T1548/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_task_endpoint:
+    cs-uri-stem|re: '/api/v1/tasks/[^/]+/completions$'
+  condition: selection_task_endpoint
+falsepositives:
+- A deployment already upgraded to 0.10.0+, where the task-endpoint
+  path re-checks the resolved submodel's access permission the same way
+  the normal chat route does -- a matching request on a fixed
+  deployment targeting a restricted submodel would be rejected
+- A legitimate task-completion request against an arena wrapper whose
+  resolved underlying model the caller genuinely has access to -- this
+  rule flags every request to the task-completion endpoint pattern
+  since HTTP proxy logs typically cannot determine the arena-resolved
+  submodel or the caller's actual permission set; correlate with
+  application-level access-control logs to confirm an unauthorized
+  submodel was reached
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1548
+- wrg.observed.cve.cve_2026_59225
+- wrg.observed.source.open_webui_ghsa_m3qf_58wf_w979
+- wrg.observed.vector.alternate_path_bypass_filter_true
+- wrg.observed.vector.arena_wrapper_submodel_leak
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.privilege_escalation

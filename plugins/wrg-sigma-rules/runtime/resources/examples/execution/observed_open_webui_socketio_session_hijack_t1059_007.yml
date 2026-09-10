@@ -1,0 +1,71 @@
+title: Open WebUI -- T1059.007 caller-supplied session_id delivers code-interpreter events to another user
+id: 80c186be-d026-449c-b339-7127ce6eaa3c
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59216 (CVSS 7.7 HIGH), affecting
+  Open WebUI prior to 0.10.0.
+
+  `get_event_call()` delivers `execute:python` and `execute:tool`
+  Socket.IO events to whatever `session_id` a caller supplies, checking
+  only that the session is currently CONNECTED --
+  `if session_id not in SESSION_POOL: return {'error': ...}` -- never
+  whether the session belongs to the requesting caller. A victim's live
+  `session_id` is separately disclosed to any read-access participant of
+  a shared document via the `ydoc:document:join` event. Chained: an
+  attacker (1) shares a document with the victim to learn the victim's
+  `session_id` via `ydoc:document:join`, then (2) sends
+  `POST /api/v1/chat/completions` with the victim's `session_id` embedded
+  in the request body, causing the server to deliver an
+  `execute:python`/`execute:tool` event to the VICTIM's browser session --
+  running the attacker's code interpreter payload as the victim (full RCE
+  if the victim holds admin privileges).
+
+  Detection logic flags the discriminating half of this chain that a log
+  source can actually observe: a chat-completions request whose body
+  carries a `session_id` value that does NOT match the session the
+  HTTP/WebSocket connection itself authenticated as -- the fix's own
+  remediation is exactly this ownership check
+  (`session.get('id') != request_info.get('user_id')`), so a mismatch on
+  an unpatched deployment is the vulnerability's precise trigger.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, which quotes both the vulnerable code and the fix's
+  ownership-check logic), fixed in 0.10.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-74h3-cxq7-vc5q
+- https://github.com/open-webui/open-webui/pull/25763
+- https://attack.mitre.org/techniques/T1059/007/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_chat_completions_endpoint:
+    Message|contains: /api/v1/chat/completions
+  selection_foreign_session_id_field:
+    Message|contains: session_id
+  filter_session_owner_match:
+    Message|contains: 'session_owner_match: true'
+  condition: selection_chat_completions_endpoint and selection_foreign_session_id_field and not filter_session_owner_match
+falsepositives:
+- A deployment already upgraded to 0.10.0+, where the ownership check
+  rejects a `session_id` that doesn't belong to the requesting user --
+  such a request would be logged as rejected, not delivered
+- This rule's `session_owner_match` marker is illustrative, approximating
+  what a hardened build's own logging might record -- the advisory
+  documents the vulnerable CODE PATH, not a specific log line format;
+  deploying this rule requires adapting it to whatever Open WebUI's
+  actual application logs capture for this request shape
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1059.007
+- wrg.observed.cve.cve_2026_59216
+- wrg.observed.source.open_webui_ghsa_74h3_cxq7_vc5q
+- wrg.observed.vector.caller_supplied_session_id
+- wrg.observed.vector.ydoc_session_id_disclosure
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

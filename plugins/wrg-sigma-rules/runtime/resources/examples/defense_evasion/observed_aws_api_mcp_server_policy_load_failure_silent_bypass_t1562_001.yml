@@ -1,0 +1,74 @@
+title: AWS API MCP Server -- T1562.001 a startup policy-load failure silently disables the per-request security-policy gate for the process lifetime
+id: a213c435-4657-4089-b293-041b2c3d4e5f
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-16584 (GHSA-29w2-fq35-v728),
+  affecting `awslabs.aws-api-mcp-server` >= 0.2.13 and < 1.3.47.
+
+  `SecurityPolicy._load_policy()` in
+  `awslabs/aws_api_mcp_server/core/security/policy.py` reads the
+  operator-configured deny/gate policy file at startup inside a
+  try/except that, on any parse or read failure, calls
+  `logger.error('Failed to load security policy from {}: {}',
+  policy_path, e)` and then simply continues -- the denylist and elicit
+  list stay at their empty initial values, and nothing downstream
+  checks whether the load actually succeeded. The per-request policy
+  check that consults these lists is then silently skipped for the
+  entire lifetime of the process: configured deny and gate rules are
+  never enforced, and AWS API operations the operator intended to
+  restrict execute without that gate. The underlying IAM permissions on
+  the configured credentials remain in effect and continue to bound
+  what the server can do -- this is specifically a bypass of the
+  policy-file gate layered on top of IAM, not of IAM itself.
+
+  Detection logic flags the exact logged failure message
+  `Failed to load security policy from` at MCP server startup -- the
+  literal signal this advisory's source confirms is emitted when the
+  vulnerable version enters the silently-unenforced state -- as a
+  precondition alert requiring operator investigation into whether the
+  degraded process is still serving requests.
+
+  Aggregated from 1 first-party vendor security advisory (AWS, via
+  GHSA and NVD) plus the actual current source
+  (`awslabs/mcp:src/aws-api-mcp-server/.../core/security/policy.py`)
+  confirming the exact log message text this rule matches on, fixed in
+  1.3.47.
+references:
+- https://github.com/awslabs/mcp/security/advisories/GHSA-29w2-fq35-v728
+- https://github.com/awslabs/mcp/blob/main/src/aws-api-mcp-server/awslabs/aws_api_mcp_server/core/security/policy.py
+- https://attack.mitre.org/techniques/T1562/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ""
+detection:
+  selection_policy_load_failure_log:
+    Message|contains: 'Failed to load security policy from'
+  condition: selection_policy_load_failure_log
+falsepositives:
+- A deployment already upgraded to 1.3.47+, where a policy-load failure
+  either fails the server closed or otherwise stops per-request
+  operations from proceeding without enforcement -- the log line on a
+  fixed deployment no longer implies the process continues silently
+  unprotected
+- A deployment with no security policy file configured at all -- that
+  case logs a distinct `No security policy file found at {}, not
+  applying any additional security policies` warning, not the error
+  this rule matches, and represents an intentional no-policy
+  configuration rather than a load failure
+- Pattern library v1 -- a single occurrence of this log line at startup
+  is the complete signal the advisory documents; correlate with
+  subsequent AWS API calls executed by the same process to determine
+  whether an operation the intended policy would have denied actually
+  ran
+level: medium
+tags:
+- attack.t1562.001
+- wrg.observed.cve.cve_2026_16584
+- wrg.observed.source.aws_api_mcp_server_ghsa_29w2_fq35_v728
+- wrg.observed.vector.fail_open_on_startup_load_error
+- wrg.observed.vector.silent_process_lifetime_bypass
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.defense_evasion

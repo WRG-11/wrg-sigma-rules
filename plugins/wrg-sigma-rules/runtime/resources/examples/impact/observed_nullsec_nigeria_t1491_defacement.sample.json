@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"TargetFilename": "C:\\inetpub\\wwwroot\\index.aspx", "Image": "C:\\Windows\\System32\\cmd.exe"}},
+  {"expect_match": true, "event": {"TargetFilename": "/var/www/html/index.php", "Image": "/usr/bin/bash"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\inetpub\\wwwroot\\index.aspx", "Image": "C:\\Windows\\System32\\inetsrv\\w3wp.exe"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\Users\\dev\\Documents\\notes.txt", "Image": "C:\\Windows\\System32\\cmd.exe"}}
+]

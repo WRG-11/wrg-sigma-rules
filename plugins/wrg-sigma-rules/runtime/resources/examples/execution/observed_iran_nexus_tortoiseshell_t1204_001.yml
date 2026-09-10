@@ -1,0 +1,46 @@
+title: Iran-nexus Tortoiseshell (Imperial Kitten / TA456) recruitment-deception cluster
+  — T1204.001
+id: 445f61ce-f2f1-5605-b652-0180148b4a58
+status: test
+description: Breach intel signature for actor iran_nexus_tortoiseshell, MITRE technique
+  T1204.001. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1204/001/
+- https://attack.mitre.org/groups/G0107/
+- https://about.fb.com/news/2021/07/taking-action-against-hackers-in-iran/
+- https://www.proofpoint.com/us/blog/threat-insight/i-knew-you-were-trouble-ta456-targets-defense-contractor-alluring-social-media
+author: WRG Breach Intel — Phase 6
+date: '2021-07-08'
+logsource:
+  category: proxy
+  product: windows
+detection:
+  selection_link_click_msg_referer:
+    cs-referer|contains:
+    - outlook.com
+    - mail.google.com
+    - linkedin.com/messaging
+    - linkedin.com/in/
+    - twitter.com/messages
+    - facebook.com/messages
+    - web.whatsapp.com
+    - signal.org
+    cs-host|re: .*(verify|secure|update|reset|signin|login|recovery|unlock|account|portal)[-.].*
+  filter_corporate_collab:
+    cs-host|endswith:
+    - .sharepoint.com
+    - .slack.com
+    - .teams.microsoft.com
+    - .zoom.us
+    - .atlassian.net
+    - .docusign.net
+    - .adobesign.com
+  condition: selection_link_click_msg_referer and not filter_corporate_collab
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: medium
+tags:
+- attack.t1204.001
+- wrg.observed
+- wrg.observed.actor.iran_nexus_tortoiseshell
+- wrg.severity.medium

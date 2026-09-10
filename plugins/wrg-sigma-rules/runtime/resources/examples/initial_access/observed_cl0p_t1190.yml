@@ -1,0 +1,38 @@
+title: Cl0p -- T1190
+id: fba2a6a6-1028-5e63-aaf6-c9067f594b6b
+status: test
+description: Breach intel signature for actor cl0p, MITRE technique T1190. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1190/
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-158a
+- https://www.mandiant.com/resources/blog/zero-day-moveit-data-theft
+- https://attack.mitre.org/groups/G0092/
+- https://www.progress.com/security/moveit-transfer-and-moveit-cloud-vulnerability
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2023-06-15'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_webshell:
+    ParentImage|endswith:
+    - \w3wp.exe
+    - \httpd.exe
+    - \nginx.exe
+    Image|endswith:
+    - \cmd.exe
+    - \powershell.exe
+    - \bash
+    - \sh
+  condition: selection_webshell
+falsepositives:
+- Authorized vulnerability-remediation tooling spawning a shell on a file-transfer
+  appliance during a scheduled patch window
+level: high
+tags:
+- attack.t1190
+- wrg.observed.actor.cl0p
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

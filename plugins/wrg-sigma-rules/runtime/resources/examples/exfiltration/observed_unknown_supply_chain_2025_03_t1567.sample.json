@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"DestinationHostname": "file.io"}},
+  {"expect_match": false, "event": {"DestinationHostname": "www.microsoft.com"}}
+]

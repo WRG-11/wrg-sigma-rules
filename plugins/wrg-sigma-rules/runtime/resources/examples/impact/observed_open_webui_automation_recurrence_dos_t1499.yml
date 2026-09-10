@@ -1,0 +1,67 @@
+title: Open WebUI automation recurrence -- T1499 fixed-epoch minutely rule walks ~25 years synchronously
+id: d9396552-574d-426e-958d-776827964339
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70489 (GHSA-73cq-mcgh-379c,
+  CVSS 6.5 MEDIUM), affecting Open WebUI from 0.9.0 until 0.11.0.
+
+  Automation recurrence parsing (`backend/open_webui/utils/automations.py`)
+  anchored MINUTELY and HOURLY rules at a fixed epoch date of
+  `2000-01-01` and walked forward one interval at a time to find the next
+  run relative to now. A single user-submitted `FREQ=MINUTELY` automation
+  rule therefore enumerates roughly a QUARTER-CENTURY of occurrences,
+  one minute at a time, SYNCHRONOUSLY on the same event loop that also
+  serves scheduler, HTTP, and WebSocket traffic for every other user of
+  the instance. Worse, the scheduler recomputes this same walk for every
+  claimed row on each poll cycle -- a single malicious automation rule
+  degrades or blocks the entire instance's responsiveness for all users,
+  not just its own creator.
+
+  Detection logic flags the creation of an automation with a
+  `FREQ=MINUTELY` or `FREQ=HOURLY` recurrence rule -- the specific rule
+  granularity the fixed-epoch walk makes catastrophically expensive; a
+  `FREQ=DAILY` or coarser rule does not trigger the same magnitude of
+  enumeration.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact source file), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-73cq-mcgh-379c
+- https://github.com/open-webui/open-webui/commit/c4ae8c86786fed521960466f6d8eef8af22c2946
+- https://attack.mitre.org/techniques/T1499/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_automation_create:
+    Message|contains: automation
+  selection_minutely_or_hourly_freq:
+    Message|contains:
+    - FREQ=MINUTELY
+    - FREQ=HOURLY
+  condition: selection_automation_create and selection_minutely_or_hourly_freq
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where recurrence parsing no
+  longer anchors at a fixed distant epoch -- a `FREQ=MINUTELY` rule on a
+  fixed deployment computes the next run efficiently, without the
+  quarter-century walk
+- A legitimate automation that genuinely needs minutely/hourly
+  recurrence -- this rule flags every such rule creation since it cannot
+  distinguish intent from recurrence granularity alone; on an unpatched
+  deployment, EVERY minutely/hourly rule is expensive by construction,
+  not only malicious ones, so this is closer to a configuration-risk
+  signal than an attack-only one
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1499
+- wrg.observed.cve.cve_2026_70489
+- wrg.observed.source.open_webui_ghsa_73cq_mcgh_379c
+- wrg.observed.vector.fixed_epoch_recurrence_walk
+- wrg.observed.vector.event_loop_blocking_dos
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

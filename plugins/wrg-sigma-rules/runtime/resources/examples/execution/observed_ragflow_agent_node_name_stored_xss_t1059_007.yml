@@ -1,0 +1,76 @@
+title: RAGFlow agent pipeline -- T1059.007 unsanitized DSL node name stored XSS via dangerouslySetInnerHTML
+id: 1071eb98-4ddb-4d58-973d-73cbd1b4131d
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-58579 (CVSS 5.1 MEDIUM),
+  affecting RAGFlow before 0.26.3.
+
+  The agent-update endpoint normalizes a submitted agent pipeline (DSL)
+  via `normalize_dsl`, which performs only JSON serialization validation
+  and preserves the submitted NODE NAME verbatim -- no HTML
+  encoding/escaping. The `dataflow-result` web UI later renders that node
+  name into its "Rerun from current step" confirmation modal via
+  `dangerouslySetInnerHTML`, and the frontend's i18next configuration sets
+  `escapeValue: false`, so the unsanitized value is inserted straight
+  into the DOM. An authenticated workspace user who can create or edit an
+  agent can therefore store arbitrary JavaScript in a node name; it
+  executes in the session of ANY OTHER workspace member who opens that
+  dataflow result and clicks rerun -- a stored cross-user-trust-boundary
+  XSS enabling session/token theft and account takeover, not merely a
+  self-XSS. The advisory does not quote a specific payload string; the
+  vulnerable mechanism (unsanitized field -> `dangerouslySetInnerHTML` ->
+  `escapeValue: false`) is what this rule keys on, not a literal example.
+
+  Detection logic flags an agent-DSL update whose node-name field
+  contains HTML/JS-injection markup (an opening tag with an event-handler
+  attribute, or a `<script>` tag) -- ordinary node names are short,
+  human-chosen labels with no legitimate reason to contain markup.
+
+  Aggregated from 1 first-party vendor fix (infiniflow/ragflow, via the
+  merged fix commit and VulnCheck's corroborating write-up), fixed in
+  0.26.3.
+references:
+- https://github.com/infiniflow/ragflow/commit/572f1ea9f4eba6a60e64f7437dee60aa1c0913f1
+- https://github.com/infiniflow/ragflow/issues/16507
+- https://www.vulncheck.com/advisories/ragflow-stored-cross-site-scripting-via-agent-pipeline-node-name
+- https://attack.mitre.org/techniques/T1059/007/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: ragflow
+detection:
+  selection_agent_update_context:
+    Message|contains: normalize_dsl
+  selection_html_injection_markup:
+    Message|contains:
+    - '<img'
+    - '<script'
+    - '<svg'
+    - onerror=
+    - onload=
+    - 'javascript:'
+  condition: selection_agent_update_context and selection_html_injection_markup
+falsepositives:
+- A deployment already upgraded to 0.26.3+, where the fix presumably
+  HTML-encodes the node name or removes `dangerouslySetInnerHTML` from
+  the rerun-confirmation render path -- a matching submission on a fixed
+  deployment would render as inert text rather than executing
+- A legitimate node name that happens to describe HTML/markup content in
+  prose for documentation purposes -- narrow in practice given typical
+  node-naming conventions, but not impossible in a tutorial or
+  demonstration workspace
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of the actual
+  DSL/node-name content submitted, which most infrastructure log sources
+  do not capture by default
+level: medium
+tags:
+- attack.t1059.007
+- wrg.observed.cve.cve_2026_58579
+- wrg.observed.source.infiniflow_commit_572f1ea9_vulncheck
+- wrg.observed.vector.unsanitized_field_dangerously_set_inner_html
+- wrg.observed.vector.cross_user_trust_boundary_xss
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.execution

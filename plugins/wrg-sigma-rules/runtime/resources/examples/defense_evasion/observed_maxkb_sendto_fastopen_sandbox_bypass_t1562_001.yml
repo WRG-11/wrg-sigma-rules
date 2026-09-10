@@ -1,0 +1,67 @@
+title: MaxKB code sandbox -- T1562.001 sendto()+MSG_FASTOPEN bypasses LD_PRELOAD connect() hook
+id: 793358d6-34e9-48f8-b678-141f2f95d7d7
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-39418 (GHSA-w9g4-q3gm-6q6w), a
+  self-reported advisory for MaxKB, an open-source enterprise AI
+  assistant, affecting versions 2.7.1 and below.
+
+  MaxKB's code sandbox enforces its banned-hosts network policy by using
+  `LD_PRELOAD` to intercept `connect()` -- every outbound connection
+  attempt is checked against the blocklist before the real syscall runs.
+  The advisory identifies the gap: Linux's `sendto()` with the
+  `MSG_FASTOPEN` flag establishes a TCP connection entirely at the kernel
+  level, without userspace ever calling `connect()`. Because glibc's
+  `sendto()` invokes the kernel via an inline syscall instruction rather
+  than routing through the hooked `syscall()` wrapper, the `LD_PRELOAD`
+  interception never fires, and an authenticated user with tool-editing
+  permissions can reach internal services the sandbox's IP-blocklist was
+  supposed to make unreachable.
+
+  Detection logic flags the specific syscall pattern this bypass depends
+  on: a `sendto()` invocation carrying the `MSG_FASTOPEN` flag from a
+  process running inside the sandbox's execution context -- ordinary
+  sandboxed code has no legitimate reason to use TCP Fast Open, since the
+  sandbox's own network policy assumes every connection goes through
+  `connect()` first.
+
+  Aggregated from 1 first-party vendor security advisory (1Panel-dev, via
+  GHSA and NVD), fixed in 2.8.0. The advisory's own stated fix direction:
+  apply the same IP-validation pattern already used for `connect()` to
+  `sendto()` and `sendmsg()` as well.
+references:
+- https://github.com/1Panel-dev/MaxKB/security/advisories/GHSA-w9g4-q3gm-6q6w
+- https://github.com/1Panel-dev/MaxKB/commit/4d06362750b15390437f1d2e4d14ec79baef8559
+- https://attack.mitre.org/techniques/T1562/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_sandbox_context:
+    ParentCommandLine|contains: maxkb
+  selection_fastopen_syscall_trace:
+    CommandLine|contains: MSG_FASTOPEN
+  condition: selection_sandbox_context and selection_fastopen_syscall_trace
+falsepositives:
+- A deployment already upgraded to 2.8.0+, where `sendto()`/`sendmsg()`
+  carry the same IP-validation the fix applies -- a matching syscall on a
+  fixed deployment would be rejected rather than reaching a banned host
+- This rule requires syscall-level tracing (e.g. auditd, eBPF) to observe
+  the `MSG_FASTOPEN` flag at all -- ordinary process-creation/command-line
+  logging (Sysmon and equivalents) does not capture socket flags, so most
+  log sources cannot populate this selection; treat this as a template
+  for whatever syscall-audit tooling a given environment actually runs
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1562.001
+- wrg.observed.cve.cve_2026_39418
+- wrg.observed.source.1panel_dev_ghsa_w9g4_q3gm_6q6w
+- wrg.observed.vector.ld_preload_hook_bypass
+- wrg.observed.vector.tcp_fast_open_syscall_evasion
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.defense_evasion

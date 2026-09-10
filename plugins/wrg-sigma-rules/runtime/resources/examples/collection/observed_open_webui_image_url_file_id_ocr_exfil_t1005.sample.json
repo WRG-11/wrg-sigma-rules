@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "chat completions body {\"image_url\":{\"url\":\"f-victim-abc123\"}}"}},
+  {"expect_match": false, "event": {"Message": "chat completions body {\"image_url\":{\"url\":\"https://example.com/img.png\"}}"}}
+]

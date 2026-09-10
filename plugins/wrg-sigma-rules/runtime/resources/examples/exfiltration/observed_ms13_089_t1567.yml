@@ -1,0 +1,55 @@
+title: MS13-089 — T1567 (base)
+name: wrg_1707f599cc255b87
+id: 1707f599-cc25-5b87-b7c6-86bcaed942ca
+status: test
+description: Base event match for Breach intel signature for actor ms13_089, MITRE
+  technique T1567. Derived from 1 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2025-12-18'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567
+---
+title: MS13-089 — T1567
+id: 79e57389-3dad-5d3a-82f8-ab62b10ffb45
+status: test
+description: Breach intel signature for actor ms13_089, MITRE technique T1567. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1567/
+- https://www.redhotcyber.com/en/post/ms13-089-ransomware-double-extortion-without-encryption/
+- https://www.watchguard.com/wgrd-security-hub/ransomware-tracker/ms13-089
+- https://www.hendryadrian.com/ms13-089-ransomware-hits-virginia-urology-and-dgp-commercialisti/
+author: WRG Breach Intel — Phase 6
+date: '2025-12-18'
+correlation:
+  type: event_count
+  rules:
+  - wrg_1707f599cc255b87
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1567
+- wrg.observed
+- wrg.observed.actor.ms13_089
+- wrg.severity.high
+- wrg.correlation

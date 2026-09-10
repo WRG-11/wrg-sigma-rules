@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\pwsh.exe", "CommandLine": "pwsh.exe -e SGVsbG8gV29ybGQh"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -NoProfile -EncodedCommand SGVsbG8="}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "dir C:\\"}}
+]

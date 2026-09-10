@@ -1,0 +1,42 @@
+title: Qilin -- T1555
+id: f85540e1-5e73-545a-91b3-5745cfc2e00a
+status: test
+description: Breach intel signature for actor qilin, MITRE technique T1555. Derived
+  from 9 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1555/
+- https://www.microsoft.com/en-us/security/blog/2024/07/18/microsoft-defender-threat-intelligence-tracks-qilin-ransomware/
+- https://www.bleepingcomputer.com/news/security/qilin-ransomware-attacks-synnovis-pathology-lab-disrupting-london-hospitals/
+- https://attack.mitre.org/software/S1133/
+- https://www.synnovis.co.uk/about-us/cyber-incident
+- https://www.bbc.co.uk/news/articles/cd11n0r1rr4o
+- https://www.ransomware.live/id/QXZjb24gSmV0QHFpbGlu
+- https://www.ransomware.live/id/Q2VudHJhbCBGbG9yaWRhIENvc21ldGljICYgRmFtaWx5IERlbnRpc3RyeUBxaWxpbg==
+- https://www.ransomware.live/id/Q2xpbmljYSBNYWl0ZW5lc0BxaWxpbg==
+- https://www.ransomware.live/id/SU5URVJTUEEgQmV0cmllYnN2ZXJ3YWx0dW5nc2dlc2VsbHNjaGFmdEBxaWxpbg==
+- https://www.ransomware.live/id/SmF5J3MgQ2F0ZXJpbmdAcWlsaW4=
+- https://www.ransomware.live/id/T250YXJpbyBIb21lIEJ1aWxkZXJzJyBBc3NvY2lhdGlvbkBxaWxpbg==
+- https://www.ransomware.live/id/U3dpbS1Nb3IgUG9vbHNAcWlsaW4=
+- https://www.ransomware.live/id/VHJpY2FuQHFpbGlu
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-05'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_browser_creds:
+    TargetFilename|contains:
+    - \Google\Chrome\User Data\
+    - \Microsoft\Edge\User Data\
+    - \Mozilla\Firefox\Profiles\
+  condition: selection_browser_creds
+falsepositives:
+- Password-manager sync clients or IT-sanctioned browser-profile migration tooling
+  reading the same Chrome/Edge/Firefox credential store paths
+level: high
+tags:
+- attack.t1555
+- wrg.observed.actor.qilin
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.credential_access

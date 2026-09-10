@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "/usr/bin/git", "CommandLine": "git rebase --exec=id main", "ParentImage": "/opt/gogs/gogs"}},
+  {"expect_match": false, "event": {"Image": "/usr/bin/git", "CommandLine": "git rebase --exec \"make test\" main", "ParentImage": "/usr/bin/bash"}},
+  {"expect_match": false, "event": {"Image": "/usr/bin/git", "CommandLine": "git rebase main", "ParentImage": "/opt/gogs/gogs"}}
+]

@@ -1,0 +1,57 @@
+title: KryBit -- T1567 (base)
+name: krybit_t1567_exfil_host_base
+id: 548abbf2-b176-5f88-a3bf-371fd47422f3
+status: test
+description: Base event match for the KryBit T1567 exfil-host burst correlation below
+  -- a single connection to a listed exfil host, on its own, is not the alert.
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-06'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567
+---
+title: KryBit -- T1567
+id: 6760a56a-40a2-5deb-a807-d20cd6b9dc18
+status: test
+description: Breach intel signature for actor krybit, MITRE technique T1567. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1567/
+- https://www.halcyon.ai/ransomware-research-reports/0apt-vs-krybit-ransomware-actors-list-opposing-operators-as-victims
+- https://www.infosecurity-magazine.com/news/ransomware-turf-war-0apt-krybit/
+- https://attack.mitre.org/techniques/T1486/
+- https://www.ransomware.live/id/aHVhc2hhbi5jb20uY25Aa3J5Yml0
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-06'
+correlation:
+  type: event_count
+  rules:
+  - krybit_t1567_exfil_host_base
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gt: 3
+falsepositives:
+- Backup software uploading encrypted archives to a sanctioned cloud endpoint that
+  happens to share infrastructure with a listed exfil host
+level: informational
+tags:
+- attack.t1567
+- wrg.observed.actor.krybit
+- wrg.severity.informational
+- wrg.correlation
+- wrg.observed
+- wrg.tactic.exfiltration

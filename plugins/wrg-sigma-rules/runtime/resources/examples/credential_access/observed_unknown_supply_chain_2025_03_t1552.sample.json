@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/getPassword", "cs-user-agent": "python-requests/2.31"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/getPassword", "cs-user-agent": "Mozilla/5.0 Chrome/120.0"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/index.html", "cs-user-agent": "python-requests/2.31"}}
+]

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"TargetFilename": "/models/malicious.ckpt", "Image": "/usr/local/bin/stable-diffusion"}},
+  {"expect_match": false, "event": {"TargetFilename": "/models/checkpoint.safetensors", "Image": "/usr/local/bin/stable-diffusion"}}
+]

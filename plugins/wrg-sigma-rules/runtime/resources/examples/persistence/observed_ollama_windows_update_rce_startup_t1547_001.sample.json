@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"TargetFilename": "C:\\Users\\victim\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\update-helper.exe", "Image": "C:\\Users\\victim\\AppData\\Local\\Programs\\Ollama\\ollama-updater.exe"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\Users\\victim\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\dropbox.exe", "Image": "C:\\Program Files\\Dropbox\\Update\\DropboxUpdate.exe"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\Program Files\\Ollama\\ollama.exe", "Image": "C:\\Users\\victim\\AppData\\Local\\Programs\\Ollama\\ollama-updater.exe"}}
+]

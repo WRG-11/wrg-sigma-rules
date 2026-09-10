@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"EventID": 4624, "LogonType": 10}},
+  {"expect_match": false, "event": {"EventID": 4624, "LogonType": 3}},
+  {"expect_match": false, "event": {"EventID": 4634, "LogonType": 10}}
+]

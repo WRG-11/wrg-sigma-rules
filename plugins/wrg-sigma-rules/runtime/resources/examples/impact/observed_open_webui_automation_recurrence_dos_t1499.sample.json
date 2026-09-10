@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "automation created rrule=FREQ=MINUTELY;INTERVAL=1"}},
+  {"expect_match": false, "event": {"Message": "automation created rrule=FREQ=DAILY;INTERVAL=1"}}
+]

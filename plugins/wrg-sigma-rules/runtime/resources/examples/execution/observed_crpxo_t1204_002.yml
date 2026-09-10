@@ -1,0 +1,45 @@
+title: CRPxO -- T1204.002
+id: 204dd9b9-9e82-5185-b6a3-6ad1deebd834
+status: test
+description: Breach intel signature for actor crpxo, MITRE technique T1204.002. Derived
+  from 0 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1204/002/
+- https://socradar.io/free-tools/ransomware-intelligence/groups/crpxo
+- https://cyberpress.org/crpx0-ransomware-claims-hyundai-turkey-breach/
+- https://www.scworld.com/brief/new-crpx0-malware-campaign-uses-onlyfans-lure-for-crypto-theft-and-ransomware
+- https://www.ransomware.live/group/CRPxO
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-19'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_downloaded_file:
+    Image|contains:
+    - \Downloads\
+    - \Temp\Temporary Internet Files\
+    Image|endswith:
+    - .exe
+    - .msi
+    - .scr
+    - .bat
+    - .vbs
+  selection_browser_or_mail_parent:
+    ParentImage|endswith:
+    - \chrome.exe
+    - \msedge.exe
+    - \firefox.exe
+    - \outlook.exe
+    - \explorer.exe
+  condition: selection_downloaded_file and selection_browser_or_mail_parent
+falsepositives:
+- A user opening a legitimate ZIP/LNK attachment or download link sent by IT (e.g.
+  a scripted deployment package) that the browser or mail client then executes
+level: medium
+tags:
+- attack.t1204.002
+- wrg.observed.actor.crpxo
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.execution

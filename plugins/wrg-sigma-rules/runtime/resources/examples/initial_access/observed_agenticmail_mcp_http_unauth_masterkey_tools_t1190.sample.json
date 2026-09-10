@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/mcp", "cs-uri-query": "tool=delete_agent"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/mcp", "cs-uri-query": "tool=delete_agent", "cs(Authorization)": "Bearer op-token"}}
+]

@@ -1,0 +1,58 @@
+title: Shai-Hulud (npm worm) — T1567 (base)
+name: wrg_e028bab089435829
+id: e028bab0-8943-5829-9159-a9a867f0e147
+status: test
+description: Base event match for Breach intel signature for actor shai_hulud_npm_worm,
+  MITRE technique T1567. Derived from 1 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-06-03'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567
+---
+title: Shai-Hulud (npm worm) — T1567
+id: ee746ebc-9cf3-5996-880b-907c2e635ff5
+status: test
+description: Breach intel signature for actor shai_hulud_npm_worm, MITRE technique
+  T1567. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1567/
+- https://www.stepsecurity.io/blog/binding-gyp-npm-supply-chain-attack-spreads-like-worm
+- https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/
+- https://unit42.paloaltonetworks.com/npm-supply-chain-attack/
+- https://snyk.io/blog/node-gyp-supply-chain-compromise-self-propagating-npm-worm-binding-gyp/
+- https://attack.mitre.org/techniques/T1195/002/
+- https://cybersecuritynews.com/binding-gyp-supply-chain-attack-compromises-dozens-of-npm-packages/
+author: WRG Breach Intel — Phase 6
+date: '2026-06-03'
+correlation:
+  type: event_count
+  rules:
+  - wrg_e028bab089435829
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1567
+- wrg.observed
+- wrg.observed.actor.shai_hulud_npm_worm
+- wrg.severity.high
+- wrg.correlation

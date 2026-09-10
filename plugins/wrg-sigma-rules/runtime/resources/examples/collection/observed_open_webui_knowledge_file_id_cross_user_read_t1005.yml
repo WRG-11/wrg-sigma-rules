@@ -1,0 +1,60 @@
+title: Open WebUI inline model metadata -- T1005 known file id returns another user's knowledge chunks
+id: 2fde7d1e-1e41-44e5-a834-50d2995b2d54
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70487 (GHSA-6xhv-rxhv-pwm4,
+  CVSS 5.3 MEDIUM), affecting Open WebUI from 0.8.8 until 0.11.0.
+
+  Inline direct model metadata accepted client-supplied knowledge
+  attachments without filtering them against the CALLER's read access.
+  Any authenticated user who simply knew another user's file id -- ids
+  that are often sequential or otherwise guessable -- could have the
+  built-in knowledge tools return indexed chunks from that file, a
+  read-only cross-user confidentiality loss. Knowledge-base-level
+  permissions and saved-workspace model validation were unaffected; the
+  gap was specifically in the inline-attachment path bypassing the
+  per-file read check the rest of the system enforces.
+
+  Detection logic flags a chat/completion request whose inline knowledge
+  attachment references a file id NOT owned by (or shared with) the
+  authenticated caller -- the exact authorization check the vulnerable
+  path skipped.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact fix commit), fixed in 0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-6xhv-rxhv-pwm4
+- https://github.com/open-webui/open-webui/commit/305880f2e2aeb2dda2f4b2a18a20bdcd558f7134
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_inline_knowledge_attachment:
+    Message|contains: knowledge
+  selection_foreign_file_id_access:
+    Message|contains: 'authorized: false'
+  condition: selection_inline_knowledge_attachment and selection_foreign_file_id_access
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where inline attachments are
+  filtered against the caller's read access before chunks are returned
+  -- a matching request on a fixed deployment would be rejected
+- 'This rule''s "authorized: false" marker is illustrative, approximating
+  what a hardened build''s own access-check logging might record -- the
+  advisory documents the vulnerable CODE PATH (missing filter), not a
+  specific log line format; deploying this rule requires adapting it to
+  whatever Open WebUI''s actual application logs capture'
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_70487
+- wrg.observed.source.open_webui_ghsa_6xhv_rxhv_pwm4
+- wrg.observed.vector.inline_attachment_missing_read_filter
+- wrg.observed.vector.guessable_file_id_cross_user_read
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.collection

@@ -1,0 +1,95 @@
+title: Miasma npm worm -- T1567.001 GitHub GraphQL commit injection + themed-repo credential exfiltration
+id: 0bce09f3-6639-47d7-b2b9-bda371eb7335
+status: experimental
+description: |
+  Campaign-bound sigma detection for the propagation and exfiltration stage
+  of the "Miasma" / "Phantom Gyp" npm supply-chain worm (StepSecurity + Snyk
+  disclosure, 2026-06-03). After the `binding.gyp` code-execution stage
+  (sister rule `observed_miasma_binding_gyp_command_substitution_t1195_002`)
+  harvests npm/GitHub/cloud credentials, the worm uses the stolen GitHub
+  token two ways:
+
+  (1) Self-propagation: injects a commit into any reachable GitHub Actions
+  workflow via the GitHub GraphQL API's `createCommitOnBranch` mutation
+  (POST to `api.github.com/graphql`) -- not a plain `git push`, which is
+  the detection-relevant distinction, since it lets the worm commit through
+  the API using only a stolen token, without a local git working tree.
+
+  (2) Exfiltration: stolen secrets are RSA-encrypted and uploaded as JSON
+  (`results/results-{timestamp}.json`) to newly created private GitHub
+  repos under a single controller account (`liuende501`, ~236 repos
+  observed), named from two fixed theme sets that StepSecurity documents
+  verbatim: Dune terms (`atreides`, `fedaykin`, `sardaukar`, `tleilaxu`) and
+  Greek-mythology terms (`nemean-hydra`, `cerberus`, `chimera`), several
+  suffixed with a random numeric ID (e.g. `nemean-hydra-34343`) -- a naming
+  convention distinctive enough to key on, not a generic "random repo name"
+  claim.
+
+  Detection logic requires BOTH an npm-install-lineage process (so a
+  developer's own unrelated GitHub scripting does not fire this alone) AND
+  one of the two campaign-specific signals (the GraphQL mutation name, or
+  the exfil path/repo-naming pattern) -- the naming-pattern half is
+  inherently weaker evidence than the mutation-name half (a coincidental
+  hit on "cerberus" as a legitimate repo name is plausible on its own),
+  which is why this rule is `level: medium` rather than `high` unlike its
+  two sibling rules in this cluster, and why the process-lineage condition
+  is required rather than optional.
+
+  Aggregated from 2 independent technical disclosures, 2026-06-03/04
+  (StepSecurity, Snyk).
+references:
+- https://www.stepsecurity.io/blog/binding-gyp-npm-supply-chain-attack-spreads-like-worm
+- https://snyk.io/blog/node-gyp-supply-chain-compromise-self-propagating-npm-worm-binding-gyp/
+- https://attack.mitre.org/techniques/T1567/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_npm_install_lineage:
+    ParentImage|endswith:
+    - \npm.cmd
+    - \npm.exe
+    - \npm-cli.js
+    - \pnpm.cmd
+    - \pnpm.exe
+    - \yarn.cmd
+    - \yarn.exe
+    - \bun.exe
+  selection_graphql_commit_mutation:
+    CommandLine|contains:
+    - createCommitOnBranch
+  selection_themed_exfil_repo_naming:
+    CommandLine|contains:
+    - results/results-
+    - nemean-hydra
+    - atreides
+    - fedaykin
+    - sardaukar
+    - tleilaxu
+  condition: selection_npm_install_lineage and (selection_graphql_commit_mutation or selection_themed_exfil_repo_naming)
+falsepositives:
+- A repo or automation script that legitimately uses GitHub's GraphQL API
+  and the `createCommitOnBranch` mutation for its own CI/bot purposes --
+  the npm-install-lineage condition narrows this, but does not eliminate a
+  CI pipeline that happens to both install npm packages and push commits
+  via GraphQL in the same job
+- A coincidental match on one of the theme words (e.g. a legitimately
+  named `cerberus-monitoring` repo referenced in a build script) -- this
+  half of the rule is deliberately weaker evidence, hence the medium
+  severity level rather than high; do not treat a hit on naming alone as
+  high-confidence without the mutation-name signal or external
+  corroboration
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1567.001
+- wrg.observed.campaign.miasma_binding_gyp
+- wrg.observed.source.stepsecurity_snyk_2026_06
+- wrg.observed.vector.github_graphql_commit_injection
+- wrg.observed.ioc.liuende501_exfil_account
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.exfiltration

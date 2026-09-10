@@ -1,0 +1,77 @@
+title: AgenticMail MCP HTTP mode -- T1190 unauthenticated /mcp exposes master-key tools
+id: f7150f60-b9e8-4436-bb3c-c72c82efa4d7
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-50287 (GHSA-63gr-g7jc-v8rg,
+  CVSS 8.7 HIGH), a self-reported advisory for `@agenticmail/mcp`, prior
+  to 0.9.27.
+
+  When started with `--http` or `MCP_HTTP=1`, `packages/mcp/src/index.ts`
+  launches an HTTP server for the `/mcp` endpoint with no Authorization
+  header validation. An unauthenticated client can send an `initialize`
+  JSON-RPC request, receive an `mcp-session-id` in response with no
+  credential exchanged, and then invoke `tools/call` directly. Separately,
+  `packages/mcp/src/tools.ts` marks certain gateway/admin operations as
+  requiring the operator's `AGENTICMAIL_MASTER_KEY`, but the server
+  executes them with its OWN server-side master key regardless of caller
+  authentication -- a confused-deputy shape, same class as this corpus's
+  `observed_mcp_pinot_unauth_confused_deputy_t1190`. The exposed
+  master-key tools include `setup_email_relay`, `setup_email_domain`,
+  `delete_agent`, `cleanup_agents`, and `send_test_email`.
+
+  This is the SAME product family as
+  `observed_agenticmail_bridge_wake_unverified_sender_t1566` already in
+  this corpus, but a distinct vulnerability and code path -- that rule
+  targets the email-triggered bridge-wake flow (`dispatcher.ts`), this
+  one targets the MCP HTTP transport's own auth gap (`index.ts`).
+
+  Detection logic flags an unauthenticated `tools/call` request naming
+  one of the master-key-protected tools -- the tool name plus missing
+  Authorization header is the discriminator, since the same tool names
+  legitimately appear in authenticated traffic once the fix is deployed.
+
+  Aggregated from 1 first-party vendor security advisory (agenticmail,
+  via GHSA and NVD), fixed in 0.9.27 (requires bearer tokens/shared
+  secrets for `/mcp` HTTP requests and disables master-key tools over
+  unauthenticated transports).
+references:
+- https://github.com/agenticmail/agenticmail/security/advisories/GHSA-63gr-g7jc-v8rg
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_mcp_endpoint:
+    cs-uri-stem|contains: /mcp
+  selection_masterkey_tool_call:
+    cs-uri-query|contains:
+    - setup_email_relay
+    - setup_email_domain
+    - delete_agent
+    - cleanup_agents
+    - send_test_email
+  selection_no_auth_header:
+    cs(Authorization): null
+  condition: selection_mcp_endpoint and selection_masterkey_tool_call and selection_no_auth_header
+falsepositives:
+- A deployment already upgraded to 0.9.27+, where a bearer token/shared
+  secret is required for HTTP `/mcp` requests -- a matching request on a
+  fixed deployment would be rejected before reaching the master-key tool
+- A deployment still on `stdio` transport (the advisory's HTTP mode is
+  opt-in via `--http`/`MCP_HTTP=1`) -- this vulnerability does not apply,
+  and this rule's `proxy`/HTTP-based logsource would see no traffic to
+  flag in that configuration
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_50287
+- wrg.observed.source.agenticmail_ghsa_63gr_g7jc_v8rg
+- wrg.observed.vector.mcp_http_unauth_masterkey_tools
+- wrg.observed.vector.confused_deputy_server_credential
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

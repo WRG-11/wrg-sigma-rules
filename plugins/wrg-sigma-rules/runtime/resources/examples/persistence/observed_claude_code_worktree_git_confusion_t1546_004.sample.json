@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Image": "/usr/local/bin/git", "CommandLine": "git worktree add .git /tmp/evil"}},
+  {"expect_match": false, "event": {"Image": "/usr/local/bin/git", "CommandLine": "git worktree add ../feature-branch-work feature/foo"}}
+]

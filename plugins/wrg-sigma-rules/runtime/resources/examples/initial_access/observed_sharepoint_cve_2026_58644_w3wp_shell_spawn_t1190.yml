@@ -1,0 +1,60 @@
+title: SharePoint Server CVE-2026-58644 RCE -- w3wp.exe spawning a shell/script interpreter (2026-07)
+id: 11888dcb-4313-53f4-9b1e-2d5a6c61b0d2
+status: experimental
+description: 'Real, actively-exploited-as-a-zero-day on-premises SharePoint Server deserialization RCE (CVE-2026-58644, CVSS
+  9.8), confirmed by Microsoft''s own advisory and added to CISA''s Known Exploited Vulnerabilities catalog 2026-07-16 (agencies
+  given a 3-day remediation deadline). Post-exploitation activity including IIS machine-key theft and malware deployment is
+  documented in Microsoft''s and CISA''s advisories.
+
+
+  Verification discipline: multiple independent write-ups covering this specific CVE (Rapid7, Resecurity) DISAGREE on -- or
+  in Rapid7''s case, explicitly state as not yet publicly disclosed -- the exact vulnerable endpoint path and webshell filenames
+  some secondary sources list (several of those specifics match the well-known, prior ''ToolShell'' SharePoint chain from
+  2025 and may be conflated with it rather than confirmed for this CVE). Those specifics are deliberately NOT encoded here.
+
+
+  What IS independently corroborated across sources for this exploitation wave, and is also simply how this CVE class works
+  mechanically (the deserialization payload executes inside the IIS worker process): w3wp.exe spawning a command shell or
+  script-interpreter child process, particularly PowerShell invoked with an encoded/obfuscated command flag -- a legitimate
+  SharePoint worker process has no normal reason to spawn any of these.'
+references:
+- https://www.cisa.gov/known-exploited-vulnerabilities-catalog
+- https://www.rapid7.com/blog/post/etr-cve-2026-58644-microsoft-sharepoint-server-unauthenticated-remote-code-execution-vulnerability-exploited-in-the-wild/
+- https://attack.mitre.org/techniques/T1190/
+- https://attack.mitre.org/techniques/T1059.001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-05'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_w3wp_parent:
+    ParentImage|endswith: \w3wp.exe
+  selection_shell_child:
+    Image|endswith:
+    - \cmd.exe
+    - \powershell.exe
+    - \pwsh.exe
+    - \csc.exe
+    - \cscript.exe
+    - \wscript.exe
+  selection_encoded_powershell:
+    CommandLine|contains:
+    - -EncodedCommand
+    - '-enc '
+    - '-ec '
+  condition: (selection_w3wp_parent and selection_shell_child) or (selection_w3wp_parent and selection_encoded_powershell)
+falsepositives:
+- SharePoint farm administration scripts or approved third-party web parts that legitimately shell out from the IIS worker
+  process -- rare, but confirm against a documented baseline before dismissing a hit
+- Endpoint/EDR agents that inject monitoring child processes under IIS worker processes
+level: critical
+tags:
+- attack.t1190
+- attack.t1059.001
+- cve.2026.58644
+- wrg.observed.campaign.sharepoint_cve_2026_58644
+- wrg.observed.vector.iis_worker_process_shell_spawn
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.initial_access

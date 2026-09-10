@@ -1,0 +1,58 @@
+title: Unknown (tj-actions/reviewdog GHA Supply-chain 2025-03) — T1567 (base)
+name: wrg_1a9a728c533352b2
+id: 1a9a728c-5333-52b2-89de-091b99e2d675
+status: test
+description: Base event match for Breach intel signature for actor unknown_supply_chain_2025_03,
+  MITRE technique T1567. Derived from 1 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2025-03-14'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567
+---
+title: Unknown (tj-actions/reviewdog GHA Supply-chain 2025-03) — T1567
+id: db105e40-b5e6-5eb2-a26e-6a7e4d45daad
+status: test
+description: Breach intel signature for actor unknown_supply_chain_2025_03, MITRE
+  technique T1567. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://unit42.paloaltonetworks.com/github-actions-supply-chain-attack/
+- https://www.wiz.io/blog/github-action-tj-actions-changed-files-supply-chain-attack-cve-2025-30066
+- https://www.cisa.gov/news-events/alerts/2025/03/18/supply-chain-compromise-third-party-tj-actionschanged-files-cve-2025-30066-and-reviewdogaction
+- https://www.stepsecurity.io/blog/harden-runner-detection-tj-actions-changed-files-action-is-compromised
+- https://github.com/advisories/ghsa-mrrh-fwg8-r2c3
+- https://github.com/advisories/GHSA-qmg3-hpqr-gqvc
+author: WRG Breach Intel — Phase 6
+date: '2025-03-14'
+correlation:
+  type: event_count
+  rules:
+  - wrg_1a9a728c533352b2
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gte: 4
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: high
+tags:
+- attack.t1567
+- wrg.observed
+- wrg.observed.actor.unknown_supply_chain_2025_03
+- wrg.severity.high
+- wrg.correlation
+- attack.exfiltration

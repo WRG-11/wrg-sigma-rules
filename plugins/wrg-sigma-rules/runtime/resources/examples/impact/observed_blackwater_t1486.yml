@@ -1,0 +1,58 @@
+title: Blackwater — T1486 (base)
+name: wrg_46a96a471c5a5f2d
+id: 46a96a47-1c5a-5f2d-9f52-193e805db153
+status: test
+description: Base event match for Breach intel signature for actor blackwater, MITRE
+  technique T1486. Derived from 1 observed incident(s) in the WRG breach catalog;
+  the correlation document carries the alert threshold.
+author: WRG Breach Intel — Phase 6
+date: '2026-04-29'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_extension:
+    TargetFilename|endswith:
+    - .encrypted
+    - .locked
+    - .enc
+    - .crypto
+    - .lockbit
+    - .alphv
+    - .akira
+    - .clop
+  condition: selection_extension
+level: informational
+tags:
+- attack.t1486
+---
+title: Blackwater — T1486
+id: 13fc531e-840a-551a-b228-67ce8371c006
+status: test
+description: Breach intel signature for actor blackwater, MITRE technique T1486. Derived
+  from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://www.galaxywarden.com/blog/breach/shenzhen-gongjin-electronics-blackwater-2026-04
+- https://socradar.io/free-tools/ransomware-intelligence/groups/blackwater
+- https://www.ransomware.live/group/blackwater
+author: WRG Breach Intel — Phase 6
+date: '2026-04-29'
+correlation:
+  type: event_count
+  rules:
+  - wrg_46a96a471c5a5f2d
+  group-by:
+  - Image
+  timespan: 5m
+  condition:
+    gte: 21
+falsepositives:
+- Pattern library v1 — review for environment-specific tuning before deployment
+level: informational
+tags:
+- attack.t1486
+- wrg.observed
+- wrg.observed.actor.blackwater
+- wrg.severity.info
+- wrg.correlation
+- attack.impact

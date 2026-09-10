@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-host": "pinot-mcp.internal:8080", "cs-uri-query": "tool=update_table_config"}},
+  {"expect_match": false, "event": {"cs-host": "pinot-mcp.internal:8080", "cs-uri-query": "tool=update_table_config", "cs(Authorization)": "Bearer op-token"}}
+]

@@ -1,0 +1,78 @@
+title: Open WebUI SafePlaywrightURLLoader -- T1190 redirect-following bypasses initial-URL-only SSRF validation
+id: 5f153643-cb6f-4ca5-843e-8397097e43f2
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54018 (GHSA-jrfp-m64g-pcwv,
+  CVSS 7.7 HIGH), affecting Open WebUI prior to 0.9.6.
+
+  `SafePlaywrightURLLoader` implements `validate_url` to block SSRF by
+  checking the IP address a submitted URL resolves to -- but this check
+  runs ONLY on the initial URL. Playwright follows HTTP redirects
+  (301/302) automatically by default, so a submitted URL that is itself
+  safe -- and passes validation -- can redirect to a restricted internal
+  address (localhost, a Docker container's internal network, or cloud
+  metadata) that the loader then fetches without re-validating. This
+  reaches internal services even when `ENABLE_RAG_LOCAL_WEB_FETCH` is set
+  to `False`, since that setting governs a different code path than the
+  Playwright loader's own redirect-following.
+
+  This corpus already carries `observed_open_webui_playwright_subresource_ssrf_t1190`
+  for a mechanistically DIFFERENT Playwright-related bug (unvalidated
+  SUB-RESOURCE requests from the loaded page's own JS); this rule is the
+  simpler, earlier case: an HTTP-level REDIRECT the loader itself follows
+  without re-checking, no page JavaScript involved.
+
+  Detection logic flags a Playwright-loader fetch whose FINAL resolved
+  URL (after redirects) targets a private, loopback, or link-local
+  address that DIFFERS from the initially-submitted URL's own address --
+  a same-target redirect is unremarkable, but a redirect landing on an
+  internal range the initial validation would itself have blocked is the
+  exact bypass this advisory describes.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD), fixed in 0.9.6.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-jrfp-m64g-pcwv
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_playwright_loader_context:
+    Image|endswith: /playwright
+  selection_redirect_status:
+    sc-status:
+    - 301
+    - 302
+  selection_internal_redirect_target:
+    cs(Location)|contains:
+    - 'http://127.'
+    - 'http://10.'
+    - 'http://192.168.'
+    - 'http://169.254.'
+    - 'http://localhost'
+  condition: selection_playwright_loader_context and selection_redirect_status and selection_internal_redirect_target
+falsepositives:
+- A deployment already upgraded to 0.9.6+, where the loader re-validates
+  the destination address after each redirect hop -- a matching redirect
+  on a fixed deployment would be refused before the internal address is
+  fetched
+- A legitimate URL that genuinely redirects to a private-range address
+  the operator intends the loader to reach (e.g. an internal
+  documentation mirror deliberately allowlisted) -- narrow in practice
+  since the whole point of RAG URL ingestion is external content, but
+  possible in some internal-tooling deployments
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_54018
+- wrg.observed.source.open_webui_ghsa_jrfp_m64g_pcwv
+- wrg.observed.vector.redirect_revalidation_gap
+- wrg.observed.vector.initial_url_only_ssrf_check
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

@@ -1,0 +1,34 @@
+title: LLM-typical decoy / padding code structure
+id: 67764bde-a15e-58a9-b8b0-c7a2cdf84762
+status: experimental
+description: 'Detects code blocks that serve no functional purpose -- unused helper functions, sentinel constants, demonstration
+  scaffolding -- that LLM output emits to pad the file towards a target length. Often appears alongside hallucinated CVSS
+  or prompt-artifact signals.
+
+
+  Aggregated from 1 fingerprint hit(s) across 1 file(s). Sample paths: apps/foo/qux.py.'
+references:
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+author: WinstonRedGuard -- sigma plugin ai-fingerprint observed rules
+date: '2026-05-13'
+logsource:
+  category: code_review
+  product: wrg_ai_fingerprint
+detection:
+  selection:
+    detector: decoy_block
+    evidence|contains:
+    - unused helper _padding_helper()
+  condition: selection
+falsepositives:
+- Legitimate dead code awaiting cleanup
+- Defensive scaffolding (feature flags, deprecation shims)
+level: medium
+tags:
+- attack.t1027.005
+- attack.t1622
+- wrg.ai_fingerprint
+- wrg.detector.decoy_block
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.code_review
