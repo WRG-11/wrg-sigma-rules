@@ -55,7 +55,7 @@ references:
 - https://twitter.com/AlvieriD
 - https://www.bleepingcomputer.com/tag/vodafone/
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved identity administration, password-testing, printer management, or CI secret-scanning activity can produce the same authentication or credential-access telemetry.
 tags:
 - attack.t1556
 - wrg.observed

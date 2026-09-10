@@ -32,7 +32,7 @@ detection:
     - generated-photos
   condition: selection_persona_generation_tooling
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved branding, software deployment, or security-validation workflows can produce the same profile or execution-path telemetry.
 level: medium
 tags:
 - attack.t1656

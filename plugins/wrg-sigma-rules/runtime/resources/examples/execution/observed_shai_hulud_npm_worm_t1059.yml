@@ -29,7 +29,7 @@ detection:
     - FromBase64String
   condition: selection_shell_spawn
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Documented security testing or a sanctioned automation workflow can produce the same interpreter or user-execution telemetry.
 level: high
 tags:
 - attack.t1059

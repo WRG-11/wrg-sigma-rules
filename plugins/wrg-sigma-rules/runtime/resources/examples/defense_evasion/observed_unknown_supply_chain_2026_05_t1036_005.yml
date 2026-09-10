@@ -28,7 +28,7 @@ detection:
     - C:\Windows\SysWOW64\
   condition: selection_legit_name_anomalous_path and not filter_canonical_path
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved branding, software deployment, or security-validation workflows can produce the same profile or execution-path telemetry.
 level: high
 tags:
 - attack.t1036.005

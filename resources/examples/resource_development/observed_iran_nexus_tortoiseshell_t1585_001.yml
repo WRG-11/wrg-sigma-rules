@@ -59,7 +59,7 @@ correlation:
   condition:
     gte: 6
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved threat-intelligence research, marketing account administration, or controlled account-provisioning can produce the same telemetry.
 level: medium
 tags:
 - attack.t1585.001

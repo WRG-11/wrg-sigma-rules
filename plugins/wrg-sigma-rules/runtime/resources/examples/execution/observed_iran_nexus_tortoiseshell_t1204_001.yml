@@ -37,7 +37,7 @@ detection:
     - .adobesign.com
   condition: selection_link_click_msg_referer and not filter_corporate_collab
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Documented security testing or a sanctioned automation workflow can produce the same interpreter or user-execution telemetry.
 level: medium
 tags:
 - attack.t1204.001

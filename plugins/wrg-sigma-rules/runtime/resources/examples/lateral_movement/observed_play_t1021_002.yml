@@ -51,7 +51,7 @@ references:
 - https://www.ransomware.live/id/Q29ybGV5IE1GR0BwbGF5
 - https://www.ransomware.live/id/VXJzY2hlbCBMYWJvcmF0b3JpZXNAcGxheQ==
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved software deployment or administrative file-share access using an administrative share can produce the same SMB telemetry.
 tags:
 - attack.t1021.002
 - wrg.observed

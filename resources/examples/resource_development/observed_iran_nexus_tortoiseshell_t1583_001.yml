@@ -36,7 +36,7 @@ detection:
   condition: selection_new_domain_hint and selection_narrative_lookalike_domain and
     not filter_legitimate_news_outlets
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved threat-intelligence research, marketing account administration, or controlled account-provisioning can produce the same telemetry.
 level: medium
 tags:
 - attack.t1583.001

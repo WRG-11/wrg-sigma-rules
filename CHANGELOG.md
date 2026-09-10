@@ -28,8 +28,9 @@ sidecar evidence.
   quantifiers, and logsource blocks that cannot route to telemetry.
 - **Zero-debt linter gate.** Empty broad matches, unsafe regex shapes,
   underspecified logsource, unreplaced scaffolding and deprecated pipe
-  conditions are now blocking in corpus CI. Existing default-condition and
-  false-positive wording debt remains explicitly advisory until remediated.
+  conditions and placeholder false-positive text are now blocking in corpus
+  CI. The 41 historic placeholder entries now name concrete benign scenarios;
+  default-condition is advisory because it can be valid for a single selection.
 
 ## [1.8.0] - 2026-09-05
 

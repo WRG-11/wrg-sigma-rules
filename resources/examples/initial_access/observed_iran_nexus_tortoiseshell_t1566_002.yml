@@ -40,7 +40,7 @@ detection:
     - '@accounts.google.com'
   condition: selection_phish_link_indicator and not filter_known_safe_workflow
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved vendor remote access, software supply-chain deployment, or account onboarding can produce the same access telemetry.
 level: medium
 tags:
 - attack.t1566.002

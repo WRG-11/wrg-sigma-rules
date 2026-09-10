@@ -48,7 +48,7 @@ correlation:
   condition:
     gte: 21
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved backup, recovery, encryption testing, or file-maintenance activity can produce the same bulk file-change telemetry.
 level: high
 tags:
 - attack.t1486

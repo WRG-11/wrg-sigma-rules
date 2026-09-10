@@ -53,7 +53,7 @@ correlation:
   condition:
     gte: 31
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved monitoring, package-management, or proxy traffic to the named destination is expected from allowlisted build and security hosts.
 level: high
 tags:
 - attack.t1071

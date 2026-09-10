@@ -74,7 +74,7 @@ correlation:
   condition:
     gte: 4
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved vendor remote access, software supply-chain deployment, or account onboarding can produce the same access telemetry.
 level: high
 tags:
 - attack.t1078

@@ -44,9 +44,10 @@ _CORPUS_RULES = _collect_corpus_rules()
 # almost everything, a regex that can consume disproportionate SIEM CPU, a
 # rule with no route to telemetry, or unfinished/unconvertible scaffolding.
 #
-# ``condition_default`` and ``falsepositives_placeholder`` remain advisory
-# until their existing 12/41-rule debt is remediated in a dedicated change;
-# making them hard failures today would block unrelated fixes on old debt.
+# ``condition_default`` remains advisory because a simple one-selection rule
+# can legitimately use that concise Sigma condition. The previous 41
+# placeholder false-positive entries were replaced with concrete scenarios,
+# so that warning joins the zero-debt gate.
 _BLOCKING_LINTER_RULES = frozenset(
     {
         "broad_contains_value",
@@ -54,6 +55,7 @@ _BLOCKING_LINTER_RULES = frozenset(
         "logsource_underspecified",
         "draft_scaffold_left_in",
         "deprecated_pipe_condition",
+        "falsepositives_placeholder",
     }
 )
 

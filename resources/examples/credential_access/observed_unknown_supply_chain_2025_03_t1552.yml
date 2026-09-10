@@ -54,7 +54,7 @@ correlation:
   condition:
     gte: 6
 falsepositives:
-- Pattern library v1 — review for environment-specific tuning before deployment
+- Approved identity administration, password-testing, printer management, or CI secret-scanning activity can produce the same authentication or credential-access telemetry.
 level: high
 tags:
 - attack.t1552
