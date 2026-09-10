@@ -21,9 +21,9 @@ sidecar evidence.
 
 - **T1498 Network Denial of Service** DDoS-mitigation-event template.
 - **T1056.001 Input Capture: Keylogging** process-indicator template.
-- New `status:test` rules now require a `.sample.json` sidecar in CI. The 33
-  pre-policy gaps are an explicit reviewed baseline rather than an invisible
-  exception.
+- **33 legacy `status:test` sidecars completed.** CI now requires a
+  `.sample.json` for every status:test rule; event-count correlations supply
+  a same-group event sequence that proves both sides of their threshold.
 - Linter warnings for an empty `contains` value, nested unbounded regex
   quantifiers, and logsource blocks that cannot route to telemetry.
 

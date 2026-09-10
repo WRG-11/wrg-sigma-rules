@@ -23,6 +23,13 @@ examples). Two kinds of entries are meaningful:
   shown to reject anything, which is exactly the asymmetry this gate is
   built to catch.
 
+For a base-rule plus ``event_count`` correlation, use the same shape with an
+``events`` list instead of ``event``. The gate first evaluates the named base
+rule for every event, groups matching events using the correlation's
+``group-by`` fields, and then evaluates its ``gt``/``gte`` threshold. This is
+deliberately only the correlation form used by this corpus; an unsupported
+correlation is an error, never a silently passing sample.
+
 This is advisory by default. ``--require-samples`` applies the requirement
 to every ``status: test`` rule. ``--require-new-samples`` makes it a CI
 authoring policy today: existing debt is enumerated in a reviewed baseline,
@@ -257,16 +264,54 @@ class RuleCheck:
     ok: bool = True
 
 
-def _load_first_doc(path: Path) -> dict[str, Any]:
-    docs = [d for d in yaml.safe_load_all(path.read_text(encoding="utf-8")) if isinstance(d, dict)]
-    for d in docs:
-        if "detection" in d:
-            return d
-    return docs[0] if docs else {}
+def _load_docs(path: Path) -> list[dict[str, Any]]:
+    return [
+        doc
+        for doc in yaml.safe_load_all(path.read_text(encoding="utf-8"))
+        if isinstance(doc, dict)
+    ]
+
+
+def _correlation_fires(docs: list[dict[str, Any]], events: list[dict[str, Any]]) -> bool:
+    """Evaluate the repository's event_count correlation shape over *events*."""
+    correlation_doc = next((doc for doc in reversed(docs) if "correlation" in doc), None)
+    if not correlation_doc:
+        raise EvaluatorError("correlation document not found")
+    correlation = correlation_doc["correlation"]
+    if not isinstance(correlation, dict) or correlation.get("type") != "event_count":
+        raise EvaluatorError("only event_count correlations are supported")
+    rule_names = correlation.get("rules")
+    if not isinstance(rule_names, list) or len(rule_names) != 1 or not isinstance(rule_names[0], str):
+        raise EvaluatorError("event_count correlation must name exactly one base rule")
+    base_rule = next((doc for doc in docs if doc.get("name") == rule_names[0]), None)
+    if not isinstance(base_rule, dict):
+        raise EvaluatorError(f"base rule {rule_names[0]!r} not found")
+    group_by = correlation.get("group-by", [])
+    if not isinstance(group_by, list) or not all(isinstance(field, str) for field in group_by):
+        raise EvaluatorError("correlation group-by must be a list of field names")
+    counts: dict[tuple[Any, ...], int] = {}
+    for event in events:
+        if not isinstance(event, dict):
+            raise EvaluatorError("correlation sample events must be objects")
+        if rule_fires(base_rule, event):
+            key = tuple(event.get(field) for field in group_by)
+            counts[key] = counts.get(key, 0) + 1
+    condition = correlation.get("condition")
+    if not isinstance(condition, dict) or len(condition) != 1:
+        raise EvaluatorError("event_count correlation must have one threshold condition")
+    operator, threshold = next(iter(condition.items()))
+    if not isinstance(threshold, int):
+        raise EvaluatorError("event_count threshold must be an integer")
+    if operator == "gt":
+        return any(count > threshold for count in counts.values())
+    if operator == "gte":
+        return any(count >= threshold for count in counts.values())
+    raise EvaluatorError(f"unsupported event_count threshold {operator!r}")
 
 
 def check_rule(rule_path: Path) -> RuleCheck:
-    rule_doc = _load_first_doc(rule_path)
+    docs = _load_docs(rule_path)
+    rule_doc = docs[-1] if docs else {}
     status = rule_doc.get("status")
     sample_path = rule_path.with_suffix("").with_suffix(".sample.json")
     relpath = "resources/examples/" + rule_path.relative_to(EXAMPLES_DIR).as_posix()
@@ -294,7 +339,18 @@ def check_rule(rule_path: Path) -> RuleCheck:
         elif expect is False:
             saw_negative = True
         try:
-            fired = rule_fires(rule_doc, event)
+            if "correlation" in rule_doc and "events" in case:
+                raw_events = case.get("events", [])
+                if not isinstance(raw_events, list):
+                    raise EvaluatorError("correlation sample needs an 'events' list")
+                fired = _correlation_fires(docs, raw_events)
+            else:
+                # Existing sidecars for correlation collections predate
+                # sequence support and intentionally exercise the base
+                # selection with one ``event``. Keep that useful unit test;
+                # a new ``events`` case exercises the actual threshold.
+                target = next((doc for doc in docs if "detection" in doc), rule_doc)
+                fired = rule_fires(target, event)
         except EvaluatorError as exc:
             check.sample_results.append(f"case[{i}]: ERR ({exc})")
             continue
@@ -361,7 +417,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
     newly_missing = [c for c in without_sample_test_status if c.relpath not in baseline]
 
-    print(f"[sample-match-gate] {len(with_sample)}/{len(checks)} observed_* rules have a sidecar sample")
+    print(f"[sample-match-gate] {len(with_sample)}/{len(checks)} rules have a sidecar sample")
     for c in with_sample:
         marker = "OK" if c.ok else "FAIL"
         print(f"  [{marker}] {c.relpath}")
