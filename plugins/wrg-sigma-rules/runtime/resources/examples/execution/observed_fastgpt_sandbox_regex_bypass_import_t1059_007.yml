@@ -1,0 +1,67 @@
+title: FastGPT code sandbox -- T1059.007 block-comment regex bypass on dynamic import() reaches child_process
+id: 08dd8ad5-bf79-4ba4-b4a7-2bb914e0e957
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-44287 (GHSA-f5mq-qxm4-5mvc), a
+  self-reported advisory for FastGPT, an AI Agent building platform.
+
+  Prior to 4.15.0-beta1, the JavaScript sandbox worker
+  (`projects/code-sandbox/src/pool/worker.ts:356`) blocks dynamic
+  `import()` with `/\bimport\s*\(/.test(code)`. The regex's `\s` class
+  matches only ASCII whitespace; a block comment
+  (`/* ... */`, whose delimiter bytes `/`, `*`, `*`, `/` are NOT in `\s`)
+  is valid JavaScript grammar between `import` and `(` but invisible to
+  the regex. The payload `import/**/("child_process")` therefore parses
+  as a syntactically valid dynamic import the filter never sees. Because
+  the sandbox's `safeRequire` Proxy wraps only `require()` -- not
+  `import()` -- the loaded `child_process` module is fully unrestricted,
+  and `execSync(...)` runs arbitrary commands as `uid=100(sandbox)` inside
+  the sandbox container. The advisory's own PoC: `const cp = await
+  import/**/("child_process"); cp.execSync("id")`.
+
+  Detection logic flags exactly the bypass idiom rather than a generic
+  "import used" heuristic: the literal sequence `import` immediately
+  followed by a `/*...*/`-style comment and then `(` -- a syntactically
+  odd construction with no ordinary reason to appear in submitted code
+  other than evading a whitespace-only filter.
+
+  Aggregated from 1 first-party vendor security advisory (labring, via
+  GHSA and NVD), fixed in 4.15.0-beta1.
+references:
+- https://github.com/labring/FastGPT/security/advisories/GHSA-f5mq-qxm4-5mvc
+- https://attack.mitre.org/techniques/T1059/007/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: fastgpt
+detection:
+  selection_comment_bypassed_import:
+    Message|re: 'import\s*/\*.*?\*/\s*\('
+  selection_child_process_target:
+    Message|contains: child_process
+  condition: selection_comment_bypassed_import and selection_child_process_target
+falsepositives:
+- A deployment already upgraded to 4.15.0-beta1+, where the fix (an
+  AST-parse-based check rather than the whitespace-only regex) rejects
+  this construction regardless of comment placement -- a matching payload
+  on a fixed deployment would be rejected before reaching the sandbox
+- Legitimate code that happens to import a module immediately after a
+  block comment for stylistic reasons and separately references
+  `child_process` elsewhere in the same submission -- narrow in practice
+  given the specific adjacency required, but a log source capturing only
+  partial code snippets could produce a coincidental match
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of the actual
+  code string submitted to the sandbox, which most infrastructure log
+  sources do not capture by default
+level: critical
+tags:
+- attack.t1059.007
+- wrg.observed.cve.cve_2026_44287
+- wrg.observed.source.labring_ghsa_f5mq_qxm4_5mvc
+- wrg.observed.vector.regex_filter_bypass
+- wrg.observed.vector.sandbox_escape_dynamic_import
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

@@ -1,0 +1,41 @@
+title: Interlock -- T1189
+id: 44b6e8fa-bc49-59bd-aa51-8ec53c31cfaa
+status: test
+description: Breach intel signature for actor interlock, MITRE technique T1189. Derived
+  from 0 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1189/
+- https://www.bleepingcomputer.com/news/security/interlock-ransomware-gang-pushes-fake-it-tools-in-clickfix-attacks/
+- https://www.sekoia.io/en/blog/interlock-ransomware-evolving-under-the-radar/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-19'
+logsource:
+  category: proxy
+  product: windows
+detection:
+  selection_legacy_plugin_ua:
+    cs-user-agent|contains:
+    - Java/1.
+    - Java/6
+    - Java/7
+    - Shockwave Flash
+    - Silverlight
+  selection_payload_fetch:
+    cs-uri-stem|endswith:
+    - .exe
+    - .jar
+    - .hta
+    - .js
+    - .vbs
+  condition: selection_legacy_plugin_ua and selection_payload_fetch
+falsepositives:
+- A legacy internal application still running an outdated Java/Flash/Silverlight
+  runtime that legitimately downloads a signed installer or script during a scheduled
+  update
+level: medium
+tags:
+- attack.t1189
+- wrg.observed.actor.interlock
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access

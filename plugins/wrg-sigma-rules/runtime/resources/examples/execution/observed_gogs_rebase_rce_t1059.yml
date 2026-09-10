@@ -1,0 +1,55 @@
+title: Gogs Rebase RCE (argument injection via --exec) -- T1059
+id: c1c6a4a7-9795-5282-80c7-11da044740ae
+status: test
+description: Detects the Gogs authenticated argument-injection RCE (CWE-88, CVSSv4 9.4, no CVE, unpatched as of disclosure)
+  in which a pull request with a malicious base-branch name injects an --exec flag into the git rebase that Gogs runs during
+  "Rebase before merging". Because the base branch name is passed to git rebase without a -- separator, a branch named like
+  --exec=<cmd> is interpreted by git as a flag and the command runs via sh -c as the Gogs server user. Vector is T1190
+  (exploit public-facing application); the observed artifact is command execution (T1059). Public Metasploit module
+  multi/http/gogs_rebase_rce. Linux-primary (most Gogs servers run on Linux).
+references:
+- https://attack.mitre.org/techniques/T1059/
+- https://attack.mitre.org/techniques/T1190/
+- https://www.rapid7.com/blog/post/ve-authenticated-rce-via-argument-injection-gogs-unfixed/
+- https://thehackernews.com/2026/05/critical-gogs-rce-vulnerability-lets.html
+author: WinstonRedGuard -- sigma plugin observed rules
+date: '2026-06-01'
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  # 0-FP design note (the load-bearing discrimination):
+  #   `git rebase --exec <cmd>` is a LEGITIMATE developer feature (e.g.
+  #   `git rebase --exec "make test"` runs a command after each replayed
+  #   commit). A bare `git rebase` + `--exec` selection would therefore
+  #   match benign developer usage and break this corpus's 0-FP standard.
+  #   The exploit is distinguished by CONTEXT, not by the flag: in the
+  #   attack the rebase (with the injected --exec) is spawned by the GOGS
+  #   SERVER process, never by an interactive developer shell or IDE.
+  #   This rule REQUIRES the gogs parent (positive scope) rather than
+  #   filtering shells out, so a legitimate `git rebase --exec` run from a
+  #   shell/CI never satisfies the condition. Self-contained per corpus
+  #   portability convention (Sigma has no shared-helper construct).
+  selection_git_rebase:
+    Image|endswith: /git
+    CommandLine|contains: rebase
+  selection_exec_injection:
+    CommandLine|contains:
+    - '--exec'
+    - ' -x '
+  selection_gogs_parent:
+    ParentImage|endswith:
+    - /gogs
+  condition: selection_git_rebase and selection_exec_injection and selection_gogs_parent
+falsepositives:
+- Very low by design. A legitimate `git rebase --exec` from a developer shell, IDE, or CI runner has a non-gogs ParentImage
+  and will not match. If a deployment intentionally scripts `git rebase --exec` as the gogs service user (uncommon), add a
+  CommandLine allowlist for that specific command after field-testing -- do not relax the gogs-parent scope.
+level: critical
+tags:
+- attack.t1059
+- attack.t1190
+- wrg.observed
+- wrg.observed.campaign.gogs_rebase_rce
+- wrg.severity.critical
+- wrg.tactic.execution

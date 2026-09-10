@@ -1,0 +1,68 @@
+title: UNC1069 WAVESHAPER.V2 -- T1195.002 axios npm supply chain C2 egress to sfrclak.com IOC
+id: 1f6988d3-331b-5d42-a024-38291b29847b
+status: experimental
+description: 'Campaign-bound sigma detection for the axios npm supply chain attack (Google Threat Intelligence Group, 2026-03-31
+  disclosure, 00:21-03:20 UTC). Attacker (UNC1069, North Korea-nexus, financially motivated, active since >=2018) injected
+  a malicious dependency plain-crypto-js (v4.2.0/v4.2.1, published ~22 minutes before the malicious axios release) into axios
+  releases v1.14.1 and v0.30.4 (100M+ / 83M+ weekly downloads). The dependency''s postinstall hook runs an obfuscated dropper
+  that deploys WAVESHAPER.V2 -- an updated variant of the WAVESHAPER backdoor previously attributed to UNC1069 -- across Windows/macOS/Linux.
+  Detects outbound C2 communication to sfrclak.com or hardcoded C2 IP 142.11.206.73 port 8000.
+
+
+  Attribution basis (GTIG): backdoor variant match + infrastructure overlap with prior UNC1069 operations + VPN node connections.
+
+
+  Notable: initial access to the axios maintainer''s publish rights was obtained via approximately two weeks of AI-generated
+  / deepfake-enhanced social engineering (video calls, a fabricated collaborative-code-review pretext) -- not a technical
+  exploit.
+
+
+  Cross-verified via 2 independent sources (Google Cloud GTIG blog, Tenable FAQ) before encoding; the source blog also reports
+  exact file hashes and additional file-path artifacts, deliberately omitted here because this rule''s second source did not
+  independently corroborate them -- covers only the network indicators both sources agree on.
+
+
+  Aggregated from 1 active campaign disclosure 2026-03-31 (Google Threat Intelligence Group).'
+references:
+- https://cloud.google.com/blog/topics/threat-intelligence/north-korea-threat-actor-targets-axios-npm-package
+- https://www.tenable.com/blog/faq-about-the-axios-npm-supply-chain-attack-by-north-korea-nexus-threat-actor-unc1069
+- https://attack.mitre.org/techniques/T1195/002/
+- https://attack.mitre.org/techniques/T1071/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-05'
+logsource:
+  category: dns
+  product: windows
+detection:
+  selection_dns_query_c2:
+    QueryName|contains: sfrclak.com
+  selection_network_ip_c2:
+    DestinationIp: 142.11.206.73
+    DestinationPort: 8000
+  selection_npm_process_parent:
+    ParentImage|endswith:
+    - \node.exe
+    - \npm.cmd
+    - \npm.exe
+    - \yarn.cmd
+    - \yarn.exe
+    - \pnpm.cmd
+    - \pnpm.exe
+  condition: selection_dns_query_c2 or selection_network_ip_c2 or (selection_npm_process_parent and selection_dns_query_c2)
+falsepositives:
+- Threat-intel enrichment tooling or a sandbox resolving the indicator domain during analysis
+- The security team's own verification lookups after this rule fires
+level: high
+tags:
+- attack.t1195.002
+- attack.t1071.001
+- attack.t1027
+- wrg.observed.campaign.axios_npm_waveshaper
+- wrg.observed.actor.unc1069
+- wrg.observed.ioc.sfrclak_com_domain
+- wrg.observed.ioc.ip_142_11_206_73
+- wrg.observed.vector.npm_supply_chain_postinstall_dropper
+- wrg.observed.social_engineering.ai_deepfake_maintainer_trust
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.command_and_control

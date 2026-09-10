@@ -1,0 +1,82 @@
+title: OpenClaw MCP -- T1567 operator custom headers forwarded across a cross-origin redirect
+id: 953ea9e0-18a7-4858-b21f-a4112d0bddb0
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-53840 (GHSA-rjxq-qqhf-8hwh,
+  CVSS 7.1 HIGH), a self-reported advisory for OpenClaw.
+
+  Prior to 2026.5.12, an MCP server configured with
+  `transportType: "streamable-http"` and operator-set custom headers
+  under `mcp.servers.*.headers` (e.g. an API key or tenant-routing
+  credential the operator needs the legitimate server to see) had those
+  headers forwarded automatically whenever the application followed an
+  HTTP redirect -- including a cross-origin one. A malicious, compromised,
+  or simply misbehaving MCP endpoint can respond to a request with a 3xx
+  redirect to an attacker-controlled origin; the client library follows
+  it and re-sends the SAME custom headers to the new destination,
+  exfiltrating the operator's configured secret to a domain it was never
+  meant to reach. The advisory notes this does not expose other,
+  unrelated OpenClaw credentials -- only the specific custom headers
+  configured for that MCP server.
+
+  Detection logic flags the PRECONDITION this advisory's chain depends
+  on, since neither the specific custom header name nor the legitimate
+  MCP server's host is fixed by the vulnerable code (both are
+  per-deployment operator configuration, and the advisory names neither
+  as a literal example) -- an MCP `streamable-http` connection whose
+  response is a cross-origin redirect (a 3xx status with a `Location`
+  pointing at a different host than the one the client connected to) is
+  the one host-observable, deployment-independent signal the vulnerable
+  client library acts on before forwarding headers. This is a narrower,
+  more honest claim than "headers were exfiltrated" -- it flags "the
+  exact condition this bug turns dangerous" fired, not confirmed leakage.
+
+  Aggregated from 1 first-party vendor security advisory (openclaw, via
+  GHSA and VulnCheck's corroborating write-up), fixed in 2026.5.12.
+references:
+- https://github.com/openclaw/openclaw/security/advisories/GHSA-rjxq-qqhf-8hwh
+- https://www.vulncheck.com/advisories/openclaw-custom-header-leakage-via-mcp-streamable-http-cross-origin-redirects
+- https://attack.mitre.org/techniques/T1567/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_mcp_streamable_http_context:
+    cs-uri-query|contains: mcp
+  selection_redirect_status:
+    sc-status:
+    - 301
+    - 302
+    - 303
+    - 307
+    - 308
+  selection_cross_origin_location:
+    cs(Location)|contains: '://'
+  condition: selection_mcp_streamable_http_context and selection_redirect_status and selection_cross_origin_location
+falsepositives:
+- A deployment already upgraded to 2026.5.12+, where custom headers are
+  stripped before following a cross-origin redirect -- the redirect
+  itself would still be logged (this rule cannot distinguish that), but
+  the header-forwarding behavior it makes dangerous no longer occurs
+- Any legitimate MCP-adjacent HTTP traffic that happens to receive a
+  redirect for unrelated reasons (load balancing, a moved endpoint) --
+  this rule flags a NECESSARY precondition, not proof of header
+  forwarding or successful exfiltration; the advisory names neither a
+  specific custom-header name nor the legitimate server's host, so a
+  header-content-based selection is not possible from the source alone
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; the `mcp` substring match on the URI is a coarse proxy for
+  "this is an MCP-related request" and needs tightening against a given
+  deployment's actual MCP endpoint paths
+level: high
+tags:
+- attack.t1567
+- wrg.observed.cve.cve_2026_53840
+- wrg.observed.source.openclaw_ghsa_rjxq_qqhf_8hwh
+- wrg.observed.vector.cross_origin_redirect_header_leak
+- wrg.observed.vector.mcp_custom_header_exfiltration
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.exfiltration

@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"ParentImage": "C:\\Windows\\System32\\inetsrv\\w3wp.exe", "Image": "C:\\Windows\\System32\\cmd.exe"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\inetsrv\\w3wp.exe", "Image": "C:\\Windows\\explorer.exe"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\explorer.exe", "Image": "C:\\Windows\\System32\\cmd.exe"}}
+]

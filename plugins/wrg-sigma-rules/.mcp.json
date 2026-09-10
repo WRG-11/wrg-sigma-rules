@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "wrg-sigma-rules": {
+      "command": "python",
+      "args": ["scripts/codex_server.py"],
+      "cwd": "."
+    }
+  }
+}

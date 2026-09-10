@@ -1,0 +1,37 @@
+title: Import of a documented AI-hallucinated (slopsquatting) package name
+id: ba9168d9-c764-56fa-9414-ecf3523d3d50
+status: experimental
+description: 'Detects an `import`/`from...import` statement naming a specific, independently-documented package name that
+  LLM coding assistants are known to hallucinate (e.g. huggingface_cli -- the real package is huggingface_hub). Curated seed
+  list, not a heuristic: each entry traces to a cited, confirmed-nonexistent-at-discovery package. A hit means the code names
+  a package with no legitimate reason to exist, which is exactly the shape of a supply-chain compromise (slopsquatting: an
+  attacker registers the invented name and ships malware to whoever installs it). Per-hit confidence is high without requiring
+  co-occurrence, same reasoning as ai_provenance -- a literal match against a definitively-known-fake name is near-zero-FP
+  by construction.
+
+
+  Aggregated from 1 fingerprint hit(s) across 1 file(s). Sample paths: apps/foo/corge.py.'
+references:
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+author: WinstonRedGuard -- sigma plugin ai-fingerprint observed rules
+date: '2026-08-04'
+logsource:
+  category: code_review
+  product: wrg_ai_fingerprint
+detection:
+  selection:
+    detector: hallucinated_import
+    evidence|contains:
+    - 'hallucinated package import: ''huggingface_cli'''
+  condition: selection
+falsepositives:
+- None expected for a listed name -- if it becomes a real, legitimately-registered package after the entry was added, remove
+  the entry rather than suppress at the rule level
+level: high
+tags:
+- attack.t1195.002
+- wrg.ai_fingerprint
+- wrg.detector.hallucinated_import
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.code_review

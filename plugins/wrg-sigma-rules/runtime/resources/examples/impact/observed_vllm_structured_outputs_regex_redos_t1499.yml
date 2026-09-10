@@ -1,0 +1,68 @@
+title: vLLM structured_outputs.regex -- T1499 uncompiled-timeout adversarial regex hangs an inference worker
+id: 659af0cc-4803-4abe-9878-fb8167de5d74
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-55574 (GHSA-rwxx-mrjm-wc2m,
+  CVSS 8.7 HIGH), affecting vLLM prior to 0.24.0.
+
+  The `structured_outputs.regex` API parameter passes a user-supplied
+  regular expression string directly to the grammar-compiler backends
+  with NO COMPILATION TIMEOUT. In the `xgrammar` backend, the string
+  reaches the regex compiler with no guard at all. In the `outlines`
+  backend, the validation step blocks structurally-unsafe constructs
+  (lookarounds, backreferences) but performs NO COMPLEXITY ANALYSIS -- so
+  a pattern built from nested quantifiers (classic ReDoS shape) passes
+  every structural check while still causing exponential state-space
+  expansion during compilation. A single request carrying such an
+  adversarial regex hangs the inference worker that compiles it
+  INDEFINITELY, denying service to every other request queued behind it.
+
+  Detection logic flags a `structured_outputs.regex` request whose
+  pattern contains nested quantifiers -- e.g. `(a+)+`, `(a*)*`,
+  `(a+){2,}` shapes -- the specific construction that defeats the
+  `outlines` backend's structural-only check while still exploding
+  combinatorially.
+
+  Aggregated from 1 first-party vendor security advisory (vllm-project,
+  via GHSA and NVD, citing the exact fix commit and PR), fixed in 0.24.0
+  (adds a compilation timeout).
+references:
+- https://github.com/vllm-project/vllm/security/advisories/GHSA-rwxx-mrjm-wc2m
+- https://github.com/vllm-project/vllm/commit/2b3006076c5e9bc4cda9e03e3641388de3c5c286
+- https://github.com/vllm-project/vllm/pull/45118
+- https://attack.mitre.org/techniques/T1499/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: vllm
+detection:
+  selection_structured_outputs_regex_param:
+    Message|contains: structured_outputs.regex
+  selection_nested_quantifier_pattern:
+    Message|re: '\([^)]*[+*]\)[+*]'
+  condition: selection_structured_outputs_regex_param and selection_nested_quantifier_pattern
+falsepositives:
+- A deployment already upgraded to 0.24.0+, where a compilation timeout
+  bounds how long an adversarial pattern can occupy the worker -- a
+  matching request on a fixed deployment fails cleanly instead of
+  hanging indefinitely
+- A legitimate structured-output regex that genuinely uses nested
+  quantifiers for a non-adversarial pattern shape -- this rule cannot
+  distinguish intent from pattern structure alone; most nested-quantifier
+  regexes in practice ARE adversarial or accidental performance bugs, so
+  this is a reasonably tight signal but not a zero-false-positive one
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of the
+  actual regex parameter value, which most infrastructure log sources
+  do not capture by default
+level: high
+tags:
+- attack.t1499
+- wrg.observed.cve.cve_2026_55574
+- wrg.observed.source.vllm_ghsa_rwxx_mrjm_wc2m
+- wrg.observed.vector.uncompiled_timeout_redos
+- wrg.observed.vector.structural_check_bypasses_complexity
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.impact

@@ -1,0 +1,51 @@
+title: Template -- Scheduled Task created by a scripting host
+id: 85eb2588-ca4d-5295-a442-741bddb14715
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1053.005
+  (Scheduled Task). Scheduled tasks are one of the most-used persistence
+  mechanisms precisely because creating one is a normal administrative act --
+  so the signal is not the task, it is who created it. This template scopes to
+  schtasks.exe invoked with /create by a scripting or living-off-the-land
+  parent (PowerShell, cmd, wscript, mshta, rundll32), which is the shape a
+  script-delivered implant takes and not the shape a deployment tool or an
+  admin at a console takes. Synthetic exemplar from the WinstonRedGuard
+  threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1053/005/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-07-29'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_schtasks_create:
+    Image|endswith: \schtasks.exe
+    CommandLine|contains: /create
+  selection_scripting_parent:
+    ParentImage|endswith:
+    - \powershell.exe
+    - \pwsh.exe
+    - \cmd.exe
+    - \wscript.exe
+    - \cscript.exe
+    - \mshta.exe
+    - \rundll32.exe
+  filter_system_context:
+    User|contains:
+    - AUTHORITY\SYSTEM
+    - AUTORITE NT\System
+  condition: selection_schtasks_create and selection_scripting_parent and not
+    filter_system_context
+falsepositives:
+- Software installers and updaters that register a maintenance task from a
+  batch or PowerShell wrapper during setup
+- Administrative automation that provisions tasks across hosts from a script,
+  which produces exactly this parent-child pair
+- Backup and monitoring agents re-registering their own scheduled task after
+  an upgrade
+level: medium
+tags:
+- attack.t1053.005
+- wrg.template
+- wrg.tactic.persistence

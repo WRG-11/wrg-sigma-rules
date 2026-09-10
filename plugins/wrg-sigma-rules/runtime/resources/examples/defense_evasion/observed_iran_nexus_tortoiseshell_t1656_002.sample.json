@@ -1,0 +1,67 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      },
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      },
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      },
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      },
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      },
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      },
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      },
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      },
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      },
+      {
+        "cs-host": "linkedin.com",
+        "cs-uri-stem": "/profile/edit",
+        "cs-uri-query": "displayName=CEO"
+      }
+    ]
+  }
+]

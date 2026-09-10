@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"ParentImage": "C:\\Windows\\System32\\inetsrv\\w3wp.exe", "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"}},
+  {"expect_match": true, "event": {"ParentImage": "C:\\Windows\\System32\\inetsrv\\w3wp.exe", "Image": "C:\\Windows\\System32\\svchost.exe", "CommandLine": "svchost.exe -EncodedCommand JABz..."}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\inetsrv\\w3wp.exe", "Image": "C:\\Windows\\System32\\svchost.exe", "CommandLine": "svchost.exe -k netsvcs"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\explorer.exe", "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"}}
+]

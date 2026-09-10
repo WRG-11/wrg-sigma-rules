@@ -26,6 +26,21 @@ permissions:
   contents: read
 
 jobs:
+  plugin-manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      # Pin the CLI version so a future global CLI release cannot silently
+      # change the manifest validator's contract under this repository.
+      - name: Install Claude Code manifest validator
+        run: npm install --global @anthropic-ai/claude-code@2.1.267
+
+      - name: Validate Claude Code plugin manifest
+        run: claude plugin validate .
+
   pytest:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
@@ -129,13 +144,10 @@ jobs:
       # matches its own detection: logic is a real regression (the rule
       # changed, or the sample did, and nobody re-checked the pairing) --
       # not something to note and move past. Rules with NO sample yet are
-      # NOT failed here (--require-samples is not passed); the corpus is
-      # still filling in sidecar coverage, and forcing every status:test
-      # rule to carry one before this gate can run would block unrelated
-      # PRs on backlog this job did not create. 2026-09-04: 151/212 rules
-      # carry a sample, 0 currently failing -- this gate has headroom.
+      # Every status:test rule MUST carry a sidecar, including event_count
+      # correlations whose sample supplies an event sequence.
       - name: Verify sidecar samples still match their rule's own logic
-        run: python scripts/sample_match_gate.py
+        run: python scripts/sample_match_gate.py --require-samples
 
   dependency-licenses:
     # Advisory, not a gate: a transitive dependency's license can change on a

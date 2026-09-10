@@ -1,0 +1,40 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "EventID": 5140,
+        "ShareName": "ADMIN$"
+      },
+      {
+        "EventID": 5140,
+        "ShareName": "ADMIN$"
+      },
+      {
+        "EventID": 5140,
+        "ShareName": "ADMIN$"
+      },
+      {
+        "EventID": 5140,
+        "ShareName": "ADMIN$"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "EventID": 5140,
+        "ShareName": "ADMIN$"
+      },
+      {
+        "EventID": 5140,
+        "ShareName": "ADMIN$"
+      },
+      {
+        "EventID": 5140,
+        "ShareName": "ADMIN$"
+      }
+    ]
+  }
+]

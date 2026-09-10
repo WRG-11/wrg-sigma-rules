@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Image": "/usr/bin/playwright", "sc-status": 302, "cs(Location)": "http://127.0.0.1:6379/"}},
+  {"expect_match": false, "event": {"Image": "/usr/bin/playwright", "sc-status": 200}}
+]

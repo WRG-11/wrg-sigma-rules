@@ -1,0 +1,65 @@
+title: NVIDIA Triton Inference Server MLflow plugin -- T1005 model-name path traversal escapes model repository
+id: 7e7ddfef-5a65-4416-a264-85047fc2f840
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-47487 (CVSS 4.4 MEDIUM),
+  affecting NVIDIA Triton Inference Server for Linux's MLflow plugin.
+
+  The Triton MLflow plugin accepts a caller-supplied model name that is
+  used to construct a filesystem path under the configured model
+  repository, without confining the resulting path to stay within it. A
+  model name containing traversal sequences lets a caller cause files
+  OUTSIDE the model repository to be read, written to, or modified,
+  reachable via the MLflow plugin's model-management interface --
+  NVIDIA's own advisory frames the impact as denial of service and
+  information disclosure.
+
+  Detection logic flags an MLflow-plugin model-registration/load request
+  whose model-name parameter contains a path-traversal sequence (`../`)
+  or resolves outside the configured model repository -- the specific
+  artifact that turns an ordinary model-name string into a filesystem
+  escape.
+
+  Aggregated from 1 first-party vendor security advisory (NVIDIA, via
+  NVIDIA's own product-security bulletin and NVD).
+references:
+- https://github.com/NVIDIA/product-security/tree/main/2026/5860
+- https://nvd.nist.gov/vuln/detail/CVE-2026-47487
+- https://attack.mitre.org/techniques/T1005/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_mlflow_model_endpoint:
+    cs-uri-stem|contains: mlflow
+  selection_traversal_in_model_name:
+    cs-uri-query|contains:
+    - '..%2f'
+    - '../'
+    - '..%5c'
+  condition: selection_mlflow_model_endpoint and selection_traversal_in_model_name
+falsepositives:
+- A deployment already upgraded to a fixed release, where model-name
+  values are confined to the model repository before any filesystem
+  operation -- a matching request on a fixed deployment would be
+  rejected rather than reading/writing outside the repository
+- A legitimate model name that happens to contain a `..` sequence for
+  unrelated reasons (uncommon given typical model-naming conventions,
+  but not impossible) -- narrow in practice
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; NVIDIA's advisory does not specify the exact fixed version
+  in the summary available at authoring time -- confirm the current
+  patched release against NVIDIA's own bulletin before relying on a
+  version-based negative case
+level: medium
+tags:
+- attack.t1005
+- wrg.observed.cve.cve_2026_47487
+- wrg.observed.source.nvidia_product_security_bulletin_5860
+- wrg.observed.vector.model_name_path_traversal
+- wrg.observed.vector.model_repository_escape
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.collection

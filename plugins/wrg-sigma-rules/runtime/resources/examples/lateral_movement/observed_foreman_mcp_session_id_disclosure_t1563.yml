@@ -1,0 +1,80 @@
+title: foreman-mcp-server -- T1563 session-ID logged + never re-validated enables hijacking
+id: a49caf05-ef1c-4336-8c8d-a97a07eda12f
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-12112, a Red Hat security
+  advisory (Bugzilla 2488031, RHSA-2026:28405 / RHSA-2026:28438) for the
+  foreman-mcp-server MCP server.
+
+  The server caches the fully-authenticated Foreman API client connection
+  object in an in-memory dictionary (`user_map`), keyed by the
+  `mcp-session-id` -- which the advisory states plainly is NOT a secret.
+  Two compounding facts make this exploitable rather than merely sloppy:
+  (1) the server logs every newly-created session ID at INFO level (the
+  advisory's own classification: "F-32 MCP Server: Insecure Sensitive HTTP
+  Header Sanitization"), so a session ID that should function like a
+  credential ends up in ordinary application logs; (2) although the
+  `foreman_token` header is required to establish a session, it is NEVER
+  RE-VALIDATED on subsequent requests -- once a session ID is known, any
+  caller presenting it (with any token value, or none) is served through
+  the cached, already-authenticated connection. An attacker who reads a
+  legitimate session ID out of application logs can hijack that user's
+  authenticated Foreman session indefinitely, no valid token required
+  after the first request.
+
+  Detection logic flags the disclosure half of this chain, since it is the
+  half a log source can actually observe: an `mcp-session-id` value
+  appearing in an application log line at INFO level. This is
+  deliberately NOT a claim that every such log line is an active attack --
+  the vulnerability is systemic on an unpatched install (every session
+  creation logs its ID by design), so this rule's honest scope is "is this
+  deployment still exposing session IDs the way the advisory describes",
+  not "here is a confirmed hijacking in progress" -- stated in
+  falsepositives rather than implied.
+
+  Aggregated from 1 first-party vendor security advisory (Red Hat, via
+  Bugzilla and the linked RHSA errata).
+references:
+- https://bugzilla.redhat.com/show_bug.cgi?id=2488031
+- https://access.redhat.com/security/cve/CVE-2026-12112
+- https://access.redhat.com/errata/RHSA-2026:28405
+- https://attack.mitre.org/techniques/T1563/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: foreman
+detection:
+  selection_session_id_logged:
+    Message|contains: mcp-session-id
+  selection_info_level:
+    LevelName: INFO
+  condition: selection_session_id_logged and selection_info_level
+falsepositives:
+- This rule's ENTIRE positive-match set on an unpatched foreman-mcp-server
+  is expected, systemic noise, not a distinguishing attack signature --
+  the advisory describes routine session creation logging every ID at
+  INFO level regardless of whether any attacker is present. Use this rule
+  to answer "is this deployment still running the vulnerable logging
+  behavior at all", then correlate a specific session ID's REUSE from a
+  second, different source IP/token to identify actual hijacking -- that
+  correlation is out of scope for a single Sigma selection and is not
+  attempted here
+- A deployment where the fix (re-validating `foreman_token` on every
+  request, per the advisory's own stated remediation) has been applied --
+  the log line would still appear, but the session-caching bypass it
+  enables would not function
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; log field names (`Message`, `LevelName`) are a best-effort
+  approximation, since the advisory does not quote an exact log line
+  format
+level: medium
+tags:
+- attack.t1563
+- wrg.observed.cve.cve_2026_12112
+- wrg.observed.source.redhat_bugzilla_2488031
+- wrg.observed.vector.session_id_in_logs
+- wrg.observed.vector.token_never_revalidated
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.lateral_movement

@@ -1,0 +1,67 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      },
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      },
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      },
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      },
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      },
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      },
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      },
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      },
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      },
+      {
+        "EventID": 4624,
+        "LogonType": 10,
+        "IpAddress": "sample-group"
+      }
+    ]
+  }
+]

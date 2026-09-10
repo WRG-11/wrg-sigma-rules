@@ -1,0 +1,61 @@
+title: Open WebUI skill mention parsing -- T1499 unclosed <$ triggers quadratic backtracking, blocks event loop
+id: 2325e4c5-2663-4031-9945-59325016ad80
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59220 (GHSA-ffpj-xv5c-p3gw,
+  CVSS 6.5 MEDIUM), affecting Open WebUI from 0.9.2 before 0.10.0.
+
+  `SKILL_MENTION_RE` and `strip_re` in
+  `backend/open_webui/utils/middleware.py` parse `<$skillId|label>`
+  skill-mention syntax in chat messages using OVERLAPPING QUANTIFIERS.
+  An authenticated chat message containing `<$` with NO closing `>`
+  triggers quadratic (or worse) backtracking in these regexes -- and
+  because Open WebUI processes this parsing on the shared `asyncio`
+  event loop, one such message BLOCKS the loop for every other request
+  the server is handling, not just the sender's own.
+
+  Detection logic flags a chat message body containing the literal
+  sequence `<$` with no corresponding closing `>` within a reasonable
+  span -- the exact malformed-but-plausible-looking syntax this
+  advisory's regex bug reacts catastrophically to.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact regex names and source file), fixed in
+  0.10.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-ffpj-xv5c-p3gw
+- https://github.com/open-webui/open-webui/commit/61a26722155ec6ee1b629cf8dfcf975098c18331
+- https://attack.mitre.org/techniques/T1499/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_unclosed_skill_mention:
+    Message|contains: '<$'
+  filter_has_closing_bracket:
+    Message|re: '<\$[^>]{0,200}>'
+  condition: selection_unclosed_skill_mention and not filter_has_closing_bracket
+falsepositives:
+- A deployment already upgraded to 0.10.0+, where the skill-mention
+  regexes no longer use overlapping quantifiers -- a matching malformed
+  message on a fixed deployment parses without catastrophic backtracking
+- A legitimate chat message that happens to contain the literal
+  characters `<$` for an unrelated reason (rare in ordinary
+  conversation, but possible when discussing code or markup syntax) --
+  narrow in practice given the specific unclosed-bracket shape required
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of stored
+  chat message content, which most infrastructure log sources do not
+  capture by default
+level: medium
+tags:
+- attack.t1499
+- wrg.observed.cve.cve_2026_59220
+- wrg.observed.source.open_webui_ghsa_ffpj_xv5c_p3gw
+- wrg.observed.vector.overlapping_quantifier_redos
+- wrg.observed.vector.shared_event_loop_blocking
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.impact

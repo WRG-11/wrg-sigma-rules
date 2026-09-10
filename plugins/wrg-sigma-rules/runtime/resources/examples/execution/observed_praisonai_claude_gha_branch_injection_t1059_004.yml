@@ -1,0 +1,78 @@
+title: PraisonAI Claude GitHub Action -- T1059.004 unquoted PR branch name command injection
+id: 3cd2c2df-3646-4703-acba-41204032dd94
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-48168 (GHSA-xp85-6wwf-r67c,
+  CVSS 10.0 CRITICAL), a self-reported advisory for PraisonAI, a
+  multi-agent teams system.
+
+  Prior to 4.6.40, the bundled `.github/workflows/claude.yml` (job
+  `claude-response`) interpolated an attacker-controlled PR branch name
+  directly into an unquoted Bash `run:` block --
+  `git fetch origin pull/${{ github.event.issue.number }}/head:${{
+  steps.check_fork.outputs.pr_branch }}` -- with no validation that the
+  branch name is a plausible git ref. Additionally, the workflow triggered
+  on any `@claude` comment without checking
+  `github.event.comment.author_association`, so a fork contributor could
+  open a PR whose branch name contained shell metacharacters and simply
+  comment `@claude` to run it -- no trusted-collaborator gate. The
+  advisory's own proof-of-concept branch name
+  (`poc;mkdir${IFS}-p${IFS}/tmp/p0canary;cp${IFS}/bin/echo${IFS}/tmp/p0canary/gh;echo${IFS}/tmp/p0canary>>$GITHUB_PATH`)
+  uses `${IFS}` to smuggle spaces past naive filtering and writes to
+  `$GITHUB_PATH`, poisoning which binaries later privileged steps resolve
+  -- the job held `contents: write`, `pull-requests: write`, `issues:
+  write`, and `id-token: write`.
+
+  Same root shape as this corpus's existing GitHub Actions PR-content rules
+  (`observed_megalodon_github_actions_base64_payload_t1195_002`,
+  `observed_tanstack_pwn_request_actions_cache_poisoning_t1195_002`,
+  `observed_claude_code_action_mcp_json_pr_rce_t1195_002`) -- attacker PR
+  content reaching a privileged CI execution context -- but the specific
+  injection vector here is the branch NAME itself rather than a file the PR
+  ships, which is why it is filed under `execution` (T1059.004, command
+  interpreter abuse) rather than `initial_access`: the artifact under
+  attack is the shell interpreting the ref string, not a config file being
+  trusted.
+
+  Aggregated from 1 first-party vendor security advisory (MervinPraison, via
+  GHSA and NVD), fixed in 4.6.40.
+references:
+- https://github.com/MervinPraison/PraisonAI/security/advisories/GHSA-xp85-6wwf-r67c
+- https://github.com/MervinPraison/PraisonAI/commit/179cab02dbec0c1e9b601507a659
+- https://attack.mitre.org/techniques/T1059/004/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_git_fetch_pull_ref:
+    CommandLine|contains: 'git fetch origin pull/'
+  selection_shell_metacharacters:
+    CommandLine|contains:
+    - ';'
+    - '${IFS}'
+    - '$GITHUB_PATH'
+    - '$(GITHUB_PATH)'
+  condition: selection_git_fetch_pull_ref and selection_shell_metacharacters
+falsepositives:
+- A repository already upgraded to PraisonAI 4.6.40+, where the fix quotes
+  the branch name and/or gates the trigger on `author_association` -- a
+  hit on an up-to-date CI runner reflects a rejected/inert attempt, not
+  successful exploitation
+- A legitimate branch name that happens to contain a semicolon or `$`
+  sequence for unrelated reasons -- rare in practice given git ref naming
+  conventions, but log sources that cannot distinguish a PR-sourced branch
+  name from a maintainer-created one will see this as a coincidental match
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1059.004
+- wrg.observed.cve.cve_2026_48168
+- wrg.observed.source.praisonai_ghsa_xp85_6wwf_r67c
+- wrg.observed.vector.pr_branch_name_command_injection
+- wrg.observed.cluster.github_actions_pr_content_supply_chain
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

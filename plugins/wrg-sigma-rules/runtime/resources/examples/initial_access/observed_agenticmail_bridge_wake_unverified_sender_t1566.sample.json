@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "resumeBridgeSession started with bypassPermissions for inbound bridge mail"}},
+  {"expect_match": false, "event": {"Message": "resumeBridgeSession started with bypassPermissions, isOperatorReplySender verified true"}}
+]

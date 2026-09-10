@@ -1,0 +1,30 @@
+title: Template -- Exfiltration to Cloud Storage
+id: 603cca63-f53e-5ae6-8687-3515df78816c
+status: experimental
+description: Canonical sigma detection template for MITRE ATT&CK T1567.001 (Exfiltration to Cloud Storage). Synthetic exemplar
+  from the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1567/001/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-05-21'
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_cloud_storage_host:
+    DestinationHostname|contains:
+    - dropboxusercontent.com
+    - dropboxapi.com
+    - drive.google.com
+    - onedrive.live.com
+    - app.box.com
+  condition: selection_cloud_storage_host
+falsepositives:
+- Sanctioned corporate use, where one of these is the organisation's own file-sharing platform and its sync client produces continuous traffic to the same hostnames
+- OneDrive, which ships with Windows and signs in with a personal Microsoft account, making onedrive.live.com the default state on unmanaged machines
+- A browser tab left open on any of these services, since the rule keys on hostname alone with no volume, direction or duration component
+level: medium
+tags:
+- attack.t1567.001
+- wrg.template
+- wrg.tactic.exfiltration

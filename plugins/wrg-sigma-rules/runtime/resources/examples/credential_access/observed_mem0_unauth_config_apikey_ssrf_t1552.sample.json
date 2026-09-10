@@ -1,0 +1,17 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "cs-uri-stem": "/api/v1/config/",
+      "cs-method": "GET"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "cs-uri-stem": "/api/v1/config/",
+      "cs-method": "GET",
+      "cs(Authorization)": "Bearer sk-live-abc123"
+    }
+  }
+]

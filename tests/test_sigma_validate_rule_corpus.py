@@ -39,6 +39,25 @@ def _collect_corpus_rules() -> list[Path]:
 
 _CORPUS_RULES = _collect_corpus_rules()
 
+# These warnings are zero-debt hardening rules. A newly committed corpus
+# member must never introduce one: each represents either a rule that matches
+# almost everything, a regex that can consume disproportionate SIEM CPU, a
+# rule with no route to telemetry, or unfinished/unconvertible scaffolding.
+#
+# A one-selection condition is valid and is no longer warned on. Every
+# remaining warning category is zero-debt and therefore blocking.
+_BLOCKING_LINTER_RULES = frozenset(
+    {
+        "broad_contains_value",
+        "unsafe_regex_shape",
+        "logsource_underspecified",
+        "draft_scaffold_left_in",
+        "deprecated_pipe_condition",
+        "falsepositives_placeholder",
+        "condition_default",
+    }
+)
+
 # Known corpus quality issues: rules with structural anomalies that pre-date
 # this test scaffold. These are KNOWN and ACCEPTED; each entry documents
 # the known schema defect. These should be fixed in a future pass.
@@ -93,6 +112,24 @@ def test_corpus_rule_schema_valid(rule_path: Path) -> None:
     assert len(result["linter_warnings"]) <= 2, (
         f"{rule_path.name} has {len(result['linter_warnings'])} linter "
         f"warnings: {[w['rule'] for w in result['linter_warnings']]}"
+    )
+
+    blocking_warnings = [
+        warning["rule"]
+        for warning in result["linter_warnings"]
+        if warning.get("rule") in _BLOCKING_LINTER_RULES
+    ]
+    assert not blocking_warnings, (
+        f"{rule_path.name} has blocking linter warning(s): {blocking_warnings}"
+    )
+
+    strict_result = validate_rule_body(yaml_content, strict=True)
+    strict_warnings = [
+        error for error in strict_result["schema_errors"]
+        if error.get("kind") == "linter_strict"
+    ]
+    assert not strict_warnings, (
+        f"{rule_path.name} fails strict linter mode: {strict_warnings}"
     )
 
 

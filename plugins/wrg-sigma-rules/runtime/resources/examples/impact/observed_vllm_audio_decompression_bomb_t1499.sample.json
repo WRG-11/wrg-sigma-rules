@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/v1/audio/transcriptions", "cs-uri-query": "codec=opus", "cs-bytes": 24000000}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/v1/audio/transcriptions", "cs-uri-query": "codec=wav", "cs-bytes": 1000000}}
+]

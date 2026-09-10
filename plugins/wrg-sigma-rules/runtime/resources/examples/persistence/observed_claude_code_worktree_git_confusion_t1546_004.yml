@@ -1,0 +1,66 @@
+title: Claude Code worktree ".git" naming -- T1546.004 sandbox-escaping shell config overwrite
+id: 62afca4a-5e5d-4fad-ba08-8315687d65b0
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-55607 (GHSA-7835-87q9-rgvv,
+  CVSS 7.7 HIGH), a self-reported advisory for Claude Code (versions
+  `>= 2.1.38, < 2.1.163`), fixed in 2.1.163.
+
+  Claude Code's worktree handling allowed creating a git worktree literally
+  named `.git` and navigating to worktrees outside the sandbox context --
+  "git directory confusion". Combined with symlink manipulation and git
+  fsmonitor execution during worktree operations, this let an attacker
+  overwrite files in the user's home directory (the advisory names
+  `.zshenv` as the example), achieving code execution outside the macOS
+  seatbelt sandbox's restrictions the next time a shell starts. The
+  advisory is explicit that reliable exploitation required the user to
+  clone a malicious repository containing prompt-injection content and run
+  Claude Code against it -- this is a chained attack (prompt injection ->
+  sandbox-scoped tool misuse -> host-level persistence), not a
+  network-reachable exploit on its own.
+
+  Detection logic flags the specific, near-never-legitimate act at the
+  center of the chain: a `git worktree add` invocation whose target name is
+  literally `.git` -- ordinary worktree usage never names a worktree this
+  way, since it collides with git's own internal directory name, so this is
+  a high-precision signal rather than a heuristic on worktree usage in
+  general.
+
+  Aggregated from 1 first-party vendor security advisory (Anthropic, via
+  GHSA and NVD), fixed in 2.1.163.
+references:
+- https://github.com/anthropics/claude-code/security/advisories/GHSA-7835-87q9-rgvv
+- https://attack.mitre.org/techniques/T1546/004/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: process_creation
+  product: macos
+detection:
+  selection_git_binary:
+    Image|endswith:
+    - /git
+  selection_worktree_add:
+    CommandLine|contains: worktree add
+  selection_dot_git_target:
+    CommandLine|re: '(^|\s)\.git($|\s)'
+  condition: selection_git_binary and selection_worktree_add and selection_dot_git_target
+falsepositives:
+- A Claude Code deployment already upgraded to 2.1.163+, where the naming
+  confusion this rule keys on is rejected by the fix -- a hit on an
+  up-to-date installation indicates a rejected attempt, not successful
+  exploitation
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule has not been validated against a live macOS
+  process-monitoring log source (no such source was available at
+  authoring time), only against the advisory's own text
+level: high
+tags:
+- attack.t1546.004
+- wrg.observed.cve.cve_2026_55607
+- wrg.observed.source.anthropic_ghsa_7835_87q9_rgvv
+- wrg.observed.vector.git_worktree_directory_confusion
+- wrg.observed.vector.prompt_injection_chained
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.persistence

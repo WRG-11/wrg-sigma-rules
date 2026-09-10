@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Users\\dev\\AppData\\Local\\Temp\\ci-runner-payload.dll"}},
+  {"expect_match": false, "event": {"Image": "C:\\Users\\dev\\AppData\\Local\\Temp\\ci-runner-payload.dll", "Signed": "true"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\notepad.exe"}}
+]

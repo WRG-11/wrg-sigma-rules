@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "POST /api/chat/completions {\"chat_id\":\"channel:private-dm-42\",\"message_id\":\"m-victim-9\"}"}},
+  {"expect_match": false, "event": {"Message": "POST /api/chat/completions {\"chat_id\":\"chat-mine-1\",\"message_id\":\"m-mine-1\"}"}}
+]

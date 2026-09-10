@@ -1,0 +1,45 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "cs-uri-stem": "/addrbook"
+      },
+      {
+        "cs-uri-stem": "/addrbook"
+      },
+      {
+        "cs-uri-stem": "/addrbook"
+      },
+      {
+        "cs-uri-stem": "/addrbook"
+      },
+      {
+        "cs-uri-stem": "/addrbook"
+      },
+      {
+        "cs-uri-stem": "/addrbook"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "cs-uri-stem": "/addrbook"
+      },
+      {
+        "cs-uri-stem": "/addrbook"
+      },
+      {
+        "cs-uri-stem": "/addrbook"
+      },
+      {
+        "cs-uri-stem": "/addrbook"
+      },
+      {
+        "cs-uri-stem": "/addrbook"
+      }
+    ]
+  }
+]

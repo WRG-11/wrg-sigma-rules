@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"c-uri": "/api/send", "cs-method": "POST", "cs-uri-query": "media_path=/Users/victim/.ssh/id_rsa"}},
+  {"expect_match": false, "event": {"c-uri": "/api/send", "cs-method": "POST", "cs-uri-query": "media_path=photo.jpg"}}
+]

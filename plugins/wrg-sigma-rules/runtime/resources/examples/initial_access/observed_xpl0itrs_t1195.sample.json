@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Users\\victim\\Downloads\\tool_setup.exe"}},
+  {"expect_match": true, "event": {"Image": "C:\\Users\\victim\\AppData\\Local\\Temp\\payload.dll"}},
+  {"expect_match": false, "event": {"Image": "C:\\Users\\victim\\Downloads\\tool_setup.exe", "Signed": "true"}},
+  {"expect_match": false, "event": {"Image": "C:\\Program Files\\App\\app.exe"}}
+]

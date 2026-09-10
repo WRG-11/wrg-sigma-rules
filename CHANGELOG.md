@@ -11,6 +11,28 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [Unreleased] - 2026-09-10
+
+Corpus 294 → 296 rules: two source-honest canonical templates from the
+`sigma_rule_farmer` coverage queue, each with matching and non-matching
+sidecar evidence.
+
+### Added
+
+- **T1498 Network Denial of Service** DDoS-mitigation-event template.
+- **T1056.001 Input Capture: Keylogging** process-indicator template.
+- **33 legacy `status:test` sidecars completed.** CI now requires a
+  `.sample.json` for every status:test rule; event-count correlations supply
+  a same-group event sequence that proves both sides of their threshold.
+- Linter warnings for an empty `contains` value, nested unbounded regex
+  quantifiers, and logsource blocks that cannot route to telemetry.
+- **Zero-debt linter gate.** Empty broad matches, unsafe regex shapes,
+  underspecified logsource, unreplaced scaffolding and deprecated pipe
+  conditions and placeholder false-positive text are now blocking in corpus
+  CI. The 41 historic placeholder entries now name concrete benign scenarios;
+  a one-selection condition is correctly recognised as valid, and corpus CI
+  now verifies every rule with the validator's full strict mode.
+
 ## [1.8.0] - 2026-09-05
 
 Corpus 278 → 294 rules, seven rule-logic fixes, and a new sample-match gate
@@ -18,6 +40,11 @@ wired into CI.
 
 ### Added
 
+- **Codex plugin distribution.** `plugins/wrg-sigma-rules/` now exposes the
+  stdio MCP server plus Sigma writer, reviewer, and coverage-analysis skills
+  through the repo-local `wrg-11` Codex marketplace. Its bundled runtime is
+  source-checked against the canonical server and corpus so cache installs do
+  not rely on checkout-relative paths or silently drift.
 - **Corpus 278 → 294 rules (16 new).** Two independent sources, measured
   separately rather than merged blindly:
   - **11 from the `sigma_rule_farmer` queue.** The queue held 36 candidates
@@ -45,6 +72,14 @@ wired into CI.
 
 ### Fixed
 
+- **Fail-closed converter input boundary.** `convert_rule` now applies the
+  same 256 KiB input limit and YAML anchor/alias rejection as `validate_rule`
+  before pySigma parses untrusted content. Conversion can no longer bypass
+  the validator's alias-expansion ("billion laughs") and oversized-input
+  protections.
+- **Plugin manifest validation is now a CI gate.** A pinned Claude Code CLI
+  validates `.claude-plugin/plugin.json` before test and release checks
+  proceed.
 - **Seven real rule-logic defects**, each proven by mutation test: the fix was
   reverted, the test went red, the fix was restored.
 - **29 rules with CVSS or status inconsistencies**, corrected against live

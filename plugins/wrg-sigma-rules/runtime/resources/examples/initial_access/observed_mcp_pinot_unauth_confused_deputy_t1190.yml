@@ -1,0 +1,76 @@
+title: mcp-pinot -- T1190 unauthenticated 0.0.0.0 bind confused-deputy Pinot cluster access
+id: cd3d05d0-72c8-40a3-b06c-aa7f2e93695f
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-49257 (GHSA-73cv-556c-w3g6,
+  CVSS 10.0 CRITICAL), a self-reported advisory for `mcp-pinot`, a
+  Python-based MCP server for Apache Pinot.
+
+  Versions 3.0.1 and below defaulted `oauth_enabled` to `False` and bound
+  the HTTP MCP server to `0.0.0.0:8080` -- reachable from any
+  network-adjacent caller, not just localhost. With OAuth disabled, FastMCP
+  registers every tool with no authentication check at all. The server then
+  proxies each call using its OWN server-side Pinot credentials
+  (`PINOT_TOKEN` or `PINOT_USERNAME`/`PINOT_PASSWORD`) rather than any
+  caller identity -- a textbook confused-deputy: the unauthenticated
+  network caller inherits the SERVER's privileges against the Pinot
+  cluster, not their own (they have none). Reachable tools include
+  `read_query` (arbitrary SELECT against any table), `create_schema` /
+  `update_schema`, and `create_table_config` / `update_table_config` --
+  full read/write access to the configured cluster.
+
+  This is a different failure shape than this corpus's other unauthenticated-
+  MCP-endpoint rules (`observed_ruflo_mcp_bridge_unauth_terminal_execute_t1190`,
+  `observed_whatsapp_mcp_bridge_path_traversal_t1005`): those exploit a
+  MISSING check on an otherwise-scoped API; this one exploits a working
+  auth toggle that is simply OFF by default, combined with a non-loopback
+  bind -- the server was never confused about auth existing, it just never
+  required it. Detection logic therefore keys on the specific mutation-tool
+  names reaching the wire without an Authorization header, rather than a
+  generic "MCP endpoint hit".
+
+  Aggregated from 1 first-party vendor security advisory (startreedata, via
+  GHSA and NVD), fixed in 3.1.0 (binds to `127.0.0.1` and rejects
+  non-loopback access without OAuth).
+references:
+- https://github.com/startreedata/mcp-pinot/security/advisories/GHSA-73cv-556c-w3g6
+- https://github.com/startreedata/mcp-pinot/commit/1c7d3f9cd384854bf72c127d230bdb32299475ad
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_port_8080:
+    cs-host|contains: ':8080'
+  selection_mutation_tool_names:
+    cs-uri-query|contains:
+    - create_schema
+    - update_schema
+    - create_table_config
+    - update_table_config
+  selection_no_auth_header:
+    cs(Authorization): null
+  condition: selection_port_8080 and selection_mutation_tool_names and selection_no_auth_header
+falsepositives:
+- A deployment already upgraded to 3.1.0+, where the fix binds to
+  `127.0.0.1` and rejects non-loopback access without OAuth -- a matching
+  request on a fixed deployment would already have been refused at the
+  network layer before reaching this log point
+- Legitimate localhost/loopback administrative use where the log source
+  reports the client as :8080 for unrelated reasons -- correlate with
+  source-IP scope (non-loopback origin) to reduce false positives, since
+  loopback access on an unfixed version is the expected operator workflow
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_49257
+- wrg.observed.source.startreedata_ghsa_73cv_556c_w3g6
+- wrg.observed.vector.mcp_confused_deputy_server_credential
+- wrg.observed.vector.oauth_disabled_by_default
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.initial_access

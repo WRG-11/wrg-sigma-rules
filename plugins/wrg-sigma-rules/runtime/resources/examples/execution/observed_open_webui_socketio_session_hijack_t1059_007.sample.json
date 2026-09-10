@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "POST /api/v1/chat/completions session_id=victim-sess-999"}},
+  {"expect_match": false, "event": {"Message": "POST /api/v1/chat/completions session_id=own-sess-111 session_owner_match: true"}}
+]

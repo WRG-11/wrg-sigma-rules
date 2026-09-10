@@ -1,0 +1,34 @@
+title: AI-generated code with hallucinated CVSS reference
+id: f6df2c93-3e57-5bf7-b3c4-0aa7322c7423
+status: experimental
+description: 'Detects source-code comments or docstrings that cite a CVSS score / CVE identifier in a free-text context typical
+  of LLM output (no surrounding security review or threat-model framing). Hallucinated CVSS references are a known signature
+  of LLM-generated security tooling.
+
+
+  Aggregated from 1 fingerprint hit(s) across 1 file(s). Sample paths: apps/foo/bar.py.'
+references:
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+author: WinstonRedGuard -- sigma plugin ai-fingerprint observed rules
+date: '2026-05-13'
+logsource:
+  category: code_review
+  product: wrg_ai_fingerprint
+detection:
+  selection:
+    detector: hallucinated_cvss
+    evidence|contains:
+    - '# CVSS 9.8 critical (hallucinated)'
+  condition: selection
+falsepositives:
+- Legitimate security audit notes citing real CVSS scores
+- Vulnerability databases or SBOM tooling source
+level: medium
+tags:
+- attack.t1027
+- attack.t1059
+- wrg.ai_fingerprint
+- wrg.detector.hallucinated_cvss
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.code_review

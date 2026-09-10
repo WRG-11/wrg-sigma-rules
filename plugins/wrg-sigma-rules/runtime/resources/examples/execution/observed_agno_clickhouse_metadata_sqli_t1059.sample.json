@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "SQL: JSONExtractString(toString(filters), 'user_id') = '1' OR '1'='1'"}},
+  {"expect_match": false, "event": {"Message": "SQL: JSONExtractString(toString(filters), 'user_id') = 'u-1234'"}}
+]

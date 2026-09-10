@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "prompt_embeds request received: {\"indices\": [0, -5, 3]}"}},
+  {"expect_match": false, "event": {"Message": "prompt_embeds request received: {\"indices\": [0, 1, 3]}"}}
+]

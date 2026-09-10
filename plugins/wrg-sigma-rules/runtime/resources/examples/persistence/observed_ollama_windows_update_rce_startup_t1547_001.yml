@@ -1,0 +1,76 @@
+title: Ollama for Windows -- T1547.001 unsigned update + header-driven path traversal writes to Startup
+id: cd663e01-802b-4922-a82f-b68655e21939
+status: experimental
+description: |
+  Detection for the chained CVE-2026-42248 + CVE-2026-42249 (cert.pl,
+  2026-04-29), affecting Ollama for Windows versions 0.12.10 through
+  0.17.5 (maintainers did not confirm the full vulnerable range when
+  notified).
+
+  Two independent bugs chain into unattended, persistent code execution.
+  First (CVE-2026-42248): unlike other platforms, Ollama for Windows'
+  update-verification routine unconditionally returns success -- no
+  digital signature or trust validation runs before an update payload is
+  staged or executed. Second (CVE-2026-42249): when downloading an
+  update, the client builds the local staging file path using values
+  taken from HTTP response headers, passed directly to `filepath.Join`
+  with no validation, so a header containing `../` traversal sequences
+  resolves outside the intended staging directory -- an attacker who can
+  influence the update response (e.g. positioned on the network path, or
+  controlling/spoofing the update endpoint) can write an arbitrary
+  executable to any location the current user can reach, including the
+  Windows Startup folder. Because Ollama for Windows performs SILENT
+  automatic updates with no user interaction, the two bugs together
+  deliver a malicious executable straight into Startup and it runs on
+  the next login with no signature check and no prompt.
+
+  Detection logic flags the resulting host-level artifact: a new
+  executable file created inside a user's Startup folder
+  (`...\Microsoft\Windows\Start Menu\Programs\Startup\`) by a process
+  attributed to Ollama's updater -- Ollama's own update mechanism has no
+  legitimate reason to place a NEW executable directly in Startup as part
+  of an ordinary in-place version update.
+
+  Aggregated from 1 independent technical write-up (cert.pl, a
+  CERT-affiliated vulnerability coordination body), citing both CVE
+  entries. No patched version was confirmed by the maintainers as of the
+  write-up's publication -- stated explicitly, not assumed.
+references:
+- https://cert.pl/en/posts/2026/04/CVE-2026-42248/
+- https://attack.mitre.org/techniques/T1547/001/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_startup_folder_target:
+    TargetFilename|contains: \Start Menu\Programs\Startup\
+    TargetFilename|endswith: .exe
+  selection_ollama_updater_source:
+    Image|contains: ollama
+  condition: selection_startup_folder_target and selection_ollama_updater_source
+falsepositives:
+- No patched version was confirmed by the maintainers as of this rule's
+  authoring, so this rule cannot rely on a fixed-deployment negative case
+  the way most rules in this corpus do -- treat every match as needing
+  manual review
+- A user or administrator legitimately using Ollama's own updater to
+  place a shortcut/launcher in Startup by explicit configuration --
+  narrow in practice since ordinary Ollama updates replace the existing
+  installed binary rather than adding a new Startup entry, but a log
+  source that cannot distinguish "new Startup file" from "existing
+  Startup file rewritten" may alias the two
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1547.001
+- wrg.observed.cve.cve_2026_42248
+- wrg.observed.cve.cve_2026_42249
+- wrg.observed.source.cert_pl_writeup
+- wrg.observed.vector.unsigned_update_no_patch
+- wrg.observed.vector.header_driven_path_traversal
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.persistence

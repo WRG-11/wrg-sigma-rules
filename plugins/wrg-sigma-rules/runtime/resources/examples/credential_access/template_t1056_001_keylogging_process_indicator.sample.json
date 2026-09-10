@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "CommandLine": "powershell.exe Add-Type '[DllImport(\"user32.dll\")] static extern IntPtr SetWindowsHookEx(...)'"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "CommandLine": "powershell.exe Get-Process"
+    }
+  }
+]

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/cache/", "cs-uri-query": "path=../cache_sibling/secret.env"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/cache/", "cs-uri-query": "path=thumbnail123.png"}}
+]

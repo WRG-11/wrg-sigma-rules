@@ -1,0 +1,62 @@
+title: Open WebUI model profile image -- T1059.007 missing SVG validator on ModelMeta enables account takeover
+id: 944e4ad3-2446-443e-929c-4a4fbcf35815
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-54013 (GHSA-v2qm-5wxj-qhj7,
+  CVSS 7.6 HIGH), affecting Open WebUI prior to 0.9.6.
+
+  Open WebUI previously patched SVG-based XSS in user profile images and
+  webhook profile images, but the same fix was never applied to MODEL
+  profile images. `ModelMeta` has no `validate_profile_image_url` field
+  validator, and the model-image serving endpoint enforces no MIME
+  allowlist and sets no `X-Content-Type-Options: nosniff` header. Any
+  authenticated user holding the default-enabled `workspace.models`
+  permission can therefore store a `data:image/svg+xml;base64,...`
+  payload as a model's profile image; anyone -- including an
+  administrator -- who merely NAVIGATES to that image URL (no click, no
+  interaction beyond viewing) executes the embedded script under the
+  application origin, achieving full account takeover.
+
+  Detection logic flags a model profile-image field whose value is a
+  `data:image/svg+xml` URI -- the specific artifact class this advisory
+  describes; legitimate model profile images are ordinary raster formats
+  (PNG/JPEG) or hosted URLs, not inline base64 SVG.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD), fixed in 0.9.6.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-v2qm-5wxj-qhj7
+- https://attack.mitre.org/techniques/T1059/007/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_model_update_context:
+    Message|contains: profile_image_url
+  selection_svg_data_uri:
+    Message|contains: 'data:image/svg+xml'
+  condition: selection_model_update_context and selection_svg_data_uri
+falsepositives:
+- A deployment already upgraded to 0.9.6+, where `ModelMeta` applies the
+  same `validate_profile_image_url` check used elsewhere and rejects
+  SVG data URIs -- a matching update on a fixed deployment would be
+  refused
+- A legitimate, deliberately-allowlisted use case where an operator has
+  reviewed and trusts inline SVG model images -- narrow in practice
+  given this is not a supported/expected pattern
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of the
+  actual profile_image_url value submitted, which most infrastructure
+  log sources do not capture by default
+level: high
+tags:
+- attack.t1059.007
+- wrg.observed.cve.cve_2026_54013
+- wrg.observed.source.open_webui_ghsa_v2qm_5wxj_qhj7
+- wrg.observed.vector.missing_validator_on_sibling_field
+- wrg.observed.vector.svg_xss_navigate_to_execute
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

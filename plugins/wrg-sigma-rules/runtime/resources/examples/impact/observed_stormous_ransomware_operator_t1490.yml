@@ -1,0 +1,35 @@
+title: Stormous Ransomware Operator -- T1490
+id: 0ba93cfb-cb40-5203-bf04-44fff7049c7d
+status: test
+description: Breach intel signature for actor stormous_ransomware_operator, MITRE
+  technique T1490. Derived from 1 observed incident(s) in the WRG breach catalog.
+references:
+- https://attack.mitre.org/techniques/T1490/
+- https://x.com/search?q=stormous
+- https://www.ransomware.live/id/U0EyMDAwLkNPTUBzdG9ybW91cw==
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-04'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_vss_delete:
+    Image|endswith:
+    - \vssadmin.exe
+    - \wmic.exe
+    - \wbadmin.exe
+    CommandLine|contains:
+    - delete shadows
+    - shadowcopy delete
+    - delete catalog
+  condition: selection_vss_delete
+falsepositives:
+- IT administrators legitimately clearing old shadow-copy storage as part of scheduled
+  disk-space maintenance
+level: informational
+tags:
+- attack.t1490
+- wrg.observed.actor.stormous_ransomware_operator
+- wrg.severity.informational
+- wrg.observed
+- wrg.tactic.impact

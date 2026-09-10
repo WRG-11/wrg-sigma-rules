@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Users\\dev\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe", "TargetFilename": "file:///etc/passwd"}},
+  {"expect_match": true, "event": {"Image": "C:\\Users\\dev\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe", "TargetFilename": "file://C:\\Users\\dev\\.ssh\\id_rsa"}},
+  {"expect_match": false, "event": {"Image": "C:\\Users\\dev\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe", "TargetFilename": "https://example.com/etc/passwd"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\notepad.exe", "TargetFilename": "file:///etc/passwd"}}
+]

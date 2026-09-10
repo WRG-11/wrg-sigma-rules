@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/init_weights_send_group_for_remote_instance"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/generate"}}
+]

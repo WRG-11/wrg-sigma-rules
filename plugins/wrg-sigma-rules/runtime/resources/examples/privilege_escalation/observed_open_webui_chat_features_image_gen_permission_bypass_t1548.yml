@@ -1,0 +1,70 @@
+title: Open WebUI legacy chat completions -- T1548 client-supplied features flag bypasses the revoked image-generation permission
+id: 8b6e7f4a-1c2d-4e5a-9f3b-6a7c8d9e0f11
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70484 (GHSA-g423-grf7-98rv,
+  CVSS 4.3 MEDIUM), affecting Open WebUI's legacy chat-completions
+  path.
+
+  The two direct image routes (`/images/generations`, `/images/edit`)
+  and the native function-calling path all re-check the caller's
+  `features.image_generation` permission before reaching an image
+  provider. The legacy chat-completions path -- reached by setting
+  `params.function_calling` to `legacy` -- does not: it stores the
+  request's client-supplied `features` object into request metadata and
+  `process_chat_payload` dispatches to the image handler purely on that
+  flag's truthiness, never re-checking it against the caller's actual
+  permission. A user an administrator has explicitly revoked image
+  generation from can still trigger it by sending
+  `features.image_generation: true` on a legacy chat-completions
+  request, spending the operator's provider credits and quota.
+
+  Detection logic flags a chat-completions request body carrying
+  `features.image_generation: true` together with legacy function-
+  calling mode -- the exact unchecked-flag combination this advisory
+  describes.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, citing the exact commit and PR), fixed in commit
+  `897d69a` (PR #26703).
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-g423-grf7-98rv
+- https://github.com/open-webui/open-webui/commit/897d69a
+- https://github.com/open-webui/open-webui/pull/26703
+- https://attack.mitre.org/techniques/T1548/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_chat_completions_body:
+    Message|contains: '"image_generation":true'
+  selection_legacy_function_calling:
+    Message|contains: '"function_calling":"legacy"'
+  condition: selection_chat_completions_body and selection_legacy_function_calling
+falsepositives:
+- A deployment already upgraded past commit 897d69a, where the legacy
+  chat-features block re-checks the permission before invoking the
+  image handler -- a matching request from a revoked-permission user on
+  a fixed deployment would be rejected
+- A legitimate request from a user who genuinely holds the
+  image-generation permission -- this rule flags every legacy
+  function-calling request carrying the flag since application logs
+  typically cannot determine the caller's actual granted permission;
+  correlate with the account's permission grant to confirm a
+  revoked-permission user actually reached the handler
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of chat-
+  completions request bodies, which most infrastructure log sources do
+  not capture by default
+level: low
+tags:
+- attack.t1548
+- wrg.observed.cve.cve_2026_70484
+- wrg.observed.source.open_webui_ghsa_g423_grf7_98rv
+- wrg.observed.vector.client_supplied_flag_as_authorization
+- wrg.observed.vector.legacy_path_missing_recheck
+- wrg.severity.low
+- wrg.observed
+- wrg.tactic.privilege_escalation

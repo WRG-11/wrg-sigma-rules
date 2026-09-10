@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-query": "collection_name=foo' or '1'='1"}},
+  {"expect_match": false, "event": {"cs-uri-query": "collection_name=my_kb_collection"}}
+]

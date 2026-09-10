@@ -1,0 +1,13 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "EventID": 22,
+      "QueryName": "virustotal.com"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {}
+  }
+]

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/load_lora_adapter_from_tensors", "cs-method": "POST"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/generate", "cs-method": "POST"}}
+]

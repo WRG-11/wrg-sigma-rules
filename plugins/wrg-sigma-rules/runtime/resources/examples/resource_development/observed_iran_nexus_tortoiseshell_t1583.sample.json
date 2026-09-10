@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"EventID": 22, "QueryName": "reg-2026-05.example-news-portal.com"}},
+  {"expect_match": false, "event": {"EventID": 22, "QueryName": "google.com"}},
+  {"expect_match": false, "event": {"EventID": 1, "QueryName": "reg-2026-05.example-news-portal.com"}}
+]

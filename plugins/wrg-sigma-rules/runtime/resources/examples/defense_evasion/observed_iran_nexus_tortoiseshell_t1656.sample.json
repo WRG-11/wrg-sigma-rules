@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Python312\\python.exe", "CommandLine": "python.exe persona_gen.py --model stylegan --count 20"}},
+  {"expect_match": false, "event": {"Image": "C:\\Python312\\python.exe", "CommandLine": "python.exe train_model.py --epochs 50"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "cmd.exe /c faker generate --locale en_US"}}
+]

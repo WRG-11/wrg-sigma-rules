@@ -1,0 +1,67 @@
+title: vLLM activation function loading -- T1195.002 assert-based security check disabled by python -O
+id: 9d6db84b-e169-47f4-9b90-468e1012a729
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-41523 (GHSA-q8gq-377p-jq3r,
+  CVSS 7.5 HIGH), affecting vLLM prior to 0.22.0.
+
+  vLLM's activation-function loading path uses a plain Python `assert`
+  statement as its security check against malicious HuggingFace model
+  content. Python's `-O` (optimized mode) or `PYTHONOPTIMIZE=1`
+  environment variable STRIPS ALL ASSERT STATEMENTS from the running
+  interpreter -- a documented, common production-performance practice --
+  which silently removes this specific security check along with every
+  other assert in the process, with no error or warning that protection
+  was lost. On a vLLM deployment run in optimized mode, publishing a
+  malicious HuggingFace model achieves unauthenticated arbitrary code
+  execution the moment the model loads, purely because the interpreter
+  flag chosen for performance also happened to disable the one line
+  standing between untrusted model content and RCE.
+
+  Detection logic flags the PRECONDITION this bug depends on: vLLM
+  started with `-O` or `PYTHONOPTIMIZE=1` set -- since the vulnerability
+  is unreachable without it, this configuration state is itself the
+  actionable signal to review, independent of any specific malicious
+  model having been observed yet.
+
+  Aggregated from 2 independent sources (vLLM's own GHSA advisory + the
+  huntr.com bounty report that discovered it), fixed in 0.22.0 (replaces
+  the assert with an unconditional check that survives optimized mode).
+references:
+- https://github.com/vllm-project/vllm/security/advisories/GHSA-q8gq-377p-jq3r
+- https://huntr.com/bounties/dcb05b04-e625-41e7-adbc-bbae0cc2d64c
+- https://attack.mitre.org/techniques/T1195/002/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_vllm_process:
+    CommandLine|contains: vllm
+  selection_optimized_mode_flag:
+    CommandLine|contains:
+    - '-O'
+    - PYTHONOPTIMIZE=1
+  condition: selection_vllm_process and selection_optimized_mode_flag
+falsepositives:
+- A deployment already upgraded to 0.22.0+, where the security check no
+  longer relies on `assert` and survives optimized mode regardless -- a
+  matching process on a fixed deployment is safe even with `-O` set
+- A deployment running in optimized mode for unrelated, legitimate
+  performance reasons that has never loaded and never will load an
+  untrusted HuggingFace model -- this rule flags the configuration
+  precondition, not confirmed exploitation; treat a hit as "review
+  whether this deployment loads untrusted models", not as an attack alert
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: high
+tags:
+- attack.t1195.002
+- wrg.observed.cve.cve_2026_41523
+- wrg.observed.source.vllm_ghsa_q8gq_377p_jq3r
+- wrg.observed.source.huntr_bounty_dcb05b04
+- wrg.observed.vector.assert_stripped_by_optimized_mode
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.initial_access

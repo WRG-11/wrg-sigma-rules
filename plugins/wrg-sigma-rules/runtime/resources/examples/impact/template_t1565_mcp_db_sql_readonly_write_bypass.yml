@@ -1,0 +1,79 @@
+title: MCP DB-Server SQL Abuse -- Read-Only Bypass / File Write via DuckDB COPY TO (T1565)
+id: 39bc3045-6b5c-4ecd-acaf-7099499a1523
+status: experimental
+description: 'Detects write operations through an MCP database server that
+  advertises a read-only safety guarantee it cannot keep. DuckDB COPY (...) TO
+  ''<file>'', INTO OUTFILE, EXPORT DATABASE write to the host filesystem, and in
+  some configurations (e.g. :memory: databases) write-DML (CREATE TABLE / INSERT
+  / UPDATE / DELETE / DROP / ATTACH / CREATE SECRET) succeeds despite a
+  --read-only flag. A prompt-injected or misbehaving LLM agent can drop files
+  (malware, cron / startup poisoning, authorized_keys), tamper with config, or
+  persist state that breaks session isolation.
+
+  DISCRIMINATOR (FP-control), two honest branches:
+  (A) Any write operation WHEN the log signals the server is configured
+      read-only (ServerReadOnlyMode field == true). This directly catches the
+      read-only-bypass abuse, but requires the deployment to log its read-only
+      configuration -- most do not, so branch A is prerequisite-gated.
+  (B) A file-write (COPY TO / OUTFILE) whose TARGET PATH is a sensitive / system
+      location (/etc/, /root/, /var/spool/cron, /usr/, /tmp/, authorized_keys,
+      C:\Windows, C:\Users). This is malicious regardless of read-only signal
+      and needs only the SQL string -- a legitimate data-export COPY writes to a
+      normal data directory, not to system paths, so this is high-fidelity.
+
+  Generalises to the MCP DB-server class (motherduck / dbhub / any DuckDB or
+  SQL-passthrough MCP DB server). OWASP LLM Top 10 2025: LLM06 (Excessive Agency).
+
+  TELEMETRY PREREQUISITE: requires the executed SQL to be logged (MCP server
+  query / audit log, or body-logging proxy / WAF) mapped to QueryText; branch A
+  additionally requires the read-only configuration to be logged
+  (ServerReadOnlyMode). Most default deployments log neither -> prerequisite-
+  gated detection, NOT universal coverage.'
+references:
+  - https://genai.owasp.org/llmrisk/llm062025-excessive-agency/
+  - https://attack.mitre.org/techniques/T1565/
+  - https://attack.mitre.org/techniques/T1105/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-06-08'
+tags:
+  - attack.impact
+  - attack.t1565
+  - attack.command_and_control
+  - attack.t1105
+  - owasp.llm06.2025
+  - wrg.template
+  - wrg.tactic.impact
+logsource:
+  category: application
+  product: mcp_db_server
+detection:
+  selection_write_op:
+    QueryText|contains:
+      - 'COPY '
+      - 'INTO OUTFILE'
+      - 'EXPORT DATABASE'
+      - 'CREATE TABLE'
+      - 'INSERT INTO'
+      - 'UPDATE '
+      - 'DELETE FROM'
+      - 'DROP TABLE'
+      - 'CREATE SECRET'
+      - 'ATTACH '
+  selection_readonly_context:
+    ServerReadOnlyMode: 'true'
+  selection_file_write_to_sensitive:
+    QueryText|contains:
+      - "TO '/etc/"
+      - "TO '/root/"
+      - "TO '/var/spool/cron"
+      - "TO '/usr/"
+      - "TO '/tmp/"
+      - 'authorized_keys'
+      - "OUTFILE '/etc/"
+      - "TO 'C:\\Windows"
+      - "TO 'C:\\Users"
+  condition: (selection_write_op and selection_readonly_context) or selection_file_write_to_sensitive
+falsepositives:
+  - Legitimate read-write MCP DB servers performing normal CREATE / INSERT / UPDATE. Branch A does not fire for these because ServerReadOnlyMode is not true; only servers that claim read-only trigger it.
+  - Legitimate data-export COPY (...) TO a normal data directory. Branch B does not fire because the target is not a system/sensitive path. Tune the sensitive-write-target list to the environment.
+level: high

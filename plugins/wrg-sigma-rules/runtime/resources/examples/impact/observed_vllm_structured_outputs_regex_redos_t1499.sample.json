@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "structured_outputs.regex param received: (a+)+b"}},
+  {"expect_match": false, "event": {"Message": "structured_outputs.regex param received: [a-z]{3,5}"}}
+]

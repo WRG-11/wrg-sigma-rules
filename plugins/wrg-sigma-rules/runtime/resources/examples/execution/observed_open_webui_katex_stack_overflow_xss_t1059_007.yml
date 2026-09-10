@@ -1,0 +1,73 @@
+title: Open WebUI KatexRenderer -- T1059.007 stack-overflow fallback renders raw math source as HTML
+id: 8923044e-cd37-4d67-87cc-63bc6b7ce7e9
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-70492 (GHSA-pwxh-7358-jq2x,
+  CVSS 8.7 HIGH), affecting Open WebUI from 0.10.0 until 0.11.0.
+
+  `src/lib/components/chat/Messages/Markdown/KatexRenderer.svelte` could
+  store and render a chat message whose math block makes KaTeX fail with
+  a STACK OVERFLOW rather than an ordinary parse error. The component's
+  catch branch, written for the parse-error case, falls back to inserting
+  the original math source into the page via Svelte's `{@html}` directive
+  -- as raw HTML rather than as escaped text. A crafted math block that
+  deliberately triggers the stack-overflow path therefore executes
+  arbitrary script in the browser of ANYONE who views the message,
+  including shared chats and channels: the viewer's session token in
+  `localStorage` can be stolen, and if the viewer is an administrator,
+  their account can be taken over entirely.
+
+  Detection logic flags a stored chat message whose content contains both
+  a math-block delimiter (KaTeX/LaTeX's `$$` or `\(`/`\)`) and
+  script-injection markup within it -- the specific combination this
+  fallback path turns into executable HTML, distinct from an ordinary
+  malformed-but-inert math expression.
+
+  Aggregated from 1 first-party vendor security advisory (open-webui, via
+  GHSA and NVD, which cites the exact component file and PR), fixed in
+  0.11.0.
+references:
+- https://github.com/open-webui/open-webui/security/advisories/GHSA-pwxh-7358-jq2x
+- https://github.com/open-webui/open-webui/commit/bc600d3f085802c45aa8f38c30e6e8c986bde6cc
+- https://github.com/open-webui/open-webui/pull/26718
+- https://attack.mitre.org/techniques/T1059/007/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: open_webui
+detection:
+  selection_math_block_delimiter:
+    Message|contains:
+    - '$$'
+    - '\('
+  selection_script_injection_markup:
+    Message|contains:
+    - '<img'
+    - '<script'
+    - '<svg'
+    - onerror=
+    - onload=
+  condition: selection_math_block_delimiter and selection_script_injection_markup
+falsepositives:
+- A deployment already upgraded to 0.11.0+, where the catch branch no
+  longer renders the fallback via `{@html}` -- a matching message on a
+  fixed deployment would render as inert text or a clean error, not
+  executable markup
+- A legitimate chat message discussing LaTeX/HTML syntax together for
+  documentation or tutorial purposes -- narrow in practice given the
+  specific delimiter+markup combination required
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; this rule requires application-level logging of stored
+  chat message content, which most infrastructure log sources do not
+  capture by default
+level: high
+tags:
+- attack.t1059.007
+- wrg.observed.cve.cve_2026_70492
+- wrg.observed.source.open_webui_ghsa_pwxh_7358_jq2x
+- wrg.observed.vector.error_fallback_dangerously_renders_html
+- wrg.observed.vector.stored_xss_shared_chat
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.execution

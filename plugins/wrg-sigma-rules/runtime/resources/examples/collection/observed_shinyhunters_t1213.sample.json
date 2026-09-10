@@ -1,0 +1,96 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      },
+      {
+        "cs-uri-stem": "/_api/",
+        "sc-status": 200
+      }
+    ]
+  }
+]

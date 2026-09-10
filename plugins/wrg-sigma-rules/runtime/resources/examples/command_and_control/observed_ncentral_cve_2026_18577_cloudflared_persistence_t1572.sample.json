@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Users\\victim\\Documents\\svchost.exe"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\sc.exe", "CommandLine": "sc.exe create Cloudflared binPath= cloudflared.exe tunnel run"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\svchost.exe", "CommandLine": "svchost.exe -k netsvcs"}},
+  {"expect_match": false, "event": {"Image": "C:\\Users\\victim\\Documents\\report.exe", "CommandLine": "report.exe --generate"}}
+]

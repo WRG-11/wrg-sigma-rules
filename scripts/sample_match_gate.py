@@ -23,12 +23,17 @@ examples). Two kinds of entries are meaningful:
   shown to reject anything, which is exactly the asymmetry this gate is
   built to catch.
 
-This is advisory, same spirit as duplicate_rule_check.py -- it does not
-fail on a missing sample by default, since the sidecar convention is new
-and retrofitting 212 observed_* rules is its own project, not a side
-effect of running this script once. ``--require-samples`` promotes missing
-samples on ``status: test`` rules from a warning to a failure, for use once
-the sidecar becomes a real authoring requirement.
+For a base-rule plus ``event_count`` correlation, use the same shape with an
+``events`` list instead of ``event``. The gate first evaluates the named base
+rule for every event, groups matching events using the correlation's
+``group-by`` fields, and then evaluates its ``gt``/``gte`` threshold. This is
+deliberately only the correlation form used by this corpus; an unsupported
+correlation is an error, never a silently passing sample.
+
+This is advisory by default. ``--require-samples`` applies the requirement
+to every ``status: test`` rule. ``--require-new-samples`` makes it a CI
+authoring policy today: existing debt is enumerated in a reviewed baseline,
+but any new status:test rule without a sidecar fails the build.
 
 Evaluator scope (deliberately NOT a full Sigma implementation): supports
 the modifier set actually observed across this corpus's rules --
@@ -47,7 +52,8 @@ the same way a probe that ran and found nothing does.
 
 Usage:
     python scripts/sample_match_gate.py                    # advisory report
-    python scripts/sample_match_gate.py --require-samples  # status:test needs a sample
+    python scripts/sample_match_gate.py --require-samples  # every status:test needs a sample
+    python scripts/sample_match_gate.py --require-new-samples --baseline resources/examples/SAMPLE_EXCEPTION_BASELINE.json
     python scripts/sample_match_gate.py --json out.json
 """
 from __future__ import annotations
@@ -258,19 +264,63 @@ class RuleCheck:
     ok: bool = True
 
 
-def _load_first_doc(path: Path) -> dict[str, Any]:
-    docs = [d for d in yaml.safe_load_all(path.read_text(encoding="utf-8")) if isinstance(d, dict)]
-    for d in docs:
-        if "detection" in d:
-            return d
-    return docs[0] if docs else {}
+def _load_docs(path: Path) -> list[dict[str, Any]]:
+    return [
+        doc
+        for doc in yaml.safe_load_all(path.read_text(encoding="utf-8"))
+        if isinstance(doc, dict)
+    ]
+
+
+def _correlation_fires(docs: list[dict[str, Any]], events: list[dict[str, Any]]) -> bool:
+    """Evaluate the repository's event_count correlation shape over *events*."""
+    correlation_doc = next((doc for doc in reversed(docs) if "correlation" in doc), None)
+    if not correlation_doc:
+        raise EvaluatorError("correlation document not found")
+    correlation = correlation_doc["correlation"]
+    if not isinstance(correlation, dict) or correlation.get("type") != "event_count":
+        raise EvaluatorError("only event_count correlations are supported")
+    rule_names = correlation.get("rules")
+    if not isinstance(rule_names, list) or len(rule_names) != 1 or not isinstance(rule_names[0], str):
+        raise EvaluatorError("event_count correlation must name exactly one base rule")
+    base_rule = next((doc for doc in docs if doc.get("name") == rule_names[0]), None)
+    if not isinstance(base_rule, dict):
+        raise EvaluatorError(f"base rule {rule_names[0]!r} not found")
+    group_by = correlation.get("group-by", [])
+    if not isinstance(group_by, list) or not all(isinstance(field, str) for field in group_by):
+        raise EvaluatorError("correlation group-by must be a list of field names")
+    counts: dict[tuple[Any, ...], int] = {}
+    for event in events:
+        if not isinstance(event, dict):
+            raise EvaluatorError("correlation sample events must be objects")
+        if rule_fires(base_rule, event):
+            key = tuple(event.get(field) for field in group_by)
+            counts[key] = counts.get(key, 0) + 1
+    condition = correlation.get("condition")
+    if not isinstance(condition, dict) or len(condition) != 1:
+        raise EvaluatorError("event_count correlation must have one threshold condition")
+    operator, threshold = next(iter(condition.items()))
+    if not isinstance(threshold, int):
+        raise EvaluatorError("event_count threshold must be an integer")
+    if operator == "gt":
+        return any(count > threshold for count in counts.values())
+    if operator == "gte":
+        return any(count >= threshold for count in counts.values())
+    raise EvaluatorError(f"unsupported event_count threshold {operator!r}")
 
 
 def check_rule(rule_path: Path) -> RuleCheck:
-    rule_doc = _load_first_doc(rule_path)
+    docs = _load_docs(rule_path)
+    rule_doc = docs[-1] if docs else {}
     status = rule_doc.get("status")
     sample_path = rule_path.with_suffix("").with_suffix(".sample.json")
-    relpath = "resources/examples/" + rule_path.relative_to(EXAMPLES_DIR).as_posix()
+    try:
+        relpath = "resources/examples/" + rule_path.relative_to(EXAMPLES_DIR).as_posix()
+    except ValueError:
+        # Unit tests and downstream consumers may validate a standalone rule
+        # outside this checkout. The path is display-only; never reject an
+        # otherwise valid sample merely because it is not in our corpus.
+        relpath = str(rule_path)
 
     if not sample_path.is_file():
         return RuleCheck(relpath=relpath, status=status, has_sample=False)
@@ -284,18 +334,54 @@ def check_rule(rule_path: Path) -> RuleCheck:
         return check
     if isinstance(cases, dict):
         cases = [cases]
+    if not isinstance(cases, list):
+        check.ok = False
+        check.sample_results.append("ERR: sample file must contain an object or list of objects")
+        return check
 
     saw_positive = False
     saw_negative = False
+    correlation_requires_sequence = "correlation" in rule_doc and status == "test"
+    if correlation_requires_sequence and any(
+        not isinstance(case, dict) or "events" not in case for case in cases
+    ):
+        check.ok = False
+        check.sample_results.append(
+            "ERR: status:test event_count correlation requires an 'events' "
+            "sequence to prove its threshold, not only a base-rule event"
+        )
     for i, case in enumerate(cases):
+        if not isinstance(case, dict):
+            check.ok = False
+            check.sample_results.append(f"case[{i}]: ERR (case must be an object)")
+            continue
         expect = case.get("expect_match")
+        if not isinstance(expect, bool):
+            check.ok = False
+            check.sample_results.append(
+                f"case[{i}]: ERR (expect_match must be a boolean)"
+            )
+            continue
         event = case.get("event", {})
         if expect is True:
             saw_positive = True
         elif expect is False:
             saw_negative = True
         try:
-            fired = rule_fires(rule_doc, event)
+            if "correlation" in rule_doc and "events" in case:
+                raw_events = case.get("events", [])
+                if not isinstance(raw_events, list):
+                    raise EvaluatorError("correlation sample needs an 'events' list")
+                fired = _correlation_fires(docs, raw_events)
+            else:
+                # Existing sidecars for correlation collections predate
+                # sequence support and intentionally exercise the base
+                # selection with one ``event``. Keep that useful unit test;
+                # a new ``events`` case exercises the actual threshold.
+                target = next((doc for doc in docs if "detection" in doc), rule_doc)
+                if not isinstance(event, dict):
+                    raise EvaluatorError("event must be an object")
+                fired = rule_fires(target, event)
         except EvaluatorError as exc:
             check.sample_results.append(f"case[{i}]: ERR ({exc})")
             continue
@@ -317,10 +403,28 @@ def check_rule(rule_path: Path) -> RuleCheck:
     return check
 
 
+def _load_baseline(path: Path) -> set[str]:
+    """Read the explicit, reviewable allowlist for pre-policy sample debt."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"could not read sample baseline {path}: {exc}") from exc
+    rules = payload.get("missing_status_test_samples") if isinstance(payload, dict) else None
+    if not isinstance(rules, list) or not all(isinstance(rule, str) for rule in rules):
+        raise ValueError(
+            f"sample baseline {path} must contain a string-list 'missing_status_test_samples'"
+        )
+    return set(rules)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--require-samples", action="store_true",
                         help="fail if any status:test rule has no sidecar sample")
+    parser.add_argument("--require-new-samples", action="store_true",
+                        help="fail missing status:test samples not listed in --baseline")
+    parser.add_argument("--baseline", metavar="PATH", default=None,
+                        help="reviewed allowlist for status:test rules predating this policy")
     parser.add_argument("--json", metavar="PATH", default=None)
     args = parser.parse_args(argv)
 
@@ -328,12 +432,23 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[sample-match-gate] ERROR: {EXAMPLES_DIR} not found -- run from repo root", file=sys.stderr)
         return 2
 
-    checks = [check_rule(p) for p in sorted(EXAMPLES_DIR.rglob("observed_*.yml"))]
+    if args.require_new_samples and not args.baseline:
+        parser.error("--require-new-samples requires --baseline")
+
+    checks = [check_rule(p) for p in sorted(EXAMPLES_DIR.rglob("*.yml"))]
     with_sample = [c for c in checks if c.has_sample]
     without_sample_test_status = [c for c in checks if not c.has_sample and c.status == "test"]
     failing = [c for c in with_sample if not c.ok]
+    baseline: set[str] = set()
+    if args.baseline:
+        try:
+            baseline = _load_baseline(Path(args.baseline))
+        except ValueError as exc:
+            print(f"[sample-match-gate] ERROR: {exc}", file=sys.stderr)
+            return 2
+    newly_missing = [c for c in without_sample_test_status if c.relpath not in baseline]
 
-    print(f"[sample-match-gate] {len(with_sample)}/{len(checks)} observed_* rules have a sidecar sample")
+    print(f"[sample-match-gate] {len(with_sample)}/{len(checks)} rules have a sidecar sample")
     for c in with_sample:
         marker = "OK" if c.ok else "FAIL"
         print(f"  [{marker}] {c.relpath}")
@@ -352,6 +467,7 @@ def main(argv: list[str] | None = None) -> int:
                 for c in with_sample
             ],
             "test_status_missing_sample": [c.relpath for c in without_sample_test_status],
+            "new_test_status_missing_sample": [c.relpath for c in newly_missing],
         }
         Path(args.json).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
@@ -360,6 +476,12 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if args.require_samples and without_sample_test_status:
         print(f"\n[sample-match-gate] FAIL: --require-samples set, {len(without_sample_test_status)} status:test rule(s) missing a sample")
+        return 1
+    if args.require_new_samples and newly_missing:
+        print(
+            f"\n[sample-match-gate] FAIL: {len(newly_missing)} new status:test rule(s) "
+            "missing a sample (not in the reviewed baseline)"
+        )
         return 1
     print("\n[sample-match-gate] ok")
     return 0

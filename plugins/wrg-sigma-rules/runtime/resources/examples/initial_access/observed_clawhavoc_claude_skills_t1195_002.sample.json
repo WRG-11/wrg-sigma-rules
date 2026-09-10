@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"ParentImage": "C:\\Users\\dev\\AppData\\Local\\Programs\\claude\\claude.exe", "Image": "C:\\Windows\\System32\\curl.exe", "CommandLine": "curl .claude/skills/malicious/SKILL.md"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\cmd.exe", "Image": "C:\\Windows\\System32\\curl.exe", "CommandLine": "curl .claude/skills/malicious/SKILL.md"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Users\\dev\\AppData\\Local\\Programs\\claude\\claude.exe", "Image": "C:\\Windows\\System32\\curl.exe", "CommandLine": "curl https://api.anthropic.com/v1/messages"}}
+]

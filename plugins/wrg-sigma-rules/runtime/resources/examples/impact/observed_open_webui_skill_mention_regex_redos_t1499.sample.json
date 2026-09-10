@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Message": "chat message: hey <$skillId this looks broken"}},
+  {"expect_match": false, "event": {"Message": "chat message: hey <$skillId|label> please run this"}}
+]

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/terminals/proxy", "cs-uri-query": "path=%2525%252525admin"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/terminals/proxy", "cs-uri-query": "path=session-abc"}}
+]

@@ -1,0 +1,85 @@
+title: Claude Code Action -- T1195.002 malicious .mcp.json from PR head branch RCE
+id: 0d248950-6a2f-4991-9e36-c0209dd23ae2
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-47751 (GHSA-8q5r-mmjf-575q,
+  CVSS 5.3 MEDIUM), a self-reported advisory for `claude-code-action`, the
+  general-purpose GitHub Action that runs Claude Code on pull requests and
+  issues.
+
+  Prior to 1.0.74, the action checked out the attacker-controlled PR head
+  branch, read `.mcp.json` from the working directory via default setting
+  sources, and unconditionally enabled every project MCP server via
+  `enableAllProjectMcpServers`. An attacker who opened a pull request
+  containing a malicious `.mcp.json` could achieve arbitrary code execution
+  on the GitHub Actions runner and exfiltrate secrets available to the
+  workflow (API keys, tokens) whenever a privileged user or an automatic
+  trigger invoked the Claude action on that PR. The fix (1.0.74) restores
+  `.claude/` and `.mcp.json` from the PULL REQUEST'S BASE BRANCH before the
+  CLI runs, rather than trusting whatever the PR head branch shipped.
+
+  This shares its root shape with two rules already in this corpus for
+  different GitHub Actions supply-chain attacks
+  (`observed_megalodon_github_actions_base64_payload_t1195_002`,
+  `observed_tanstack_pwn_request_actions_cache_poisoning_t1195_002`):
+  attacker-controlled PR content reaching a privileged CI execution context.
+  This rule is distinct in the specific artifact abused (`.mcp.json`'s
+  server-command field, not a workflow YAML or cache key).
+
+  Detection logic flags a `.mcp.json` file present in a PR's changed-file
+  set (or the runner's working directory during a `claude-code-action` job)
+  whose `mcpServers.*.command` field is an interpretive shell (`bash`,
+  `sh`, `powershell`) rather than a fixed, known tool binary -- the
+  advisory's own example attack shape is a shell command that reads
+  workflow secrets, so this is the artifact actually exploited, not a
+  generic "PR content is scary" heuristic.
+
+  Aggregated from 1 first-party vendor security advisory (Anthropic, via
+  GHSA and NVD), fixed in 1.0.74.
+references:
+- https://github.com/anthropics/claude-code-action/security/advisories/GHSA-8q5r-mmjf-575q
+- https://github.com/anthropics/claude-code-action/commit/9ddce40de8c1ab71fb6303a125fdad0968dc1312
+- https://github.com/anthropics/claude-code-action/pull/1066
+- https://github.com/anthropics/claude-code-action/releases/tag/v1.0.74
+- https://attack.mitre.org/techniques/T1195/002/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: github
+detection:
+  selection_mcp_json_file:
+    file_path|endswith: /.mcp.json
+  selection_shell_command_field:
+    file_content|contains:
+    - '"command": "bash"'
+    - '"command": "sh"'
+    - '"command":"bash"'
+    - '"command":"sh"'
+    - '"command": "powershell"'
+    - '"command":"powershell"'
+  condition: selection_mcp_json_file and selection_shell_command_field
+falsepositives:
+- A repository already upgraded to claude-code-action 1.0.74+, where the
+  fix restores `.mcp.json` from the base branch rather than trusting the
+  PR head -- a matching `.mcp.json` on an up-to-date runner reflects the
+  maintainer's own base-branch file, not an attacker's PR content, and
+  this log-source-agnostic rule cannot distinguish the two without a
+  file-provenance (base branch vs. PR head) signal, which most CI log
+  sources do not carry
+- A legitimate project MCP server whose `command` happens to be a shell
+  wrapper for benign reasons (e.g. a `bash -c` one-liner invoking a real
+  tool) -- this rule is pattern-library-only and needs environment-specific
+  tuning against known-good `.mcp.json` shapes before deployment
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1195.002
+- wrg.observed.cve.cve_2026_47751
+- wrg.observed.source.anthropic_ghsa_8q5r_mmjf_575q
+- wrg.observed.vector.mcp_json_pr_head_branch_rce
+- wrg.observed.cluster.github_actions_pr_content_supply_chain
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access

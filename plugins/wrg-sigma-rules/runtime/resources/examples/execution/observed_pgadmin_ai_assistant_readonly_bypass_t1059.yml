@@ -1,0 +1,82 @@
+title: pgAdmin 4 AI Assistant -- T1059 multi-statement READ ONLY transaction bypass
+id: a40210f2-82a8-40c8-b207-11a574907f7f
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-12045 (CVSS 9.4 CRITICAL), a
+  read-only-transaction bypass in pgAdmin 4's AI Assistant, affecting
+  versions 9.13 through 9.16 (fixed in 9.16, commit `bf4792444`).
+
+  The AI Assistant's `execute_sql_query` tool runs LLM-generated SQL
+  inside a `BEGIN TRANSACTION READ ONLY` wrapper specifically to prevent
+  data modification. The LLM-supplied query, however, was forwarded to the
+  database driver without being restricted to a single statement or to
+  read-only verbs. A multi-statement payload beginning with a
+  transaction-control keyword (`COMMIT`, `END`, `ROLLBACK`, or `ABORT`)
+  terminates the wrapping READ ONLY transaction early; every statement
+  after it then runs in ordinary autocommit mode, and the trailing
+  `ROLLBACK` the wrapper issues at the end has no effect since the
+  transaction it was meant to roll back is already gone. Delivery is via
+  prompt injection: content the AI Assistant later reads (a row, a column
+  value, a comment) can steer the LLM into emitting exactly this
+  multi-statement shape as its tool call. With ordinary write privileges
+  this yields unauthorized data modification; with a superuser role or
+  `pg_execute_server_program`, the chain extends to RCE via
+  `COPY ... TO PROGRAM`.
+
+  Detection logic flags the specific structural signature the fix's own
+  validation targets: a query submitted to `execute_sql_query` that is NOT
+  a single, non-empty statement whose leading token is one of
+  `SELECT`/`WITH`/`EXPLAIN`/`SHOW`/`VALUES`/`TABLE` -- concretely, one
+  containing a transaction-control keyword anywhere before a trailing
+  write statement, rather than as the query's own sole content.
+
+  Aggregated from 1 first-party vendor disclosure (pgAdmin project, via
+  the public GitHub issue and fix commit), fixed in 9.16.
+references:
+- https://github.com/pgadmin-org/pgadmin4/issues/10022
+- https://github.com/pgadmin-org/pgadmin4/commit/bf4792444446f0e7ab721d23cbd6bfe6afaa7a8b
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: application
+  product: postgresql
+detection:
+  selection_transaction_control_keyword:
+    Message|contains:
+    - 'COMMIT;'
+    - 'END;'
+    - 'ROLLBACK;'
+    - 'ABORT;'
+  selection_followed_by_write:
+    Message|contains:
+    - INSERT
+    - UPDATE
+    - DELETE
+    - 'COPY '
+    - DROP
+    - ALTER
+  condition: selection_transaction_control_keyword and selection_followed_by_write
+falsepositives:
+- A deployment already upgraded to 9.16+, where the fix rejects any query
+  that is not a single read-only statement before it ever reaches the
+  database -- a matching log entry on a fixed deployment reflects a
+  rejected submission, not successful exploitation
+- A legitimate multi-statement admin script executed through a DIFFERENT
+  pgAdmin path than the AI Assistant's `execute_sql_query` tool (e.g. the
+  Query Tool, which was never wrapped in the READ ONLY protection this
+  bug undermines) -- this rule cannot distinguish the two from SQL content
+  alone; correlate with the originating pgAdmin feature/tool if the log
+  source captures it
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: critical
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_12045
+- wrg.observed.source.pgadmin_issue_10022
+- wrg.observed.vector.multistatement_transaction_bypass
+- wrg.observed.vector.ai_assistant_prompt_injection
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution

@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"TargetFilename": "C:\\Users\\victim\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Login Data"}},
+  {"expect_match": true, "event": {"TargetFilename": "C:\\Users\\victim\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\abc123.default\\logins.json"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\Users\\victim\\Documents\\report.docx"}}
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "Message": "POST /api/v1/prediction/8f2a-flow chatflow prediction request csvFile=data:text/csv;base64,QQ==,\";\nimport js\nawait js.eval(\"(async () => { const fs = await import('fs'); fs.writeFileSync('proof.txt','x'); })()\")\n#,IGNORED"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "Message": "POST /api/v1/prediction/8f2a-flow chatflow prediction request csvFile=data:text/csv;base64,QWdlLE5hbWUKMzAsSm9obg=="
+    }
+  }
+]

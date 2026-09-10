@@ -618,6 +618,44 @@ def test_clean_rule_has_neither_falsepositive_warning() -> None:
     assert "falsepositives_empty" not in rules
 
 
+def test_empty_contains_value_is_flagged_as_broad() -> None:
+    import yaml
+
+    doc = yaml.safe_load(_rule_with_falsepositives(["Administrative deployment scripts"]))
+    doc["detection"]["selection"] = {"Image|contains": ""}
+    assert "broad_contains_value" in _lint_rules(yaml.safe_dump(doc, sort_keys=False))
+
+
+def test_nested_unbounded_regex_is_flagged() -> None:
+    import yaml
+
+    doc = yaml.safe_load(_rule_with_falsepositives(["Administrative deployment scripts"]))
+    doc["detection"]["selection"] = {"CommandLine|re": "(a+)+"}
+    assert "unsafe_regex_shape" in _lint_rules(yaml.safe_dump(doc, sort_keys=False))
+
+
+def test_logsource_without_routing_fields_is_flagged() -> None:
+    import yaml
+
+    doc = yaml.safe_load(_rule_with_falsepositives(["Administrative deployment scripts"]))
+    doc["logsource"] = {}
+    assert "logsource_underspecified" in _lint_rules(yaml.safe_dump(doc, sort_keys=False))
+
+
+def test_single_selection_condition_is_not_scaffold_warning() -> None:
+    rules = _lint_rules(_rule_with_falsepositives(["Administrative deployment scripts"]))
+    assert "condition_default" not in rules
+
+
+def test_default_condition_ignoring_filter_is_flagged() -> None:
+    import yaml
+
+    doc = yaml.safe_load(_rule_with_falsepositives(["Administrative deployment scripts"]))
+    doc["detection"]["filter_known_good"] = {"CommandLine|contains": "-NoProfile"}
+    doc["detection"]["condition"] = "selection"
+    assert "condition_default" in _lint_rules(yaml.safe_dump(doc, sort_keys=False))
+
+
 _BASE_PLUS_CORRELATION = """\
 title: Failed logon (base)
 name: failed_logon_base

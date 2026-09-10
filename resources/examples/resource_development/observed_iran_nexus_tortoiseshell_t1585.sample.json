@@ -1,0 +1,56 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      },
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      },
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      },
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      },
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      },
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      },
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      },
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      },
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      },
+      {
+        "EventID": 4720,
+        "SubjectUserName": "sample-group"
+      }
+    ]
+  }
+]

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/v2/repository/mlflow/models", "cs-uri-query": "name=../../etc/passwd"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/v2/repository/mlflow/models", "cs-uri-query": "name=resnet50"}}
+]

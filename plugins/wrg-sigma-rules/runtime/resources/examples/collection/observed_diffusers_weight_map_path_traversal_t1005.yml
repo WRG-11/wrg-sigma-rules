@@ -1,0 +1,77 @@
+title: Diffusers Sharded-Checkpoint weight_map Path Traversal Arbitrary File Read -- CVE-2026-65920 (T1005)
+id: 7155191b-8b3a-468f-a938-132bddc1a6ea
+status: experimental
+description: 'Detects exploitation of CVE-2026-65920 -- an out-of-directory
+  file read in HuggingFace Diffusers (<= 0.39.0) reached by loading a
+  malicious sharded checkpoint.
+
+  Root cause (fix commit cee298c, src/diffusers/utils/hub_utils.py,
+  _get_checkpoint_shard_files): shard filenames were taken verbatim from the
+  checkpoint index JSON --
+  `original_shard_filenames = sorted(set(index["weight_map"].values()))` --
+  and joined to the model directory without validation. The fix rejects any
+  entry that is not a plain filename:
+  `if os.path.basename(shard_filename) != shard_filename: raise ValueError`.
+  The upstream regression tests name both shapes the guard closes:
+  test_rejects_parent_directory_traversal and test_rejects_absolute_path.
+
+  Exploitation: a model repository ships a
+  diffusion_pytorch_model.safetensors.index.json (or
+  model.safetensors.index.json) whose weight_map values carry "../"
+  segments or an absolute path, e.g. {"w": "../secret/SECRET.safetensors"}.
+  On load, Diffusers resolves and opens that path, reading a safetensors
+  file outside the model directory. Attacker-controlled input is the model
+  artifact, so this is a supply-chain-delivered read primitive rather than a
+  network-reachable exploit -- CVSS carries UI:P for exactly that reason.
+
+  Detection rationale: a legitimate shard entry is always a plain filename
+  sitting beside the index, so a parent-directory reference or a path
+  separator in a .safetensors path opened during model load is the
+  exploitation shape itself, not a variant of normal behaviour.
+
+  TELEMETRY REQUIREMENT -- read this before deploying. The manifestation is
+  a file READ, and the dominant file-telemetry source (Sysmon EventID 11,
+  FileCreate) records writes. This rule therefore uses `category:
+  file_access`, which maps to Windows EventID 4663 (object-access auditing,
+  OFF by default and requiring a SACL on the target path) or Linux auditd
+  file watches. On a host without that telemetry the rule cannot fire at
+  all -- it will look clean because nothing is being collected, which is not
+  the same as clean.
+
+  Second limitation, same class: many sensors and filesystem APIs normalise
+  a path before it reaches the log, collapsing "model/../secret/x" to
+  "secret/x" and erasing the traversal marker. Where normalisation is in
+  effect, key on the absolute-path variant instead -- a .safetensors read
+  from outside the HuggingFace cache root -- which needs a
+  deployment-specific allow-path and is why it is not modelled here.'
+references:
+  - https://attack.mitre.org/techniques/T1005/
+  - https://github.com/huggingface/diffusers/commit/cee298c1f37c439a9a408396b8283a921238a1c6
+  - https://github.com/huggingface/diffusers/pull/14182
+  - https://github.com/huggingface/diffusers/issues/14175
+  - https://www.vulncheck.com/advisories/diffusers-path-traversal-via-weight-map-arbitrary-file-read
+author: WinstonRedGuard -- sigma plugin observed rules (derived from public CVE disclosure + fix-commit diff)
+date: '2026-08-06'
+tags:
+  - attack.collection
+  - attack.t1005
+  - cve.2026.65920
+  - wrg.observed.cve.cve_2026_65920_diffusers_weight_map_traversal
+  - wrg.observed.vector.sharded_checkpoint_index_path_escape
+  - wrg.observed.source.diffusers_fix_commit_cee298c
+  - wrg.severity.medium
+logsource:
+  category: file_access
+detection:
+  selection_safetensors_read:
+    TargetFilename|endswith: '.safetensors'
+  selection_escape:
+    TargetFilename|contains:
+      - '../'
+      - '..\'
+  condition: selection_safetensors_read and selection_escape
+falsepositives:
+  - Training and conversion scripts that reference checkpoints by a relative path from a working directory, e.g. a notebook opening "../checkpoints/model.safetensors". This is the main benign producer; scope by the process image (python loading diffusers) or by excluding known project roots before deploying.
+  - Model-repository mirroring and deduplication tools that build relative links between shard files across directories, where the traversal is the tool's own layout rather than an escape.
+  - Sensors that log the pre-normalisation path for every relative access, which turns any workflow launched from a subdirectory into a match. Confirm on a quiet host how the sensor renders a relative path before trusting the volume.
+level: medium

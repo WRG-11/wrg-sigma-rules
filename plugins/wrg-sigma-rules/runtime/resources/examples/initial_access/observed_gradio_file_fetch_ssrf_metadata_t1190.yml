@@ -1,0 +1,74 @@
+title: Gradio file_fetch -- T1190 unvalidated redirect reaches cloud instance-metadata
+id: f80f52ec-4600-40ad-8cb4-d3e2b37d9821
+status: experimental
+description: |
+  Vendor-disclosed detection for CVE-2026-59806 (CVSS 4.9 MEDIUM),
+  affecting Gradio before 6.20.0.
+
+  The `/gradio_api/file=<url>` endpoint's `file_fetch()` function returned
+  a plain 302 redirect to whatever HTTP(S) URL a caller supplied, with no
+  validation of the target. The advisory's own before/after PoC:
+  `curl "http://localhost:7860/gradio_api/file=http://169.254.169.254/latest/meta-data/"`
+  redirected straight to the AWS instance-metadata service before the
+  fix, and `gradio_client` follows redirects automatically -- turning a
+  public-facing Gradio app's file-loading feature into both an open
+  redirect (arbitrary destination) and a client-side SSRF primitive
+  (reaching internal/private-range or cloud-metadata addresses to
+  retrieve credentials such as EC2 IAM role tokens).
+
+  Detection logic flags a request to this endpoint whose `file=` value
+  targets a private, link-local, or well-known cloud-metadata address --
+  the endpoint's normal use case is fetching a public asset URL, so a
+  target in one of these ranges is the anomaly the vulnerable code failed
+  to reject.
+
+  Aggregated from 1 first-party vendor fix (gradio-app/gradio, via the
+  merged PR and VulnCheck's corroborating write-up, which quotes the
+  before/after curl behavior verbatim), fixed in 6.20.0 (server-side
+  SSRF-safe proxy: resolves and pins the IP, validates it is public,
+  re-validates on every redirect hop, and streams bytes back rather than
+  redirecting the client).
+references:
+- https://github.com/gradio-app/gradio/pull/13596
+- https://github.com/gradio-app/gradio/releases/tag/gradio%406.20.0
+- https://www.vulncheck.com/advisories/gradio-open-redirect-and-ssrf-via-gradio-api-file-endpoint
+- https://attack.mitre.org/techniques/T1190/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_gradio_file_endpoint:
+    cs-uri-stem|contains: /gradio_api/file=
+  selection_metadata_or_private_target:
+    cs-uri-query|contains:
+    - 169.254.169.254
+    - 'file=http://127.'
+    - 'file=http://10.'
+    - 'file=http://192.168.'
+    - 'file=http://169.254.'
+    - 'file=http://[::1]'
+    - 'file=http://[fd'
+  condition: selection_gradio_file_endpoint and selection_metadata_or_private_target
+falsepositives:
+- A deployment already upgraded to 6.20.0+, where the fix resolves and
+  validates the target IP is public before proxying -- a matching
+  request on a fixed deployment returns a 403 rather than reaching the
+  target address
+- A legitimate internal deployment where Gradio is intentionally
+  configured to fetch from private-range asset servers -- narrow in
+  practice given the specific metadata/loopback/link-local ranges this
+  rule targets, but possible in tightly-controlled internal-only setups
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment
+level: medium
+tags:
+- attack.t1190
+- wrg.observed.cve.cve_2026_59806
+- wrg.observed.source.gradio_app_pr_13596_vulncheck
+- wrg.observed.vector.unvalidated_redirect_ssrf
+- wrg.observed.vector.cloud_metadata_credential_theft
+- wrg.severity.medium
+- wrg.observed
+- wrg.tactic.initial_access

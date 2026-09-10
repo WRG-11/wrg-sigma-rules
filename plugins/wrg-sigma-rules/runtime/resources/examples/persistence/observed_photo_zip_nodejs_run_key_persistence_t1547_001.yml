@@ -1,0 +1,54 @@
+title: Photo ZIP campaign Node.js implant persistence via HKCU Run key -- T1547.001
+id: 67677963-fa59-43c3-ac46-a70db515e83a
+status: test
+description: |
+  Detects the persistence mechanism of the Photo ZIP campaign reported by
+  Microsoft on 2026-06-25 (unattributed; hospitality-sector phishing that
+  delivers a Node.js implant). The campaign persists by writing an HKCU Run or
+  RunOnce value that launches a JavaScript payload staged under
+  AppData\Local\Nodejs, alongside a second RunOnce value that launches a PE
+  under ProgramData and is refreshed on each execution.
+
+  Detection logic flags a Run or RunOnce registry value whose data references a
+  user-space Node.js path (AppData\Local\Nodejs) or a node.exe launch of a
+  local .js file. A user profile auto-starting node.exe against a local script
+  out of a Run key is uncommon outside this implant; pair with the campaign C2
+  indicators (for example the .cfd photo-NNNN domains or the documented C2 IPs)
+  for confirmation.
+
+  Surfaced by the wrg sigma_scout vendor-blog funnel (Microsoft Security feed)
+  and authored from the published advisory, not from synthetic content.
+references:
+  - https://www.microsoft.com/en-us/security/blog/2026/06/25/photo-zip-campaign-targeting-hospitality-industry-delivers-node-js-implant-persistent-access/
+  - https://attack.mitre.org/techniques/T1547/001/
+  - https://attack.mitre.org/techniques/T1059/007/
+author: WRG-11
+date: 2026-06-28
+logsource:
+  category: registry_set
+  product: windows
+detection:
+  selection_run_key:
+    TargetObject|contains:
+      - \Software\Microsoft\Windows\CurrentVersion\Run\
+      - \Software\Microsoft\Windows\CurrentVersion\RunOnce\
+  selection_nodejs_payload:
+    Details|contains:
+      - \AppData\Local\Nodejs\
+      - node.exe
+  condition: selection_run_key and selection_nodejs_payload
+falsepositives:
+  - Legitimate Node.js or Electron desktop applications that register a Run key
+    auto-start; confirm the referenced path and the binary publisher before
+    alerting.
+  - Developer tooling that auto-starts a local Node script at logon; scope by
+    user and by the AppData\Local\Nodejs path, which is specific to this implant.
+level: high
+tags:
+  - attack.t1547.001
+  - attack.t1059.007
+  - wrg.observed
+  - wrg.observed.campaign.photo_zip_nodejs_implant
+  - wrg.observed.novel.nodejs_userspace_run_key_persistence
+  - wrg.severity.high
+  - wrg.tactic.persistence

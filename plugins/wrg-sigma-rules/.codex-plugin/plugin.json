@@ -1,0 +1,36 @@
+{
+  "name": "wrg-sigma-rules",
+  "version": "1.8.0+codex.20260910153206",
+  "description": "Sigma rule drafting, validation, review, conversion, and ATT&CK coverage analysis for Codex.",
+  "author": {
+    "name": "WRG (WinstonRedGuard)"
+  },
+  "homepage": "https://github.com/WRG-11/wrg-sigma-rules",
+  "repository": "https://github.com/WRG-11/wrg-sigma-rules",
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "sigma",
+    "detection",
+    "siem",
+    "threat-intel"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "WRG Sigma Rules",
+    "shortDescription": "Draft, validate, review, and convert Sigma detections.",
+    "longDescription": "Connects Codex to WRG's Sigma rule tools and corpus-aware detection workflows.",
+    "developerName": "WRG (WinstonRedGuard)",
+    "category": "Security",
+    "capabilities": [
+      "MCP",
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Draft and validate a Sigma rule for suspicious PowerShell execution.",
+      "Review this Sigma rule for false positives and missing telemetry.",
+      "Show the highest-priority MITRE ATT&CK detection coverage gaps."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}

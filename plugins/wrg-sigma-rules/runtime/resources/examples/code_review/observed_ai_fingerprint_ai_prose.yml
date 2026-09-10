@@ -1,0 +1,38 @@
+title: LLM-typical AI-prose / linguistic tells
+id: c84b8abd-c7e6-50bf-b227-20b88ae60224
+status: experimental
+description: 'Detects linguistic AI-prose tells in code comments, docstrings, and string literals: em-dash density excess
+  above the human-prose baseline (3.83/1k words; Claude ~9/1k), AI-vocabulary words (delve, tapestry, meticulous, ...),
+  multi-word boilerplate phrases (at its core, it is worth noting, ...), rule-of-three structural patterns, and inline-bold-list
+  items. Fires only on dense co-occurrence (2+ distinct tell kinds) to suppress single-signal false positives. Weight
+  0.20 / max-confidence 0.80 -- linguistic tells are inherently low-certainty and are best interpreted together with
+  structural detector signals.
+
+
+  Aggregated from 2 fingerprint hit(s) across 1 file(s). Sample paths: apps/foo/bar.py.'
+references:
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+author: WinstonRedGuard -- sigma plugin ai-fingerprint observed rules
+date: '2026-06-22'
+logsource:
+  category: code_review
+  product: wrg_ai_fingerprint
+detection:
+  selection:
+    detector: ai_prose
+    evidence|contains:
+    - 'ai_phrase: ''it is worth noting'''
+    - 'ai_vocab: delve, meticulous'
+  condition: selection
+falsepositives:
+- Human-authored prose that uses em-dashes or AI-adjacent vocabulary
+- Non-native English technical writing (higher false-flag rate ~30%)
+- Heavily documented repositories (high docstring/comment density)
+level: low
+tags:
+- attack.t1027
+- wrg.ai_fingerprint
+- wrg.detector.ai_prose
+- wrg.severity.low
+- wrg.observed
+- wrg.tactic.code_review

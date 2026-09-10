@@ -1,0 +1,56 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      },
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      },
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      },
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      },
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      },
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      },
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      },
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      },
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      },
+      {
+        "Image": "\\7z.exe",
+        "CommandLine": "\\Users\\"
+      }
+    ]
+  }
+]

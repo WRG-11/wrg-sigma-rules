@@ -1,0 +1,70 @@
+title: Code Runner MCP Server -- T1059 unauthenticated run-code tool executes arbitrary source
+id: f756b13d-c36e-4541-bb87-19c673791910
+status: experimental
+description: |
+  Detection for CVE-2026-5029 (cert.pl, 2026-05), affecting Code Runner
+  MCP Server "in all versions" -- no patch exists at authoring time.
+
+  When started with `--transport http`, the server exposes its `/mcp`
+  JSON-RPC endpoint on port 3088 with no authentication. An unauthenticated
+  remote caller can invoke the `run-code` MCP tool, supplying arbitrary
+  source code and a target language; the server executes it via
+  `child_process.exec()` using the corresponding language interpreter --
+  with the privileges of whatever user is running the MCP server process.
+  Unlike most rules in this corpus, there is no version cutoff to key a
+  negative case on: the source states this affects the project in all
+  versions and remains unfixed.
+
+  Detection logic flags a `tools/call` JSON-RPC request naming the
+  `run-code` tool arriving without an Authorization header -- the tool
+  name itself is the discriminator this vulnerable server exposes with no
+  gate at all, so its presence on the wire without credentials is the
+  vulnerability's exact trigger condition, not a heuristic approximation
+  of it.
+
+  Aggregated from 1 independent technical write-up (cert.pl, a
+  CERT-affiliated vulnerability coordination body). No patched version
+  exists -- operators should place this server behind an authenticating
+  reverse proxy or restrict network reachability until upstream ships a
+  fix, per the source's own recommendation.
+references:
+- https://cert.pl/en/posts/2026/05/CVE-2026-5029
+- https://attack.mitre.org/techniques/T1059/
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-08-11'
+logsource:
+  category: proxy
+  product: ""
+detection:
+  selection_mcp_port:
+    cs-host|contains: ':3088'
+  selection_run_code_tool_call:
+    cs-uri-query|contains:
+    - run-code
+    - '"method":"tools/call"'
+  selection_no_auth_header:
+    cs(Authorization): null
+  condition: selection_mcp_port and selection_run_code_tool_call and selection_no_auth_header
+falsepositives:
+- No patched version exists at authoring time, so this rule cannot rely
+  on a fixed-deployment negative case -- treat every match as needing
+  manual review and network-exposure remediation, not a signature of an
+  already-mitigated risk
+- An operator's own automation that legitimately calls `run-code`
+  through a reverse proxy that strips/re-adds the Authorization header
+  before the request reaches this server -- if the log source captures
+  traffic at the proxy layer rather than the origin, the missing-header
+  condition may not reflect true unauthenticated exposure
+- Pattern library v1 -- review for environment-specific tuning before
+  deployment; port 3088 is the documented default but is operator-
+  configurable, so this selection needs adjustment for non-default ports
+level: critical
+tags:
+- attack.t1059
+- wrg.observed.cve.cve_2026_5029
+- wrg.observed.source.cert_pl_writeup
+- wrg.observed.vector.mcp_unauth_arbitrary_code_execution
+- wrg.observed.vector.no_patch_available
+- wrg.severity.critical
+- wrg.observed
+- wrg.tactic.execution
