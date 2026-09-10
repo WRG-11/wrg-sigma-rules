@@ -48,3 +48,36 @@ def test_event_count_correlation_requires_threshold_per_group() -> None:
             {"EventID": 4625, "SourceIP": "198.51.100.12"},
         ],
     )
+
+
+def test_test_status_correlation_rejects_legacy_single_event_sidecar(tmp_path: Path) -> None:
+    rule = tmp_path / "correlation.yml"
+    rule.write_text(
+        """title: Base
+name: base
+id: 11111111-1111-4111-8111-111111111111
+status: test
+logsource: {category: process_creation}
+detection:
+  selection: {EventID: 1}
+  condition: selection
+---
+title: Correlation
+id: 22222222-2222-4222-8222-222222222222
+status: test
+correlation:
+  type: event_count
+  rules: [base]
+  group-by: [SourceIP]
+  timespan: 5m
+  condition: {gt: 2}
+""",
+        encoding="utf-8",
+    )
+    rule.with_suffix(".sample.json").write_text(
+        '[{"expect_match": true, "event": {"EventID": 1}}]',
+        encoding="utf-8",
+    )
+    result = gate.check_rule(rule)
+    assert not result.ok
+    assert any("requires an 'events' sequence" in item for item in result.sample_results)

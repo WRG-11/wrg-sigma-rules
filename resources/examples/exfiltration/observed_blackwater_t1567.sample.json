@@ -1,4 +1,33 @@
 [
-  {"expect_match": true, "event": {"DestinationHostname": "www.mega.nz"}},
-  {"expect_match": false, "event": {"DestinationHostname": "www.microsoft.com"}}
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "DestinationHostname": "www.mega.nz"
+      },
+      {
+        "DestinationHostname": "www.mega.nz"
+      },
+      {
+        "DestinationHostname": "www.mega.nz"
+      },
+      {
+        "DestinationHostname": "www.mega.nz"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "DestinationHostname": "www.mega.nz"
+      },
+      {
+        "DestinationHostname": "www.mega.nz"
+      },
+      {
+        "DestinationHostname": "www.mega.nz"
+      }
+    ]
+  }
 ]

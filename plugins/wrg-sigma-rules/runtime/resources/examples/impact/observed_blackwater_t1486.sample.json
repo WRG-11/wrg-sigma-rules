@@ -1,4 +1,176 @@
 [
-  {"expect_match": true, "event": {"TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked"}},
-  {"expect_match": false, "event": {"TargetFilename": "C:\\Users\\victim\\Documents\\report.docx"}}
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      },
+      {
+        "TargetFilename": "C:\\Users\\victim\\Documents\\report.docx.locked",
+        "Image": "sample-group"
+      }
+    ]
+  }
 ]

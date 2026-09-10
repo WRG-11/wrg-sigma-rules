@@ -1,4 +1,33 @@
 [
-  {"expect_match": true, "event": {"DestinationHostname": "transfer.sh"}},
-  {"expect_match": false, "event": {"DestinationHostname": "www.microsoft.com"}}
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "DestinationHostname": "transfer.sh"
+      },
+      {
+        "DestinationHostname": "transfer.sh"
+      },
+      {
+        "DestinationHostname": "transfer.sh"
+      },
+      {
+        "DestinationHostname": "transfer.sh"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "DestinationHostname": "transfer.sh"
+      },
+      {
+        "DestinationHostname": "transfer.sh"
+      },
+      {
+        "DestinationHostname": "transfer.sh"
+      }
+    ]
+  }
 ]

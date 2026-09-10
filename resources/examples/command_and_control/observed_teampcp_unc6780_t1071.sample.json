@@ -1,4 +1,317 @@
 [
-  {"expect_match": true, "event": {"DestinationPort": 443, "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"}},
-  {"expect_match": false, "event": {"DestinationPort": 443, "Image": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"}}
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      },
+      {
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "DestinationHostname": "sample-group"
+      }
+    ]
+  }
 ]

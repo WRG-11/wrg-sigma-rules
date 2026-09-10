@@ -314,7 +314,13 @@ def check_rule(rule_path: Path) -> RuleCheck:
     rule_doc = docs[-1] if docs else {}
     status = rule_doc.get("status")
     sample_path = rule_path.with_suffix("").with_suffix(".sample.json")
-    relpath = "resources/examples/" + rule_path.relative_to(EXAMPLES_DIR).as_posix()
+    try:
+        relpath = "resources/examples/" + rule_path.relative_to(EXAMPLES_DIR).as_posix()
+    except ValueError:
+        # Unit tests and downstream consumers may validate a standalone rule
+        # outside this checkout. The path is display-only; never reject an
+        # otherwise valid sample merely because it is not in our corpus.
+        relpath = str(rule_path)
 
     if not sample_path.is_file():
         return RuleCheck(relpath=relpath, status=status, has_sample=False)
@@ -331,6 +337,15 @@ def check_rule(rule_path: Path) -> RuleCheck:
 
     saw_positive = False
     saw_negative = False
+    correlation_requires_sequence = "correlation" in rule_doc and status == "test"
+    if correlation_requires_sequence and any(
+        not isinstance(case, dict) or "events" not in case for case in cases
+    ):
+        check.ok = False
+        check.sample_results.append(
+            "ERR: status:test event_count correlation requires an 'events' "
+            "sequence to prove its threshold, not only a base-rule event"
+        )
     for i, case in enumerate(cases):
         expect = case.get("expect_match")
         event = case.get("event", {})

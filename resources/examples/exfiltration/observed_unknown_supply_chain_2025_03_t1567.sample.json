@@ -1,4 +1,33 @@
 [
-  {"expect_match": true, "event": {"DestinationHostname": "file.io"}},
-  {"expect_match": false, "event": {"DestinationHostname": "www.microsoft.com"}}
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "DestinationHostname": "file.io"
+      },
+      {
+        "DestinationHostname": "file.io"
+      },
+      {
+        "DestinationHostname": "file.io"
+      },
+      {
+        "DestinationHostname": "file.io"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "DestinationHostname": "file.io"
+      },
+      {
+        "DestinationHostname": "file.io"
+      },
+      {
+        "DestinationHostname": "file.io"
+      }
+    ]
+  }
 ]
