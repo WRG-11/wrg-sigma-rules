@@ -69,6 +69,28 @@ def test_convert_wazuh_emits_caveat_warning() -> None:
     assert any("wazuh" in w.lower() for w in result["warnings"])
 
 
+def test_convert_oversized_input_rejected_before_pysigma_parse() -> None:
+    result = convert_rule_body("title: " + ("A" * (300 * 1024)), target="splunk")
+    assert result["ok"] is False
+    assert result["kind"] == "input_too_large"
+
+
+def test_convert_yaml_alias_bomb_rejected_before_pysigma_parse() -> None:
+    result = convert_rule_body(
+        "seed: &seed [one, two]\n"
+        "title: alias test\n"
+        "id: 11111111-2222-3333-8444-555555555555\n"
+        "logsource: {category: process_creation}\n"
+        "detection:\n"
+        "  selection:\n"
+        "    Image: *seed\n"
+        "  condition: selection\n",
+        target="splunk",
+    )
+    assert result["ok"] is False
+    assert result["kind"] == "yaml_alias_rejected"
+
+
 _CORRELATION_YAML = """\
 title: LSASS access burst (base)
 name: lsass_access_burst_base

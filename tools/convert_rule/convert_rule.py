@@ -46,6 +46,8 @@ import importlib
 import re
 from typing import Any
 
+import yaml
+
 _PYSIGMA_INSTALL_HINT = (
     "pip install pysigma pysigma-backend-splunk"
 )
@@ -142,6 +144,74 @@ _CORRELATION_CAPABLE_TARGETS: tuple[str, ...] = ("splunk", "opensearch-ppl")
 # Config keys convert_rule actually acts on. Anything else is echoed back
 # and flagged rather than silently ignored.
 _RECOGNISED_CONFIG_KEYS: frozenset[str] = frozenset({"pipeline"})
+
+# ``convert_rule`` accepts untrusted YAML directly, rather than requiring a
+# prior ``validate_rule`` call. Keep the same fail-closed limits here: callers
+# must not be able to bypass the validator's input boundary merely by asking
+# for conversion first.
+_MAX_YAML_INPUT_BYTES = 256 * 1024
+
+
+class _AnchorAliasDetectingLoader(yaml.SafeLoader):
+    """SafeLoader that records YAML anchors and aliases while composing."""
+
+    def __init__(self, stream: Any) -> None:
+        super().__init__(stream)
+        self.saw_anchor_or_alias = False
+
+    def compose_node(self, parent: Any, index: Any) -> Any:
+        event = self.peek_event()
+        if getattr(event, "anchor", None) or isinstance(event, yaml.events.AliasEvent):
+            self.saw_anchor_or_alias = True
+        return super().compose_node(parent, index)
+
+
+def _contains_yaml_anchor_or_alias(yaml_content: str) -> bool:
+    """Detect alias syntax before pySigma can construct an expanded graph."""
+    loader = _AnchorAliasDetectingLoader(yaml_content)
+    try:
+        while loader.check_data():
+            loader.get_data()
+    finally:
+        loader.dispose()
+    return loader.saw_anchor_or_alias
+
+
+def _yaml_input_safety_error(yaml_content: str) -> dict[str, Any] | None:
+    """Return a fail-closed envelope for unsafe YAML, otherwise ``None``."""
+    content_bytes = len(yaml_content.encode("utf-8", errors="replace"))
+    if content_bytes > _MAX_YAML_INPUT_BYTES:
+        return {
+            "ok": False,
+            "error": (
+                f"YAML input too large ({content_bytes} bytes > "
+                f"{_MAX_YAML_INPUT_BYTES} byte cap); rejected before parsing"
+            ),
+            "kind": "input_too_large",
+        }
+    try:
+        if _contains_yaml_anchor_or_alias(yaml_content):
+            return {
+                "ok": False,
+                "error": (
+                    "YAML anchors/aliases (&name / *name) are not accepted "
+                    "because they enable alias-expansion ('billion laughs') DoS"
+                ),
+                "kind": "yaml_alias_rejected",
+            }
+    except RecursionError:
+        return {
+            "ok": False,
+            "error": "YAML nesting too deep to parse safely (RecursionError)",
+            "kind": "yaml_parse",
+        }
+    except yaml.YAMLError as exc:
+        return {
+            "ok": False,
+            "error": _ascii_safe(f"YAML parse failed: {exc}"),
+            "kind": "yaml_parse",
+        }
+    return None
 
 
 def _ascii_safe(text: str) -> str:
@@ -354,6 +424,10 @@ def convert_rule_body(
             ),
             "kind": "input_missing",
         }
+
+    safety_error = _yaml_input_safety_error(yaml_content)
+    if safety_error is not None:
+        return safety_error
 
     # Pre-parse via pySigma -- gives the cleanest error envelope (G1+G3).
     # SigmaCollection (not SigmaRule) so a multi-document YAML pairing a

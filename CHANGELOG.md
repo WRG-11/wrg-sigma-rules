@@ -45,6 +45,14 @@ wired into CI.
 
 ### Fixed
 
+- **Fail-closed converter input boundary.** `convert_rule` now applies the
+  same 256 KiB input limit and YAML anchor/alias rejection as `validate_rule`
+  before pySigma parses untrusted content. Conversion can no longer bypass
+  the validator's alias-expansion ("billion laughs") and oversized-input
+  protections.
+- **Plugin manifest validation is now a CI gate.** A pinned Claude Code CLI
+  validates `.claude-plugin/plugin.json` before test and release checks
+  proceed.
 - **Seven real rule-logic defects**, each proven by mutation test: the fix was
   reverted, the test went red, the fix was restored.
 - **29 rules with CVSS or status inconsistencies**, corrected against live
