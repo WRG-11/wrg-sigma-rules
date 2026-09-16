@@ -173,6 +173,9 @@ It sets the sourcing bar (attribution, platform and manifestation, each matched
 against the cited source) and documents the three upstream rejections that
 produced it.
 
+See [`ROADMAP.md`](ROADMAP.md) for the repository's current direction, explicit
+product boundaries and evidence required before an item is considered complete.
+
 ## License
 
 MIT; see [`LICENSE`](LICENSE). One license covers both the tooling (`server.py`,
