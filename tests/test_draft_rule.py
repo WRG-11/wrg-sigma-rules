@@ -45,6 +45,13 @@ def test_draft_rule_empty_description_returns_error() -> None:
     assert "description" in result["error"].lower()
 
 
+def test_draft_rule_oversized_input_is_rejected_before_processing() -> None:
+    result = draft_rule_body("A" * (300 * 1024))
+    assert result["ok"] is False
+    assert result["kind"] == "input_too_large"
+    assert "262144" in result["error"]
+
+
 def test_draft_rule_long_no_period_description_title_not_cut_mid_word() -> None:
     """G dogfood-audit: no caller-supplied title + a description with no
     period (common for a short one-liner) used to hard-slice the raw

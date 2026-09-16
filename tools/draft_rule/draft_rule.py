@@ -69,6 +69,11 @@ _REDACT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
 # OPSEC LLM-safe consumers elsewhere in the corpus tooling.
 _DESCRIPTION_CAP = 800
 
+# Bound every user-controlled text field before redaction, slugging, YAML
+# serialization, or pySigma parsing. The emitted description is much smaller,
+# but constraining output alone does not bound work performed on the request.
+_MAX_DRAFT_INPUT_BYTES = 256 * 1024
+
 # Severity vocabulary -- matches sigma spec ``level:`` field.
 _VALID_SEVERITY: frozenset[str] = frozenset(
     {"informational", "low", "medium", "high", "critical"}
@@ -163,6 +168,11 @@ def _redact_text(text: str, *, cap: int | None = None) -> tuple[str, list[str]]:
         text = text[:cap].rstrip() + " [TRUNCATED]"
         applied.append("[TRUNCATED]")
     return _ascii_safe(text), applied
+
+
+def _draft_input_size_bytes(values: list[str]) -> int:
+    """Return the UTF-8 request size, replacing malformed surrogates safely."""
+    return sum(len(value.encode("utf-8", errors="replace")) for value in values)
 
 
 def _truncate_title(text: str, limit: int = 80) -> str:
@@ -434,6 +444,17 @@ def draft_rule_body(
         not isinstance(mitre_ttps, list) or not all(isinstance(ttp, str) for ttp in mitre_ttps)
     ):
         return {"ok": False, "error": "mitre_ttps must be a list of strings", "kind": "invalid_input"}
+    input_texts = [description, rule_type, target_platform, severity, author]
+    if title is not None:
+        input_texts.append(title)
+    input_texts.extend(references or [])
+    input_texts.extend(mitre_ttps or [])
+    if _draft_input_size_bytes(input_texts) > _MAX_DRAFT_INPUT_BYTES:
+        return {
+            "ok": False,
+            "error": "draft input exceeds the 262144 byte safety cap",
+            "kind": "input_too_large",
+        }
     if not description.strip():
         return {
             "ok": False,
