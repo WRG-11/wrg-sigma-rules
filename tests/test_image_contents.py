@@ -112,6 +112,16 @@ def test_the_rule_corpus_is_not_excluded_from_the_build_context() -> None:
         )
 
 
+def test_base_image_is_digest_pinned() -> None:
+    """The Docker base must be reproducible rather than follow a mutable tag."""
+    dockerfile = DOCKERFILE.read_text(encoding="utf-8")
+    assert re.search(
+        r"^FROM python:3\.12-slim@sha256:[0-9a-f]{64}$",
+        dockerfile,
+        flags=re.MULTILINE,
+    ), "Dockerfile must pin python:3.12-slim to a sha256 digest"
+
+
 def test_the_probe_finds_the_known_runtime_directory() -> None:
     """Control arm: the two tests above pass trivially if the AST walk finds
     nothing. Pin the one directory we know is read at runtime, so an extraction
