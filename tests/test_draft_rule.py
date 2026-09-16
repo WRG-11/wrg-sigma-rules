@@ -192,6 +192,17 @@ def test_deterministic_uuid_for_same_inputs() -> None:
     assert a["yaml"].split("\n")[1] == b["yaml"].split("\n")[1]
 
 
+def test_distinct_drafts_with_the_same_truncated_title_get_distinct_uuids() -> None:
+    prefix = (
+        "Detect a suspicious process with a deliberately identical long title "
+        "prefix used for identity collision "
+    )
+    first = draft_rule_body(prefix + "first behaviour T1059", rule_type="process_creation")
+    second = draft_rule_body(prefix + "second behaviour T1057", rule_type="file_event")
+
+    assert first["yaml"].split("\n")[1] != second["yaml"].split("\n")[1]
+
+
 def test_mitre_ttps_declared_wins_over_description_scan() -> None:
     result = draft_rule_body(
         "Generic threat T1059 mentioned in description",

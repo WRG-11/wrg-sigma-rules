@@ -27,6 +27,7 @@ tooling; first-attempt PASS reference.
 """
 from __future__ import annotations
 
+import json
 import re
 import uuid
 from datetime import date
@@ -201,18 +202,39 @@ def _redact_description(description: str) -> tuple[str, list[str]]:
     return _redact_text(description or "", cap=_DESCRIPTION_CAP)
 
 
-def _slugify(value: str, *, max_len: int = 40) -> str:
-    """Lowercase + hyphen slug; ASCII-only; no leading / trailing hyphen."""
-    cleaned = re.sub(r"[^A-Za-z0-9]+", "-", value or "").lower()
-    cleaned = cleaned.strip("-")
-    if not cleaned:
-        return "rule"
-    return cleaned[:max_len].rstrip("-") or "rule"
-
-
 def _deterministic_uuid(seed: str) -> str:
     """Stable UUIDv5 from a seed string (so tests are reproducible)."""
     return str(uuid.uuid5(uuid.NAMESPACE_URL, f"wrg-sigma:{seed}"))
+
+
+def _draft_identity_seed(
+    *,
+    title: str,
+    description: str,
+    rule_type: str,
+    target_platform: str,
+    severity: str,
+    mitre_ttps: list[str],
+) -> str:
+    """Return a stable identity for the fields that shape a draft rule.
+
+    A title slug is display metadata and is deliberately truncated, so it is
+    not a safe unique identifier. Include the normalized semantic inputs to
+    avoid issuing the same Sigma UUID to distinct drafts with a shared title.
+    """
+    return json.dumps(
+        {
+            "description": description,
+            "mitre_ttps": mitre_ttps,
+            "rule_type": rule_type.strip().lower(),
+            "severity": severity,
+            "target_platform": target_platform.strip().lower(),
+            "title": title,
+        },
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
 
 
 def _detect_mitre_ttps(
@@ -495,8 +517,16 @@ def draft_rule_body(
         item for item in author_redactions if item not in applied_redactions
     )
 
-    slug = _slugify(rule_title)
-    rule_id = _deterministic_uuid(slug)
+    rule_id = _deterministic_uuid(
+        _draft_identity_seed(
+            title=rule_title,
+            description=safe_description,
+            rule_type=rule_type,
+            target_platform=target_platform,
+            severity=sev,
+            mitre_ttps=inferred_ttps,
+        )
+    )
     today = date.today().isoformat()
 
     logsource = _build_logsource(rule_type, target_platform)
