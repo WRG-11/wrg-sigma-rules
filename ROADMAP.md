@@ -73,7 +73,7 @@ review and release decision.
   multi-platform digest and Dependabot now monitors Docker dependencies. The
   container builds and completes the documented stdio MCP handshake as the
   non-root runtime user.
-- **Runtime verification:** the full suite passed with **876 tests**. Static
+- **Runtime verification:** the full suite passed with **878 tests**. Static
   linting passed, and the container smoke exchange listed all three tools and
   both published resources before successfully calling `validate_rule` and
   reading the ATT&CK coverage matrix.
@@ -99,6 +99,12 @@ review and release decision.
   platform and telemetry-manifestation fields deliberately remain
   `not_assessed` until a human reads the source; reference presence is not
   treated as proof.
+- **Correlation conversion audit:** `scripts/correlation_conversion_audit.py`
+  re-measured all **52** correlation-rule files against canonical backends.
+  Splunk converted **49** and correctly reports **3** `temporal_ordered`
+  type gaps; Elastic and OpenSearch Lucene report **52** capability gaps;
+  OpenSearch PPL converted **52**. The audit records syntax-conversion
+  envelopes only, so semantic equivalence remains `not_assessed`.
 
 ## Later, only with evidence
 
