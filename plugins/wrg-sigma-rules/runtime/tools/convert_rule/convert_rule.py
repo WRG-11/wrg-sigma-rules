@@ -292,6 +292,12 @@ def _redact_output_value(value: Any) -> tuple[Any, bool]:
     return value, False
 
 
+def _safe_text(value: object) -> str:
+    """Redact and ASCII-normalise text used in an early error envelope."""
+    redacted, _ = _redact_string(str(value))
+    return _ascii_safe(redacted)
+
+
 def _missing_pysigma_envelope() -> dict[str, Any]:
     """pySigma-missing envelope -- pySigma core missing."""
     return {
@@ -352,7 +358,7 @@ def _load_pipeline(names: list[str]) -> tuple[Any, dict[str, Any] | None]:
         if spec is None:
             return None, {
                 "ok": False,
-                "error": f"unknown processing pipeline '{name}'",
+                "error": f"unknown processing pipeline '{_safe_text(name)}'",
                 "hint": "known pipelines: " + ", ".join(_PIPELINE_KEYS),
                 "kind": "unknown_pipeline",
             }
@@ -392,7 +398,7 @@ def _load_backend(
             warnings,
             {
                 "ok": False,
-                "error": f"unknown target backend '{target}'",
+                "error": f"unknown target backend '{_safe_text(target)}'",
                 "hint": (
                     "supported targets: "
                     + ", ".join(_BACKEND_KEYS)
@@ -483,7 +489,7 @@ def convert_rule_body(
     except Exception as exc:
         err: dict[str, Any] = {
             "ok": False,
-            "error": _ascii_safe(f"sigma rule parse failed: {exc}"),
+            "error": _safe_text(f"sigma rule parse failed: {exc}"),
             "kind": "yaml_parse",
         }
         for attr in ("line", "column"):
@@ -550,7 +556,7 @@ def convert_rule_body(
             }
         return {
             "ok": False,
-            "error": _ascii_safe(
+            "error": _safe_text(
                 f"pySigma backend '{target}' conversion failed: {exc}"
             ),
             "kind": "backend_conversion",

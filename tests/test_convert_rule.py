@@ -292,6 +292,21 @@ def test_convert_unknown_target_returns_actionable_error() -> None:
     assert "splunk" in result["hint"]
 
 
+def test_convert_redacts_unknown_target_and_pipeline_errors() -> None:
+    """OPSEC must hold even when conversion stops before producing a query."""
+    target = convert_rule_body(_good_yaml(), target="backend.acme.corp")
+    pipeline = convert_rule_body(
+        _good_yaml(),
+        target="splunk",
+        config={"pipeline": "sysmon-10.10.5.42.acme.corp"},
+    )
+    for result in (target, pipeline):
+        assert result["ok"] is False
+        assert "10.10.5.42" not in str(result)
+        assert "acme.corp" not in str(result)
+        assert "<internal-domain>" in result["error"]
+
+
 def test_convert_empty_yaml_returns_input_missing() -> None:
     result = convert_rule_body("", target="splunk")
     assert result["ok"] is False
