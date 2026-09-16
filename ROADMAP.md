@@ -73,7 +73,7 @@ review and release decision.
   multi-platform digest and Dependabot now monitors Docker dependencies. The
   container builds and completes the documented stdio MCP handshake as the
   non-root runtime user.
-- **Runtime verification:** the full suite passed with **874 tests**. Static
+- **Runtime verification:** the full suite passed with **876 tests**. Static
   linting passed, and the container smoke exchange listed all three tools and
   both published resources before successfully calling `validate_rule` and
   reading the ATT&CK coverage matrix.
@@ -91,6 +91,12 @@ review and release decision.
   attribution. A zero note-gap count means every observed entry now has a
   readable evidence-boundary record; it does **not** mean every rule has
   source-backed telemetry manifestation or is ready for promotion.
+- **Evidence inventory:** `scripts/observed_evidence_inventory.py` records
+  the mechanical baseline for all **228** `observed_*` files: **227** have a
+  non-MITRE reference and all have a companion note. Its attribution,
+  platform and telemetry-manifestation fields deliberately remain
+  `not_assessed` until a human reads the source; reference presence is not
+  treated as proof.
 
 ## Later, only with evidence
 
