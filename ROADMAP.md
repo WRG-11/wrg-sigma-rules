@@ -58,6 +58,34 @@ backend conversion results are all reproducible from the submitted files.
 list the advertised surface and run the documented example without relying on
 checkout-local state.
 
+## Verified progress
+
+The entries below are measurements from this worktree. They are not a claim
+that an item has reached a public release; publication remains a separate
+review and release decision.
+
+### 2026-09-17 — runtime and corpus baseline
+
+- **MCP runtime hardening:** tool input boundaries, response redaction and
+  resource error paths received regression coverage; the checkout and bundled
+  Codex runtime remain byte-for-byte parity-checked.
+- **Container supply chain:** the Python base image is pinned to a
+  multi-platform digest and Dependabot now monitors Docker dependencies. The
+  container builds and completes the documented stdio MCP handshake as the
+  non-root runtime user.
+- **Runtime verification:** the full suite passed with **874 tests**. Static
+  linting passed, and the container smoke exchange listed all three tools and
+  both published resources before successfully calling `validate_rule` and
+  reading the ATT&CK coverage matrix.
+- **Corpus measurement:** **296 rules**, **91 ATT&CK techniques** and **14
+  tactic categories**; coverage collection reported no unparseable or
+  untagged rules. The required sidecar-sample gate passed.
+- **Documentation queue:** the detection-note gap tool no longer mistakes a
+  hallucinated CVSS string used as detection evidence for a vulnerability
+  score. It currently reports **0 scored** and **6 unscored** observed-rule
+  note gaps. Those six remain a source-review queue, not an automatic rule or
+  documentation-generation task.
+
 ## Later, only with evidence
 
 - Additional backend and processing-pipeline support, after each target has
