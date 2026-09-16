@@ -45,6 +45,17 @@ def test_read_plugin_version_missing_field_raises(tmp_path: Path) -> None:
         server_module._read_plugin_version(plugin_json)
 
 
+@pytest.mark.parametrize("manifest", [[], {"version": 7}, {"version": "  "}])
+def test_read_plugin_version_rejects_invalid_manifest_shape(
+    tmp_path: Path, manifest: object
+) -> None:
+    plugin_json = tmp_path / "plugin.json"
+    plugin_json.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(RuntimeError):
+        server_module._read_plugin_version(plugin_json)
+
+
 def test_live_server_version_matches_plugin_json() -> None:
     """The module-level `mcp` instance must announce the repo's real version.
 

@@ -69,8 +69,10 @@ def _read_plugin_version(path: Path = _PLUGIN_JSON) -> str:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         raise RuntimeError("cannot read plugin version manifest") from None
+    if not isinstance(data, dict):
+        raise RuntimeError("plugin version manifest must be a JSON object")
     version = data.get("version")
-    if not version:
+    if not isinstance(version, str) or not version.strip():
         raise RuntimeError("plugin version manifest has no 'version' field")
     return version
 
