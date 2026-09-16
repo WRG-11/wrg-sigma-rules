@@ -1,56 +1,28 @@
-title: Megalodon GitHub Actions Base64-Encoded Workflow Payload Burst -- T1195.002
+title: Megalodon GitHub Actions Base64-Encoded Workflow Payload -- T1195.002
 id: 4133ef67-73f3-4b48-94db-b5489422b0cc
 status: experimental
-description: 'Detects the Megalodon supply-chain composite TTP burst pattern:
-  6-hour burst window + 50+ throwaway-email-registered accounts + base64
-  encoded GitHub Actions workflow payload + mass push/PR to victim
-  repositories.
+description: 'Detects a base64-decoded inline shell payload in a GitHub Actions
+  workflow audit event. StepSecurity reported that the Megalodon supply-chain
+  campaign injected malicious workflow files into more than 5,500 repositories
+  within six hours and that both observed workflow variants contained a
+  base64-encoded bash payload decoded and executed during the CI run.
 
-  Attack chain (Megalodon profile):
+  This rule intentionally encodes only the workflow-content signal:
+  action == workflow_run plus a workflow_ref matching an inline
+  echo/printf | base64 -d | shell pattern. It does not encode the reported
+  six-hour campaign window, repository volume, account creation, pull-request
+  activity, credential collection, or network exfiltration. A hit therefore
+  means a suspicious workflow payload pattern, not confirmed Megalodon
+  activity.
 
-  (1) Threat actor (TeamPCP / UNC6780 cluster per
-  internal) bulk-registers
-  50+ GitHub accounts using throwaway/disposable email providers
-  (10minutemail, mailinator, guerrillamail, temp-mail style addresses)
-  within a 6-hour window.
-
-  (2) Each throwaway account opens 1-5 PRs (or pushes commits) to victim
-  open-source repositories. The PR/commit content modifies
-  `.github/workflows/<existing-or-new>.yml` to inject a base64-encoded
-  step payload (e.g., `run: echo <base64-blob> | base64 -d | bash`).
-
-  (3) GitHub Actions executes the base64 payload on PR-trigger or push-
-  trigger, sweeping credentials (GITHUB_TOKEN, secrets, env vars) and
-  exfiltrating via HTTPS POST OR DNS tunneling fallback (sister to
-  template_t1071_004_dns_tunneling_exfil_high_volume_unique_subdomain.yml
-  Megalodon Variant C).
-
-  (4) Net effect = mass supply-chain compromise across many OSS repos in
-  a single burst window. Sister incident:
-  internal (composite burst + throwaway-email-account cluster).
-
-  Detection logic (SIEM aggregation required for full burst window
-  composite):
-
-  - github.audit logsource (or equivalent enterprise audit log)
-  - action == workflow_run (or workflow_dispatch + push to .github/workflows/*)
-  - workflow_ref (or commit content) matches base64 step pattern
-    `(echo|printf)\s+[A-Za-z0-9+/]{50,}\s*\|\s*base64\s+-d\s*\|\s*(bash|sh|pwsh|powershell)`
-  - WITHIN a 6-hour rolling window, account creation count >= 50 with
-    throwaway email domains (mailinator|guerrillamail|10minutemail|temp-mail|...)
-
-  Sister cluster: observed_clawhavoc_claude_skills_t1195_002.yml +
-  observed_nx_console_t1195_002.yml + observed_s1ngularity_nx_npm_token
-  _exfil_t1195_002.yml + observed_mini_shai_hulud_npm_supply_chain_c2_
-  t1071.yml (4-vector Nx campaign cluster; this rule = 5th sister vector
-  Megalodon GitHub Actions branch).
-
-  Source: Megalodon profile
-  (internal).'
+  Deployment must map workflow content into workflow_ref (or an equivalent
+  normalized audit field). The cited report establishes the workflow payload,
+  not this backend-specific audit schema.'
 references:
   - https://attack.mitre.org/techniques/T1195/002/
   - https://attack.mitre.org/techniques/T1059/004/
   - https://attack.mitre.org/techniques/T1140/
+  - https://www.stepsecurity.io/blog/megalodon-mass-github-actions-secret-exfiltration-across-5-500-public-repositories
 author: WRG-11
 date: 2026/05/25
 tags:
