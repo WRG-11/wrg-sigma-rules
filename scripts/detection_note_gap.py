@@ -49,6 +49,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXAMPLES_DIR = REPO_ROOT / "resources" / "examples"
 NOTES_DIR = REPO_ROOT / "docs" / "detection-notes"
@@ -141,7 +143,20 @@ def _parse_rule(path: Path) -> RuleGap:
     title_match = re.search(r"^title:\s*(.+)$", text, re.MULTILINE)
     title = title_match.group(1).strip() if title_match else path.stem
 
-    cvss_match = _CVSS_RE.search(text)
+    # A rule can deliberately match text resembling a CVSS score. Searching
+    # raw YAML made that detection evidence masquerade as the vulnerability's
+    # own severity and sent the advisory queue down the wrong priority path.
+    # Only the authored description is a statement about the rule's subject.
+    docs = list(yaml.safe_load_all(text))
+    description = next(
+        (
+            doc.get("description", "")
+            for doc in docs
+            if isinstance(doc, dict) and isinstance(doc.get("description"), str)
+        ),
+        "",
+    )
+    cvss_match = _CVSS_RE.search(description)
     cvss = float(cvss_match.group(1)) if cvss_match else None
 
     refs: list[str] = []
