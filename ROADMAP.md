@@ -92,8 +92,10 @@ review and release decision.
   readable evidence-boundary record; it does **not** mean every rule has
   source-backed telemetry manifestation or is ready for promotion.
 - **Evidence inventory:** `scripts/observed_evidence_inventory.py` records
-  the mechanical baseline for all **228** `observed_*` files: **227** have a
-  non-MITRE reference and all have a companion note. Its attribution,
+  the mechanical baseline for all **228** `observed_*` files: **228** have a
+  non-MITRE reference and all have a companion note. The former MITRE-only
+  Megalodon entry now cites the independently reported base64 workflow payload
+  while explicitly omitting unsupported campaign-correlation claims. Its attribution,
   platform and telemetry-manifestation fields deliberately remain
   `not_assessed` until a human reads the source; reference presence is not
   treated as proof.
