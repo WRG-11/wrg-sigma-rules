@@ -82,9 +82,11 @@ review and release decision.
   untagged rules. The required sidecar-sample gate passed.
 - **Documentation queue:** the detection-note gap tool no longer mistakes a
   hallucinated CVSS string used as detection evidence for a vulnerability
-  score. It currently reports **0 scored** and **6 unscored** observed-rule
-  note gaps. Those six remain a source-review queue, not an automatic rule or
-  documentation-generation task.
+  score. The AI-fingerprint family note now covers that review-only signal
+  with a cited Google Threat Intelligence source and an explicit false-positive
+  boundary. The tool currently reports **0 scored** and **5 unscored**
+  observed-rule note gaps. Those five remain a source-review queue, not an
+  automatic rule or documentation-generation task.
 
 ## Later, only with evidence
 
