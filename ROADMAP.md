@@ -73,7 +73,7 @@ review and release decision.
   multi-platform digest and Dependabot now monitors Docker dependencies. The
   container builds and completes the documented stdio MCP handshake as the
   non-root runtime user.
-- **Runtime verification:** the full suite passed with **878 tests**. Static
+- **Runtime verification:** the full suite passed with **879 tests**. Static
   linting passed, and the container smoke exchange listed all three tools and
   both published resources before successfully calling `validate_rule` and
   reading the ATT&CK coverage matrix.
@@ -104,7 +104,9 @@ review and release decision.
   Splunk converted **49** and correctly reports **3** `temporal_ordered`
   type gaps; Elastic and OpenSearch Lucene report **52** capability gaps;
   OpenSearch PPL converted **52**. The audit records syntax-conversion
-  envelopes only, so semantic equivalence remains `not_assessed`.
+  envelopes only, so semantic equivalence remains `not_assessed`. A corpus-wide
+  Splunk guard permits only the measured `temporal_ordered` type gap and fails
+  any future unclassified conversion error.
 
 ## Later, only with evidence
 
