@@ -246,6 +246,28 @@ def test_validate_strict_mode_promotes_warnings() -> None:
     )
 
 
+@pytest.mark.parametrize("target_backend", [None, 7, {}, "  "])
+def test_validate_rejects_invalid_target_backend_type(target_backend: object) -> None:
+    result = validate_rule_body("title: Demo", target_backend=target_backend)
+
+    assert result == {
+        "ok": False,
+        "error": "target_backend must be a non-empty string",
+        "kind": "invalid_input",
+    }
+
+
+@pytest.mark.parametrize("strict", ["false", 1, None])
+def test_validate_rejects_non_boolean_strict(strict: object) -> None:
+    result = validate_rule_body("title: Demo", strict=strict)
+
+    assert result == {
+        "ok": False,
+        "error": "strict must be a boolean",
+        "kind": "invalid_input",
+    }
+
+
 def test_validate_oversized_input_rejected_before_parse() -> None:
     # DoS guard -- input over the byte cap is rejected before any YAML
     # parsing happens.

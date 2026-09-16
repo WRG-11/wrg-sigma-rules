@@ -843,6 +843,18 @@ def validate_rule_body(
                 "the rule is on disk."
             ),
         }
+    if not isinstance(target_backend, str) or not target_backend.strip():
+        return {
+            "ok": False,
+            "error": "target_backend must be a non-empty string",
+            "kind": "invalid_input",
+        }
+    if not isinstance(strict, bool):
+        return {
+            "ok": False,
+            "error": "strict must be a boolean",
+            "kind": "invalid_input",
+        }
 
     parsed, schema_parse_errors = _parse_yaml(yaml_content)
     schema_errors: list[dict[str, Any]] = list(schema_parse_errors)
