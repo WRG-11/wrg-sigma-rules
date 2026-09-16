@@ -373,6 +373,18 @@ def test_convert_redacts_internal_identifiers_from_echoed_config() -> None:
     assert result.get("redaction_applied") is True
 
 
+def test_convert_redacts_internal_identifiers_from_echoed_metadata() -> None:
+    yaml_content = _good_yaml().replace(
+        "title: Detect suspicious PowerShell MITRE T1059",
+        "title: Investigation for acme.corp",
+    )
+    result = convert_rule_body(yaml_content, target="splunk")
+    assert result["ok"] is True
+    assert "acme.corp" not in str(result)
+    assert result["metadata"]["title"] == "Investigation for <internal-domain>"
+    assert result.get("redaction_applied") is True
+
+
 def test_convert_rejects_non_mapping_config() -> None:
     result = convert_rule_body(_good_yaml(), target="splunk", config=["sysmon"])  # type: ignore[arg-type]
     assert result["ok"] is False
