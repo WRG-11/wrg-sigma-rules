@@ -84,12 +84,13 @@ review and release decision.
   hallucinated CVSS string used as detection evidence for a vulnerability
   score. The AI-fingerprint family note now covers that review-only signal
   with a cited Google Threat Intelligence source and an explicit false-positive
-  boundary. The tool currently reports **0 scored** and **3 unscored**
-  observed-rule note gaps. A primary-source review also documented the two
-  LAPSUS$ entries' unsupported Windows event mappings and thresholds as
-  test-tier hypotheses rather than actor attribution. Those three remaining
-  entries stay a source-review queue, not an automatic rule or
-  documentation-generation task.
+  boundary. The tool currently reports **0 scored** and **0 unscored**
+  observed-rule note gaps. Primary-source and context reviews documented the
+  LAPSUS$, supply-chain, Play and APT45 entries' unsupported Windows event,
+  process, DNS and threshold claims as test-tier hypotheses rather than actor
+  attribution. A zero note-gap count means every observed entry now has a
+  readable evidence-boundary record; it does **not** mean every rule has
+  source-backed telemetry manifestation or is ready for promotion.
 
 ## Later, only with evidence
 
