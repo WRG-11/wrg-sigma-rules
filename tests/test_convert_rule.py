@@ -252,6 +252,16 @@ def test_pipeline_wrong_type_is_rejected() -> None:
     assert result["kind"] == "invalid_pipeline"
 
 
+def test_pipeline_list_longer_than_registry_is_rejected() -> None:
+    result = convert_rule_body(
+        _good_yaml(), target="splunk", config={"pipeline": ["sysmon"] * 4}
+    )
+
+    assert result["ok"] is False
+    assert result["kind"] == "invalid_pipeline"
+    assert "at most 3" in result["error"]
+
+
 def test_missing_pipeline_package_returns_actionable_envelope(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

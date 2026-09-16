@@ -131,6 +131,7 @@ _PIPELINE_SPECS: dict[str, tuple[str, str, str]] = {
 }
 
 _PIPELINE_KEYS: tuple[str, ...] = tuple(_PIPELINE_SPECS)
+_MAX_PIPELINE_COUNT = len(_PIPELINE_SPECS)
 
 # Targets that can express sigma correlation rules, measured against the
 # installed backends on 2026-07-29 by converting all 76 corpus rules to each:
@@ -332,10 +333,30 @@ def _normalise_pipelines(raw: Any) -> tuple[list[str], dict[str, Any] | None]:
     """
     if raw is None:
         return [], None
-    names = [raw] if isinstance(raw, str) else raw
-    if not isinstance(names, (list, tuple)) or not all(
-        isinstance(n, str) for n in names
-    ):
+    if isinstance(raw, str):
+        names = [raw]
+    elif isinstance(raw, (list, tuple)):
+        # Check cardinality before traversing every client-supplied element.
+        # There can never be a useful pipeline chain longer than the local
+        # registry, so accepting one only creates needless work.
+        if len(raw) > _MAX_PIPELINE_COUNT:
+            return [], {
+                "ok": False,
+                "error": (
+                    "config['pipeline'] contains too many entries; at most "
+                    f"{_MAX_PIPELINE_COUNT} are supported"
+                ),
+                "kind": "invalid_pipeline",
+            }
+        names = raw
+    else:
+        return [], {
+            "ok": False,
+            "error": "config['pipeline'] must be a string or list of strings",
+            "hint": "known pipelines: " + ", ".join(_PIPELINE_KEYS),
+            "kind": "invalid_pipeline",
+        }
+    if not all(isinstance(n, str) for n in names):
         return [], {
             "ok": False,
             "error": "config['pipeline'] must be a string or list of strings",
