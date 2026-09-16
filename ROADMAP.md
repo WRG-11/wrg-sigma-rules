@@ -73,7 +73,7 @@ review and release decision.
   multi-platform digest and Dependabot now monitors Docker dependencies. The
   container builds and completes the documented stdio MCP handshake as the
   non-root runtime user.
-- **Runtime verification:** the full suite passed with **879 tests**. Static
+- **Runtime verification:** the full suite passed with **880 tests**. Static
   linting passed, and the container smoke exchange listed all three tools and
   both published resources before successfully calling `validate_rule` and
   reading the ATT&CK coverage matrix.
@@ -107,6 +107,13 @@ review and release decision.
   envelopes only, so semantic equivalence remains `not_assessed`. A corpus-wide
   Splunk guard permits only the measured `temporal_ordered` type gap and fails
   any future unclassified conversion error.
+- **Actor-labelled duplicate audit:** `scripts/duplicate_rule_check.py
+  --exact-actor-logic` now normalizes generated local base-rule names and
+  reports **11** exact detection/correlation-structure groups among
+  actor-labelled `observed_*` rules. It also records adjacent sample hashes
+  without interpreting them. The result is a reproducible review queue, not a
+  provenance verdict: threshold equivalence, actor attribution and any
+  consolidation or reclassification decision remain explicitly unassessed.
 
 ## Later, only with evidence
 
