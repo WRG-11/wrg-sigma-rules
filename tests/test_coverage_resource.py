@@ -18,6 +18,7 @@ from tools.resources.coverage_resource import (  # noqa: E402
     collect_coverage,
     coverage_matrix_body,
 )
+import tools.resources.coverage_resource as coverage_resource  # noqa: E402
 
 _EXAMPLES = _PLUGIN_ROOT / "resources" / "examples"
 
@@ -27,6 +28,21 @@ def test_rule_total_matches_the_corpus_on_disk() -> None:
     so compare against the filesystem rather than a literal."""
     on_disk = len(list(_EXAMPLES.rglob("*.yml")))
     assert collect_coverage()["total_rules"] == on_disk
+
+
+def test_unreadable_rule_does_not_break_coverage_resource(
+    tmp_path: Path, monkeypatch: object
+) -> None:
+    corpus = tmp_path / "examples"
+    tactic = corpus / "discovery"
+    tactic.mkdir(parents=True)
+    (tactic / "broken.yml").write_bytes(b"\xff\xfe")
+    monkeypatch.setattr(coverage_resource, "_EXAMPLES_DIR", corpus)
+
+    data = collect_coverage()
+
+    assert data["total_rules"] == 1
+    assert data["unparseable"] == ["discovery/broken.yml"]
 
 
 def test_technique_count_matches_an_independent_recount() -> None:

@@ -83,7 +83,7 @@ def collect_coverage() -> dict[str, Any]:
 
         try:
             docs = list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
-        except yaml.YAMLError:
+        except (OSError, UnicodeError, yaml.YAMLError):
             unparseable.append(rel)
             continue
 
@@ -183,7 +183,7 @@ def coverage_matrix_body() -> str:
         lines.append("## Rules contributing no coverage")
         lines.append("")
         for rel in data["unparseable"]:
-            lines.append(f"- `{rel}` -- could not be parsed")
+            lines.append(f"- `{rel}` -- could not be read or parsed")
         for rel in data["untagged"]:
             lines.append(f"- `{rel}` -- no `attack.tNNNN` tag")
         lines.append("")
