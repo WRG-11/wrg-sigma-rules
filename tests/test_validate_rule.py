@@ -212,6 +212,21 @@ def test_validate_pattern_34_redacts_internal_identifiers() -> None:
     assert "acme.corp" not in flat
 
 
+def test_validate_redacts_internal_identifiers_from_schema_errors() -> None:
+    yaml_str = (
+        "title: Demo\n"
+        "id: acme.corp-10.10.5.42\n"
+        "logsource: {category: process_creation}\n"
+        "detection: {selection: {Image: cmd.exe}, condition: selection}\n"
+    )
+    result = validate_rule_body(yaml_str, strict=True)
+    assert result["valid"] is False
+    assert "acme.corp" not in str(result)
+    assert "10.10.5.42" not in str(result)
+    assert "<internal-domain>" in str(result["schema_errors"])
+    assert result.get("redaction_applied") is True
+
+
 def test_validate_strict_mode_promotes_warnings() -> None:
     yaml_str = (
         "title: A short title\n"
