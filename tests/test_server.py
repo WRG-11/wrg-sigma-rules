@@ -25,21 +25,23 @@ def test_read_plugin_version_returns_version_field(tmp_path: Path) -> None:
 
 
 def test_read_plugin_version_missing_file_raises(tmp_path: Path) -> None:
-    with pytest.raises(RuntimeError, match="cannot read version"):
-        server_module._read_plugin_version(tmp_path / "does-not-exist.json")
+    missing = tmp_path / "acme.corp" / "does-not-exist.json"
+    with pytest.raises(RuntimeError, match="cannot read plugin version manifest") as exc:
+        server_module._read_plugin_version(missing)
+    assert "acme.corp" not in str(exc.value)
 
 
 def test_read_plugin_version_corrupt_json_raises(tmp_path: Path) -> None:
     plugin_json = tmp_path / "plugin.json"
     plugin_json.write_text("{not valid json", encoding="utf-8")
-    with pytest.raises(RuntimeError, match="cannot read version"):
+    with pytest.raises(RuntimeError, match="cannot read plugin version manifest"):
         server_module._read_plugin_version(plugin_json)
 
 
 def test_read_plugin_version_missing_field_raises(tmp_path: Path) -> None:
     plugin_json = tmp_path / "plugin.json"
     plugin_json.write_text(json.dumps({"name": "no-version-here"}), encoding="utf-8")
-    with pytest.raises(RuntimeError, match="no 'version' field"):
+    with pytest.raises(RuntimeError, match="has no 'version' field"):
         server_module._read_plugin_version(plugin_json)
 
 
