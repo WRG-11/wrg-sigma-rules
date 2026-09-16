@@ -42,6 +42,8 @@ _PATTERN_FILES: dict[str, str] = {
     "05": "05-supply-chain-compromise.md",
 }
 
+_PATTERNS_RELATIVE_DIR = "resources/canonical-patterns"
+
 
 def canonical_patterns_body() -> str:
     """Return the INDEX.md content for the 5 canonical sigma patterns.
@@ -57,11 +59,21 @@ def canonical_patterns_body() -> str:
             {
                 "ok": False,
                 "error": "canonical patterns INDEX.md not found",
-                "expected_path": str(index_path),
+                "expected_path": f"{_PATTERNS_RELATIVE_DIR}/INDEX.md",
             },
             indent=2,
         )
-    text = index_path.read_text(encoding="utf-8")
+    try:
+        text = index_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return json.dumps(
+            {
+                "ok": False,
+                "error": "canonical patterns INDEX.md could not be read",
+                "expected_path": f"{_PATTERNS_RELATIVE_DIR}/INDEX.md",
+            },
+            indent=2,
+        )
     # Defensive ASCII coercion -- the migration script enforces this
     # upstream but a redundant check at the resource boundary catches
     # any future drift.
@@ -75,16 +87,22 @@ def canonical_pattern_by_id_body(pattern_id: str) -> str:
     ``"5"`` (normalised). Unknown IDs return a JSON envelope with the
     available ID list. ASCII-only output.
     """
+    if not isinstance(pattern_id, str):
+        return json.dumps(
+            {
+                "ok": False,
+                "error": "pattern_id must be a string containing a pattern number",
+                "available_ids": sorted(_PATTERN_FILES.keys()),
+            },
+            indent=2,
+        )
     raw = pattern_id.strip()
     # Normalise to zero-padded 2-digit form.
     digits = "".join(c for c in raw if c.isdigit())
     if not digits:
         payload: dict[str, Any] = {
             "ok": False,
-            "error": (
-                "pattern_id must contain at least one digit; got "
-                f"'{raw}'"
-            ),
+            "error": "pattern_id must contain at least one digit",
             "available_ids": sorted(_PATTERN_FILES.keys()),
         }
         return json.dumps(payload, indent=2)
@@ -106,10 +124,18 @@ def canonical_pattern_by_id_body(pattern_id: str) -> str:
         payload = {
             "ok": False,
             "error": f"pattern file missing: {filename}",
-            "expected_path": str(pattern_path),
+            "expected_path": f"{_PATTERNS_RELATIVE_DIR}/{filename}",
         }
         return json.dumps(payload, indent=2)
-    text = pattern_path.read_text(encoding="utf-8")
+    try:
+        text = pattern_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        payload = {
+            "ok": False,
+            "error": f"pattern file could not be read: {filename}",
+            "expected_path": f"{_PATTERNS_RELATIVE_DIR}/{filename}",
+        }
+        return json.dumps(payload, indent=2)
     return text.encode("ascii", errors="replace").decode("ascii")
 
 
