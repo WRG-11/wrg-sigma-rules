@@ -152,7 +152,7 @@ starting point to bind to your own logsource and tune; each rule's
 
 ## Quality and testing
 
-- <!-- METRIC:test_module_count -->23<!-- /METRIC:test_module_count --> Python test
+- <!-- METRIC:test_module_count -->24<!-- /METRIC:test_module_count --> Python test
   modules cover rule validation and tool-integration smoke tests.
 - pySigma 1.x compatibility is verified against the Splunk, Elasticsearch and
   OpenSearch backend packages.
