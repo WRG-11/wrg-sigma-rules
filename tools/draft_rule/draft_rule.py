@@ -151,6 +151,20 @@ def _ascii_safe(text: str) -> str:
     return text.encode("ascii", errors="replace").decode("ascii")
 
 
+def _redact_text(text: str, *, cap: int | None = None) -> tuple[str, list[str]]:
+    """Redact an externally visible string before it reaches an MCP response."""
+    applied: list[str] = []
+    for pattern, placeholder in _REDACT_PATTERNS:
+        if pattern.search(text):
+            text = pattern.sub(placeholder, text)
+            if placeholder not in applied:
+                applied.append(placeholder)
+    if cap is not None and len(text) > cap:
+        text = text[:cap].rstrip() + " [TRUNCATED]"
+        applied.append("[TRUNCATED]")
+    return _ascii_safe(text), applied
+
+
 def _truncate_title(text: str, limit: int = 80) -> str:
     """Cut *text* to at most *limit* chars at a word boundary, with a visible
     ``...`` marker when truncated. A raw ``text[:limit]`` slice can land
@@ -174,17 +188,7 @@ def _redact_description(description: str) -> tuple[str, list[str]]:
     once (useful for the draft_notes block so the operator sees what the
     tool considered sensitive).
     """
-    text = description or ""
-    applied: list[str] = []
-    for pattern, placeholder in _REDACT_PATTERNS:
-        if pattern.search(text):
-            text = pattern.sub(placeholder, text)
-            if placeholder not in applied:
-                applied.append(placeholder)
-    if len(text) > _DESCRIPTION_CAP:
-        text = text[:_DESCRIPTION_CAP].rstrip() + " [TRUNCATED]"
-        applied.append("[TRUNCATED]")
-    return text, applied
+    return _redact_text(description or "", cap=_DESCRIPTION_CAP)
 
 
 def _slugify(value: str, *, max_len: int = 40) -> str:
@@ -410,7 +414,27 @@ def draft_rule_body(
     """
     notes: list[str] = []
 
-    if not description or not description.strip():
+    if not isinstance(description, str):
+        return {"ok": False, "error": "description must be a string", "kind": "invalid_input"}
+    if not isinstance(rule_type, str):
+        return {"ok": False, "error": "rule_type must be a string", "kind": "invalid_input"}
+    if not isinstance(target_platform, str):
+        return {"ok": False, "error": "target_platform must be a string", "kind": "invalid_input"}
+    if not isinstance(severity, str):
+        return {"ok": False, "error": "severity must be a string", "kind": "invalid_input"}
+    if title is not None and not isinstance(title, str):
+        return {"ok": False, "error": "title must be a string", "kind": "invalid_input"}
+    if not isinstance(author, str):
+        return {"ok": False, "error": "author must be a string", "kind": "invalid_input"}
+    if references is not None and (
+        not isinstance(references, list) or not all(isinstance(ref, str) for ref in references)
+    ):
+        return {"ok": False, "error": "references must be a list of strings", "kind": "invalid_input"}
+    if mitre_ttps is not None and (
+        not isinstance(mitre_ttps, list) or not all(isinstance(ttp, str) for ttp in mitre_ttps)
+    ):
+        return {"ok": False, "error": "mitre_ttps must be a list of strings", "kind": "invalid_input"}
+    if not description.strip():
         return {
             "ok": False,
             "error": "description is required (non-empty string)",
@@ -422,29 +446,33 @@ def draft_rule_body(
 
     sev = (severity or "medium").lower()
     if sev not in _VALID_SEVERITY:
+        safe_severity, _ = _redact_text(severity)
         return {
             "ok": False,
             "error": (
-                f"severity '{severity}' not in sigma spec vocabulary"
+                f"severity '{safe_severity}' not in sigma spec vocabulary"
             ),
             "valid_severity": sorted(_VALID_SEVERITY),
         }
 
     safe_description, applied_redactions = _redact_description(description)
-    if applied_redactions:
-        notes.append(
-            "OPSEC redactions applied: "
-            + ", ".join(applied_redactions)
-        )
 
     inferred_ttps = _detect_mitre_ttps(safe_description, mitre_ttps)
 
     # Title -- prefer caller-supplied, else build from the first sentence.
     if title:
-        rule_title = title
+        rule_title, title_redactions = _redact_text(title)
+        applied_redactions.extend(
+            item for item in title_redactions if item not in applied_redactions
+        )
     else:
         first_sentence = safe_description.split(".")[0].strip()
         rule_title = _truncate_title(first_sentence) or "Untitled sigma rule"
+
+    safe_author, author_redactions = _redact_text(author)
+    applied_redactions.extend(
+        item for item in author_redactions if item not in applied_redactions
+    )
 
     slug = _slugify(rule_title)
     rule_id = _deterministic_uuid(slug)
@@ -468,7 +496,18 @@ def draft_rule_body(
     # References block -- empty list is a smell flagged in
     # ``sigma-rule-writer`` Step 5 output discipline. We seed an empty list
     # so pySigma still parses; the skill nudges the user to populate.
-    refs = [r for r in (references or []) if r]
+    refs: list[str] = []
+    for reference in references or []:
+        if not reference:
+            continue
+        safe_reference, reference_redactions = _redact_text(reference)
+        refs.append(safe_reference)
+        applied_redactions.extend(
+            item for item in reference_redactions if item not in applied_redactions
+        )
+
+    if applied_redactions:
+        notes.append("OPSEC redactions applied: " + ", ".join(applied_redactions))
 
     # The falsepositives placeholder is a TODO, so say so here rather than
     # letting the author discover it at review time (or not at all).
@@ -486,7 +525,7 @@ def draft_rule_body(
         "status": "experimental",
         "description": _ascii_safe(safe_description),
         "references": refs,
-        "author": _ascii_safe(author),
+        "author": safe_author,
         "date": today,
         "logsource": logsource,
         "detection": detection,

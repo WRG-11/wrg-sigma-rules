@@ -107,6 +107,41 @@ def test_pattern_34_internal_domain_redacted() -> None:
     assert "finance.lan" not in result["yaml"]
 
 
+def test_draft_rule_redacts_all_echoed_text_inputs() -> None:
+    result = draft_rule_body(
+        "Normal description",
+        title="Investigation for acme.corp at 10.10.5.42",
+        author="joe@acme.corp",
+        references=["https://acme.corp/runbook?host=10.10.5.42"],
+    )
+    assert result["ok"] is True
+    assert "acme.corp" not in str(result)
+    assert "10.10.5.42" not in str(result)
+    assert "joe@acme.corp" not in str(result)
+    assert "<internal-domain>" in result["yaml"]
+    assert result["draft_notes"]
+
+
+def test_draft_rule_redacts_invalid_severity_error() -> None:
+    result = draft_rule_body("Normal description", severity="acme.corp")
+    assert result["ok"] is False
+    assert "acme.corp" not in str(result)
+    assert "<internal-domain>" in result["error"]
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "field"),
+    [
+        ({"description": 7}, "description"),
+        ({"description": "Normal", "references": "https://example.com"}, "references"),
+        ({"description": "Normal", "mitre_ttps": ["T1059", 7]}, "mitre_ttps"),
+    ],
+)
+def test_draft_rule_rejects_invalid_input_types(kwargs: dict[str, object], field: str) -> None:
+    result = draft_rule_body(**kwargs)  # type: ignore[arg-type]
+    assert result == {"ok": False, "error": f"{field} must be a string" if field == "description" else f"{field} must be a list of strings", "kind": "invalid_input"}
+
+
 def test_ascii_only_output() -> None:
     # ASCII-only -- em-dashes + non-ASCII inputs scrubbed in YAML body.
     result = draft_rule_body(
