@@ -121,7 +121,7 @@ def collect_coverage() -> dict[str, Any]:
 
 def coverage_matrix_body() -> str:
     """Return the corpus ATT&CK coverage report as ASCII markdown."""
-    if not _EXAMPLES_DIR.exists():
+    if not _EXAMPLES_DIR.is_dir():
         return json.dumps(
             {
                 "ok": False,

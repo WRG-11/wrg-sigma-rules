@@ -58,6 +58,19 @@ def test_missing_corpus_error_does_not_expose_host_path(
     assert "acme.corp" not in coverage_matrix_body()
 
 
+def test_corpus_path_must_be_a_directory(
+    tmp_path: Path, monkeypatch: object
+) -> None:
+    corpus_file = tmp_path / "examples"
+    corpus_file.write_text("not a directory", encoding="utf-8")
+    monkeypatch.setattr(coverage_resource, "_EXAMPLES_DIR", corpus_file)
+
+    payload = json.loads(coverage_matrix_body())
+
+    assert payload["ok"] is False
+    assert payload["expected_path"] == "resources/examples"
+
+
 def test_technique_count_matches_an_independent_recount() -> None:
     """Recount the tags here by a different route than the module uses,
     so a bug in its parsing cannot agree with itself."""
