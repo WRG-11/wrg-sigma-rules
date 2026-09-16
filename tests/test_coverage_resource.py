@@ -6,6 +6,7 @@ says something true about the corpus, AND a real MCP client can reach it.
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -43,6 +44,18 @@ def test_unreadable_rule_does_not_break_coverage_resource(
 
     assert data["total_rules"] == 1
     assert data["unparseable"] == ["discovery/broken.yml"]
+
+
+def test_missing_corpus_error_does_not_expose_host_path(
+    tmp_path: Path, monkeypatch: object
+) -> None:
+    missing = tmp_path / "acme.corp" / "examples"
+    monkeypatch.setattr(coverage_resource, "_EXAMPLES_DIR", missing)
+
+    payload = json.loads(coverage_matrix_body())
+
+    assert payload["expected_path"] == "resources/examples"
+    assert "acme.corp" not in coverage_matrix_body()
 
 
 def test_technique_count_matches_an_independent_recount() -> None:

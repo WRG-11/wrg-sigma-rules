@@ -30,6 +30,7 @@ import yaml
 _EXAMPLES_DIR = (
     Path(__file__).resolve().parent.parent.parent / "resources" / "examples"
 )
+_EXAMPLES_RELATIVE_DIR = "resources/examples"
 
 # Sigma tags are a flat namespace. `attack.t1059.001` is a technique,
 # `attack.execution` is a tactic, and this corpus additionally carries
@@ -125,7 +126,7 @@ def coverage_matrix_body() -> str:
             {
                 "ok": False,
                 "error": "rule corpus directory not found",
-                "expected_path": str(_EXAMPLES_DIR),
+                "expected_path": _EXAMPLES_RELATIVE_DIR,
             },
             indent=2,
         )
