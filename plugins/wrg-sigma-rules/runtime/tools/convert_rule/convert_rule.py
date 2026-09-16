@@ -133,13 +133,10 @@ _PIPELINE_SPECS: dict[str, tuple[str, str, str]] = {
 _PIPELINE_KEYS: tuple[str, ...] = tuple(_PIPELINE_SPECS)
 _MAX_PIPELINE_COUNT = len(_PIPELINE_SPECS)
 
-# Targets that can express sigma correlation rules, measured against the
-# installed backends on 2026-07-29 by converting all 76 corpus rules to each:
-# splunk and opensearch-ppl succeeded on all 76; elastic and opensearch
-# (Lucene) failed on the same 10 -- every correlation rule in the corpus.
-# kibana and wazuh route through the elasticsearch Lucene backend, so they
-# share that limit. Re-measure rather than trust this list if a backend
-# package is upgraded; it is a snapshot of what those versions could do.
+# Targets whose pySigma implementations can express Sigma correlation rules.
+# Kibana and Wazuh route through the Elasticsearch Lucene backend, so they
+# share its limit. Corpus-level outcomes are intentionally not hard-coded here:
+# rerun ``scripts/correlation_conversion_audit.py`` after a backend upgrade.
 _CORRELATION_CAPABLE_TARGETS: tuple[str, ...] = ("splunk", "opensearch-ppl")
 
 # Config keys convert_rule actually acts on. Anything else is echoed back
@@ -551,15 +548,26 @@ def convert_rule_body(
         # distinguishing, because the caller's next move is different. The
         # rule needs no edit; it needs a backend that supports correlations.
         # Naming those backends here saves the caller discovering the set by
-        # trying each one, which is how this gap went unnoticed: 10 of the 76
-        # corpus rules fail on every Lucene-family target (elastic, kibana,
-        # wazuh and opensearch all route through the same backend), while
-        # converting cleanly on splunk and opensearch-ppl.
+        # trying each one. A backend can also support correlation generally
+        # while lacking one correlation type; that is still a backend
+        # capability gap, not a generic rule-conversion defect.
         # Matched narrowly on the backend's own capability wording. A bare
         # "correlation" substring also appears in the deprecated-pipe-syntax
         # error ("...replaced by Sigma correlations"), which is a rule defect
         # and must keep the generic classification.
-        if "does not support correlation" in message.lower():
+        lowered_message = message.lower()
+        unsupported_type = re.search(
+            r"correlation type '([^']+)' is not supported by backend",
+            message,
+            re.IGNORECASE,
+        )
+        if (
+            "does not support correlation" in lowered_message
+            or unsupported_type is not None
+        ):
+            capability = "correlation_rules"
+            if unsupported_type is not None:
+                capability = f"correlation_type:{unsupported_type.group(1)}"
             return {
                 "ok": False,
                 "error": _ascii_safe(
@@ -573,7 +581,7 @@ def convert_rule_body(
                 ),
                 "kind": "backend_capability_gap",
                 "target": target.lower(),
-                "capability": "correlation_rules",
+                "capability": capability,
             }
         return {
             "ok": False,

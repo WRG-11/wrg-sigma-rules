@@ -160,6 +160,28 @@ def test_convert_correlation_rule_elastic_fails_gracefully() -> None:
     assert "correlation" in result["error"].lower()
 
 
+def test_convert_temporal_ordered_correlation_reports_type_capability_gap() -> None:
+    """Splunk supports event-count correlations but not temporal ordering.
+
+    That distinction changes the operator's next action: changing backend or
+    redesigning the correlation is appropriate; treating it as malformed YAML
+    is not.
+    """
+    rule = (
+        _PLUGIN_ROOT
+        / "resources"
+        / "examples"
+        / "initial_access"
+        / "observed_clawhavoc_claude_skills_t1195_002.yml"
+    )
+
+    result = convert_rule_body(rule.read_text(encoding="utf-8"), target="splunk")
+
+    assert result["ok"] is False
+    assert result["kind"] == "backend_capability_gap"
+    assert result["capability"] == "correlation_type:temporal_ordered"
+
+
 def _windows_process_creation_yaml() -> str:
     return (
         "title: Encoded PowerShell\n"
