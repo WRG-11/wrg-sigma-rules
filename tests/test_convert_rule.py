@@ -182,6 +182,31 @@ def test_convert_temporal_ordered_correlation_reports_type_capability_gap() -> N
     assert result["capability"] == "correlation_type:temporal_ordered"
 
 
+def test_corpus_splunk_correlations_have_no_unclassified_conversion_failure() -> None:
+    """Keep a backend upgrade from silently turning a rule defect into a gap.
+
+    Splunk currently converts the supported corpus correlation types. The only
+    measured exception is pySigma's explicit lack of ``temporal_ordered``;
+    any generic conversion error must be investigated rather than accepted.
+    """
+    correlation_rules = [
+        path
+        for path in (_PLUGIN_ROOT / "resources" / "examples").rglob("*.yml")
+        if any(
+            line.startswith("correlation:")
+            for line in path.read_text(encoding="utf-8").splitlines()
+        )
+    ]
+
+    assert correlation_rules
+    for rule in correlation_rules:
+        result = convert_rule_body(rule.read_text(encoding="utf-8"), target="splunk")
+        if result["ok"]:
+            continue
+        assert result["kind"] == "backend_capability_gap", rule
+        assert result["capability"] == "correlation_type:temporal_ordered", rule
+
+
 def _windows_process_creation_yaml() -> str:
     return (
         "title: Encoded PowerShell\n"
