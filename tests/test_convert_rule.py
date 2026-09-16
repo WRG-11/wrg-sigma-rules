@@ -344,6 +344,26 @@ def test_convert_unused_config_is_flagged_not_silently_dropped() -> None:
     assert any("config parameter is currently accepted but not applied" in w for w in result["warnings"])
 
 
+def test_convert_redacts_internal_identifiers_from_echoed_config() -> None:
+    """OPSEC applies to the full envelope, not only the generated query."""
+    result = convert_rule_body(
+        _good_yaml(),
+        target="splunk",
+        config={"index": "logs-10.10.5.42.acme.corp"},
+    )
+    assert result["ok"] is True
+    assert "10.10.5.42" not in str(result)
+    assert "acme.corp" not in str(result)
+    assert result["config_used"]["index"] == "logs-<internal-ip>.<internal-domain>"
+    assert result.get("redaction_applied") is True
+
+
+def test_convert_rejects_non_mapping_config() -> None:
+    result = convert_rule_body(_good_yaml(), target="splunk", config=["sysmon"])  # type: ignore[arg-type]
+    assert result["ok"] is False
+    assert result["kind"] == "invalid_config"
+
+
 def test_convert_no_config_has_no_config_warning() -> None:
     result = convert_rule_body(_good_yaml(), target="splunk")
     assert not any("config parameter" in w for w in result["warnings"])

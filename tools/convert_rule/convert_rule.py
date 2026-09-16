@@ -261,6 +261,37 @@ _REDACT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
 )
 
 
+def _redact_output_value(value: Any) -> tuple[Any, bool]:
+    """Recursively redact and ASCII-normalise every echoed output value.
+
+    Converted queries already pass through ``_redact_query``, but the MCP
+    envelope also echoes metadata, configuration, and warning text. Keeping
+    that second path unredacted would let an internal identifier supplied in
+    ``config`` bypass the tool's OPSEC boundary.
+    """
+    if isinstance(value, str):
+        redacted, flagged = _redact_string(value)
+        return _ascii_safe(redacted), flagged
+    if isinstance(value, dict):
+        result: dict[Any, Any] = {}
+        flagged = False
+        for key, item in value.items():
+            safe_key, key_flagged = _redact_output_value(key)
+            safe_item, item_flagged = _redact_output_value(item)
+            result[safe_key] = safe_item
+            flagged = flagged or key_flagged or item_flagged
+        return result, flagged
+    if isinstance(value, (list, tuple)):
+        items: list[Any] = []
+        flagged = False
+        for item in value:
+            safe_item, item_flagged = _redact_output_value(item)
+            items.append(safe_item)
+            flagged = flagged or item_flagged
+        return items, flagged
+    return value, False
+
+
 def _missing_pysigma_envelope() -> dict[str, Any]:
     """pySigma-missing envelope -- pySigma core missing."""
     return {
@@ -423,6 +454,12 @@ def convert_rule_body(
                 "supported targets: " + ", ".join(_BACKEND_KEYS)
             ),
             "kind": "input_missing",
+        }
+    if config is not None and not isinstance(config, dict):
+        return {
+            "ok": False,
+            "error": "config must be a mapping when provided",
+            "kind": "invalid_config",
         }
 
     safety_error = _yaml_input_safety_error(yaml_content)
@@ -599,9 +636,10 @@ def convert_rule_body(
     }
     if alternate:
         out["alternate_queries"] = alternate
-    if redaction_applied:
-        out["redaction_applied"] = True
-    return out
+    safe_out, output_redacted = _redact_output_value(out)
+    if redaction_applied or output_redacted:
+        safe_out["redaction_applied"] = True
+    return safe_out
 
 
 def register_convert_rule_tool(mcp: Any) -> None:
