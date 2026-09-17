@@ -249,6 +249,13 @@ growth.
    advisory status. The duplicate audit's 11 exact-logic groups are a source
    review queue, not candidates for automatic consolidation.
    **Exit evidence:** isolated-fixture CLI tests and a reproducible JSON report.
+
+   **Portability completed (2026-09-17):** the observed-evidence inventory,
+   correlation-conversion audit and detection-note gap report each accept their
+   corpus root (and applicable notes/review roots), return a clear nonzero
+   result for an absent root, and have isolated-fixture CLI regression tests.
+   Their JSON reports retain explicit advisory/evidence limitations; an empty
+   or non-empty queue is not used to promote, merge or suppress a rule.
 2. **Add human-source review evidence, not mechanical certainty.** Extend the
    observed-evidence inventory only with additive fields whose values are tied
    to reviewed primary sources. Keep attribution, platform and telemetry
