@@ -180,6 +180,13 @@ growth.
    **Exit evidence:** parity, container and stdio-MCP smoke checks in the same
    change.
 
+   **Foundation completed (2026-09-17):**
+   `scripts/sync_codex_runtime.py --check` now provides a read-only,
+   file-by-file snapshot-parity gate before anyone rewrites the bundled Codex
+   runtime. It identifies missing or divergent generated files while leaving
+   the snapshot untouched; the existing live/container smoke evidence remains
+   a separate requirement.
+
 ## Explicitly out of scope
 
 - A hosted multi-tenant MCP service or remote telemetry collection.

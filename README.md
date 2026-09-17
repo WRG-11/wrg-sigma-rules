@@ -63,7 +63,9 @@ codex plugin add wrg-sigma-rules@wrg-11
 
 The Codex plugin carries a self-contained runtime snapshot of the server and
 corpus, so its installed cache does not rely on checkout-relative paths. Keep it
-current with `python scripts/sync_codex_runtime.py`; CI fails if it drifts.
+current with `python scripts/sync_codex_runtime.py`. Check parity without
+rewriting the snapshot via `python scripts/sync_codex_runtime.py --check`; CI
+fails if it drifts.
 
 ### Cursor
 
@@ -152,7 +154,7 @@ starting point to bind to your own logsource and tune; each rule's
 
 ## Quality and testing
 
-- <!-- METRIC:test_module_count -->26<!-- /METRIC:test_module_count --> Python test
+- <!-- METRIC:test_module_count -->27<!-- /METRIC:test_module_count --> Python test
   modules cover rule validation and tool-integration smoke tests.
 - pySigma 1.x compatibility is verified against the Splunk, Elasticsearch and
   OpenSearch backend packages.
