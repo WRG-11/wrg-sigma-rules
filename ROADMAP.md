@@ -145,6 +145,16 @@ review and release decision.
   result. This prevents a consumer from treating a copied count as a
   provenance verdict, promotion decision, or semantic-equivalence claim.
 
+### 2026-09-17 — continued verification and audit execution
+
+- The checkout now passes **899 tests**, Ruff, README metric stamping and the
+  read-only bundled-runtime parity check. This supplements, rather than
+  rewrites, the earlier 880-test baseline above.
+- CI now runs the observed-evidence, correlation-conversion and detection-note
+  reports against the published corpus as advisory measurements. A non-empty
+  queue remains review input, while parser or dependency drift now fails where
+  it is visible.
+
 ## Later, only with evidence
 
 - Additional backend and processing-pipeline support, after each target has

@@ -140,6 +140,19 @@ jobs:
       - name: Report fingerprint-sharing rule groups (advisory, never fails)
         run: python scripts/duplicate_rule_check.py
 
+      # These reports remain advisory about corpus decisions: a non-empty
+      # queue is review input, not a CI failure. Running them on the published
+      # corpus still catches parser/runtime drift and keeps their measurements
+      # reproducible with the same dependency set as conversion tests.
+      - name: Report observed-rule evidence inventory (advisory)
+        run: python scripts/observed_evidence_inventory.py
+
+      - name: Report correlation conversion boundaries (advisory)
+        run: python scripts/correlation_conversion_audit.py
+
+      - name: Report detection-note gaps (advisory)
+        run: python scripts/detection_note_gap.py
+
       # Gate, not advisory: a rule whose sidecar .sample.json no longer
       # matches its own detection: logic is a real regression (the rule
       # changed, or the sample did, and nobody re-checked the pairing) --
