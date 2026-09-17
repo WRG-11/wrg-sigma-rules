@@ -16,7 +16,7 @@ sys.modules[SPEC.name] = inventory
 SPEC.loader.exec_module(inventory)
 
 
-def test_inventory_distinguishes_reference_hygiene_from_evidence_proof(
+def test_inventory_distinguishes_reference_shape_from_evidence_proof(
     tmp_path: Path,
 ) -> None:
     examples = tmp_path / "examples"
@@ -66,6 +66,8 @@ def test_inventory_distinguishes_reference_hygiene_from_evidence_proof(
             ],
             "later_document_references": [],
             "has_wrg_breach_catalog_mention": False,
+            "reference_shape": "has_non_mitre_reference",
+            "is_mentioned_by_detection_note": True,
             "reference_hygiene": "has_non_mitre_reference",
             "has_companion_note": True,
             "source_review": None,
@@ -90,7 +92,9 @@ def test_inventory_marks_mitre_only_rules_without_inferring_quality(tmp_path: Pa
     records = inventory.build_inventory(examples, tmp_path / "missing-notes")
     summary = inventory.summarize(records)
 
-    assert records[0]["reference_hygiene"] == "mitre_only_or_missing"
+    assert records[0]["reference_shape"] == "mitre_only_or_missing"
+    assert records[0]["reference_hygiene"] == records[0]["reference_shape"]
+    assert records[0]["is_mentioned_by_detection_note"] is False
     assert records[0]["telemetry_manifestation_evidence"] == "not_assessed"
     assert summary == {
         "observed_rule_files": 1,

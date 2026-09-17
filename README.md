@@ -199,6 +199,10 @@ source matches, and an explicit unsupported boundary; none of those counts is
 an attribution or promotion decision.
 `public_traceability_queue` is a convenience subset for the two mechanical
 public-review cues; it is not a verdict about a rule or its sources.
+For per-rule JSON, prefer `reference_shape` and
+`is_mentioned_by_detection_note`: both are literal inventory facts, not source
+quality or note-endorsement labels. The older `reference_hygiene` and
+`has_companion_note` fields remain compatibility aliases with identical values.
 
 The correlation audit separately counts a backend's declared capability
 boundaries (for example, `correlation_rules` or

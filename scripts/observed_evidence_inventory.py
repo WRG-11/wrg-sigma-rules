@@ -237,6 +237,9 @@ def build_inventory(
         first_document_references = _references([first])
         later_document_references = _references(documents[1:])
         external_references = [ref for ref in references if not _is_mitre_reference(ref)]
+        reference_shape = (
+            "has_non_mitre_reference" if external_references else "mitre_only_or_missing"
+        )
         tags = sorted(
             {
                 tag
@@ -272,11 +275,12 @@ def build_inventory(
                 "has_wrg_breach_catalog_mention": bool(
                     _WRG_BREACH_CATALOG_RE.search(path.read_text(encoding="utf-8"))
                 ),
-                "reference_hygiene": (
-                    "has_non_mitre_reference"
-                    if external_references
-                    else "mitre_only_or_missing"
-                ),
+                # Preferred names describe what the inventory can establish,
+                # not a judgment about source quality or note endorsement.
+                "reference_shape": reference_shape,
+                "is_mentioned_by_detection_note": relpath in covered,
+                # Compatibility aliases retained for existing JSON consumers.
+                "reference_hygiene": reference_shape,
                 "has_companion_note": relpath in covered,
                 "source_review": (
                     {
@@ -322,11 +326,11 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, int]:
     return {
         "observed_rule_files": len(records),
         "with_non_mitre_reference": sum(
-            record["reference_hygiene"] == "has_non_mitre_reference"
+            record["reference_shape"] == "has_non_mitre_reference"
             for record in records
         ),
         "mitre_only_or_missing_reference": sum(
-            record["reference_hygiene"] == "mitre_only_or_missing"
+            record["reference_shape"] == "mitre_only_or_missing"
             for record in records
         ),
         "with_companion_note": sum(record["has_companion_note"] for record in records),
@@ -411,8 +415,11 @@ def main(argv: list[str] | None = None) -> int:
         "records": records,
         "public_traceability_queue": public_traceability_queue(records),
         "limitations": (
-            "Reference and companion-note presence are mechanical facts; they "
+            "reference_shape and is_mentioned_by_detection_note are mechanical "
+            "facts; they "
             "do not prove attribution, platform, or telemetry manifestation. "
+            "reference_hygiene and has_companion_note are compatibility aliases, "
+            "not quality or endorsement labels. "
             "Listed URLs are preserved for human review without a source-quality "
             "ranking. "
             "A WRG breach-catalog mention is a literal public-traceability "
