@@ -190,6 +190,11 @@ growth.
    Missing records still render as `not_assessed`, so this foundation does not
    alter the measured review baseline or promote any rule.
 
+   **Integrity edge completed (2026-09-17):** schema v1 rejects custom fields,
+   ambiguous `not_assessed` quotes, traversal-shaped rule paths, and future
+   review dates. It validates record shape and linkage, not quote truth or
+   ongoing source freshness; those remain explicit human review duties.
+
    **Public-traceability queue (2026-09-17):** the inventory also exposes
    literal `WRG breach catalog` mentions and reference distribution between a
    multi-document rule's first and later documents. These are bounded review

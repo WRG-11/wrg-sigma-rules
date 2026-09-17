@@ -184,9 +184,11 @@ The inventory retains its attribution, platform and
 telemetry-manifestation fields as `not_assessed` until a human has documented
 the three source matches in [`CONTRIBUTING.md`](CONTRIBUTING.md). Those
 review records live under [`docs/source-reviews/`](docs/source-reviews/): each
-must cite a URL already on the rule, record a review date, and include a source
-quote for every supported or not-supported conclusion. The inventory rejects a
-malformed or stale record rather than treating it as evidence.
+must cite a URL already on the rule, record a review date that is not in the
+future, and include a source quote for every supported or not-supported
+conclusion. The inventory rejects malformed or future-dated records rather
+than treating them as evidence; source or rule drift still requires human
+re-review.
 It also records the literal presence of `WRG breach catalog` and whether a
 multi-document rule keeps references only in a later document. Both are public
 traceability review cues, never source-quality or attribution verdicts.
