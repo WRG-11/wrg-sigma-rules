@@ -1,6 +1,7 @@
 """Tests for the observed-rule mechanical evidence inventory."""
 from __future__ import annotations
 
+import json
 import importlib.util
 import sys
 from pathlib import Path
@@ -85,3 +86,34 @@ def test_inventory_marks_mitre_only_rules_without_inferring_quality(tmp_path: Pa
         "with_companion_note": 0,
         "awaiting_human_source_review": 1,
     }
+
+
+def test_cli_uses_explicit_corpus_and_notes_directories(tmp_path: Path) -> None:
+    examples = tmp_path / "examples"
+    rule = examples / "impact" / "observed_example.yml"
+    rule.parent.mkdir(parents=True)
+    rule.write_text(
+        "title: Example\nreferences:\n- https://vendor.example/report\n",
+        encoding="utf-8",
+    )
+    notes = tmp_path / "notes"
+    notes.mkdir()
+    report = tmp_path / "inventory.json"
+
+    assert inventory.main(
+        [
+            "--examples-dir",
+            str(examples),
+            "--notes-dir",
+            str(notes),
+            "--json",
+            str(report),
+        ]
+    ) == 0
+
+    assert json.loads(report.read_text(encoding="utf-8"))["summary"]["observed_rule_files"] == 1
+
+
+def test_cli_refuses_a_missing_examples_directory(tmp_path: Path, capsys) -> None:
+    assert inventory.main(["--examples-dir", str(tmp_path / "missing")]) == 2
+    assert "examples directory unavailable" in capsys.readouterr().out

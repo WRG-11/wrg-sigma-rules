@@ -147,12 +147,28 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, int]:
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", type=Path, help="write the inventory JSON to this path")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--examples-dir",
+        type=Path,
+        default=EXAMPLES_DIR,
+        help="Sigma examples root to inspect (default: repository corpus)",
+    )
+    parser.add_argument(
+        "--notes-dir",
+        type=Path,
+        default=NOTES_DIR,
+        help="detection-notes root used for companion-note inventory",
+    )
+    args = parser.parse_args(argv)
 
-    records = build_inventory(EXAMPLES_DIR, NOTES_DIR)
+    if not args.examples_dir.is_dir():
+        print(f"[observed-evidence-inventory] examples directory unavailable: {args.examples_dir}")
+        return 2
+
+    records = build_inventory(args.examples_dir, args.notes_dir)
     summary = summarize(records)
     payload = {"summary": summary, "records": records}
 
