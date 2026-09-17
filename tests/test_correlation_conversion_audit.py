@@ -43,7 +43,11 @@ def test_audit_records_capability_and_missing_backend_separately(tmp_path: Path)
     def converter(_: str, *, target: str) -> dict[str, object]:
         return {
             "splunk": {"query": "ok"},
-            "elastic": {"error": "unsupported", "kind": "backend_capability_gap"},
+            "elastic": {
+                "error": "unsupported",
+                "kind": "backend_capability_gap",
+                "capability": "correlation_rules",
+            },
             "opensearch": {"error": "missing", "kind": "backend_missing"},
         }[target]
 
@@ -56,11 +60,16 @@ def test_audit_records_capability_and_missing_backend_separately(tmp_path: Path)
     assert payload["summary"] == {
         "correlation_rule_files": 1,
         "targets": ["splunk", "elastic", "opensearch"],
-        "outcomes_by_target": {
+            "outcomes_by_target": {
             "splunk": {"converted": 1},
             "elastic": {"backend_capability_gap": 1},
-            "opensearch": {"backend_missing": 1},
-        },
+                "opensearch": {"backend_missing": 1},
+            },
+            "capabilities_by_target": {
+                "splunk": {},
+                "elastic": {"correlation_rules": 1},
+                "opensearch": {},
+            },
         "semantic_equivalence": "not_assessed",
     }
     assert payload["records"] == [
@@ -71,6 +80,7 @@ def test_audit_records_capability_and_missing_backend_separately(tmp_path: Path)
                 "elastic": "backend_capability_gap",
                 "opensearch": "backend_missing",
             },
+            "capabilities": {"elastic": "correlation_rules"},
         }
     ]
 
@@ -84,6 +94,7 @@ def test_cli_uses_an_explicit_examples_directory(monkeypatch, tmp_path: Path) ->
             "correlation_rule_files": 0,
             "targets": [],
             "outcomes_by_target": {},
+            "capabilities_by_target": {},
             "semantic_equivalence": "not_assessed",
         },
         "records": [],

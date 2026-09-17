@@ -62,6 +62,14 @@ def _outcome(result: dict[str, Any]) -> str:
     return kind if isinstance(kind, str) else "conversion_error"
 
 
+def _capability(result: dict[str, Any], outcome: str) -> str | None:
+    """Return a declared capability boundary without inferring semantics."""
+    if outcome != "backend_capability_gap":
+        return None
+    capability = result.get("capability")
+    return capability if isinstance(capability, str) else None
+
+
 def audit_correlation_rules(
     examples_dir: Path,
     targets: tuple[str, ...] = CANONICAL_TARGETS,
@@ -73,23 +81,41 @@ def audit_correlation_rules(
         relpath = "resources/examples/" + path.relative_to(examples_dir).as_posix()
         yaml_content = path.read_text(encoding="utf-8")
         outcomes: dict[str, str] = {}
+        capabilities: dict[str, str] = {}
         for target in targets:
             try:
-                outcomes[target] = _outcome(converter(yaml_content, target=target))
+                result = converter(yaml_content, target=target)
+                outcome = _outcome(result)
+                outcomes[target] = outcome
+                capability = _capability(result, outcome)
+                if capability is not None:
+                    capabilities[target] = capability
             except Exception:
                 # An audit must report a converter fault as a result, not hide
                 # the rest of the corpus behind an early exception.
                 outcomes[target] = "audit_error"
-        records.append({"path": relpath, "outcomes": outcomes})
+        records.append(
+            {"path": relpath, "outcomes": outcomes, "capabilities": capabilities}
+        )
 
     by_target: dict[str, dict[str, int]] = {}
     for target in targets:
         by_target[target] = dict(Counter(record["outcomes"][target] for record in records))
+    capabilities_by_target: dict[str, dict[str, int]] = {}
+    for target in targets:
+        capabilities_by_target[target] = dict(
+            Counter(
+                record["capabilities"][target]
+                for record in records
+                if target in record["capabilities"]
+            )
+        )
     return {
         "summary": {
             "correlation_rule_files": len(records),
             "targets": list(targets),
             "outcomes_by_target": by_target,
+            "capabilities_by_target": capabilities_by_target,
             "semantic_equivalence": "not_assessed",
         },
         "records": records,
@@ -121,6 +147,13 @@ def main(argv: list[str] | None = None) -> int:
     for target, outcomes in summary["outcomes_by_target"].items():
         report = ", ".join(f"{kind}={count}" for kind, count in sorted(outcomes.items()))
         print(f"  {target}: {report}")
+        capabilities = summary["capabilities_by_target"][target]
+        if capabilities:
+            report = ", ".join(
+                f"{capability}={count}"
+                for capability, count in sorted(capabilities.items())
+            )
+            print(f"    capability boundaries: {report}")
     print("  semantic equivalence: not_assessed")
     return 0
 

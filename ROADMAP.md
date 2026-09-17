@@ -166,6 +166,13 @@ growth.
    when its generated query and documented lossiness are proven by a fixture;
    do not relabel a syntax conversion as semantic equivalence.
    **Exit evidence:** target-specific conversion and semantic-fixture results.
+
+   **Foundation completed (2026-09-17):** the correlation audit now records
+   each converter-declared capability category alongside the mechanical
+   outcome. The current corpus evidence is therefore reproducible as three
+   Splunk `correlation_type:temporal_ordered` boundaries and 52
+   `correlation_rules` boundaries for each Lucene-family target; it still does
+   not establish target-side semantic equivalence.
 4. **Keep install and runtime claims reproducible.** Evolve MCP/package
    surfaces only after checkout, bundled-runtime and clean-client handshake
    evidence agrees. Any change must preserve non-root container execution and

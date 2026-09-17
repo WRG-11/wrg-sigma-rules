@@ -184,6 +184,11 @@ must cite a URL already on the rule, record a review date, and include a source
 quote for every supported or not-supported conclusion. The inventory rejects a
 malformed or stale record rather than treating it as evidence.
 
+The correlation audit separately counts a backend's declared capability
+boundaries (for example, `correlation_rules` or
+`correlation_type:temporal_ordered`). A successful conversion remains syntax
+evidence only; it does not assert equivalent alert behavior in a deployed SIEM.
+
 ## Contributing
 
 Contributions are welcome. Add YAML under `resources/examples/<tactic>/` with an
