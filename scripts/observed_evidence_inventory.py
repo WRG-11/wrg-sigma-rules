@@ -31,6 +31,7 @@ SOURCE_REVIEWS_DIR = REPO_ROOT / "docs" / "source-reviews"
 _RULE_PATH_RE = re.compile(r"resources/examples/[A-Za-z0-9_./-]+\.ya?ml")
 _REVIEW_STATUSES = frozenset({"not_assessed", "supported", "not_supported"})
 _WRG_BREACH_CATALOG_RE = re.compile(r"\bWRG\s+breach\s+catalog\b", re.IGNORECASE)
+_MAX_SOURCE_REVIEW_QUOTE_CHARS = 1_000
 
 
 def _is_mitre_reference(url: str) -> bool:
@@ -149,6 +150,12 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, Any]]:
                     not isinstance(quote, str) or not quote.strip()
                 ):
                     raise _review_error(path, f"review {index} {field} needs a source quote")
+                if isinstance(quote, str) and len(quote.strip()) > _MAX_SOURCE_REVIEW_QUOTE_CHARS:
+                    raise _review_error(
+                        path,
+                        f"review {index} {field} quote exceeds "
+                        f"{_MAX_SOURCE_REVIEW_QUOTE_CHARS} characters",
+                    )
                 outcomes[field] = status
                 if status != "not_assessed":
                     outcomes[f"_{field}_quote"] = quote.strip()

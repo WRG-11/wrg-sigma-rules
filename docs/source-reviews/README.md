@@ -15,6 +15,9 @@ ISO `reviewed_on` date. Each outcome is one of:
 - `not_supported`: the source does not support this one match; include the
   source wording or location that establishes the boundary.
 
+Keep a quote or locator to 1,000 characters or fewer. It is evidence to audit
+one judgment, not a copied source document.
+
 The inventory rejects malformed records, duplicate rule entries, a review URL
 that is absent from the rule, and a supported/not-supported outcome without a
 quote. This is intentionally a ledger of review judgments, not an automatic

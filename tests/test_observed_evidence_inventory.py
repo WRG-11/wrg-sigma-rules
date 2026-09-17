@@ -238,6 +238,29 @@ def test_source_review_rejects_claim_without_nonempty_quote(tmp_path: Path) -> N
         raise AssertionError("expected malformed source review to be rejected")
 
 
+def test_source_review_rejects_an_oversized_evidence_quote(tmp_path: Path) -> None:
+    reviews = tmp_path / "reviews"
+    reviews.mkdir()
+    reviews.joinpath("oversized.yml").write_text(
+        "schema_version: 1\n"
+        "reviews:\n"
+        "- rule: resources/examples/initial_access/observed_example.yml\n"
+        "  source: https://vendor.example/advisory\n"
+        "  reviewed_on: '2026-09-17'\n"
+        f"  attribution_evidence: {{status: supported, quote: {'x' * 1001}}}\n"
+        "  platform_evidence: {status: not_assessed}\n"
+        "  telemetry_manifestation_evidence: {status: not_assessed}\n",
+        encoding="utf-8",
+    )
+
+    try:
+        inventory.load_source_reviews(reviews)
+    except ValueError as exc:
+        assert "quote exceeds" in str(exc)
+    else:  # pragma: no cover - assertion guard
+        raise AssertionError("expected oversized source-review quote to be rejected")
+
+
 def test_source_review_rejects_invalid_date_and_url(tmp_path: Path) -> None:
     reviews = tmp_path / "reviews"
     reviews.mkdir()
