@@ -389,6 +389,29 @@ def test_source_review_rejects_invalid_date_and_url(tmp_path: Path) -> None:
         raise AssertionError("expected impossible source-review date to be rejected")
 
 
+def test_source_review_rejects_plain_http_source_urls(tmp_path: Path) -> None:
+    reviews = tmp_path / "reviews"
+    reviews.mkdir()
+    reviews.joinpath("plain-http.yml").write_text(
+        "schema_version: 1\n"
+        "reviews:\n"
+        "- rule: resources/examples/initial_access/observed_example.yml\n"
+        "  source: http://vendor.example/advisory\n"
+        "  reviewed_on: '2026-09-17'\n"
+        "  attribution_evidence: {status: not_assessed}\n"
+        "  platform_evidence: {status: not_assessed}\n"
+        "  telemetry_manifestation_evidence: {status: not_assessed}\n",
+        encoding="utf-8",
+    )
+
+    try:
+        inventory.load_source_reviews(reviews)
+    except ValueError as exc:
+        assert "invalid source URL" in str(exc)
+    else:  # pragma: no cover - assertion guard
+        raise AssertionError("expected plain HTTP source-review URL to be rejected")
+
+
 def test_source_review_rejects_future_dates_and_path_traversal(tmp_path: Path) -> None:
     reviews = tmp_path / "reviews"
     reviews.mkdir()

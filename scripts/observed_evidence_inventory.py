@@ -150,7 +150,7 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, Any]]:
                 parsed_source = None
             if (
                 parsed_source is None
-                or parsed_source.scheme not in {"http", "https"}
+                or parsed_source.scheme != "https"
                 or not parsed_source.netloc
             ):
                 raise _review_error(path, f"review {index} has an invalid source URL")

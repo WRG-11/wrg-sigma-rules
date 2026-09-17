@@ -6,7 +6,7 @@ matches in [`CONTRIBUTING.md`](../../CONTRIBUTING.md): attribution, platform,
 and telemetry manifestation.
 
 Create a `*.yml` file from `TEMPLATE.yml.example`. Every record must name a
-single rule, a source URL already present in that rule's `references:`, and an
+single rule, an HTTPS source URL already present in that rule's `references:`, and an
 ISO `reviewed_on` date that is not in the future. Each outcome is one of:
 
 - `not_assessed`: no source-backed conclusion is recorded.
