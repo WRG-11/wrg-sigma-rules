@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **912 tests**, Ruff, README metric stamping and the
+- The checkout now passes **913 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -181,6 +181,9 @@ review and release decision.
 - Snapshot parity and local marketplace wiring do not establish a client-side
   dependency install, cache refresh or marketplace publication. Those remain
   explicit external-client checks, not claims inferred from this repository.
+- The Docker runtime-path probe now includes `server.py` as well as `tools/`,
+  so the manifest read during MCP startup is mechanically tied to a Dockerfile
+  `COPY` rule alongside resource reads.
 
 ## Later, only with evidence
 

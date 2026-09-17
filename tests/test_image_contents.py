@@ -1,4 +1,4 @@
-"""The image must contain every directory the server reads at runtime.
+"""The image must contain every path the server reads at runtime.
 
 2026-07-30: the published image answered its own MITRE coverage resource with
 ``{"ok": false, "error": "rule corpus directory not found"}``. Nothing was
@@ -40,8 +40,8 @@ def _copied_paths() -> list[str]:
     return out
 
 
-def _runtime_dirs() -> set[str]:
-    """Repo-root-relative directories the runtime code resolves.
+def _runtime_paths() -> set[str]:
+    """Repo-root-relative paths the runtime code resolves.
 
     Matches the shape the modules actually use -- walking up from ``__file__``
     with ``.parent`` and then joining literal segments:
@@ -66,7 +66,8 @@ def _runtime_dirs() -> set[str]:
         return []
 
     found: set[str] = set()
-    for py in sorted((REPO / "tools").rglob("*.py")):
+    source_files = [REPO / "server.py", *sorted((REPO / "tools").rglob("*.py"))]
+    for py in source_files:
         try:
             tree = ast.parse(py.read_text(encoding="utf-8", errors="replace"))
         except SyntaxError:  # pragma: no cover - a parse failure is its own test's job
@@ -79,11 +80,38 @@ def _runtime_dirs() -> set[str]:
             segs = segments(node)
             if segs:
                 found.add("/".join(segs))
-    return found
+    # AST visits both the full path expression and every inner ``/`` node.
+    # Keep only leaves: ``.claude-plugin`` is an intermediate component of
+    # ``.claude-plugin/plugin.json``, not a separately-read runtime path.
+    return {
+        path for path in found
+        if not any(other.startswith(path + "/") for other in found)
+    }
 
 
-@pytest.mark.parametrize("path", sorted(_runtime_dirs()))
-def test_every_runtime_directory_is_copied_into_the_image(path: str) -> None:
+def _is_ignored_by_build_context(path: str) -> bool:
+    """Evaluate the simple literal .dockerignore rules used by this image."""
+    ignored = False
+    for line in DOCKERIGNORE.read_text(encoding="utf-8").splitlines():
+        rule = line.strip().rstrip("/")
+        if not rule or rule.startswith("#"):
+            continue
+        include = rule.startswith("!")
+        rule = rule.removeprefix("!")
+        if path == rule or path.startswith(rule + "/"):
+            ignored = not include
+    return ignored
+
+
+def test_build_context_honors_the_manifest_reinclude_rule() -> None:
+    """The one runtime manifest is intentionally re-included after its parent."""
+    assert not _is_ignored_by_build_context(".claude-plugin/plugin.json")
+    assert _is_ignored_by_build_context(".claude-plugin/other.json")
+    assert _is_ignored_by_build_context("skills/sigma-rule-writer/SKILL.md")
+
+
+@pytest.mark.parametrize("path", sorted(_runtime_paths()))
+def test_every_runtime_path_is_copied_into_the_image(path: str) -> None:
     copied = _copied_paths()
     assert any(path == c or path.startswith(c + "/") or c.startswith(path + "/")
                for c in copied), (
@@ -101,13 +129,9 @@ def test_the_rule_corpus_is_not_excluded_from_the_build_context() -> None:
     how the original defect survived: the COPY list looked deliberate and the
     ignore list looked deliberate, and neither mentioned the other.
     """
-    ignored = [ln.strip().rstrip("/") for ln in
-               DOCKERIGNORE.read_text(encoding="utf-8").splitlines()
-               if ln.strip() and not ln.lstrip().startswith("#")]
-    for path in sorted(_runtime_dirs()):
-        head = path.split("/")[0]
-        assert head not in ignored, (
-            f".dockerignore excludes {head!r}, so the COPY of {path!r} brings "
+    for path in sorted(_runtime_paths()):
+        assert not _is_ignored_by_build_context(path), (
+            f".dockerignore excludes {path!r}, so its Dockerfile COPY brings "
             f"in nothing. Narrow the ignore rule or drop it."
         )
 
@@ -122,13 +146,16 @@ def test_base_image_is_digest_pinned() -> None:
     ), "Dockerfile must pin python:3.12-slim to a sha256 digest"
 
 
-def test_the_probe_finds_the_known_runtime_directory() -> None:
+def test_the_probe_finds_known_runtime_paths() -> None:
     """Control arm: the two tests above pass trivially if the AST walk finds
     nothing. Pin the one directory we know is read at runtime, so an extraction
     that silently stops working fails here instead of going quiet."""
-    dirs = _runtime_dirs()
-    assert "resources/examples" in dirs, (
+    paths = _runtime_paths()
+    assert "resources/examples" in paths, (
         f"the coverage resource resolves resources/examples from __file__; "
-        f"the probe found {sorted(dirs)}"
+        f"the probe found {sorted(paths)}"
     )
-    assert not (dirs & _SOURCE_TREES), "source trees are copied wholesale, not derived"
+    assert ".claude-plugin/plugin.json" in paths, (
+        "server.py resolves the manifest from __file__; the image must copy it"
+    )
+    assert not (paths & _SOURCE_TREES), "source trees are copied wholesale, not derived"
