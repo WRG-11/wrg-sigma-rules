@@ -146,7 +146,9 @@ def _expand_of_expressions(condition: str, selection_results: dict[str, bool]) -
         matching = sorted(name for name in selection_results if name.startswith(prefix))
         if not matching:
             raise EvaluatorError(f"'{count_token} of {prefix}*' matched no selection name")
-        if count_token == "all":
+        # ``all`` is Sigma condition grammar (e.g. ``all of selection_*``),
+        # not a credential literal.
+        if count_token == "all":  # nosec B105
             return "(" + " and ".join(matching) + ")"
         n = int(count_token)
         if n == 1:

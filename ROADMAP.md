@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **944 tests**, Ruff, README metric stamping and the
+- The checkout now passes **945 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -228,6 +228,10 @@ review and release decision.
   during its dependency layer. A fresh no-cache image build resolved the
   declared requirements and reported no broken requirements before completing
   its read-only MCP smoke exchange.
+- The local/CI MCP smoke harness now requests explicit pipes and fails clearly
+  if a process does not provide them, including under optimized Python where
+  `assert` checks are removed. Its argv-list invocation remains `shell=False`;
+  the full Python surface is clean under the repository's Bandit scan.
 
 ## Later, only with evidence
 

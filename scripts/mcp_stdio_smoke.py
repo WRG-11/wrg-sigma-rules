@@ -22,7 +22,9 @@ from __future__ import annotations
 import json
 import queue
 import re
-import subprocess
+# This explicit local/CI process harness needs subprocess; invocation below is
+# an argv list with shell=False, never a shell command string.
+import subprocess  # nosec B404
 import sys
 import threading
 from pathlib import Path
@@ -172,9 +174,20 @@ def main(argv: list[str]) -> int:
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
+            shell=False,  # nosec B603
         )
     except FileNotFoundError:
         return _fail(f"server command not found: {argv[0]}")
+
+    # PIPE is requested above, but keep a real runtime check rather than an
+    # assert: Python -O removes asserts and would turn a broken/mocked process
+    # setup into an unrelated AttributeError inside a protocol exchange.
+    if proc.stdin is None or proc.stdout is None:
+        proc.kill()
+        proc.wait()
+        return _fail("server process did not provide required stdin/stdout pipes")
+    stdin = proc.stdin
+    stdout = proc.stdout
 
     responses: dict[int, dict[str, Any]] = {}
     protocol_violations: list[str] = []
@@ -182,8 +195,7 @@ def main(argv: list[str]) -> int:
 
     def pump_stdout() -> None:
         """Move blocking pipe reads off the request/response control path."""
-        assert proc.stdout is not None
-        for line in proc.stdout:
+        for line in stdout:
             stdout_lines.put(line)
         stdout_lines.put(None)
 
@@ -191,9 +203,8 @@ def main(argv: list[str]) -> int:
     stdout_thread.start()
 
     def send(line: str) -> None:
-        assert proc.stdin is not None
-        proc.stdin.write(line + "\n")
-        proc.stdin.flush()
+        stdin.write(line + "\n")
+        stdin.flush()
 
     def read_response(request_id: int) -> dict[str, Any] | None:
         """Read stdout until the reply to ``request_id`` arrives.
@@ -265,8 +276,7 @@ def main(argv: list[str]) -> int:
         proc.wait()
         return _fail(f"server closed the pipe early: {exc}")
 
-    assert proc.stdin is not None
-    proc.stdin.close()
+    stdin.close()
     try:
         proc.wait(timeout=_TIMEOUT_SECONDS)
     except subprocess.TimeoutExpired:

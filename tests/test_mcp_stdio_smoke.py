@@ -71,3 +71,26 @@ def test_main_fails_fast_when_server_never_replies(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(smoke, "_TIMEOUT_SECONDS", 0.05)
 
     assert smoke.main([sys.executable, "-c", "import time; time.sleep(60)"]) == 1
+
+
+def test_main_fails_closed_when_required_process_pipes_are_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _MissingPipesProcess:
+        stdin = None
+        stdout = None
+        killed = False
+        waited = False
+
+        def kill(self) -> None:
+            self.killed = True
+
+        def wait(self) -> None:
+            self.waited = True
+
+    process = _MissingPipesProcess()
+    monkeypatch.setattr(smoke.subprocess, "Popen", lambda *_args, **_kwargs: process)
+
+    assert smoke.main(["server-command"]) == 1
+    assert process.killed is True
+    assert process.waited is True
