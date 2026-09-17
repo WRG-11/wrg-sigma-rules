@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **911 tests**, Ruff, README metric stamping and the
+- The checkout now passes **912 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -174,6 +174,10 @@ review and release decision.
   documented `wrg-sigma-rules@wrg-11` selector to this self-contained plugin.
   That verifies repository wiring only; actual Codex client installation stays
   an external-client check.
+- A foreign-working-directory subprocess test now pins the Codex wrapper's
+  package-local runtime resolution. The configuration still declares `cwd: .`,
+  but the wrapper itself resolves its inputs from its own file rather than that
+  host-controlled working directory.
 
 ## Later, only with evidence
 

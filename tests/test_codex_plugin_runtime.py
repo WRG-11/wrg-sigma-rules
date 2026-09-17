@@ -5,6 +5,8 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 
@@ -90,3 +92,25 @@ def test_codex_wrapper_requires_every_runtime_input(tmp_path: Path) -> None:
 
     (runtime / "resources").mkdir()
     assert codex_server._runtime_root(script) == runtime
+
+
+def test_codex_wrapper_resolves_its_runtime_outside_the_plugin_cwd(
+    tmp_path: Path,
+) -> None:
+    """Installed plugins must not depend on the host launching them in cwd:."""
+    code = (
+        "import importlib.util; "
+        f"spec = importlib.util.spec_from_file_location('wrapper', {str(WRAPPER)!r}); "
+        "module = importlib.util.module_from_spec(spec); "
+        "spec.loader.exec_module(module); "
+        "print(module._runtime_root())"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert Path(result.stdout.strip()).resolve() == RUNTIME.resolve()
