@@ -64,6 +64,14 @@ _VENDOR_PREFIX_RE = re.compile(r"^observed_([a-z0-9]+(?:_[a-z0-9]+)?)_")
 _REPORT_CONTRACT = {"tool": "detection_note_gap", "version": 1}
 
 
+def _read_input_text(path: Path, label: str) -> str:
+    """Read an audit input or fail before publishing a partial queue."""
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ValueError(f"{label} {path}: cannot read: {exc}") from exc
+
+
 def _source_kind(url: str) -> str:
     """Classify a reference URL by which tool reaches it fastest.
 
@@ -133,13 +141,13 @@ def _covered_relpaths(notes_dir: Path | None = None) -> set[str]:
     if not source_notes.is_dir():
         return covered
     for note in source_notes.glob("*.md"):
-        text = note.read_text(encoding="utf-8")
+        text = _read_input_text(note, "detection note")
         covered.update(_RULE_PATH_RE.findall(text))
     return covered
 
 
 def _parse_rule(path: Path, examples_dir: Path | None = None) -> RuleGap:
-    text = path.read_text(encoding="utf-8")
+    text = _read_input_text(path, "observed rule")
     source_examples = examples_dir or EXAMPLES_DIR
     relpath = "resources/examples/" + path.relative_to(source_examples).as_posix()
 
@@ -150,7 +158,10 @@ def _parse_rule(path: Path, examples_dir: Path | None = None) -> RuleGap:
     # raw YAML made that detection evidence masquerade as the vulnerability's
     # own severity and sent the advisory queue down the wrong priority path.
     # Only the authored description is a statement about the rule's subject.
-    docs = list(yaml.safe_load_all(text))
+    try:
+        docs = list(yaml.safe_load_all(text))
+    except yaml.YAMLError as exc:
+        raise ValueError(f"observed rule {path}: cannot parse YAML: {exc}") from exc
     description = next(
         (
             doc.get("description", "")
@@ -297,11 +308,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[detection-note-gap] ERROR: {args.examples_dir} not found", file=sys.stderr)
         return 2
 
-    scored, unscored = find_gaps(
-        min_cvss=args.min_cvss,
-        examples_dir=args.examples_dir,
-        notes_dir=args.notes_dir,
-    )
+    try:
+        scored, unscored = find_gaps(
+            min_cvss=args.min_cvss,
+            examples_dir=args.examples_dir,
+            notes_dir=args.notes_dir,
+        )
+    except ValueError as exc:
+        print(f"[detection-note-gap] ERROR: {exc}", file=sys.stderr)
+        return 2
     clusters = cluster_by_vendor(scored + unscored)
 
     _print_report(scored, unscored, clusters)

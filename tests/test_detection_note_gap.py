@@ -77,3 +77,29 @@ def test_cli_uses_explicit_examples_and_notes_directories(tmp_path: Path) -> Non
 def test_cli_refuses_a_missing_examples_directory(tmp_path: Path, capsys) -> None:
     assert gap.main(["--examples-dir", str(tmp_path / "missing")]) == 2
     assert "not found" in capsys.readouterr().err
+
+
+def test_cli_fails_closed_on_invalid_observed_rule_yaml(tmp_path: Path, capsys) -> None:
+    examples = tmp_path / "examples"
+    notes = tmp_path / "notes"
+    examples.mkdir()
+    notes.mkdir()
+    examples.joinpath("observed_broken.yml").write_text("title: [", encoding="utf-8")
+
+    assert gap.main(["--examples-dir", str(examples), "--notes-dir", str(notes)]) == 2
+    assert "cannot parse YAML" in capsys.readouterr().err
+
+
+def test_cli_fails_closed_on_undecodable_detection_note(tmp_path: Path, capsys) -> None:
+    examples = tmp_path / "examples"
+    notes = tmp_path / "notes"
+    examples.mkdir()
+    notes.mkdir()
+    examples.joinpath("observed_valid.yml").write_text(
+        "title: Valid\ndescription: CVSS 8.0\n",
+        encoding="utf-8",
+    )
+    notes.joinpath("broken.md").write_bytes(b"\xff\xfe\x00")
+
+    assert gap.main(["--examples-dir", str(examples), "--notes-dir", str(notes)]) == 2
+    assert "detection note" in capsys.readouterr().err

@@ -185,6 +185,8 @@ reproducible measurement.
 The observed-evidence inventory likewise fails clearly on unreadable or
 invalid observed-rule YAML and unreadable detection notes, rather than
 publishing a partial provenance inventory.
+The detection-note gap report uses the same rule and note input boundary, so a
+partial documentation queue cannot be mistaken for a complete review queue.
 
 ```bash
 python scripts/observed_evidence_inventory.py --examples-dir resources/examples
