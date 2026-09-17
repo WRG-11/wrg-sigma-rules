@@ -260,6 +260,11 @@ def build_inventory(
 
 def summarize(records: list[dict[str, Any]]) -> dict[str, int]:
     """Summarize mechanical inventory facts, not evidence quality."""
+    evidence_fields = (
+        "attribution_evidence",
+        "platform_evidence",
+        "telemetry_manifestation_evidence",
+    )
     return {
         "observed_rule_files": len(records),
         "with_non_mitre_reference": sum(
@@ -279,10 +284,21 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, int]:
             and record["later_document_reference_count"] > 0
             for record in records
         ),
+        "with_structured_source_review": sum(
+            record["source_review"] is not None for record in records
+        ),
+        "with_complete_source_review": sum(
+            record["source_review"] is not None
+            and all(record[field] != "not_assessed" for field in evidence_fields)
+            for record in records
+        ),
+        "with_explicit_source_review_boundary": sum(
+            record["source_review"] is not None
+            and any(record[field] == "not_supported" for field in evidence_fields)
+            for record in records
+        ),
         "awaiting_human_source_review": sum(
-            record["attribution_evidence"] == "not_assessed"
-            or record["platform_evidence"] == "not_assessed"
-            or record["telemetry_manifestation_evidence"] == "not_assessed"
+            any(record[field] == "not_assessed" for field in evidence_fields)
             for record in records
         ),
     }

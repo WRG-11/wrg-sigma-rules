@@ -99,6 +99,9 @@ def test_inventory_marks_mitre_only_rules_without_inferring_quality(tmp_path: Pa
         "with_companion_note": 0,
         "with_wrg_breach_catalog_mention": 0,
         "with_references_only_in_later_document": 0,
+        "with_structured_source_review": 0,
+        "with_complete_source_review": 0,
+        "with_explicit_source_review_boundary": 0,
         "awaiting_human_source_review": 1,
     }
 
@@ -201,7 +204,11 @@ def test_inventory_uses_a_cited_structured_source_review(tmp_path: Path) -> None
         "source": "https://vendor.example/advisory",
         "reviewed_on": "2026-09-17",
     }
-    assert inventory.summarize(records)["awaiting_human_source_review"] == 1
+    summary = inventory.summarize(records)
+    assert summary["with_structured_source_review"] == 1
+    assert summary["with_complete_source_review"] == 0
+    assert summary["with_explicit_source_review_boundary"] == 1
+    assert summary["awaiting_human_source_review"] == 1
 
 
 def test_source_review_rejects_claim_without_nonempty_quote(tmp_path: Path) -> None:
