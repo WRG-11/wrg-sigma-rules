@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **943 tests**, Ruff, README metric stamping and the
+- The checkout now passes **944 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -215,11 +215,11 @@ review and release decision.
   now explicitly restricted to `refs/heads/main` and pushes only
   `HEAD:main`. Its test also rejects broad staging commands, retaining the
   intended README-only write boundary for scheduled and manual runs.
-- Source-review ledger records now require an HTTPS URL that already appears
-  in the reviewed rule's `references:`. The current corpus has 891 HTTPS
-  references and no plain-HTTP references; review outcomes remain absent and
-  therefore explicitly `not_assessed`, rather than being inferred from URL
-  shape.
+- Source-review ledger records now require a credential-free HTTPS URL with a
+  valid port that already appears in the reviewed rule's `references:`. The
+  current corpus has 891 HTTPS references and no plain-HTTP references; review
+  outcomes remain absent and therefore explicitly `not_assessed`, rather than
+  being inferred from URL shape.
 - The CI workflow contract now protects the declared SDK support matrix: both
   MCP 1.x and 2.x installation legs must remain present, rather than leaving
   one import-shim branch covered only by a comment.

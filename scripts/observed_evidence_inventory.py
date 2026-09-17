@@ -43,6 +43,30 @@ def _read_input_text(path: Path, label: str) -> str:
         raise ValueError(f"{label} {path}: cannot read: {exc}") from exc
 
 
+def _is_safe_review_source_url(source: object) -> bool:
+    """Accept an HTTPS source locator without authority credentials.
+
+    Review records are rendered into an advisory JSON report.  A URL carrying
+    ``user:password@`` could therefore preserve credentials as evidence text,
+    while an invalid port can survive ``urlsplit`` until a consumer uses it.
+    Neither form is needed for a public source locator.
+    """
+    if not isinstance(source, str) or any(char.isspace() for char in source):
+        return False
+    try:
+        parsed = urlsplit(source)
+        hostname = parsed.hostname
+        _ = parsed.port  # Force validation of a present numeric port.
+    except ValueError:
+        return False
+    return (
+        parsed.scheme == "https"
+        and bool(hostname)
+        and parsed.username is None
+        and parsed.password is None
+    )
+
+
 def _is_mitre_reference(url: str) -> bool:
     """Return whether *url* is an ATT&CK taxonomy reference.
 
@@ -144,15 +168,7 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, Any]]:
                 or ".." in rule.split("/")
             ):
                 raise _review_error(path, f"review {index} has an invalid rule path")
-            try:
-                parsed_source = urlsplit(source) if isinstance(source, str) else None
-            except ValueError:
-                parsed_source = None
-            if (
-                parsed_source is None
-                or parsed_source.scheme != "https"
-                or not parsed_source.netloc
-            ):
+            if not _is_safe_review_source_url(source):
                 raise _review_error(path, f"review {index} has an invalid source URL")
             try:
                 is_iso_date = isinstance(reviewed_on, str) and (

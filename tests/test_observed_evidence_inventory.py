@@ -412,6 +412,35 @@ def test_source_review_rejects_plain_http_source_urls(tmp_path: Path) -> None:
         raise AssertionError("expected plain HTTP source-review URL to be rejected")
 
 
+def test_source_review_rejects_authority_credentials_and_invalid_ports(
+    tmp_path: Path,
+) -> None:
+    reviews = tmp_path / "reviews"
+    reviews.mkdir()
+    path = reviews / "invalid.yml"
+    template = (
+        "schema_version: 1\n"
+        "reviews:\n"
+        "- rule: resources/examples/initial_access/observed_example.yml\n"
+        "  source: {source}\n"
+        "  reviewed_on: '2026-09-17'\n"
+        "  attribution_evidence: {{status: not_assessed}}\n"
+        "  platform_evidence: {{status: not_assessed}}\n"
+        "  telemetry_manifestation_evidence: {{status: not_assessed}}\n"
+    )
+    for source in (
+        "https://token@vendor.example/advisory",
+        "https://vendor.example:not-a-port/advisory",
+    ):
+        path.write_text(template.format(source=source), encoding="utf-8")
+        try:
+            inventory.load_source_reviews(reviews)
+        except ValueError as exc:
+            assert "invalid source URL" in str(exc)
+        else:  # pragma: no cover - assertion guard
+            raise AssertionError("expected unsafe source-review URL to be rejected")
+
+
 def test_source_review_rejects_future_dates_and_path_traversal(tmp_path: Path) -> None:
     reviews = tmp_path / "reviews"
     reviews.mkdir()

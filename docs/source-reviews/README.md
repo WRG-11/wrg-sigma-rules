@@ -18,6 +18,11 @@ ISO `reviewed_on` date that is not in the future. Each outcome is one of:
 Keep a quote or locator to 1,000 characters or fewer. It is evidence to audit
 one judgment, not a copied source document.
 
+The source URL must use a normal HTTPS authority: credentials in the URL
+(`user:password@host`) and invalid ports are rejected before the record can be
+rendered into an advisory report. Do not put tokens or credentials in a public
+review record.
+
 The loader validates record shape, linkage, dates, and quote length; it does
 not establish that a recorded quote is accurate. That remains a reviewer and
 pull-request-review responsibility. A record can also become stale if its
