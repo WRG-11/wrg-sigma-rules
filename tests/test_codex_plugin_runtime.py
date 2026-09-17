@@ -115,6 +115,26 @@ def test_packaged_skills_keep_evidence_and_conversion_boundaries_explicit() -> N
     assert "semantic equivalence" in reviewer
 
 
+def test_checkout_skills_keep_the_same_evidence_and_conversion_boundaries() -> None:
+    skills = ROOT / "skills"
+    coverage = skills.joinpath("threat-coverage-gap-analyzer", "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    writer = skills.joinpath("sigma-rule-writer", "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    reviewer = skills.joinpath("sigma-rule-reviewer", "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Do not claim missing tactics or techniques" in coverage
+    assert "versioned comparison scope" in coverage
+    assert "`CONTRIBUTING.md`" in writer
+    assert "`observed_*`" in writer
+    assert "syntax evidence only" in reviewer
+    assert "semantic equivalence" in reviewer
+
+
 def test_codex_wrapper_resolves_its_runtime_outside_the_plugin_cwd(
     tmp_path: Path,
 ) -> None:

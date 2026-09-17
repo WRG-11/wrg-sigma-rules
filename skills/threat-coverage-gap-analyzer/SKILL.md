@@ -1,6 +1,6 @@
 ---
 name: threat-coverage-gap-analyzer
-description: Analyze a sigma rule corpus against the MITRE ATT&CK matrix and produce a coverage gap report. Use when the user asks "what TTPs am I missing", asks for a coverage report, wants to compare their detections against a threat actor profile (e.g. APT29, Scattered Spider), or wants a prioritized list of detection rules to write next. Reads a directory of sigma rules (or, for this plugin's own corpus, the precomputed wrg-sigma://coverage/mitre-attack-matrix resource), cross-references the covered techniques against the ATT&CK Enterprise matrix, and outputs gap analysis with priority ranking.
+description: Analyze a Sigma rule corpus and produce an evidence-bounded coverage report. Use when the user asks "what TTPs am I missing", asks for a coverage report, wants to compare detections against a supplied ATT&CK matrix or actor profile, or wants defensible candidates for further research. Reads a directory of Sigma rules (or, for this plugin's own corpus, the precomputed wrg-sigma://coverage/mitre-attack-matrix resource), then compares only against user-supplied, versioned scope data.
 user-invocable: true
 allowed-tools:
   - Read
@@ -69,14 +69,20 @@ rules.
 
 ### Step 3 -- Identify gaps
 
-Compare the corpus coverage against:
+Only compare the corpus coverage against evidence the user supplies for this
+run, recording its version, scope, and source:
 
-- **Full ATT&CK matrix** (Enterprise) -- what is theoretically detectable but
-  has no rule
-- **Actor-specific TTP profile** -- if the user named an actor, narrow to
-  that actor's known TTPs (use ATT&CK Groups data, e.g. G0016 APT29 TTPs)
+- **Versioned ATT&CK matrix** (for example, a specified Enterprise release) --
+  candidate techniques outside the corpus, not a claim that they are
+  operationally detectable
+- **Actor-specific TTP profile** -- if the user supplies a cited actor profile,
+  narrow to its documented TTPs
 - **Threat-intel priority** -- if the user has a recent incident or breach
   brief, rank gaps by relevance to that incident
+
+If no versioned comparison data is supplied, report only what the corpus
+contains. Do not claim missing tactics or techniques, use an approximate total
+such as "~600", or infer an actor's TTPs from its name.
 
 ### Step 4 -- Produce the gap report
 
@@ -87,39 +93,46 @@ Output format (markdown):
 
 ### Summary
 - Rules in corpus: N
-- ATT&CK techniques covered: M / ~600 enterprise techniques (X%)
-- Tactics with zero coverage: <list TA0xxx tactics>
-- Highest-priority gaps: <top 5>
+- ATT&CK techniques covered in corpus: M
+- Comparison scope: <source, version, and scope — or "not supplied">
+- Candidate gaps within supplied scope: <top 5, or "not assessed">
 
 ### Coverage by tactic
-| Tactic | Covered | Partial | Missing | Rule count |
+| Tactic | Covered | Partial | Candidate missing (supplied scope only) | Rule count |
 |---|---|---|---|---|
 | TA0001 Initial Access | 3 | 2 | 8 | 5 |
 ...
 
-### Top priority gaps (recommended next rules to write)
-1. **T1078.004 Cloud Accounts** -- 0 rules. Rationale: <why this matters
-   for the user's environment>. Suggested logsource: <e.g. AWS CloudTrail>.
-   Suggested next step: invoke `sigma-rule-writer` skill with T1078.004
-   context.
+When comparison scope is not supplied, write `not assessed` in the candidate
+column rather than deriving an ATT&CK total or an absence claim.
+
+### Priority research candidates (not rules)
+1. **T1078.004 Cloud Accounts** -- absent from this corpus and present in
+   <supplied scope>. Rationale: <why this matters for the user's environment>.
+   Next step: establish a source, platform, and telemetry manifestation before
+   considering a rule.
 2. ...
 ```
 
 ### Step 5 -- Hand off to rule writer (opt-in)
 
-For each top-priority gap, offer to launch the `sigma-rule-writer` skill
-with the TTP ID pre-filled. The user can accept one, several, or none.
+For each evidence-backed research candidate, offer to launch the
+`sigma-rule-writer` skill with the TTP ID pre-filled. A generated scaffold is
+not source evidence. For a public `observed_*` contribution, require the
+attribution, platform, and telemetry-manifestation proof in
+`CONTRIBUTING.md`; otherwise keep it a user-local or generic template
+candidate. The user can accept one, several, or none.
 
 Do not auto-launch -- operator drives.
 
 ## Output discipline
 
-- **Quantify, do not handwave** -- "you cover 47 of 600 techniques (8%)" not
-  "you have some gaps"
+- **Quantify only against named scope** -- report corpus counts directly; add a
+  denominator or percentage only when its versioned comparison scope is named
 - **Cite ATT&CK technique IDs** -- never refer to a gap without the `Txxxx`
   identifier
-- **Prioritize honestly** -- top-5 gaps should be defensible (matches actor
-  in scope OR matches user's stated business priority OR matches recent
+- **Prioritize honestly** -- candidates should be defensible (matches supplied
+  actor evidence OR matches user's stated business priority OR matches recent
   incident); do not pad with low-relevance suggestions
 - **LLM-safe redaction** -- if the user shares an internal incident brief,
   do not transmit incident-specific identifiers in the report unless the
@@ -130,6 +143,8 @@ Do not auto-launch -- operator drives.
 - Claiming coverage based on rule existence without validating that the rule
   actually loads and tags ATT&CK techniques (use `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__validate_rule`
   to extract `tags:` cleanly)
+- Calling an unversioned external ATT&CK total, a named actor, or a generic
+  technique description evidence of a missing coverage requirement
 - Recommending detection for techniques the user's environment cannot
   generate telemetry for (e.g. recommending Linux audit rules for a
   Windows-only shop)
