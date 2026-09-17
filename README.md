@@ -190,6 +190,8 @@ malformed or stale record rather than treating it as evidence.
 It also records the literal presence of `WRG breach catalog` and whether a
 multi-document rule keeps references only in a later document. Both are public
 traceability review cues, never source-quality or attribution verdicts.
+The JSON report preserves the public reference lists (including their
+first/later-document split) for human review, without assigning source ranks.
 
 The correlation audit separately counts a backend's declared capability
 boundaries (for example, `correlation_rules` or

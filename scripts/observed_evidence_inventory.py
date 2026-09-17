@@ -222,6 +222,9 @@ def build_inventory(
                 "external_reference_count": len(external_references),
                 "first_document_reference_count": len(first_document_references),
                 "later_document_reference_count": len(later_document_references),
+                "references": references,
+                "first_document_references": first_document_references,
+                "later_document_references": later_document_references,
                 "has_wrg_breach_catalog_mention": bool(
                     _WRG_BREACH_CATALOG_RE.search(path.read_text(encoding="utf-8"))
                 ),
@@ -325,6 +328,8 @@ def main(argv: list[str] | None = None) -> int:
         "limitations": (
             "Reference and companion-note presence are mechanical facts; they "
             "do not prove attribution, platform, or telemetry manifestation. "
+            "Listed URLs are preserved for human review without a source-quality "
+            "ranking. "
             "A WRG breach-catalog mention is a literal public-traceability "
             "review cue, not a source-quality verdict. "
             "Only cited structured source-review records may change those "

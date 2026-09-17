@@ -56,6 +56,15 @@ def test_inventory_distinguishes_reference_hygiene_from_evidence_proof(
             "external_reference_count": 1,
             "first_document_reference_count": 2,
             "later_document_reference_count": 0,
+            "references": [
+                "https://attack.mitre.org/techniques/T1190/",
+                "https://vendor.example/report",
+            ],
+            "first_document_references": [
+                "https://attack.mitre.org/techniques/T1190/",
+                "https://vendor.example/report",
+            ],
+            "later_document_references": [],
             "has_wrg_breach_catalog_mention": False,
             "reference_hygiene": "has_non_mitre_reference",
             "has_companion_note": True,
@@ -150,6 +159,8 @@ def test_inventory_marks_literal_catalog_mentions_and_later_references(
     assert record["has_wrg_breach_catalog_mention"] is True
     assert record["first_document_reference_count"] == 0
     assert record["later_document_reference_count"] == 1
+    assert record["first_document_references"] == []
+    assert record["later_document_references"] == ["https://vendor.example/advisory"]
     assert inventory.summarize([record])["with_references_only_in_later_document"] == 1
 
 
