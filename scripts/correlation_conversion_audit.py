@@ -96,12 +96,22 @@ def audit_correlation_rules(
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", type=Path, help="write audit JSON to this path")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--examples-dir",
+        type=Path,
+        default=EXAMPLES_DIR,
+        help="Sigma examples root to inspect (default: repository corpus)",
+    )
+    args = parser.parse_args(argv)
 
-    payload = audit_correlation_rules(EXAMPLES_DIR)
+    if not args.examples_dir.is_dir():
+        print(f"[correlation-conversion-audit] examples directory unavailable: {args.examples_dir}")
+        return 2
+
+    payload = audit_correlation_rules(args.examples_dir)
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

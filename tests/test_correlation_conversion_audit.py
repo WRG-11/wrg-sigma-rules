@@ -1,6 +1,7 @@
 """Tests for the correlation conversion audit."""
 from __future__ import annotations
 
+import json
 import importlib.util
 import sys
 from pathlib import Path
@@ -72,3 +73,34 @@ def test_audit_records_capability_and_missing_backend_separately(tmp_path: Path)
             },
         }
     ]
+
+
+def test_cli_uses_an_explicit_examples_directory(monkeypatch, tmp_path: Path) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    report = tmp_path / "audit.json"
+    expected = {
+        "summary": {
+            "correlation_rule_files": 0,
+            "targets": [],
+            "outcomes_by_target": {},
+            "semantic_equivalence": "not_assessed",
+        },
+        "records": [],
+    }
+    seen: list[Path] = []
+
+    def _audit(path: Path):
+        seen.append(path)
+        return expected
+
+    monkeypatch.setattr(audit, "audit_correlation_rules", _audit)
+
+    assert audit.main(["--examples-dir", str(examples), "--json", str(report)]) == 0
+    assert seen == [examples]
+    assert json.loads(report.read_text(encoding="utf-8")) == expected
+
+
+def test_cli_refuses_a_missing_examples_directory(tmp_path: Path, capsys) -> None:
+    assert audit.main(["--examples-dir", str(tmp_path / "missing")]) == 2
+    assert "examples directory unavailable" in capsys.readouterr().out
