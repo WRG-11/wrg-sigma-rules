@@ -35,15 +35,27 @@ _REPORT_CONTRACT = {"tool": "correlation_conversion_audit", "version": 1}
 Converter = Callable[..., dict[str, Any]]
 
 
+class AuditInputError(ValueError):
+    """A corpus file prevented a complete, reproducible audit."""
+
+
+def _read_rule_text(path: Path) -> str:
+    """Read one corpus file or fail the audit with contextual input evidence."""
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise AuditInputError(f"cannot read {path}: {exc}") from exc
+
+
 def _has_correlation(path: Path) -> bool:
     """Return whether any mapping document in a YAML file has correlation."""
     try:
         return any(
             isinstance(document, dict) and "correlation" in document
-            for document in yaml.safe_load_all(path.read_text(encoding="utf-8"))
+            for document in yaml.safe_load_all(_read_rule_text(path))
         )
-    except yaml.YAMLError:
-        return False
+    except yaml.YAMLError as exc:
+        raise AuditInputError(f"cannot parse YAML in {path}: {exc}") from exc
 
 
 def correlation_rule_paths(examples_dir: Path) -> list[Path]:
@@ -80,7 +92,7 @@ def audit_correlation_rules(
     records: list[dict[str, Any]] = []
     for path in correlation_rule_paths(examples_dir):
         relpath = "resources/examples/" + path.relative_to(examples_dir).as_posix()
-        yaml_content = path.read_text(encoding="utf-8")
+        yaml_content = _read_rule_text(path)
         outcomes: dict[str, str] = {}
         capabilities: dict[str, str] = {}
         for target in targets:
@@ -143,7 +155,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[correlation-conversion-audit] examples directory unavailable: {args.examples_dir}")
         return 2
 
-    payload = audit_correlation_rules(args.examples_dir)
+    try:
+        payload = audit_correlation_rules(args.examples_dir)
+    except AuditInputError as exc:
+        print(f"[correlation-conversion-audit] {exc}", file=sys.stderr)
+        return 2
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

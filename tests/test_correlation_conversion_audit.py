@@ -125,3 +125,21 @@ def test_cli_uses_an_explicit_examples_directory(monkeypatch, tmp_path: Path) ->
 def test_cli_refuses_a_missing_examples_directory(tmp_path: Path, capsys) -> None:
     assert audit.main(["--examples-dir", str(tmp_path / "missing")]) == 2
     assert "examples directory unavailable" in capsys.readouterr().out
+
+
+def test_cli_fails_closed_on_invalid_corpus_yaml(tmp_path: Path, capsys) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    examples.joinpath("broken.yml").write_text("title: [", encoding="utf-8")
+
+    assert audit.main(["--examples-dir", str(examples)]) == 2
+    assert "cannot parse YAML" in capsys.readouterr().err
+
+
+def test_cli_fails_closed_on_undecodable_corpus_yaml(tmp_path: Path, capsys) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    examples.joinpath("broken.yml").write_bytes(b"\xff\xfe\x00")
+
+    assert audit.main(["--examples-dir", str(examples)]) == 2
+    assert "cannot read" in capsys.readouterr().err

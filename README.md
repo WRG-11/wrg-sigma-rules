@@ -179,6 +179,9 @@ visible. They are advisory: none promotes a rule, proves an actor attribution,
 or replaces reading the cited source. Pass `--examples-dir` (and, where
 applicable, `--notes-dir`) when auditing a copied or isolated corpus; a missing
 examples directory is an error rather than an empty result.
+The correlation-conversion audit also fails clearly if any selected corpus YAML
+file cannot be read, decoded, or parsed; a partial conversion count is not a
+reproducible measurement.
 
 ```bash
 python scripts/observed_evidence_inventory.py --examples-dir resources/examples
