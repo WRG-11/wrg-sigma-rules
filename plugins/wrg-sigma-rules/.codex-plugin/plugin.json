@@ -1,6 +1,6 @@
 {
   "name": "wrg-sigma-rules",
-  "version": "1.9.0+codex.20260910153206",
+  "version": "1.10.0+codex.20260910153206",
   "description": "Sigma rule drafting, validation, review, conversion, and ATT&CK coverage analysis for Codex.",
   "author": {
     "name": "WRG (WinstonRedGuard)"

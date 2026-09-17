@@ -13,8 +13,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.10.0] - 2026-09-17
 
-Provenance and supply-chain hardening release. The 296-rule corpus is
-unchanged; this release makes source-review provenance auditable and tightens
+Provenance and supply-chain hardening release. Corpus 296 → 296 rules
+(unchanged); this release makes source-review provenance auditable and tightens
 OPSEC, container, and release integrity around the corpus.
 
 ### Added
