@@ -148,6 +148,21 @@ _CORRELATION_TYPE_CAPABLE_TARGETS: dict[str, tuple[str, ...]] = {
     "temporal_ordered": ("opensearch-ppl",),
 }
 
+
+def _correlation_capability_hint(capable_targets: tuple[str, ...]) -> str:
+    """Describe only converter capability that the plugin has measured."""
+    if capable_targets:
+        return (
+            "the rule is valid -- this backend cannot express this correlation "
+            "shape. Targets in this plugin that can convert it: "
+            + ", ".join(capable_targets)
+        )
+    return (
+        "the rule is valid -- this backend cannot express this correlation "
+        "shape. No target in this plugin is currently measured to convert "
+        "this correlation type."
+    )
+
 # Config keys convert_rule actually acts on. Anything else is echoed back
 # and flagged rather than silently ignored.
 _RECOGNISED_CONFIG_KEYS: frozenset[str] = frozenset({"pipeline"})
@@ -580,7 +595,7 @@ def convert_rule_body(
                 correlation_type = unsupported_type.group(1)
                 capability = f"correlation_type:{correlation_type}"
                 capable_targets = _CORRELATION_TYPE_CAPABLE_TARGETS.get(
-                    correlation_type, _CORRELATION_CAPABLE_TARGETS
+                    correlation_type, ()
                 )
             return {
                 "ok": False,
@@ -588,11 +603,7 @@ def convert_rule_body(
                     f"backend '{target}' does not support sigma correlation "
                     f"rules: {message}"
                 ),
-                "hint": (
-                    "the rule is valid -- this backend cannot express this "
-                    "correlation shape. Targets in this plugin that can "
-                    "convert it: " + ", ".join(capable_targets)
-                ),
+                "hint": _correlation_capability_hint(capable_targets),
                 "kind": "backend_capability_gap",
                 "target": target.lower(),
                 "capability": capability,

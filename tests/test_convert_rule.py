@@ -541,6 +541,16 @@ def test_type_specific_correlation_hints_are_narrower_than_general_hints() -> No
     )
 
 
+def test_unmeasured_correlation_type_does_not_receive_a_guessing_hint() -> None:
+    """A general-capability list cannot safely stand in for a new type."""
+    from tools.convert_rule.convert_rule import _correlation_capability_hint
+
+    hint = _correlation_capability_hint(())
+    assert "No target" in hint
+    assert "splunk" not in hint
+    assert "opensearch-ppl" not in hint
+
+
 def test_deprecated_pipe_syntax_is_not_a_capability_gap() -> None:
     """The deprecated aggregation-pipe error also contains the word
     "correlations" ("...replaced by Sigma correlations"), but it is a defect

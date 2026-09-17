@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **914 tests**, Ruff, README metric stamping and the
+- The checkout now passes **915 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -188,6 +188,10 @@ review and release decision.
   the measured `temporal_ordered` subset: a Splunk type-gap response directs
   the caller only to OpenSearch PPL. This remains conversion capability data,
   not deployed-SIEM semantic-equivalence evidence.
+- An unknown correlation type now receives no speculative backend suggestion;
+  the conversion response says that no plugin target is currently measured for
+  it. New backend/type support therefore requires a fixture before it can be
+  advertised.
 
 ## Later, only with evidence
 
