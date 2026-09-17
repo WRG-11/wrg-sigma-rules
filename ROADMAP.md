@@ -115,6 +115,18 @@ review and release decision.
   provenance verdict: threshold equivalence, actor attribution and any
   consolidation or reclassification decision remain explicitly unassessed.
 
+### 2026-09-17 — portable advisory-audit inputs
+
+- The duplicate, observed-evidence, correlation-conversion and detection-note
+  audit CLIs now accept an explicit corpus root; the two note-aware tools also
+  accept an explicit notes root. A missing corpus root exits with a clear
+  error rather than silently producing an empty report.
+- Isolated-fixture CLI tests cover the selected-root and missing-root paths for
+  each audit. Re-running them against this checkout's corpus preserves the
+  baseline measurements above. These controls make audit provenance
+  reproducible; they neither change rule content nor promote, consolidate, or
+  reclassify any rule.
+
 ## Later, only with evidence
 
 - Additional backend and processing-pipeline support, after each target has
