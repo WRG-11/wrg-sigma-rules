@@ -169,6 +169,20 @@ def test_release_smoke_checks_the_checkout_corpus_identity() -> None:
     assert "--expect-corpus-fingerprint \"$EXPECTED_FINGERPRINT\"" in workflow
 
 
+def test_manual_image_dry_run_has_no_registry_write_capability() -> None:
+    """Selected-ref verification must not carry the release job's token."""
+    workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+    dry_run, release = workflow.split("  publish-release:\n", maxsplit=1)
+
+    assert "  dry-run:\n" in dry_run
+    assert "if: github.event_name == 'workflow_dispatch'" in dry_run
+    assert "docker/login-action" not in dry_run
+    assert "secrets.GITHUB_TOKEN" not in dry_run
+    assert "packages: write" not in dry_run
+    assert "if: github.event_name == 'release'" in release
+    assert "packages: write" in release
+
+
 def test_workflow_actions_are_pinned_to_immutable_commit_shas() -> None:
     """A mutable action tag must not enter the public CI supply chain."""
     for workflow in sorted((REPO / ".github" / "workflows").glob("*.yml")):

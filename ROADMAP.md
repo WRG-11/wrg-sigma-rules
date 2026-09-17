@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **945 tests**, Ruff, README metric stamping and the
+- The checkout now passes **946 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -232,6 +232,10 @@ review and release decision.
   if a process does not provide them, including under optimized Python where
   `assert` checks are removed. Its argv-list invocation remains `shell=False`;
   the full Python surface is clean under the repository's Bandit scan.
+- Manual image dry runs are now separated from release publication: the
+  selected-ref build/smoke job has only read access and never authenticates to
+  GHCR, while the release-only job holds the narrowly required `packages: write`
+  permission immediately around the build, smoke and push boundary.
 
 ## Later, only with evidence
 
