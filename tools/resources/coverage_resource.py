@@ -10,7 +10,7 @@ The report is computed from the corpus at read time rather than stored.
 A checked-in coverage table is a second copy of the truth, and the corpus
 is edited far more often than a hand-maintained table gets refreshed --
 it would start drifting the first time a rule was added. Reading the
-rules is cheap (73 small YAML files) and cannot go stale.
+rules is cheap for this small YAML corpus and cannot go stale.
 
 Test surface: ``coverage_matrix_body()`` and ``collect_coverage()`` are
 exposed at module level so unit tests can assert content without invoking

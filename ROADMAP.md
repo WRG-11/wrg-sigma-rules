@@ -127,6 +127,17 @@ review and release decision.
   reproducible; they neither change rule content nor promote, consolidate, or
   reclassify any rule.
 
+### 2026-09-17 — coverage regression floor
+
+- The CI coverage gate now ratchets against the directly measured **91**
+  ATT&CK techniques rather than an obsolete floor of 66. A regression test
+  proves that one technique below the floor fails while the measured floor
+  passes; `untagged` and `unparseable` remain hard zero ceilings.
+- The sample evaluator's optional migration-baseline example no longer names a
+  file this repository does not ship. CI continues to use the stricter
+  `--require-samples` mode, so this documentation correction does not relax
+  the sidecar requirement.
+
 ## Later, only with evidence
 
 - Additional backend and processing-pipeline support, after each target has
