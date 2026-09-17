@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **937 tests**, Ruff, README metric stamping and the
+- The checkout now passes **938 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -220,6 +220,9 @@ review and release decision.
   references and no plain-HTTP references; review outcomes remain absent and
   therefore explicitly `not_assessed`, rather than being inferred from URL
   shape.
+- The CI workflow contract now protects the declared SDK support matrix: both
+  MCP 1.x and 2.x installation legs must remain present, rather than leaving
+  one import-shim branch covered only by a comment.
 
 ## Later, only with evidence
 

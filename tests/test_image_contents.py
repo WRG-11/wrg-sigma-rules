@@ -194,6 +194,13 @@ def test_readme_stamp_write_job_is_main_and_readme_scoped() -> None:
     assert "git add -A" not in workflow
 
 
+def test_ci_keeps_both_declared_mcp_sdk_compatibility_legs() -> None:
+    """Do not reduce the MCP 1.x/2.x support claim to one untested major."""
+    workflow = TESTS_WORKFLOW.read_text(encoding="utf-8")
+    assert 'mcp-version: ["<2", ">=2"]' in workflow
+    assert 'pip install "mcp${{ matrix.mcp-version }}"' in workflow
+
+
 def test_the_probe_finds_known_runtime_paths() -> None:
     """Control arm: the two tests above pass trivially if the AST walk finds
     nothing. Pin the one directory we know is read at runtime, so an extraction
