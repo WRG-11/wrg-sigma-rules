@@ -342,6 +342,44 @@ def test_source_review_rejects_invalid_date_and_url(tmp_path: Path) -> None:
         raise AssertionError("expected impossible source-review date to be rejected")
 
 
+def test_source_review_rejects_future_dates_and_path_traversal(tmp_path: Path) -> None:
+    reviews = tmp_path / "reviews"
+    reviews.mkdir()
+    path = reviews / "invalid.yml"
+    path.write_text(
+        "schema_version: 1\n"
+        "reviews:\n"
+        "- rule: resources/examples/../initial_access/observed_example.yml\n"
+        "  source: https://vendor.example/advisory\n"
+        "  reviewed_on: '2099-01-01'\n"
+        "  attribution_evidence: {status: not_assessed}\n"
+        "  platform_evidence: {status: not_assessed}\n"
+        "  telemetry_manifestation_evidence: {status: not_assessed}\n",
+        encoding="utf-8",
+    )
+
+    try:
+        inventory.load_source_reviews(reviews)
+    except ValueError as exc:
+        assert "invalid rule path" in str(exc)
+    else:  # pragma: no cover - assertion guard
+        raise AssertionError("expected traversal source-review path to be rejected")
+
+    path.write_text(
+        path.read_text(encoding="utf-8").replace(
+            "resources/examples/../initial_access/observed_example.yml",
+            "resources/examples/initial_access/observed_example.yml",
+        ),
+        encoding="utf-8",
+    )
+    try:
+        inventory.load_source_reviews(reviews)
+    except ValueError as exc:
+        assert "cannot be in the future" in str(exc)
+    else:  # pragma: no cover - assertion guard
+        raise AssertionError("expected future source-review date to be rejected")
+
+
 def test_inventory_rejects_review_for_unknown_rule(tmp_path: Path) -> None:
     examples = tmp_path / "examples"
     examples.mkdir()

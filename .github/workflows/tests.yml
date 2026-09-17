@@ -141,9 +141,10 @@ jobs:
         run: python scripts/duplicate_rule_check.py
 
       # These reports remain advisory about corpus decisions: a non-empty
-      # queue is review input, not a CI failure. Running them on the published
-      # corpus still catches parser/runtime drift and keeps their measurements
-      # reproducible with the same dependency set as conversion tests.
+      # queue is review input, not a CI failure. Their input schema and parser
+      # failures intentionally remain gating, so a malformed ledger cannot
+      # silently publish misleading measurements. Running them on the published
+      # corpus also keeps measurements reproducible with conversion tests.
       - name: Report observed-rule evidence inventory (advisory)
         run: python scripts/observed_evidence_inventory.py
 

@@ -126,7 +126,11 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, Any]]:
             rule = entry.get("rule")
             source = entry.get("source")
             reviewed_on = entry.get("reviewed_on")
-            if not isinstance(rule, str) or not _RULE_PATH_RE.fullmatch(rule):
+            if (
+                not isinstance(rule, str)
+                or not _RULE_PATH_RE.fullmatch(rule)
+                or ".." in rule.split("/")
+            ):
                 raise _review_error(path, f"review {index} has an invalid rule path")
             try:
                 parsed_source = urlsplit(source) if isinstance(source, str) else None
@@ -146,6 +150,8 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, Any]]:
                 is_iso_date = False
             if not is_iso_date:
                 raise _review_error(path, f"review {index} must use YYYY-MM-DD reviewed_on")
+            if date.fromisoformat(reviewed_on) > date.today():
+                raise _review_error(path, f"review {index} reviewed_on cannot be in the future")
             if rule in reviews:
                 raise _review_error(path, f"duplicates review for {rule}")
 
