@@ -94,6 +94,27 @@ def test_codex_wrapper_requires_every_runtime_input(tmp_path: Path) -> None:
     assert codex_server._runtime_root(script) == runtime
 
 
+def test_packaged_skills_keep_evidence_and_conversion_boundaries_explicit() -> None:
+    skills = PLUGIN / "skills"
+    coverage = skills.joinpath("threat-coverage-gap-analyzer", "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    writer = skills.joinpath("sigma-rule-writer", "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    reviewer = skills.joinpath("sigma-rule-reviewer", "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "wrg-sigma://coverage/mitre-attack-matrix" in coverage
+    assert "Do not claim missing tactics or techniques" in coverage
+    assert "never invent an `observed_*` rule" in coverage
+    assert "`CONTRIBUTING.md`" in writer
+    assert "`observed_*` rule" in writer
+    assert "syntax evidence only" in reviewer
+    assert "semantic equivalence" in reviewer
+
+
 def test_codex_wrapper_resolves_its_runtime_outside_the_plugin_cwd(
     tmp_path: Path,
 ) -> None:

@@ -14,3 +14,5 @@ small diff and revalidate only if the user requests changes.
 Treat `falsepositives` placeholders and leftover `REPLACE_ME` markers as
 actionable findings. A correlation rule failing for a Lucene-family backend
 is a backend capability limitation, not proof that the Sigma rule is invalid.
+A successful conversion is syntax evidence only; do not claim deployed-SIEM
+semantic equivalence or production readiness without target-side validation.

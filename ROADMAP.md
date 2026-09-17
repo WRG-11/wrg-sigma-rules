@@ -292,6 +292,12 @@ growth.
    identity. This is Python-runtime evidence, not an assertion that a specific
    Codex client refreshed its plugin cache or marketplace state.
 
+   **Packaged skill boundaries (2026-09-17):** Codex skills now state that a
+   corpus rollup cannot establish missing ATT&CK scope without a supplied,
+   versioned comparison matrix; conversion remains syntax evidence; and public
+   `observed_*` contributions require the `CONTRIBUTING.md` sourcing bar. A
+   regression test protects those boundaries from package-skill drift.
+
    **Bounded stdio exchange (2026-09-17):** the MCP smoke harness now applies
    its reply timeout before every protocol step, so an unresponsive server
    fails as a diagnostic rather than consuming a whole CI job timeout.

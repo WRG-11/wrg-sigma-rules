@@ -18,7 +18,10 @@ It runs under Claude Code, Codex, Cursor and any MCP-capable client.
   best-practice linter. `convert_rule` compiles a rule to a Splunk, Elastic,
   OpenSearch, Wazuh or Kibana query.
 - Three Claude Code skills: `sigma-rule-writer`, `sigma-rule-reviewer` and
-  `threat-coverage-gap-analyzer`.
+  `threat-coverage-gap-analyzer`. The packaged Codex variants retain the same
+  evidence boundaries: coverage counts do not establish missing ATT&CK scope,
+  conversion does not establish deployed semantics, and `observed_*` public
+  contributions require the sourcing bar in `CONTRIBUTING.md`.
 - A published corpus of <!-- METRIC:sigma_rule_count -->296<!-- /METRIC:sigma_rule_count -->
   rules across <!-- METRIC:tactic_category_count -->14<!-- /METRIC:tactic_category_count -->
   MITRE ATT&CK tactic categories. Every rule carries an honest Sigma `status:`
