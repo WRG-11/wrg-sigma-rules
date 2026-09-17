@@ -168,6 +168,21 @@ def test_release_smoke_checks_the_checkout_corpus_identity() -> None:
     assert "--expect-corpus-fingerprint \"$EXPECTED_FINGERPRINT\"" in workflow
 
 
+def test_workflow_actions_are_pinned_to_immutable_commit_shas() -> None:
+    """A mutable action tag must not enter the public CI supply chain."""
+    for workflow in sorted((REPO / ".github" / "workflows").glob("*.yml")):
+        actions = re.findall(
+            r"^\s*(?:-\s+)?uses:\s*([^\s#]+)",
+            workflow.read_text(encoding="utf-8"),
+            flags=re.MULTILINE,
+        )
+        assert actions, f"{workflow.name} has no action references to inspect"
+        for action in actions:
+            assert re.fullmatch(r"[^@\s]+@[0-9a-f]{40}", action), (
+                f"{workflow.name} action is not pinned to a full commit SHA: {action}"
+            )
+
+
 def test_the_probe_finds_known_runtime_paths() -> None:
     """Control arm: the two tests above pass trivially if the AST walk finds
     nothing. Pin the one directory we know is read at runtime, so an extraction

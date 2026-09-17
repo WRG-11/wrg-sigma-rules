@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **934 tests**, Ruff, README metric stamping and the
+- The checkout now passes **935 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -207,6 +207,10 @@ review and release decision.
   checkout and requires the image's live coverage resource to return the same
   value. This extends the existing CI identity gate to the publish boundary;
   it verifies runtime data identity, not a GitHub release or registry claim.
+- Every GitHub Action reference in the public workflow set is now protected by
+  a regression check requiring a full immutable commit SHA. Workflow actions
+  remain a reviewed supply-chain input rather than a mutable tag resolved at
+  job time.
 
 ## Later, only with evidence
 
