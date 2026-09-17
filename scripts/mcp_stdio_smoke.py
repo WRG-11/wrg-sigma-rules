@@ -18,6 +18,7 @@ Exits 0 on success, 1 with a diagnostic on failure.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from typing import Any
@@ -34,6 +35,9 @@ _EXPECTED_RESOURCES = {
 
 _PROTOCOL_VERSION = "2024-11-05"
 _TIMEOUT_SECONDS = 60
+_CORPUS_FINGERPRINT_RE = re.compile(
+    r"^- Rules-content SHA-256: `[0-9a-f]{64}`$", re.MULTILINE
+)
 
 # Self-contained, deliberately minimal -- not a corpus file path, so renaming
 # or removing a resources/examples/ rule can never break this smoke test for
@@ -53,6 +57,16 @@ falsepositives:
     - Legitimate use of whoami for diagnostics
 level: low
 """
+
+
+def _has_coverage_corpus_identity(contents: list[dict[str, Any]]) -> bool:
+    """Require the resource to identify the corpus behind its rollup."""
+    return any(
+        isinstance(content.get("text"), str)
+        and _CORPUS_FINGERPRINT_RE.search(content["text"])
+        for content in contents
+        if isinstance(content, dict)
+    )
 
 
 def _request(request_id: int, method: str, params: dict[str, Any] | None = None) -> str:
@@ -247,13 +261,18 @@ def main(argv: list[str]) -> int:
             "resources/read(coverage matrix) returned no text content",
             stderr=stderr_text,
         )
+    if not _has_coverage_corpus_identity(contents):
+        return _fail(
+            "resources/read(coverage matrix) omitted a valid corpus fingerprint",
+            stderr=stderr_text,
+        )
 
     print(f"OK: {server_name} v{server_version} announced {len(tools)} tool(s), "
           f"{len(resources)} resource(s) over stdio")
     print(f"    tools:     {', '.join(sorted(tools))}")
     print(f"    resources: {', '.join(sorted(resources))}")
     print("    validate_rule tool call: ok")
-    print("    coverage-matrix resource read: ok")
+    print("    coverage-matrix resource read and corpus identity: ok")
     return 0
 
 
