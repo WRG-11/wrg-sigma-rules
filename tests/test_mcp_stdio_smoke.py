@@ -4,6 +4,7 @@ from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
+import sys
 
 import pytest
 
@@ -64,3 +65,9 @@ def test_expected_server_version_requires_a_nonempty_manifest_value(tmp_path: Pa
     manifest.write_text(json.dumps({"version": " "}), encoding="utf-8")
     with pytest.raises(ValueError, match="missing or invalid"):
         smoke._expected_server_version(manifest)
+
+
+def test_main_fails_fast_when_server_never_replies(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(smoke, "_TIMEOUT_SECONDS", 0.05)
+
+    assert smoke.main([sys.executable, "-c", "import time; time.sleep(60)"]) == 1

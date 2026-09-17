@@ -292,6 +292,10 @@ growth.
    identity. This is Python-runtime evidence, not an assertion that a specific
    Codex client refreshed its plugin cache or marketplace state.
 
+   **Bounded stdio exchange (2026-09-17):** the MCP smoke harness now applies
+   its reply timeout before every protocol step, so an unresponsive server
+   fails as a diagnostic rather than consuming a whole CI job timeout.
+
 ## Explicitly out of scope
 
 - A hosted multi-tenant MCP service or remote telemetry collection.

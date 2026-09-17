@@ -74,6 +74,8 @@ runner and completes a package-wrapper MCP handshake, but that remains a
 Python-runtime check rather than evidence that a particular client refreshed
 its installed cache. After installation, verify a real MCP handshake in the
 target client before treating the package as ready.
+The repository smoke harness bounds every protocol reply, so an unresponsive
+server fails the check rather than consuming the workflow timeout.
 
 ### Cursor
 

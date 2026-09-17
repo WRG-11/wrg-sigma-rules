@@ -20,9 +20,11 @@ Exits 0 on success, 1 with a diagnostic on failure.
 from __future__ import annotations
 
 import json
+import queue
 import re
 import subprocess
 import sys
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -62,6 +64,10 @@ falsepositives:
     - Legitimate use of whoami for diagnostics
 level: low
 """
+
+
+class _ResponseTimeout(TimeoutError):
+    """The server did not answer one protocol request in the bounded window."""
 
 
 def _coverage_corpus_fingerprint(contents: list[dict[str, Any]]) -> str | None:
@@ -172,6 +178,17 @@ def main(argv: list[str]) -> int:
 
     responses: dict[int, dict[str, Any]] = {}
     protocol_violations: list[str] = []
+    stdout_lines: queue.Queue[str | None] = queue.Queue()
+
+    def pump_stdout() -> None:
+        """Move blocking pipe reads off the request/response control path."""
+        assert proc.stdout is not None
+        for line in proc.stdout:
+            stdout_lines.put(line)
+        stdout_lines.put(None)
+
+    stdout_thread = threading.Thread(target=pump_stdout, daemon=True)
+    stdout_thread.start()
 
     def send(line: str) -> None:
         assert proc.stdin is not None
@@ -187,8 +204,13 @@ def main(argv: list[str]) -> int:
         the reply is flushed. That race dropped the final response entirely
         when this script wrote everything up front.
         """
-        assert proc.stdout is not None
-        for line in proc.stdout:
+        while True:
+            try:
+                line = stdout_lines.get(timeout=_TIMEOUT_SECONDS)
+            except queue.Empty as exc:
+                raise _ResponseTimeout from exc
+            if line is None:
+                return None
             try:
                 message = _protocol_message(line)
             except ValueError:
@@ -200,7 +222,7 @@ def main(argv: list[str]) -> int:
                 responses[message["id"]] = message
                 if message["id"] == request_id:
                     return message
-        return None
+        return None  # pragma: no cover - loop exits only on a response or EOF
 
     try:
         send(
@@ -234,8 +256,13 @@ def main(argv: list[str]) -> int:
             "uri": "wrg-sigma://coverage/mitre-attack-matrix",
         }))
         read_response(5)
+    except _ResponseTimeout:
+        proc.kill()
+        proc.wait()
+        return _fail(f"server did not reply within {_TIMEOUT_SECONDS}s")
     except (BrokenPipeError, OSError) as exc:
         proc.kill()
+        proc.wait()
         return _fail(f"server closed the pipe early: {exc}")
 
     assert proc.stdin is not None
@@ -249,12 +276,18 @@ def main(argv: list[str]) -> int:
         )
 
     stderr_text = proc.stderr.read() if proc.stderr else ""
-    if proc.stdout is not None:
-        for line in proc.stdout.read().splitlines():
-            try:
-                _protocol_message(line)
-            except ValueError:
-                protocol_violations.append(line)
+    stdout_thread.join(timeout=_TIMEOUT_SECONDS)
+    while True:
+        try:
+            line = stdout_lines.get_nowait()
+        except queue.Empty:
+            break
+        if line is None:
+            continue
+        try:
+            _protocol_message(line)
+        except ValueError:
+            protocol_violations.append(line.rstrip())
 
     if protocol_violations:
         return _fail(
