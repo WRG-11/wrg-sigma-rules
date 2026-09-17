@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **913 tests**, Ruff, README metric stamping and the
+- The checkout now passes **914 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -184,6 +184,10 @@ review and release decision.
 - The Docker runtime-path probe now includes `server.py` as well as `tools/`,
   so the manifest read during MCP startup is mechanically tied to a Dockerfile
   `COPY` rule alongside resource reads.
+- Correlation capability hints now distinguish the general converter set from
+  the measured `temporal_ordered` subset: a Splunk type-gap response directs
+  the caller only to OpenSearch PPL. This remains conversion capability data,
+  not deployed-SIEM semantic-equivalence evidence.
 
 ## Later, only with evidence
 

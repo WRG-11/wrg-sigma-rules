@@ -139,6 +139,15 @@ _MAX_PIPELINE_COUNT = len(_PIPELINE_SPECS)
 # rerun ``scripts/correlation_conversion_audit.py`` after a backend upgrade.
 _CORRELATION_CAPABLE_TARGETS: tuple[str, ...] = ("splunk", "opensearch-ppl")
 
+# General correlation support does not imply every correlation shape. Keep
+# type-specific hints narrower than the general list so a user whose
+# ``temporal_ordered`` conversion failed is not told to retry Splunk, which
+# cannot express that type. These are converter-capability statements only,
+# not claims of deployed-SIEM semantic equivalence.
+_CORRELATION_TYPE_CAPABLE_TARGETS: dict[str, tuple[str, ...]] = {
+    "temporal_ordered": ("opensearch-ppl",),
+}
+
 # Config keys convert_rule actually acts on. Anything else is echoed back
 # and flagged rather than silently ignored.
 _RECOGNISED_CONFIG_KEYS: frozenset[str] = frozenset({"pipeline"})
@@ -566,8 +575,13 @@ def convert_rule_body(
             or unsupported_type is not None
         ):
             capability = "correlation_rules"
+            capable_targets = _CORRELATION_CAPABLE_TARGETS
             if unsupported_type is not None:
-                capability = f"correlation_type:{unsupported_type.group(1)}"
+                correlation_type = unsupported_type.group(1)
+                capability = f"correlation_type:{correlation_type}"
+                capable_targets = _CORRELATION_TYPE_CAPABLE_TARGETS.get(
+                    correlation_type, _CORRELATION_CAPABLE_TARGETS
+                )
             return {
                 "ok": False,
                 "error": _ascii_safe(
@@ -575,9 +589,9 @@ def convert_rule_body(
                     f"rules: {message}"
                 ),
                 "hint": (
-                    "the rule is valid -- this backend cannot express "
-                    "correlations. Targets in this plugin that can: "
-                    + ", ".join(_CORRELATION_CAPABLE_TARGETS)
+                    "the rule is valid -- this backend cannot express this "
+                    "correlation shape. Targets in this plugin that can "
+                    "convert it: " + ", ".join(capable_targets)
                 ),
                 "kind": "backend_capability_gap",
                 "target": target.lower(),

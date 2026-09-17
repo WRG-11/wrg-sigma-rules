@@ -180,6 +180,8 @@ def test_convert_temporal_ordered_correlation_reports_type_capability_gap() -> N
     assert result["ok"] is False
     assert result["kind"] == "backend_capability_gap"
     assert result["capability"] == "correlation_type:temporal_ordered"
+    assert "opensearch-ppl" in result["hint"]
+    assert "splunk" not in result["hint"]
 
 
 def test_corpus_splunk_correlations_have_no_unclassified_conversion_failure() -> None:
@@ -528,6 +530,15 @@ def test_correlation_capable_targets_really_are_capable() -> None:
             f"{target} is advertised as correlation-capable but failed: "
             f"{result.get('error')}"
         )
+
+
+def test_type_specific_correlation_hints_are_narrower_than_general_hints() -> None:
+    """Do not recommend a backend that rejects the failed correlation type."""
+    from tools.convert_rule.convert_rule import _CORRELATION_TYPE_CAPABLE_TARGETS
+
+    assert _CORRELATION_TYPE_CAPABLE_TARGETS["temporal_ordered"] == (
+        "opensearch-ppl",
+    )
 
 
 def test_deprecated_pipe_syntax_is_not_a_capability_gap() -> None:
