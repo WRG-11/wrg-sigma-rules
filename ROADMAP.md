@@ -147,13 +147,25 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **907 tests**, Ruff, README metric stamping and the
+- The checkout now passes **909 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
   reports against the published corpus as advisory measurements. A non-empty
   queue remains review input, while parser or dependency drift now fails where
   it is visible.
+- Advisory report JSON now exposes a versioned contract where its legacy shape
+  is already an object. The duplicate report preserves its historical bare
+  list for existing consumers and offers an opt-in envelope instead; contract
+  versioning does not turn any queue into a decision or a gate.
+- The coverage resource emits a SHA-256 identity for the corpus loaded by its
+  active runtime. Its live stdio smoke exchange verifies both that fingerprint
+  and the manifest-derived server version, while the Codex package may retain
+  only a local build suffix over the same release base.
+- Docker CI now compares the container's live coverage-resource fingerprint
+  with the checkout's independently computed fingerprint. This guards the
+  runtime-data boundary only; it neither establishes a GitHub release identity
+  nor changes the release-owner's tag/version policy.
 
 ## Later, only with evidence
 

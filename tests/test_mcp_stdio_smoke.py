@@ -26,6 +26,23 @@ def test_coverage_resource_identity_requires_a_full_sha256_line() -> None:
     )
 
 
+def test_coverage_resource_identity_returns_the_announced_digest() -> None:
+    digest = "b" * 64
+    assert smoke._coverage_corpus_fingerprint(
+        [{"text": f"- Rules-content SHA-256: `{digest}`\n"}]
+    ) == digest
+
+
+def test_parse_command_keeps_the_server_command_and_optional_expectation() -> None:
+    digest = "c" * 64
+    assert smoke._parse_command(
+        ["--expect-corpus-fingerprint", digest, "--", "docker", "run"]
+    ) == (digest, ["docker", "run"])
+
+    with pytest.raises(ValueError, match="64-character"):
+        smoke._parse_command(["--expect-corpus-fingerprint", "not-a-digest"])
+
+
 def test_expected_server_version_requires_a_nonempty_manifest_value(tmp_path: Path) -> None:
     manifest = tmp_path / "plugin.json"
     manifest.write_text(json.dumps({"version": "1.2.3"}), encoding="utf-8")

@@ -276,6 +276,11 @@ jobs:
       # Building is not evidence that it serves. Speak MCP to the container
       # over stdio and require it to announce the tools and resources the
       # plugin promises -- a server that starts and announces nothing would
-      # pass a build check and fail this one.
-      - name: Smoke the container over stdio MCP
-        run: python scripts/mcp_stdio_smoke.py docker run -i --rm wrg-sigma-rules-mcp
+      # pass a build check and fail this one. Compare the live resource's
+      # corpus fingerprint with the checked-out resource too: an otherwise
+      # healthy stale image layer must not look like current runtime data.
+      - name: Smoke the container over stdio MCP and compare corpus identity
+        run: |
+          python -m pip install --disable-pip-version-check "PyYAML>=6.0.3,<7"
+          EXPECTED_FINGERPRINT="$(python -c \"from tools.resources.coverage_resource import collect_coverage; print(collect_coverage()['corpus_sha256'])\")"
+          python scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint "$EXPECTED_FINGERPRINT" -- docker run -i --rm wrg-sigma-rules-mcp

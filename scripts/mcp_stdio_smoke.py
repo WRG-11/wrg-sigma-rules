@@ -5,6 +5,8 @@ surfaces this repo ships:
 
     python scripts/mcp_stdio_smoke.py python server.py
     python scripts/mcp_stdio_smoke.py docker run -i --rm wrg-sigma-rules-mcp
+    python scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint <sha256> -- \\
+        docker run -i --rm wrg-sigma-rules-mcp
 
 It performs a real JSON-RPC handshake over stdin/stdout -- initialize,
 initialized, tools/list, resources/list -- and asserts the server announces
@@ -62,14 +64,38 @@ level: low
 """
 
 
+def _coverage_corpus_fingerprint(contents: list[dict[str, Any]]) -> str | None:
+    """Return the coverage resource's full corpus digest, if it has one."""
+    for content in contents:
+        if not isinstance(content, dict):
+            continue
+        text = content.get("text")
+        if not isinstance(text, str):
+            continue
+        match = _CORPUS_FINGERPRINT_RE.search(text)
+        if match:
+            return match.group(0).split("`")[1]
+    return None
+
+
 def _has_coverage_corpus_identity(contents: list[dict[str, Any]]) -> bool:
     """Require the resource to identify the corpus behind its rollup."""
-    return any(
-        isinstance(content.get("text"), str)
-        and _CORPUS_FINGERPRINT_RE.search(content["text"])
-        for content in contents
-        if isinstance(content, dict)
-    )
+    return _coverage_corpus_fingerprint(contents) is not None
+
+
+def _parse_command(argv: list[str]) -> tuple[str | None, list[str]]:
+    """Parse the optional cross-surface identity check and server command."""
+    expected_fingerprint: str | None = None
+    if argv[:1] == ["--expect-corpus-fingerprint"]:
+        if len(argv) < 2 or not re.fullmatch(r"[0-9a-f]{64}", argv[1]):
+            raise ValueError(
+                "--expect-corpus-fingerprint requires a lowercase 64-character SHA-256"
+            )
+        expected_fingerprint = argv[1]
+        argv = argv[2:]
+    if argv[:1] == ["--"]:
+        argv = argv[1:]
+    return expected_fingerprint, argv
 
 
 def _expected_server_version(manifest: Path = _PLUGIN_MANIFEST) -> str:
@@ -110,6 +136,10 @@ def _fail(message: str, stdout: str = "", stderr: str = "") -> int:
 
 
 def main(argv: list[str]) -> int:
+    try:
+        expected_fingerprint, argv = _parse_command(argv)
+    except ValueError as exc:
+        return _fail(str(exc))
     if not argv:
         print(__doc__)
         return _fail("no server command given")
@@ -286,9 +316,16 @@ def main(argv: list[str]) -> int:
             "resources/read(coverage matrix) returned no text content",
             stderr=stderr_text,
         )
-    if not _has_coverage_corpus_identity(contents):
+    actual_fingerprint = _coverage_corpus_fingerprint(contents)
+    if actual_fingerprint is None:
         return _fail(
             "resources/read(coverage matrix) omitted a valid corpus fingerprint",
+            stderr=stderr_text,
+        )
+    if expected_fingerprint and actual_fingerprint != expected_fingerprint:
+        return _fail(
+            "coverage matrix fingerprint "
+            f"{actual_fingerprint!r}, expected {expected_fingerprint!r}",
             stderr=stderr_text,
         )
 
@@ -297,7 +334,7 @@ def main(argv: list[str]) -> int:
     print(f"    tools:     {', '.join(sorted(tools))}")
     print(f"    resources: {', '.join(sorted(resources))}")
     print("    validate_rule tool call: ok")
-    print("    coverage-matrix resource read and corpus identity: ok")
+    print(f"    coverage-matrix corpus SHA-256: {actual_fingerprint}")
     return 0
 
 

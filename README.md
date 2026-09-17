@@ -162,6 +162,9 @@ starting point to bind to your own logsource and tune; each rule's
 - pySigma 1.x compatibility is verified against the Splunk, Elasticsearch and
   OpenSearch backend packages.
 - CI runs the full suite on Ubuntu, Windows and macOS runners on every push.
+- The Docker CI smoke exchange compares the container coverage resource's
+  corpus fingerprint with the checked-out corpus, so an otherwise healthy
+  image cannot silently serve stale rule data.
 - README counts are stamped from ground truth: `python readme_stamp.py --check`
   fails CI on any drift, so the numbers here cannot silently go stale.
 
