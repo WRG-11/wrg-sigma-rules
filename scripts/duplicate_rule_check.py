@@ -53,10 +53,12 @@ def _fingerprint(doc: dict[str, Any]) -> tuple[tuple[str, ...], str, str] | None
     return (tuple(techniques), product, category)
 
 
-def find_groups() -> dict[tuple[Any, ...], list[str]]:
+def find_groups(
+    examples_dir: Path = EXAMPLES_DIR,
+) -> dict[tuple[Any, ...], list[str]]:
     groups: dict[tuple[Any, ...], list[str]] = defaultdict(list)
-    for path in sorted(EXAMPLES_DIR.rglob("*.yml")):
-        rel = path.relative_to(EXAMPLES_DIR).as_posix()
+    for path in sorted(examples_dir.rglob("*.yml")):
+        rel = path.relative_to(examples_dir).as_posix()
         try:
             docs = list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
         except yaml.YAMLError:
@@ -180,6 +182,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", metavar="PATH", default=None,
                         help="write findings as JSON instead of only printing")
     parser.add_argument(
+        "--examples-dir",
+        type=Path,
+        default=EXAMPLES_DIR,
+        help="Sigma examples root to inspect (default: repository corpus)",
+    )
+    parser.add_argument(
         "--exact-actor-logic",
         action="store_true",
         help=("report exact detection/correlation structure duplicates among "
@@ -187,8 +195,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    if not args.examples_dir.is_dir():
+        print(f"[duplicate-check] examples directory unavailable: {args.examples_dir}", file=sys.stderr)
+        return 2
+
     if args.exact_actor_logic:
-        groups = find_exact_actor_logic_groups()
+        groups = find_exact_actor_logic_groups(args.examples_dir)
         if not groups:
             print("[duplicate-check] no exact actor-labelled logic duplicates")
         else:
@@ -213,7 +225,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
         }
     else:
-        groups = find_groups()
+        groups = find_groups(args.examples_dir)
 
         if not groups:
             print("[duplicate-check] no rules share an identical "

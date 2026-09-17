@@ -1,6 +1,7 @@
 """Tests for the advisory duplicate-rule reporting script."""
 from __future__ import annotations
 
+import json
 import importlib.util
 from pathlib import Path
 
@@ -76,3 +77,27 @@ def test_exact_actor_logic_ignores_unlabelled_observed_rules(tmp_path: Path) -> 
     )
 
     assert duplicate_rule_check.find_exact_actor_logic_groups(examples) == []
+
+
+def test_cli_exact_audit_uses_explicit_examples_directory(tmp_path: Path) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    _write_rule(examples / "observed_first.yml", actor="first", threshold=11)
+    _write_rule(examples / "observed_second.yml", actor="second", threshold=11)
+    report = tmp_path / "duplicate-report.json"
+
+    assert duplicate_rule_check.main(
+        ["--exact-actor-logic", "--examples-dir", str(examples), "--json", str(report)]
+    ) == 0
+
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    assert len(payload["groups"]) == 1
+    assert [rule["path"] for rule in payload["groups"][0]["rules"]] == [
+        "observed_first.yml",
+        "observed_second.yml",
+    ]
+
+
+def test_cli_refuses_a_missing_examples_directory(tmp_path: Path, capsys) -> None:
+    assert duplicate_rule_check.main(["--examples-dir", str(tmp_path / "missing")]) == 2
+    assert "examples directory unavailable" in capsys.readouterr().err

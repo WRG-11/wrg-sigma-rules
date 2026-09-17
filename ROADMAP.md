@@ -124,6 +124,36 @@ review and release decision.
 - Marketplace distribution, after the packaged runtime and install path are
   validated by the relevant client.
 
+## Next evidence-gated execution order
+
+This order turns the measured baselines above into small, independently
+reversible improvements. It is deliberately not a target for raw rule-count
+growth.
+
+1. **Make advisory audits portable and reviewable.** Audit CLIs must accept an
+   explicit corpus root, fail clearly when it is absent, and retain their
+   advisory status. The duplicate audit's 11 exact-logic groups are a source
+   review queue, not candidates for automatic consolidation.
+   **Exit evidence:** isolated-fixture CLI tests and a reproducible JSON report.
+2. **Add human-source review evidence, not mechanical certainty.** Extend the
+   observed-evidence inventory only with additive fields whose values are tied
+   to reviewed primary sources. Keep attribution, platform and telemetry
+   manifestation `not_assessed` until that review exists; never infer them from
+   an actor tag, a sample, or a conversion result.
+   **Exit evidence:** cited review record plus regression coverage for its
+   explicit boundary.
+3. **Constrain backend claims with end-to-end fixtures.** Treat the measured
+   correlation conversion gaps as capability boundaries. Add a backend only
+   when its generated query and documented lossiness are proven by a fixture;
+   do not relabel a syntax conversion as semantic equivalence.
+   **Exit evidence:** target-specific conversion and semantic-fixture results.
+4. **Keep install and runtime claims reproducible.** Evolve MCP/package
+   surfaces only after checkout, bundled-runtime and clean-client handshake
+   evidence agrees. Any change must preserve non-root container execution and
+   response-redaction regression coverage.
+   **Exit evidence:** parity, container and stdio-MCP smoke checks in the same
+   change.
+
 ## Explicitly out of scope
 
 - A hosted multi-tenant MCP service or remote telemetry collection.
