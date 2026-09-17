@@ -124,6 +124,20 @@ def _notification(method: str, params: dict[str, Any] | None = None) -> str:
     return json.dumps(payload)
 
 
+def _protocol_message(line: str) -> dict[str, Any] | None:
+    """Parse one stdout line, rejecting data that would corrupt stdio MCP."""
+    line = line.strip()
+    if not line:
+        return None
+    try:
+        message = json.loads(line)
+    except json.JSONDecodeError as exc:
+        raise ValueError("stdout line is not valid JSON-RPC JSON") from exc
+    if not isinstance(message, dict):
+        raise ValueError("stdout JSON-RPC message is not an object")
+    return message
+
+
 def _fail(message: str, stdout: str = "", stderr: str = "") -> int:
     print(f"FAIL: {message}", file=sys.stderr)
     if stdout:
@@ -157,6 +171,7 @@ def main(argv: list[str]) -> int:
         return _fail(f"server command not found: {argv[0]}")
 
     responses: dict[int, dict[str, Any]] = {}
+    protocol_violations: list[str] = []
 
     def send(line: str) -> None:
         assert proc.stdin is not None
@@ -174,14 +189,12 @@ def main(argv: list[str]) -> int:
         """
         assert proc.stdout is not None
         for line in proc.stdout:
-            line = line.strip()
-            if not line.startswith("{"):
-                continue
             try:
-                message = json.loads(line)
-            except json.JSONDecodeError:
+                message = _protocol_message(line)
+            except ValueError:
+                protocol_violations.append(line.rstrip())
                 continue
-            if not isinstance(message, dict):
+            if message is None:
                 continue
             if isinstance(message.get("id"), int):
                 responses[message["id"]] = message
@@ -236,6 +249,19 @@ def main(argv: list[str]) -> int:
         )
 
     stderr_text = proc.stderr.read() if proc.stderr else ""
+    if proc.stdout is not None:
+        for line in proc.stdout.read().splitlines():
+            try:
+                _protocol_message(line)
+            except ValueError:
+                protocol_violations.append(line)
+
+    if protocol_violations:
+        return _fail(
+            "server wrote non-protocol data to stdout",
+            stdout="\n".join(protocol_violations),
+            stderr=stderr_text,
+        )
 
     if 1 not in responses:
         return _fail("no response to initialize", stderr=stderr_text)

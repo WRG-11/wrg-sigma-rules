@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **915 tests**, Ruff, README metric stamping and the
+- The checkout now passes **916 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -192,6 +192,9 @@ review and release decision.
   the conversion response says that no plugin target is currently measured for
   it. New backend/type support therefore requires a fixture before it can be
   advertised.
+- The stdio MCP smoke harness now rejects non-protocol stdout instead of
+  silently skipping it, so a server log accidentally written to stdout cannot
+  pass CI while corrupting a client’s JSON-RPC stream.
 
 ## Later, only with evidence
 

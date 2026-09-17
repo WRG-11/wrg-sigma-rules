@@ -43,6 +43,19 @@ def test_parse_command_keeps_the_server_command_and_optional_expectation() -> No
         smoke._parse_command(["--expect-corpus-fingerprint", "not-a-digest"])
 
 
+def test_protocol_message_rejects_stdout_noise_but_allows_blank_lines() -> None:
+    assert smoke._protocol_message("  \n") is None
+    assert smoke._protocol_message('{"jsonrpc": "2.0", "method": "notice"}') == {
+        "jsonrpc": "2.0",
+        "method": "notice",
+    }
+
+    with pytest.raises(ValueError, match="not valid JSON"):
+        smoke._protocol_message("startup complete")
+    with pytest.raises(ValueError, match="not an object"):
+        smoke._protocol_message("[]")
+
+
 def test_expected_server_version_requires_a_nonempty_manifest_value(tmp_path: Path) -> None:
     manifest = tmp_path / "plugin.json"
     manifest.write_text(json.dumps({"version": "1.2.3"}), encoding="utf-8")
