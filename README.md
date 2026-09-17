@@ -65,7 +65,8 @@ The Codex plugin carries a self-contained runtime snapshot of the server and
 corpus, so its installed cache does not rely on checkout-relative paths. Keep it
 current with `python scripts/sync_codex_runtime.py`. Check parity without
 rewriting the snapshot via `python scripts/sync_codex_runtime.py --check`; CI
-fails if it drifts.
+fails if it drifts. A Codex package may add a local build suffix to its version,
+but its release base is regression-checked against the server manifest.
 
 ### Cursor
 

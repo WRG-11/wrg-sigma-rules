@@ -19,6 +19,11 @@ def _files(root: Path) -> dict[Path, str]:
     }
 
 
+def _release_version(version: str) -> str:
+    """Drop a package-local suffix without accepting a different release."""
+    return version.split("+", 1)[0]
+
+
 def test_codex_plugin_runtime_matches_canonical_server_sources() -> None:
     for filename in ("server.py", "requirements.txt"):
         assert (RUNTIME / filename).read_bytes() == (ROOT / filename).read_bytes()
@@ -33,3 +38,12 @@ def test_codex_plugin_manifest_registers_the_self_contained_runtime() -> None:
     assert mcp_config["mcpServers"]["wrg-sigma-rules"]["args"] == [
         "scripts/codex_server.py"
     ]
+
+
+def test_codex_package_base_version_matches_the_server_manifest() -> None:
+    """Codex may carry a local build suffix, never a different release base."""
+    codex_manifest = json.loads((PLUGIN / ".codex-plugin" / "plugin.json").read_text())
+    server_manifest = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
+
+    assert codex_manifest["name"] == server_manifest["name"]
+    assert _release_version(codex_manifest["version"]) == server_manifest["version"]
