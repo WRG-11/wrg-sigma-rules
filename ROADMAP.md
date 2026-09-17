@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **932 tests**, Ruff, README metric stamping and the
+- The checkout now passes **933 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -199,6 +199,10 @@ review and release decision.
   optional disk-cache constructor disabled. ATT&CK/D3FEND data-download helpers
   therefore cannot silently enter the local parse/convert runtime; this is a
   runtime-boundary control, not a claim to remediate an upstream dependency.
+- Docker CI and the release-prepublish smoke now run the MCP server with a
+  read-only root filesystem and a bounded, non-executable `/tmp` tmpfs. The
+  current image completed the full stdio handshake under that profile, and a
+  regression test prevents either smoke command from silently dropping it.
 
 ## Later, only with evidence
 

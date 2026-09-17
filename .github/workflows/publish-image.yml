@@ -42,7 +42,7 @@ jobs:
       # Same proof-of-life check tests.yml's docker job runs -- a pushed
       # image that never actually serves MCP is worse than no image at all.
       - name: Smoke the built image over stdio MCP before pushing
-        run: python3 scripts/mcp_stdio_smoke.py docker run -i --rm "$IMAGE_NAME:latest"
+        run: python3 scripts/mcp_stdio_smoke.py docker run -i --rm --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m "$IMAGE_NAME:latest"
 
       - name: Push (skipped on workflow_dispatch dry runs)
         if: github.event_name == 'release'

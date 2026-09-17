@@ -25,6 +25,8 @@ import pytest
 REPO = Path(__file__).resolve().parent.parent
 DOCKERFILE = REPO / "Dockerfile"
 DOCKERIGNORE = REPO / ".dockerignore"
+TESTS_WORKFLOW = REPO / ".github" / "workflows" / "tests.yml"
+PUBLISH_WORKFLOW = REPO / ".github" / "workflows" / "publish-image.yml"
 
 #: Top-level names that are source, not runtime data -- copied as whole trees.
 _SOURCE_TREES = {"tools"}
@@ -144,6 +146,19 @@ def test_base_image_is_digest_pinned() -> None:
         dockerfile,
         flags=re.MULTILINE,
     ), "Dockerfile must pin python:3.12-slim to a sha256 digest"
+
+
+def test_ci_container_smokes_keep_the_runtime_filesystem_read_only() -> None:
+    """Both pre-merge and pre-publish MCP checks must prove no app write need."""
+    expected_run = (
+        "docker run -i --rm --read-only "
+        "--tmpfs /tmp:rw,noexec,nosuid,size=16m"
+    )
+    for workflow in (TESTS_WORKFLOW, PUBLISH_WORKFLOW):
+        assert expected_run in workflow.read_text(encoding="utf-8"), (
+            f"{workflow.name} MCP smoke must run with a read-only rootfs and "
+            "a narrowly scoped temporary filesystem"
+        )
 
 
 def test_the_probe_finds_known_runtime_paths() -> None:

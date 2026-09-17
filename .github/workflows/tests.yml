@@ -318,4 +318,4 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check "PyYAML>=6.0.3,<7"
           EXPECTED_FINGERPRINT="$(python -c "from tools.resources.coverage_resource import collect_coverage; print(collect_coverage()['corpus_sha256'])")"
-          python scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint "$EXPECTED_FINGERPRINT" -- docker run -i --rm wrg-sigma-rules-mcp
+          python scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint "$EXPECTED_FINGERPRINT" -- docker run -i --rm --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m wrg-sigma-rules-mcp
