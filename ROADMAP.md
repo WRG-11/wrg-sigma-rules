@@ -179,6 +179,12 @@ growth.
    supported or not-supported outcome must carry a non-empty source quote.
    Missing records still render as `not_assessed`, so this foundation does not
    alter the measured review baseline or promote any rule.
+
+   **Public-traceability queue (2026-09-17):** the inventory also exposes
+   literal `WRG breach catalog` mentions and reference distribution between a
+   multi-document rule's first and later documents. These are bounded review
+   cues for public provenance policy; they do not judge source quality or
+   reclassify a rule.
 3. **Constrain backend claims with end-to-end fixtures.** Treat the measured
    correlation conversion gaps as capability boundaries. Add a backend only
    when its generated query and documented lossiness are proven by a fixture;

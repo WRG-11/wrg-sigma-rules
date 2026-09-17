@@ -187,6 +187,9 @@ review records live under [`docs/source-reviews/`](docs/source-reviews/): each
 must cite a URL already on the rule, record a review date, and include a source
 quote for every supported or not-supported conclusion. The inventory rejects a
 malformed or stale record rather than treating it as evidence.
+It also records the literal presence of `WRG breach catalog` and whether a
+multi-document rule keeps references only in a later document. Both are public
+traceability review cues, never source-quality or attribution verdicts.
 
 The correlation audit separately counts a backend's declared capability
 boundaries (for example, `correlation_rules` or

@@ -30,6 +30,7 @@ NOTES_DIR = REPO_ROOT / "docs" / "detection-notes"
 SOURCE_REVIEWS_DIR = REPO_ROOT / "docs" / "source-reviews"
 _RULE_PATH_RE = re.compile(r"resources/examples/[A-Za-z0-9_./-]+\.ya?ml")
 _REVIEW_STATUSES = frozenset({"not_assessed", "supported", "not_supported"})
+_WRG_BREACH_CATALOG_RE = re.compile(r"\bWRG\s+breach\s+catalog\b", re.IGNORECASE)
 
 
 def _is_mitre_reference(url: str) -> bool:
@@ -189,6 +190,8 @@ def build_inventory(
         first = documents[0]
         relpath = "resources/examples/" + path.relative_to(examples_dir).as_posix()
         references = _references(documents)
+        first_document_references = _references([first])
+        later_document_references = _references(documents[1:])
         external_references = [ref for ref in references if not _is_mitre_reference(ref)]
         tags = sorted(
             {
@@ -217,6 +220,11 @@ def build_inventory(
                 "logsource": logsource if isinstance(logsource, dict) else {},
                 "reference_count": len(references),
                 "external_reference_count": len(external_references),
+                "first_document_reference_count": len(first_document_references),
+                "later_document_reference_count": len(later_document_references),
+                "has_wrg_breach_catalog_mention": bool(
+                    _WRG_BREACH_CATALOG_RE.search(path.read_text(encoding="utf-8"))
+                ),
                 "reference_hygiene": (
                     "has_non_mitre_reference"
                     if external_references
@@ -260,6 +268,14 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, int]:
             for record in records
         ),
         "with_companion_note": sum(record["has_companion_note"] for record in records),
+        "with_wrg_breach_catalog_mention": sum(
+            record["has_wrg_breach_catalog_mention"] for record in records
+        ),
+        "with_references_only_in_later_document": sum(
+            record["first_document_reference_count"] == 0
+            and record["later_document_reference_count"] > 0
+            for record in records
+        ),
         "awaiting_human_source_review": sum(
             record["attribution_evidence"] == "not_assessed"
             or record["platform_evidence"] == "not_assessed"
@@ -309,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
         "limitations": (
             "Reference and companion-note presence are mechanical facts; they "
             "do not prove attribution, platform, or telemetry manifestation. "
+            "A WRG breach-catalog mention is a literal public-traceability "
+            "review cue, not a source-quality verdict. "
             "Only cited structured source-review records may change those "
             "fields from not_assessed."
         ),

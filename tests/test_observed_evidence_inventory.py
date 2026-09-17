@@ -54,6 +54,9 @@ def test_inventory_distinguishes_reference_hygiene_from_evidence_proof(
             "logsource": {"product": "windows"},
             "reference_count": 2,
             "external_reference_count": 1,
+            "first_document_reference_count": 2,
+            "later_document_reference_count": 0,
+            "has_wrg_breach_catalog_mention": False,
             "reference_hygiene": "has_non_mitre_reference",
             "has_companion_note": True,
             "source_review": None,
@@ -85,6 +88,8 @@ def test_inventory_marks_mitre_only_rules_without_inferring_quality(tmp_path: Pa
         "with_non_mitre_reference": 0,
         "mitre_only_or_missing_reference": 1,
         "with_companion_note": 0,
+        "with_wrg_breach_catalog_mention": 0,
+        "with_references_only_in_later_document": 0,
         "awaiting_human_source_review": 1,
     }
 
@@ -120,6 +125,32 @@ def test_cli_uses_explicit_corpus_and_notes_directories(tmp_path: Path) -> None:
 def test_cli_refuses_a_missing_examples_directory(tmp_path: Path, capsys) -> None:
     assert inventory.main(["--examples-dir", str(tmp_path / "missing")]) == 2
     assert "examples directory unavailable" in capsys.readouterr().out
+
+
+def test_inventory_marks_literal_catalog_mentions_and_later_references(
+    tmp_path: Path,
+) -> None:
+    examples = tmp_path / "examples"
+    rule = examples / "initial_access" / "observed_example.yml"
+    rule.parent.mkdir(parents=True)
+    rule.write_text(
+        "title: Base\n"
+        "description: Derived from the WRG breach catalog.\n"
+        "detection: {selection: {}, condition: selection}\n"
+        "---\n"
+        "title: Correlation\n"
+        "references:\n"
+        "- https://vendor.example/advisory\n"
+        "correlation: {type: event_count}\n",
+        encoding="utf-8",
+    )
+
+    record = inventory.build_inventory(examples, tmp_path / "notes")[0]
+
+    assert record["has_wrg_breach_catalog_mention"] is True
+    assert record["first_document_reference_count"] == 0
+    assert record["later_document_reference_count"] == 1
+    assert inventory.summarize([record])["with_references_only_in_later_document"] == 1
 
 
 def test_inventory_uses_a_cited_structured_source_review(tmp_path: Path) -> None:
