@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **938 tests**, Ruff, README metric stamping and the
+- The checkout now passes **939 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -223,6 +223,11 @@ review and release decision.
 - The CI workflow contract now protects the declared SDK support matrix: both
   MCP 1.x and 2.x installation legs must remain present, rather than leaving
   one import-shim branch covered only by a comment.
+- Clean dependency installs in the MCP matrix, coverage, license-report and
+  packaged-runtime jobs now run `pip check`; the Docker image does the same
+  during its dependency layer. A fresh no-cache image build resolved the
+  declared requirements and reported no broken requirements before completing
+  its read-only MCP smoke exchange.
 
 ## Later, only with evidence
 

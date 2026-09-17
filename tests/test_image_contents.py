@@ -201,6 +201,15 @@ def test_ci_keeps_both_declared_mcp_sdk_compatibility_legs() -> None:
     assert 'pip install "mcp${{ matrix.mcp-version }}"' in workflow
 
 
+def test_runtime_dependency_installs_run_pip_check() -> None:
+    """Clean CI and image builds must reject inconsistent dependency graphs."""
+    assert "RUN pip install --no-cache-dir -r requirements.txt && pip check" in (
+        DOCKERFILE.read_text(encoding="utf-8")
+    )
+    workflow = TESTS_WORKFLOW.read_text(encoding="utf-8")
+    assert workflow.count("python -m pip check") >= 4
+
+
 def test_the_probe_finds_known_runtime_paths() -> None:
     """Control arm: the two tests above pass trivially if the AST walk finds
     nothing. Pin the one directory we know is read at runtime, so an extraction

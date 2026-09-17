@@ -27,7 +27,7 @@ WORKDIR /app
 # Install plugin runtime deps (cache layer; rebuild only when reqs change).
 # `mcp` SDK is pinned in requirements.txt like every other runtime dep.
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && pip check
 
 # Copy server entrypoint + tool source. Skills/tests/scripts stay out via
 # .dockerignore — Glama runs the MCP server, not the Claude Code plugin

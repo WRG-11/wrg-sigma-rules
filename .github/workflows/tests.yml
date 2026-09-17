@@ -90,7 +90,9 @@ jobs:
           pip install -r requirements.txt pytest
 
       - name: Pin the MCP SDK for this matrix leg
-        run: pip install "mcp${{ matrix.mcp-version }}"
+        run: |
+          pip install "mcp${{ matrix.mcp-version }}"
+          python -m pip check
 
       - name: Show resolved MCP SDK
         run: python -c "from importlib.metadata import version; print('mcp', version('mcp'))"
@@ -114,6 +116,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest coverage
+          python -m pip check
 
       # The packaged Codex runtime is intentionally checked in.  Test its
       # sync contract directly so a drifted snapshot cannot rely solely on
@@ -196,6 +199,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pip-licenses
+          python -m pip check
 
       - name: Report dependency license mix
         run: python -m piplicenses --format=markdown --with-urls
@@ -220,6 +224,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r plugins/wrg-sigma-rules/runtime/requirements.txt
+          python -m pip check
 
       - name: Smoke packaged Codex runtime over stdio MCP
         run: |
