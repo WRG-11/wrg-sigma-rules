@@ -21,9 +21,9 @@ PyYAML>=6.0.3,<7
 pysigma-backend-splunk>=2.1.0,<3
 pysigma-backend-elasticsearch>=2.1.1,<3
 pysigma-backend-opensearch>=2.0.3,<3
-# Wazuh routes through the elasticsearch Lucene backend above; no separate
-# package needed yet (still no native pySigma wazuh backend on PyPI as of
-# 2026-07-29; convert_rule emits an explicit caveat warning).
+# Wazuh routes through the elasticsearch Lucene backend above; this repository
+# does not bundle a separate Wazuh backend package, and convert_rule emits an
+# explicit caveat warning for that route.
 
 # Processing pipelines (lazy-imported; convert_rule config={"pipeline": ...}).
 # Without a pipeline a windows/sysmon rule converts to a query that keeps the
