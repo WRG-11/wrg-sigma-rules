@@ -11,6 +11,36 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [1.10.0] - 2026-09-17
+
+Provenance and supply-chain hardening release. The 296-rule corpus is
+unchanged; this release makes source-review provenance auditable and tightens
+OPSEC, container, and release integrity around the corpus.
+
+### Added
+- **Auditable source-review provenance** — audit reports surface public
+  traceability and actor review queues, disclose skipped rule files, require
+  cited source-review records, link reviews to ledger records, and version the
+  advisory report contracts. Correlation, duplicate, note-gap, and observed-
+  inventory corpus roots are made explicit; observed-rule evidence boundaries
+  are documented.
+- **Correlation conversion capability reporting** — advisory reports measure
+  and bound the correlation corpus's conversion capability.
+- `scripts/runtime_identity.py` — read-only Codex packaged-runtime parity
+  check (no cache refresh, no marketplace-publication claim).
+- Coverage identifies measured corpus bytes.
+
+### Changed
+- OPSEC and input hygiene hardened across source-review, drafting, and
+  provenance paths.
+- Least-privilege release pipeline — manual image verification isolated from
+  the automated publish workflow; README metric-stamp write boundary
+  restricted; corpus advisory reports run in CI.
+
+### Fixed
+- 34 fixes across audit, opsec, resources, convert, provenance, coverage,
+  container, and runtime paths.
+
 ## [1.9.0] - 2026-09-10
 
 Corpus 294 → 296 rules: two source-honest canonical templates from the
