@@ -21,6 +21,7 @@ ASCII-only discipline (cross-platform safe).
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -67,9 +68,12 @@ def collect_coverage() -> dict[str, Any]:
     unparseable: list[str] = []
     untagged: list[str] = []
     total_rules = 0
+    corpus_digest = hashlib.sha256()
 
     for path in sorted(_EXAMPLES_DIR.rglob("*.yml")):
         rel = path.relative_to(_EXAMPLES_DIR).as_posix()
+        corpus_digest.update(rel.encode("utf-8"))
+        corpus_digest.update(b"\0")
         tactic = path.parent.name
         kind = _rule_kind(path.name)
         total_rules += 1
@@ -83,8 +87,12 @@ def collect_coverage() -> dict[str, Any]:
         entry[kind] += 1
 
         try:
-            docs = list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
+            raw = path.read_bytes()
+            corpus_digest.update(raw)
+            corpus_digest.update(b"\0")
+            docs = list(yaml.safe_load_all(raw.decode("utf-8")))
         except (OSError, UnicodeError, yaml.YAMLError):
+            corpus_digest.update(b"<unreadable-or-unparseable>\0")
             unparseable.append(rel)
             continue
 
@@ -111,6 +119,7 @@ def collect_coverage() -> dict[str, Any]:
 
     return {
         "total_rules": total_rules,
+        "corpus_sha256": corpus_digest.hexdigest(),
         "total_techniques": len(techniques),
         "tactics": tactics,
         "techniques": techniques,
@@ -155,6 +164,15 @@ def coverage_matrix_body() -> str:
         lines.append(f"- Unprefixed rules: {other}")
     lines.append(f"- Distinct ATT&CK techniques covered: {data['total_techniques']}")
     lines.append(f"- Tactic groupings: {len(tactics)}")
+    lines.append("")
+
+    lines.append("## Corpus identity")
+    lines.append("")
+    lines.append(f"- Rules-content SHA-256: `{data['corpus_sha256']}`")
+    lines.append(
+        "- Compare this fingerprint before comparing counts from separate "
+        "installed or checkout runtimes."
+    )
     lines.append("")
 
     lines.append("## Coverage by tactic")

@@ -150,7 +150,9 @@ starting point to bind to your own logsource and tune; each rule's
 - `wrg-sigma://patterns/canonical-5` and `wrg-sigma://patterns/canonical-5/{01..05}`:
   canonical detection-pattern definitions.
 - `wrg-sigma://coverage/mitre-attack-matrix`: an ATT&CK coverage rollup computed
-  from the corpus at read time.
+  from the corpus at read time. Its `Rules-content SHA-256` identifies the
+  exact corpus bytes behind a count, so installed and checkout runtimes can be
+  compared without treating different releases as measurement drift.
 
 ## Quality and testing
 

@@ -6,6 +6,7 @@ says something true about the corpus, AND a real MCP client can reach it.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -29,6 +30,17 @@ def test_rule_total_matches_the_corpus_on_disk() -> None:
     so compare against the filesystem rather than a literal."""
     on_disk = len(list(_EXAMPLES.rglob("*.yml")))
     assert collect_coverage()["total_rules"] == on_disk
+
+
+def test_corpus_fingerprint_covers_sorted_paths_and_rule_bytes() -> None:
+    digest = hashlib.sha256()
+    for path in sorted(_EXAMPLES.rglob("*.yml")):
+        digest.update(path.relative_to(_EXAMPLES).as_posix().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+
+    assert collect_coverage()["corpus_sha256"] == digest.hexdigest()
 
 
 def test_unreadable_rule_does_not_break_coverage_resource(
@@ -95,6 +107,7 @@ def test_every_tactic_directory_appears() -> None:
 def test_body_is_markdown_and_ascii_only() -> None:
     body = coverage_matrix_body()
     assert body.startswith("# WRG Sigma Corpus -- MITRE ATT&CK Coverage")
+    assert "Rules-content SHA-256:" in body
     body.encode("ascii")
 
 
