@@ -280,7 +280,7 @@ def _to_json(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--json", metavar="PATH", default=None,
+    parser.add_argument("--json", type=Path, metavar="PATH", default=None,
                         help="write the full queue as JSON instead of only printing")
     parser.add_argument("--min-cvss", type=float, default=None,
                         help="only report scored rules at or above this CVSS "
@@ -305,7 +305,8 @@ def main(argv: list[str] | None = None) -> int:
     _print_report(scored, unscored, clusters)
 
     if args.json:
-        Path(args.json).write_text(
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(
             json.dumps(_to_json(scored, unscored, clusters), indent=2) + "\n",
             encoding="utf-8",
         )

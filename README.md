@@ -180,6 +180,8 @@ python scripts/detection_note_gap.py --examples-dir resources/examples --notes-d
 Use `--json path/to/report.json` with any report when a review needs a
 machine-readable snapshot; the advisory reports carry their scope limitation
 inside that JSON so a copied count is not detached from its evidence boundary.
+Each report creates the parent directory of its `--json` target, so the same
+automation path can be used across all four tools.
 The inventory retains its attribution, platform and
 telemetry-manifestation fields as `not_assessed` until a human has documented
 the three source matches in [`CONTRIBUTING.md`](CONTRIBUTING.md). Those

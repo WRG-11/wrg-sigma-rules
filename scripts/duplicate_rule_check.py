@@ -179,7 +179,7 @@ def find_exact_actor_logic_groups(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--json", metavar="PATH", default=None,
+    parser.add_argument("--json", type=Path, metavar="PATH", default=None,
                         help="write findings as JSON instead of only printing")
     parser.add_argument(
         "--examples-dir",
@@ -244,7 +244,8 @@ def main(argv: list[str] | None = None) -> int:
         ]
 
     if args.json:
-        Path(args.json).write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         print(f"[duplicate-check] wrote {args.json}")
 
     return 0  # advisory: never fails the build

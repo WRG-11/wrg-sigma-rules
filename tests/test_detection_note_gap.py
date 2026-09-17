@@ -59,7 +59,7 @@ def test_cli_uses_explicit_examples_and_notes_directories(tmp_path: Path) -> Non
     rule.write_text("title: Example\ndescription: CVSS 8.1\n", encoding="utf-8")
     notes = tmp_path / "notes"
     notes.mkdir()
-    report = tmp_path / "gaps.json"
+    report = tmp_path / "nested" / "gaps.json"
 
     assert gap.main(
         [

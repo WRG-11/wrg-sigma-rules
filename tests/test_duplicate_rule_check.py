@@ -84,7 +84,7 @@ def test_cli_exact_audit_uses_explicit_examples_directory(tmp_path: Path) -> Non
     examples.mkdir()
     _write_rule(examples / "observed_first.yml", actor="first", threshold=11)
     _write_rule(examples / "observed_second.yml", actor="second", threshold=11)
-    report = tmp_path / "duplicate-report.json"
+    report = tmp_path / "nested" / "duplicate-report.json"
 
     assert duplicate_rule_check.main(
         ["--exact-actor-logic", "--examples-dir", str(examples), "--json", str(report)]
