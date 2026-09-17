@@ -1,0 +1,14 @@
+# Copy this file to docs/source-reviews/<review-batch>.yml only after a human
+# has read the cited source.  This ledger records the review outcome; it does
+# not turn a generic Sigma match into actor attribution on a hit.
+schema_version: 1
+reviews:
+  - rule: resources/examples/initial_access/observed_example.yml
+    source: https://vendor.example/advisory
+    reviewed_on: "2026-09-17"
+    attribution_evidence:
+      status: not_assessed # not_assessed | supported | not_supported
+    platform_evidence:
+      status: not_assessed # supported/not_supported additionally require quote
+    telemetry_manifestation_evidence:
+      status: not_assessed

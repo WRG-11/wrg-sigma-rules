@@ -16,6 +16,7 @@ import argparse
 import json
 import re
 from collections.abc import Iterable
+from datetime import date
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -26,7 +27,9 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXAMPLES_DIR = REPO_ROOT / "resources" / "examples"
 NOTES_DIR = REPO_ROOT / "docs" / "detection-notes"
+SOURCE_REVIEWS_DIR = REPO_ROOT / "docs" / "source-reviews"
 _RULE_PATH_RE = re.compile(r"resources/examples/[A-Za-z0-9_./-]+\.ya?ml")
+_REVIEW_STATUSES = frozenset({"not_assessed", "supported", "not_supported"})
 
 
 def _is_mitre_reference(url: str) -> bool:
@@ -68,6 +71,91 @@ def _documents(path: Path) -> list[dict[str, Any]]:
     ]
 
 
+def _review_error(path: Path, message: str) -> ValueError:
+    """Return a contextual error for a malformed human-review record."""
+    return ValueError(f"source review {path}: {message}")
+
+
+def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, str]]:
+    """Load explicit human-review outcomes without interpreting prose notes.
+
+    A review record is deliberately narrow: it names one corpus rule, one
+    source already listed by that rule, an ISO review date, and an outcome for
+    each of CONTRIBUTING.md's three source matches.  ``supported`` and
+    ``not_supported`` require a short source quote or location so a future
+    reviewer can audit the judgment.  Missing records remain ``not_assessed``.
+    """
+    if not reviews_dir.is_dir():
+        return {}
+
+    reviews: dict[str, dict[str, str]] = {}
+    for path in sorted(reviews_dir.glob("*.yml")):
+        try:
+            document = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
+            raise _review_error(path, f"cannot parse YAML: {exc}") from exc
+        if not isinstance(document, dict):
+            raise _review_error(path, "must contain a mapping")
+        if document.get("schema_version") != 1:
+            raise _review_error(path, "schema_version must be 1")
+        entries = document.get("reviews")
+        if not isinstance(entries, list):
+            raise _review_error(path, "reviews must be a list")
+
+        for index, entry in enumerate(entries, start=1):
+            if not isinstance(entry, dict):
+                raise _review_error(path, f"review {index} must be a mapping")
+            rule = entry.get("rule")
+            source = entry.get("source")
+            reviewed_on = entry.get("reviewed_on")
+            if not isinstance(rule, str) or not _RULE_PATH_RE.fullmatch(rule):
+                raise _review_error(path, f"review {index} has an invalid rule path")
+            try:
+                parsed_source = urlsplit(source) if isinstance(source, str) else None
+            except ValueError:
+                parsed_source = None
+            if (
+                parsed_source is None
+                or parsed_source.scheme not in {"http", "https"}
+                or not parsed_source.netloc
+            ):
+                raise _review_error(path, f"review {index} has an invalid source URL")
+            try:
+                is_iso_date = isinstance(reviewed_on, str) and (
+                    date.fromisoformat(reviewed_on).isoformat() == reviewed_on
+                )
+            except ValueError:
+                is_iso_date = False
+            if not is_iso_date:
+                raise _review_error(path, f"review {index} must use YYYY-MM-DD reviewed_on")
+            if rule in reviews:
+                raise _review_error(path, f"duplicates review for {rule}")
+
+            outcomes: dict[str, str] = {}
+            for field in (
+                "attribution_evidence",
+                "platform_evidence",
+                "telemetry_manifestation_evidence",
+            ):
+                outcome = entry.get(field)
+                if not isinstance(outcome, dict):
+                    raise _review_error(path, f"review {index} {field} must be a mapping")
+                status = outcome.get("status")
+                quote = outcome.get("quote")
+                if status not in _REVIEW_STATUSES:
+                    raise _review_error(path, f"review {index} {field} has invalid status")
+                if status != "not_assessed" and (
+                    not isinstance(quote, str) or not quote.strip()
+                ):
+                    raise _review_error(path, f"review {index} {field} needs a source quote")
+                outcomes[field] = status
+
+            outcomes["_source"] = source
+            outcomes["_reviewed_on"] = reviewed_on
+            reviews[rule] = outcomes
+    return reviews
+
+
 def _references(documents: Iterable[dict[str, Any]]) -> list[str]:
     """Collect ordered unique reference URLs from every document in a rule."""
     result: list[str] = []
@@ -78,7 +166,11 @@ def _references(documents: Iterable[dict[str, Any]]) -> list[str]:
     return result
 
 
-def build_inventory(examples_dir: Path, notes_dir: Path) -> list[dict[str, Any]]:
+def build_inventory(
+    examples_dir: Path,
+    notes_dir: Path,
+    source_reviews: dict[str, dict[str, str]] | None = None,
+) -> list[dict[str, Any]]:
     """Build records without making source-quality claims.
 
     ``observed_*`` is a provenance claim.  This inventory makes missing or
@@ -86,7 +178,9 @@ def build_inventory(examples_dir: Path, notes_dir: Path) -> list[dict[str, Any]]
     matches deliberately remain human-assessed fields.
     """
     covered = _covered_rule_paths(notes_dir)
+    source_reviews = source_reviews or {}
     records: list[dict[str, Any]] = []
+    seen_reviews: set[str] = set()
 
     for path in sorted(examples_dir.rglob("observed_*.yml")):
         documents = _documents(path)
@@ -105,6 +199,13 @@ def build_inventory(examples_dir: Path, notes_dir: Path) -> list[dict[str, Any]]
             }
         )
         logsource = first.get("logsource")
+        review = source_reviews.get(relpath, {})
+        if review:
+            seen_reviews.add(relpath)
+        if review.get("_source") not in {None, *references}:
+            raise ValueError(
+                f"source review for {relpath} cites a URL absent from the rule references"
+            )
         records.append(
             {
                 "path": relpath,
@@ -122,10 +223,26 @@ def build_inventory(examples_dir: Path, notes_dir: Path) -> list[dict[str, Any]]
                     else "mitre_only_or_missing"
                 ),
                 "has_companion_note": relpath in covered,
-                "attribution_evidence": "not_assessed",
-                "platform_evidence": "not_assessed",
-                "telemetry_manifestation_evidence": "not_assessed",
+                "source_review": (
+                    {
+                        "source": review["_source"],
+                        "reviewed_on": review["_reviewed_on"],
+                    }
+                    if review
+                    else None
+                ),
+                "attribution_evidence": review.get("attribution_evidence", "not_assessed"),
+                "platform_evidence": review.get("platform_evidence", "not_assessed"),
+                "telemetry_manifestation_evidence": review.get(
+                    "telemetry_manifestation_evidence", "not_assessed"
+                ),
             }
+        )
+    unknown_rules = sorted(set(source_reviews).difference(seen_reviews))
+    if unknown_rules:
+        raise ValueError(
+            "source review targets unavailable observed rule(s): "
+            + ", ".join(unknown_rules)
         )
     return records
 
@@ -143,7 +260,12 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, int]:
             for record in records
         ),
         "with_companion_note": sum(record["has_companion_note"] for record in records),
-        "awaiting_human_source_review": len(records),
+        "awaiting_human_source_review": sum(
+            record["attribution_evidence"] == "not_assessed"
+            or record["platform_evidence"] == "not_assessed"
+            or record["telemetry_manifestation_evidence"] == "not_assessed"
+            for record in records
+        ),
     }
 
 
@@ -162,13 +284,24 @@ def main(argv: list[str] | None = None) -> int:
         default=NOTES_DIR,
         help="detection-notes root used for companion-note inventory",
     )
+    parser.add_argument(
+        "--source-reviews-dir",
+        type=Path,
+        default=SOURCE_REVIEWS_DIR,
+        help="structured human source-review records (default: docs/source-reviews)",
+    )
     args = parser.parse_args(argv)
 
     if not args.examples_dir.is_dir():
         print(f"[observed-evidence-inventory] examples directory unavailable: {args.examples_dir}")
         return 2
 
-    records = build_inventory(args.examples_dir, args.notes_dir)
+    try:
+        source_reviews = load_source_reviews(args.source_reviews_dir)
+        records = build_inventory(args.examples_dir, args.notes_dir, source_reviews)
+    except ValueError as exc:
+        print(f"[observed-evidence-inventory] {exc}")
+        return 2
     summary = summarize(records)
     payload = {"summary": summary, "records": records}
 

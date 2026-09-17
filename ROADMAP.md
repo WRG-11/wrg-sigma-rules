@@ -154,6 +154,13 @@ growth.
    an actor tag, a sample, or a conversion result.
    **Exit evidence:** cited review record plus regression coverage for its
    explicit boundary.
+
+   **Foundation completed (2026-09-17):** `docs/source-reviews/` now defines a
+   versioned, cited review-ledger format. The inventory accepts only records
+   for an extant `observed_*` rule and one of its own reference URLs; each
+   supported or not-supported outcome must carry a non-empty source quote.
+   Missing records still render as `not_assessed`, so this foundation does not
+   alter the measured review baseline or promote any rule.
 3. **Constrain backend claims with end-to-end fixtures.** Treat the measured
    correlation conversion gaps as capability boundaries. Add a backend only
    when its generated query and documented lossiness are proven by a fixture;
