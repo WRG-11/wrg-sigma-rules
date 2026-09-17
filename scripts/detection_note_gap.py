@@ -117,7 +117,7 @@ class RuleGap:
         return m.group(1) if m else None
 
 
-def _covered_relpaths() -> set[str]:
+def _covered_relpaths(notes_dir: Path | None = None) -> set[str]:
     """Every resources/examples/....yml path mentioned in any existing note.
 
     Path-shape matching rather than parsing a specific frontmatter field:
@@ -127,18 +127,20 @@ def _covered_relpaths() -> set[str]:
     regex survives all of them because it does not care about the
     surrounding prose, only the path string itself.
     """
+    source_notes = notes_dir or NOTES_DIR
     covered: set[str] = set()
-    if not NOTES_DIR.is_dir():
+    if not source_notes.is_dir():
         return covered
-    for note in NOTES_DIR.glob("*.md"):
+    for note in source_notes.glob("*.md"):
         text = note.read_text(encoding="utf-8")
         covered.update(_RULE_PATH_RE.findall(text))
     return covered
 
 
-def _parse_rule(path: Path) -> RuleGap:
+def _parse_rule(path: Path, examples_dir: Path | None = None) -> RuleGap:
     text = path.read_text(encoding="utf-8")
-    relpath = "resources/examples/" + path.relative_to(EXAMPLES_DIR).as_posix()
+    source_examples = examples_dir or EXAMPLES_DIR
+    relpath = "resources/examples/" + path.relative_to(source_examples).as_posix()
 
     title_match = re.search(r"^title:\s*(.+)$", text, re.MULTILINE)
     title = title_match.group(1).strip() if title_match else path.stem
@@ -171,19 +173,25 @@ def _parse_rule(path: Path) -> RuleGap:
     return RuleGap(relpath=relpath, title=title, cvss=cvss, references=refs)
 
 
-def find_gaps(min_cvss: float | None = None) -> tuple[list[RuleGap], list[RuleGap]]:
+def find_gaps(
+    min_cvss: float | None = None,
+    *,
+    examples_dir: Path | None = None,
+    notes_dir: Path | None = None,
+) -> tuple[list[RuleGap], list[RuleGap]]:
     """Return (scored_gaps_desc, unscored_gaps) -- both EXCLUDING covered rules.
 
     Never merges the two lists and never sorts unscored rules to the bottom
     of the scored list: doing so would silently claim "lowest priority" for
     rules this tool actually failed to measure, not rules that scored low.
     """
-    covered = _covered_relpaths()
+    source_examples = examples_dir or EXAMPLES_DIR
+    covered = _covered_relpaths(notes_dir)
     scored: list[RuleGap] = []
     unscored: list[RuleGap] = []
 
-    for path in sorted(EXAMPLES_DIR.rglob("observed_*.yml")):
-        gap = _parse_rule(path)
+    for path in sorted(source_examples.rglob("observed_*.yml")):
+        gap = _parse_rule(path, source_examples)
         if gap.relpath in covered:
             continue
         if gap.cvss is not None:
@@ -271,14 +279,21 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--min-cvss", type=float, default=None,
                         help="only report scored rules at or above this CVSS "
                              "(excludes unscored rules from the report entirely)")
+    parser.add_argument("--examples-dir", type=Path, default=EXAMPLES_DIR,
+                        help="Sigma examples root to inspect (default: repository corpus)")
+    parser.add_argument("--notes-dir", type=Path, default=NOTES_DIR,
+                        help="detection-notes root used for companion-note coverage")
     args = parser.parse_args(argv)
 
-    if not EXAMPLES_DIR.is_dir():
-        print(f"[detection-note-gap] ERROR: {EXAMPLES_DIR} not found -- "
-              "run from the repo root", file=sys.stderr)
+    if not args.examples_dir.is_dir():
+        print(f"[detection-note-gap] ERROR: {args.examples_dir} not found", file=sys.stderr)
         return 2
 
-    scored, unscored = find_gaps(min_cvss=args.min_cvss)
+    scored, unscored = find_gaps(
+        min_cvss=args.min_cvss,
+        examples_dir=args.examples_dir,
+        notes_dir=args.notes_dir,
+    )
     clusters = cluster_by_vendor(scored + unscored)
 
     _print_report(scored, unscored, clusters)

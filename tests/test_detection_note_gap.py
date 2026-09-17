@@ -1,6 +1,7 @@
 """Regression tests for the detection-note advisory prioritisation."""
 from __future__ import annotations
 
+import json
 import importlib.util
 import sys
 from pathlib import Path
@@ -49,3 +50,27 @@ def test_hallucinated_cvss_evidence_is_not_a_vulnerability_score() -> None:
     parsed = gap._parse_rule(rule)
 
     assert parsed.cvss is None
+
+
+def test_cli_uses_explicit_examples_and_notes_directories(tmp_path: Path) -> None:
+    examples = tmp_path / "examples"
+    rule = examples / "impact" / "observed_example.yml"
+    rule.parent.mkdir(parents=True)
+    rule.write_text("title: Example\ndescription: CVSS 8.1\n", encoding="utf-8")
+    notes = tmp_path / "notes"
+    notes.mkdir()
+    report = tmp_path / "gaps.json"
+
+    assert gap.main(
+        [
+            "--examples-dir", str(examples), "--notes-dir", str(notes), "--json", str(report)
+        ]
+    ) == 0
+    assert json.loads(report.read_text(encoding="utf-8"))["scored"][0]["relpath"] == (
+        "resources/examples/impact/observed_example.yml"
+    )
+
+
+def test_cli_refuses_a_missing_examples_directory(tmp_path: Path, capsys) -> None:
+    assert gap.main(["--examples-dir", str(tmp_path / "missing")]) == 2
+    assert "not found" in capsys.readouterr().err
