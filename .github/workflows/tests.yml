@@ -115,6 +115,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest coverage
 
+      # The packaged Codex runtime is intentionally checked in.  Test its
+      # sync contract directly so a drifted snapshot cannot rely solely on
+      # indirect byte-parity tests to be caught.
+      - name: Check bundled Codex runtime snapshot
+        run: python scripts/sync_codex_runtime.py --check
+
       # COVERAGE_CORE=sysmon is load-bearing: under coverage.py's default C
       # tracer, pysigma's YAML loader corrupts and the suite reports false
       # failures. See .coveragerc for the measurement behind this.
