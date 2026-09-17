@@ -302,6 +302,7 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, int]:
             and record["later_document_reference_count"] > 0
             for record in records
         ),
+        "public_traceability_review_queue": len(public_traceability_queue(records)),
         "with_structured_source_review": sum(
             record["source_review"] is not None for record in records
         ),
@@ -320,6 +321,19 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, int]:
             for record in records
         ),
     }
+
+
+def public_traceability_queue(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return review cues without converting them into provenance judgments."""
+    return [
+        record
+        for record in records
+        if record["has_wrg_breach_catalog_mention"]
+        or (
+            record["first_document_reference_count"] == 0
+            and record["later_document_reference_count"] > 0
+        )
+    ]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -359,6 +373,7 @@ def main(argv: list[str] | None = None) -> int:
     payload = {
         "summary": summary,
         "records": records,
+        "public_traceability_queue": public_traceability_queue(records),
         "limitations": (
             "Reference and companion-note presence are mechanical facts; they "
             "do not prove attribution, platform, or telemetry manifestation. "

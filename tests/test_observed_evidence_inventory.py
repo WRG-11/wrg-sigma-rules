@@ -99,6 +99,7 @@ def test_inventory_marks_mitre_only_rules_without_inferring_quality(tmp_path: Pa
         "with_companion_note": 0,
         "with_wrg_breach_catalog_mention": 0,
         "with_references_only_in_later_document": 0,
+        "public_traceability_review_queue": 0,
         "with_structured_source_review": 0,
         "with_complete_source_review": 0,
         "with_explicit_source_review_boundary": 0,
@@ -131,6 +132,7 @@ def test_cli_uses_explicit_corpus_and_notes_directories(tmp_path: Path) -> None:
 
     payload = json.loads(report.read_text(encoding="utf-8"))
     assert payload["summary"]["observed_rule_files"] == 1
+    assert payload["public_traceability_queue"] == []
     assert "do not prove attribution" in payload["limitations"]
 
 
@@ -164,7 +166,10 @@ def test_inventory_marks_literal_catalog_mentions_and_later_references(
     assert record["later_document_reference_count"] == 1
     assert record["first_document_references"] == []
     assert record["later_document_references"] == ["https://vendor.example/advisory"]
-    assert inventory.summarize([record])["with_references_only_in_later_document"] == 1
+    summary = inventory.summarize([record])
+    assert summary["with_references_only_in_later_document"] == 1
+    assert summary["public_traceability_review_queue"] == 1
+    assert inventory.public_traceability_queue([record]) == [record]
 
 
 def test_inventory_uses_a_cited_structured_source_review(tmp_path: Path) -> None:

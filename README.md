@@ -195,6 +195,8 @@ first/later-document split) for human review, without assigning source ranks.
 Its summary distinguishes a structured review record, completion of all three
 source matches, and an explicit unsupported boundary; none of those counts is
 an attribution or promotion decision.
+`public_traceability_queue` is a convenience subset for the two mechanical
+public-review cues; it is not a verdict about a rule or its sources.
 
 The correlation audit separately counts a backend's declared capability
 boundaries (for example, `correlation_rules` or
