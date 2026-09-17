@@ -178,6 +178,9 @@ review and release decision.
   package-local runtime resolution. The configuration still declares `cwd: .`,
   but the wrapper itself resolves its inputs from its own file rather than that
   host-controlled working directory.
+- Snapshot parity and local marketplace wiring do not establish a client-side
+  dependency install, cache refresh or marketplace publication. Those remain
+  explicit external-client checks, not claims inferred from this repository.
 
 ## Later, only with evidence
 
