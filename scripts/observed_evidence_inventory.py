@@ -107,6 +107,22 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, Any]]:
         for index, entry in enumerate(entries, start=1):
             if not isinstance(entry, dict):
                 raise _review_error(path, f"review {index} must be a mapping")
+            unknown_entry_fields = set(entry).difference(
+                {
+                    "rule",
+                    "source",
+                    "reviewed_on",
+                    "attribution_evidence",
+                    "platform_evidence",
+                    "telemetry_manifestation_evidence",
+                }
+            )
+            if unknown_entry_fields:
+                raise _review_error(
+                    path,
+                    f"review {index} has unknown field(s): "
+                    + ", ".join(sorted(unknown_entry_fields)),
+                )
             rule = entry.get("rule")
             source = entry.get("source")
             reviewed_on = entry.get("reviewed_on")
@@ -142,6 +158,13 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, Any]]:
                 outcome = entry.get(field)
                 if not isinstance(outcome, dict):
                     raise _review_error(path, f"review {index} {field} must be a mapping")
+                unknown_outcome_fields = set(outcome).difference({"status", "quote"})
+                if unknown_outcome_fields:
+                    raise _review_error(
+                        path,
+                        f"review {index} {field} has unknown field(s): "
+                        + ", ".join(sorted(unknown_outcome_fields)),
+                    )
                 status = outcome.get("status")
                 quote = outcome.get("quote")
                 if status not in _REVIEW_STATUSES:
@@ -155,6 +178,11 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, Any]]:
                         path,
                         f"review {index} {field} quote exceeds "
                         f"{_MAX_SOURCE_REVIEW_QUOTE_CHARS} characters",
+                    )
+                if status == "not_assessed" and quote is not None:
+                    raise _review_error(
+                        path,
+                        f"review {index} {field} must not carry a quote when not_assessed",
                     )
                 outcomes[field] = status
                 if status != "not_assessed":

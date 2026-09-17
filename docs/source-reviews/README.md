@@ -18,6 +18,10 @@ ISO `reviewed_on` date. Each outcome is one of:
 Keep a quote or locator to 1,000 characters or fewer. It is evidence to audit
 one judgment, not a copied source document.
 
+Schema version 1 accepts only the documented fields. Do not attach a quote to
+`not_assessed`: that status records no conclusion. Add a later version rather
+than silently extending a record with custom fields.
+
 The inventory rejects malformed records, duplicate rule entries, a review URL
 that is absent from the rule, and a supported/not-supported outcome without a
 quote. This is intentionally a ledger of review judgments, not an automatic

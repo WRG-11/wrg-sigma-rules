@@ -267,6 +267,47 @@ def test_source_review_rejects_an_oversized_evidence_quote(tmp_path: Path) -> No
         raise AssertionError("expected oversized source-review quote to be rejected")
 
 
+def test_source_review_rejects_unknown_or_ambiguous_fields(tmp_path: Path) -> None:
+    reviews = tmp_path / "reviews"
+    reviews.mkdir()
+    path = reviews / "invalid.yml"
+    path.write_text(
+        "schema_version: 1\n"
+        "reviews:\n"
+        "- rule: resources/examples/initial_access/observed_example.yml\n"
+        "  source: https://vendor.example/advisory\n"
+        "  reviewed_on: '2026-09-17'\n"
+        "  reviewer: anonymous\n"
+        "  attribution_evidence: {status: not_assessed}\n"
+        "  platform_evidence: {status: not_assessed}\n"
+        "  telemetry_manifestation_evidence: {status: not_assessed}\n",
+        encoding="utf-8",
+    )
+
+    try:
+        inventory.load_source_reviews(reviews)
+    except ValueError as exc:
+        assert "unknown field" in str(exc)
+    else:  # pragma: no cover - assertion guard
+        raise AssertionError("expected unknown source-review field to be rejected")
+
+    path.write_text(
+        path.read_text(encoding="utf-8")
+        .replace("  reviewer: anonymous\n", "")
+        .replace(
+            "platform_evidence: {status: not_assessed}",
+            "platform_evidence: {status: not_assessed, quote: pending}",
+        ),
+        encoding="utf-8",
+    )
+    try:
+        inventory.load_source_reviews(reviews)
+    except ValueError as exc:
+        assert "must not carry a quote" in str(exc)
+    else:  # pragma: no cover - assertion guard
+        raise AssertionError("expected ambiguous not_assessed quote to be rejected")
+
+
 def test_source_review_rejects_invalid_date_and_url(tmp_path: Path) -> None:
     reviews = tmp_path / "reviews"
     reviews.mkdir()
