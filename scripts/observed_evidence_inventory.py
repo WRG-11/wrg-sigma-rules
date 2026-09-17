@@ -162,6 +162,7 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, Any]]:
 
             outcomes["_source"] = source
             outcomes["_reviewed_on"] = reviewed_on
+            outcomes["_record_path"] = path.relative_to(reviews_dir).as_posix()
             reviews[rule] = outcomes
     return reviews
 
@@ -247,6 +248,7 @@ def build_inventory(
                     {
                         "source": review["_source"],
                         "reviewed_on": review["_reviewed_on"],
+                        "record": review.get("_record_path"),
                         "evidence": {
                             field: review[f"_{field}_quote"]
                             for field in (
@@ -383,7 +385,7 @@ def main(argv: list[str] | None = None) -> int:
             "review cue, not a source-quality verdict. "
             "Only cited structured source-review records may change those "
             "fields from not_assessed; their recorded evidence locators are "
-            "preserved with the review result."
+            "preserved with the review result and linked to the ledger file."
         ),
     }
 

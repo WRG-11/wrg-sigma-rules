@@ -27,4 +27,5 @@ attribution.
 For an accepted supported or not-supported outcome, the inventory's JSON
 output preserves the recorded quote under `source_review.evidence`. This lets
 a consumer audit the recorded boundary without turning the status itself into
-a detached assertion.
+a detached assertion. `source_review.record` points back to the ledger file
+that supplied it.
