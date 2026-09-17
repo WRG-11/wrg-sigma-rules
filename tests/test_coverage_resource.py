@@ -107,6 +107,7 @@ def test_every_tactic_directory_appears() -> None:
 def test_body_is_markdown_and_ascii_only() -> None:
     body = coverage_matrix_body()
     assert body.startswith("# WRG Sigma Corpus -- MITRE ATT&CK Coverage")
+    assert "active runtime corpus" in body
     assert "Rules-content SHA-256:" in body
     body.encode("ascii")
 

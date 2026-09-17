@@ -3,7 +3,7 @@
 Resource exposed:
 
 * ``wrg-sigma://coverage/mitre-attack-matrix`` -- markdown report of which
-  ATT&CK techniques the published rule corpus actually covers, grouped by
+  ATT&CK techniques the active runtime corpus actually covers, grouped by
   the tactic directory each rule lives in.
 
 The report is computed from the corpus at read time rather than stored.
@@ -148,7 +148,7 @@ def coverage_matrix_body() -> str:
     lines.append("# WRG Sigma Corpus -- MITRE ATT&CK Coverage")
     lines.append("")
     lines.append(
-        "Computed from the published rule corpus when this resource is read, "
+        "Computed from the active runtime corpus when this resource is read, "
         "not from a stored table."
     )
     lines.append("")
@@ -242,7 +242,7 @@ def register_coverage_resources(mcp: Any) -> None:
         "wrg-sigma://coverage/mitre-attack-matrix",
         name="wrg-sigma-attack-coverage",
         description=(
-            "MITRE ATT&CK coverage state of the published sigma rule "
+            "MITRE ATT&CK coverage state of the active runtime sigma rule "
             "corpus: technique-by-tactic rollup, per-technique rule "
             "counts, observed vs template split, and any rule that "
             "contributes no coverage. Computed from the corpus at read "
