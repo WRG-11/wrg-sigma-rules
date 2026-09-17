@@ -183,6 +183,7 @@ examples directory is an error rather than an empty result.
 ```bash
 python scripts/observed_evidence_inventory.py --examples-dir resources/examples
 python scripts/duplicate_rule_check.py --examples-dir resources/examples --exact-actor-logic
+python scripts/duplicate_rule_check.py --examples-dir resources/examples --actor-review-queues
 python scripts/correlation_conversion_audit.py --examples-dir resources/examples
 python scripts/detection_note_gap.py --examples-dir resources/examples --notes-dir docs/detection-notes
 ```
@@ -197,6 +198,10 @@ consumers should ignore unknown keys and only treat a version change as a
 compatibility boundary. `duplicate_rule_check` preserves its legacy bare-list
 default JSON for existing consumers; pass `--json-envelope` to receive its
 versioned `{contract, groups, limitations}` form.
+`--actor-review-queues` instead writes a versioned envelope with three separate
+mechanical queues: exact logic, same comparison shape with different numeric
+thresholds, and shared adjacent sidecar bytes. They are source-review inputs,
+not semantic-equivalence, attribution, provenance, or consolidation verdicts.
 For a fixed corpus and option set, report arrays are emitted deterministically;
 JSON object-member order is not a compatibility guarantee, so consumers should
 parse fields rather than byte-diff raw JSON.

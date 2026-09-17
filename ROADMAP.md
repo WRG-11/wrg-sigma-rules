@@ -241,6 +241,12 @@ growth.
    multi-document rule's first and later documents. These are bounded review
    cues for public provenance policy; they do not judge source quality or
    reclassify a rule.
+
+   **Mechanical overlap queues (2026-09-17):** the duplicate audit separately
+   lists exact structural equality, same comparison shape with different
+   numeric thresholds, and shared adjacent-sidecar bytes among actor-labelled
+   `observed_*` files. These are advisory source-review inputs only: they do
+   not infer semantic equivalence, attribution, provenance, or consolidation.
 3. **Constrain backend claims with end-to-end fixtures.** Treat the measured
    correlation conversion gaps as capability boundaries. Add a backend only
    when its generated query and documented lossiness are proven by a fixture;

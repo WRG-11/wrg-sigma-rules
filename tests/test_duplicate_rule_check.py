@@ -79,6 +79,58 @@ def test_exact_actor_logic_ignores_unlabelled_observed_rules(tmp_path: Path) -> 
     assert duplicate_rule_check.find_exact_actor_logic_groups(examples) == []
 
 
+def test_actor_review_queues_keep_threshold_candidates_separate_from_exact_logic(
+    tmp_path: Path,
+) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    _write_rule(examples / "observed_first.yml", actor="first", threshold=11)
+    _write_rule(examples / "observed_second.yml", actor="second", threshold=12)
+    _write_rule(examples / "observed_third.yml", actor="third", threshold=11)
+    for path in examples.glob("*.yml"):
+        path.with_suffix(".sample.json").write_text('{"event": 1}', encoding="utf-8")
+
+    queues = duplicate_rule_check.find_actor_review_queues(examples)
+
+    assert len(queues["exact_logic_groups"]) == 1
+    assert [rule["path"] for rule in queues["exact_logic_groups"][0]["rules"]] == [
+        "observed_first.yml",
+        "observed_third.yml",
+    ]
+    assert len(queues["threshold_variant_candidates"]) == 1
+    assert [rule["path"] for rule in queues["threshold_variant_candidates"][0]["rules"]] == [
+        "observed_first.yml",
+        "observed_second.yml",
+        "observed_third.yml",
+    ]
+    assert len(queues["shared_adjacent_sample_groups"]) == 1
+    assert all(
+        rule["adjacent_sample_sha256"]
+        for rule in queues["shared_adjacent_sample_groups"][0]["rules"]
+    )
+
+
+def test_cli_actor_review_queues_writes_a_bounded_envelope(tmp_path: Path) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    _write_rule(examples / "observed_first.yml", actor="first", threshold=11)
+    _write_rule(examples / "observed_second.yml", actor="second", threshold=12)
+    report = tmp_path / "nested" / "review-queues.json"
+
+    assert duplicate_rule_check.main(
+        ["--actor-review-queues", "--examples-dir", str(examples), "--json", str(report)]
+    ) == 0
+
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    assert payload["contract"] == {
+        "tool": "duplicate_rule_check",
+        "version": 1,
+        "mode": "actor_review_queues",
+    }
+    assert len(payload["queues"]["threshold_variant_candidates"]) == 1
+    assert "do not treat comparator" in payload["limitations"]
+
+
 def test_cli_exact_audit_uses_explicit_examples_directory(tmp_path: Path) -> None:
     examples = tmp_path / "examples"
     examples.mkdir()

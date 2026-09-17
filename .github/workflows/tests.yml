@@ -146,6 +146,9 @@ jobs:
       - name: Report fingerprint-sharing rule groups (advisory, never fails)
         run: python scripts/duplicate_rule_check.py
 
+      - name: Report actor-labelled mechanical review queues (advisory, never fails)
+        run: python scripts/duplicate_rule_check.py --actor-review-queues
+
       # These reports remain advisory about corpus decisions: a non-empty
       # queue is review input, not a CI failure. Their input schema and parser
       # failures intentionally remain gating, so a malformed ledger cannot

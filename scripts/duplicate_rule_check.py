@@ -18,6 +18,7 @@ Usage:
     python scripts/duplicate_rule_check.py
     python scripts/duplicate_rule_check.py --json out.json
     python scripts/duplicate_rule_check.py --exact-actor-logic
+    python scripts/duplicate_rule_check.py --actor-review-queues
 """
 from __future__ import annotations
 
@@ -178,6 +179,130 @@ def find_exact_actor_logic_groups(
     ]
 
 
+def _threshold_shape_document(
+    document: dict[str, Any], local_base_names: set[str]
+) -> dict[str, Any]:
+    """Normalize numeric correlation thresholds without claiming equivalence.
+
+    This is deliberately narrower than a semantic comparison: only numeric
+    values under the standard correlation-condition comparison keys are
+    replaced. ``gt: 10`` and ``gte: 11`` therefore remain distinct candidates,
+    even if a particular backend happened to interpret them equivalently.
+    """
+    normalized = _normalized_logic_document(document, local_base_names)
+    correlation = normalized.get("correlation")
+    if not isinstance(correlation, dict):
+        return normalized
+    condition = correlation.get("condition")
+    if not isinstance(condition, dict):
+        return normalized
+    threshold_condition = {
+        key: (
+            "<numeric_threshold>"
+            if key in {"eq", "ne", "gt", "gte", "lt", "lte"}
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            else value
+        )
+        for key, value in condition.items()
+    }
+    if threshold_condition == condition:
+        return normalized
+    normalized["correlation"] = {**correlation, "condition": threshold_condition}
+    return normalized
+
+
+def _actor_logic_records(examples_dir: Path) -> list[dict[str, Any]]:
+    """Return deterministic facts about actor-labelled observed rule files."""
+    records: list[dict[str, Any]] = []
+    for path in sorted(examples_dir.rglob("observed_*.yml")):
+        try:
+            documents = [
+                document
+                for document in yaml.safe_load_all(path.read_text(encoding="utf-8"))
+                if isinstance(document, dict)
+            ]
+        except (OSError, UnicodeDecodeError, yaml.YAMLError):
+            continue
+        actors = _actor_tags(documents)
+        if not actors:
+            continue
+        local_base_names = {
+            str(document["name"])
+            for document in documents
+            if isinstance(document.get("name"), str)
+        }
+        normalized = {
+            "documents": [
+                _normalized_logic_document(document, local_base_names)
+                for document in documents
+            ]
+        }
+        threshold_shape = {
+            "documents": [
+                _threshold_shape_document(document, local_base_names)
+                for document in documents
+            ]
+        }
+        records.append({
+            "path": path.relative_to(examples_dir).as_posix(),
+            "actor_tags": actors,
+            "logic_sha256": hashlib.sha256(
+                json.dumps(normalized, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest(),
+            "threshold_shape_sha256": hashlib.sha256(
+                json.dumps(threshold_shape, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest(),
+            "adjacent_sample_sha256": _sidecar_digest(path),
+        })
+    return records
+
+
+def find_actor_review_queues(examples_dir: Path = EXAMPLES_DIR) -> dict[str, list[dict[str, Any]]]:
+    """Surface mechanical review candidates without judging their provenance.
+
+    Exact logic, threshold-shape, and adjacent-sidecar-byte groupings are three
+    separate facts. None proves semantic equivalence, actor attribution, or
+    that any files should be consolidated.
+    """
+    by_logic: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    by_threshold_shape: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    by_sample: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in _actor_logic_records(examples_dir):
+        by_logic[record["logic_sha256"]].append(record)
+        by_threshold_shape[record["threshold_shape_sha256"]].append(record)
+        sample = record["adjacent_sample_sha256"]
+        if sample is not None:
+            by_sample[sample].append(record)
+
+    def _members(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [
+            {key: record[key] for key in ("path", "actor_tags", "logic_sha256", "adjacent_sample_sha256")}
+            for record in records
+        ]
+
+    exact_logic_groups = [
+        {"logic_sha256": digest, "rules": _members(records)}
+        for digest, records in sorted(by_logic.items())
+        if len(records) > 1
+    ]
+    threshold_variant_candidates = [
+        {"threshold_shape_sha256": digest, "rules": _members(records)}
+        for digest, records in sorted(by_threshold_shape.items())
+        if len(records) > 1 and len({record["logic_sha256"] for record in records}) > 1
+    ]
+    shared_adjacent_sample_groups = [
+        {"adjacent_sample_sha256": digest, "rules": _members(records)}
+        for digest, records in sorted(by_sample.items())
+        if len(records) > 1
+    ]
+    return {
+        "exact_logic_groups": exact_logic_groups,
+        "threshold_variant_candidates": threshold_variant_candidates,
+        "shared_adjacent_sample_groups": shared_adjacent_sample_groups,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--json", type=Path, metavar="PATH", default=None,
@@ -194,11 +319,18 @@ def main(argv: list[str] | None = None) -> int:
         default=EXAMPLES_DIR,
         help="Sigma examples root to inspect (default: repository corpus)",
     )
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--exact-actor-logic",
         action="store_true",
         help=("report exact detection/correlation structure duplicates among "
               "actor-labelled observed rules"),
+    )
+    mode.add_argument(
+        "--actor-review-queues",
+        action="store_true",
+        help=("report mechanical exact-logic, threshold-shape, and shared-sidecar "
+              "review queues for actor-labelled observed rules"),
     )
     args = parser.parse_args(argv)
     if args.json_envelope and args.json is None:
@@ -208,7 +340,23 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[duplicate-check] examples directory unavailable: {args.examples_dir}", file=sys.stderr)
         return 2
 
-    if args.exact_actor_logic:
+    if args.actor_review_queues:
+        queues = find_actor_review_queues(args.examples_dir)
+        print("[duplicate-check] actor-labelled review queues (all advisory):")
+        for name, groups in queues.items():
+            print(f"  {name}: {len(groups)} group(s)")
+        print("[duplicate-check] mechanical grouping only; semantic equivalence, "
+              "source attribution, and consolidation are not assessed")
+        payload = {
+            "contract": {**_REPORT_CONTRACT, "mode": "actor_review_queues"},
+            "queues": queues,
+            "limitations": (
+                "Mechanical grouping only; semantic equivalence, source attribution, "
+                "and consolidation are not assessed. Threshold-shape candidates do not "
+                "treat comparator or threshold values as equivalent."
+            ),
+        }
+    elif args.exact_actor_logic:
         groups = find_exact_actor_logic_groups(args.examples_dir)
         if not groups:
             print("[duplicate-check] no exact actor-labelled logic duplicates")
