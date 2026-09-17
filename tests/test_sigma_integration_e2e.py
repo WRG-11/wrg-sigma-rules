@@ -67,6 +67,33 @@ def test_e2e_draft_validate_convert_splunk() -> None:
     assert all(ord(c) < 128 for c in conversion["query"]), "query must be ASCII-only"
 
 
+def test_e2e_runtime_never_initializes_pysigma_disk_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """MCP validation/conversion must not reach pySigma's network-data cache.
+
+    pySigma declares ``diskcache`` for optional ATT&CK/D3FEND data-download
+    helpers. Those helpers deserialize cache entries, so the MCP runtime must
+    stay on its local Sigma parse/convert path even when cache construction is
+    unavailable or unsafe.
+    """
+    diskcache = pytest.importorskip("diskcache", reason="pySigma runtime dependency")
+
+    def reject_cache(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("MCP validation/conversion must not open diskcache")
+
+    monkeypatch.setattr(diskcache, "Cache", reject_cache)
+    yaml_content = _make_rule(
+        _POWERSHELL_THREAT,
+        rule_type="process_creation",
+        severity="high",
+        mitre_ttps=["T1059.001"],
+    )
+
+    assert validate_rule_body(yaml_content)["valid"] is True
+    assert convert_rule_body(yaml_content, target="splunk")["ok"] is True
+
+
 def test_e2e_draft_validate_convert_elastic() -> None:
     """Full pipeline: NL -> draft -> validate -> convert(elastic)."""
     yaml_content = _make_rule(

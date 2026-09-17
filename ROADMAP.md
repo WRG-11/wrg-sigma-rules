@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **931 tests**, Ruff, README metric stamping and the
+- The checkout now passes **932 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -195,6 +195,10 @@ review and release decision.
 - The stdio MCP smoke harness now rejects non-protocol stdout instead of
   silently skipping it, so a server log accidentally written to stdout cannot
   pass CI while corrupting a client’s JSON-RPC stream.
+- The MCP validation/conversion path is regression-tested with pySigma's
+  optional disk-cache constructor disabled. ATT&CK/D3FEND data-download helpers
+  therefore cannot silently enter the local parse/convert runtime; this is a
+  runtime-boundary control, not a claim to remediate an upstream dependency.
 
 ## Later, only with evidence
 
