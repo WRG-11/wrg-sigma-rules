@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **910 tests**, Ruff, README metric stamping and the
+- The checkout now passes **911 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -170,6 +170,10 @@ review and release decision.
   before importing the server: it requires the executable, dependency record,
   manifest, tools and corpus resources. This is an install-integrity guard,
   not evidence of marketplace publication or client-side dependency install.
+- The local Codex marketplace record is regression-checked to resolve the
+  documented `wrg-sigma-rules@wrg-11` selector to this self-contained plugin.
+  That verifies repository wiring only; actual Codex client installation stays
+  an external-client check.
 
 ## Later, only with evidence
 

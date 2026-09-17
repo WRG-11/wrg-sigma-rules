@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "wrg-sigma-rules"
 RUNTIME = PLUGIN / "runtime"
 WRAPPER = PLUGIN / "scripts" / "codex_server.py"
+MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 SPEC = importlib.util.spec_from_file_location("wrg_sigma_codex_server", WRAPPER)
 assert SPEC and SPEC.loader
 codex_server = importlib.util.module_from_spec(SPEC)
@@ -46,6 +47,19 @@ def test_codex_plugin_manifest_registers_the_self_contained_runtime() -> None:
     assert mcp_config["mcpServers"]["wrg-sigma-rules"]["args"] == [
         "scripts/codex_server.py"
     ]
+
+
+def test_local_marketplace_points_at_the_self_contained_plugin() -> None:
+    """Keep README's local Codex install selector tied to this package."""
+    marketplace = json.loads(MARKETPLACE.read_text(encoding="utf-8"))
+    assert marketplace["name"] == "wrg-11"
+    plugins = marketplace["plugins"]
+    assert isinstance(plugins, list)
+    matches = [entry for entry in plugins if entry.get("name") == "wrg-sigma-rules"]
+    assert len(matches) == 1
+    source = matches[0]["source"]
+    assert source["source"] == "local"
+    assert (ROOT / source["path"]).resolve() == PLUGIN.resolve()
 
 
 def test_codex_package_base_version_matches_the_server_manifest() -> None:
