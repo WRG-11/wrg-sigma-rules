@@ -337,9 +337,11 @@ growth.
 
    **External-client identity diagnostic (2026-09-17):**
    `scripts/runtime_identity.py` measures a supplied installed or cached runtime's
-   manifest version, rule count and path/content corpus SHA-256, and can fail
-   closed against a checkout. It is read-only and deliberately does not infer
-   marketplace publication, cache refresh or client dependency installation.
+   manifest version, rule count and a path/content `rule_tree_sha256`, and can
+   fail closed against a checkout. This file-tree digest is deliberately
+   distinct from the live MCP coverage resource identity. It is read-only and
+   does not infer marketplace publication, cache refresh or client dependency
+   installation.
 
 ## Explicitly out of scope
 

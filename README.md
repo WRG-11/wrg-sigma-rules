@@ -182,7 +182,9 @@ starting point to bind to your own logsource and tune; each rule's
 - To compare an installed or cached Codex runtime with this checkout without
   modifying either one, run `python scripts/runtime_identity.py --runtime-root
   <runtime-path> --expect-same-as .`. A match proves only local runtime/corpus
-  identity; it does not claim marketplace publication or a client cache refresh.
+  identity. Its `rule_tree_sha256` is a file-tree comparison digest, not the
+  live MCP coverage resource's identity; neither value claims marketplace
+  publication or a client cache refresh.
 
 ### Evidence-review audits
 

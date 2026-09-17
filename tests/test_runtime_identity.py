@@ -34,14 +34,14 @@ def test_runtime_identity_measures_manifest_and_path_content_digest(tmp_path: Pa
 
     assert result["manifest_version"] == "1.0.0"
     assert result["rule_count"] == 1
-    assert len(result["corpus_sha256"]) == 64
+    assert len(result["rule_tree_sha256"]) == 64
 
 
 def test_runtime_identity_digest_changes_for_rule_bytes_or_paths(tmp_path: Path) -> None:
     first = _runtime(tmp_path / "first", body="first")
     second = _runtime(tmp_path / "second", body="second")
 
-    assert identity.corpus_fingerprint(first) != identity.corpus_fingerprint(second)
+    assert identity.rule_tree_fingerprint(first) != identity.rule_tree_fingerprint(second)
 
 
 def test_runtime_identity_rejects_missing_manifest_or_corpus(tmp_path: Path) -> None:
@@ -58,6 +58,6 @@ def test_runtime_identity_rejects_missing_manifest_or_corpus(tmp_path: Path) -> 
 
 
 def test_same_identity_requires_version_count_and_digest() -> None:
-    baseline = {"manifest_version": "1", "rule_count": 1, "corpus_sha256": "a"}
+    baseline = {"manifest_version": "1", "rule_count": 1, "rule_tree_sha256": "a"}
     assert identity._same_identity(baseline, dict(baseline))
     assert not identity._same_identity(baseline, {**baseline, "rule_count": 2})

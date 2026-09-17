@@ -32,8 +32,14 @@ def _rule_files(root: Path) -> list[Path]:
     return sorted(files, key=lambda path: path.relative_to(root).as_posix())
 
 
-def corpus_fingerprint(root: Path) -> str:
-    """Return a path-and-content digest for the complete published corpus."""
+def rule_tree_fingerprint(root: Path) -> str:
+    """Return a path-and-content digest for the complete published corpus.
+
+    This intentionally is not the MCP coverage resource's corpus identity:
+    that resource owns a separately defined serialization.  Naming this a
+    rule-tree digest prevents a local file comparison from impersonating a
+    live-server response.
+    """
     digest = hashlib.sha256()
     for path in _rule_files(root):
         digest.update(path.relative_to(root).as_posix().encode("utf-8"))
@@ -63,7 +69,7 @@ def runtime_identity(root: Path) -> dict[str, Any]:
         "runtime_root": str(root.resolve()),
         "manifest_version": version,
         "rule_count": len(rules),
-        "corpus_sha256": corpus_fingerprint(root),
+        "rule_tree_sha256": rule_tree_fingerprint(root),
     }
 
 
@@ -71,7 +77,7 @@ def _same_identity(left: dict[str, Any], right: dict[str, Any]) -> bool:
     """Compare the fields that identify the loaded runtime and corpus."""
     return all(
         left[name] == right[name]
-        for name in ("manifest_version", "rule_count", "corpus_sha256")
+        for name in ("manifest_version", "rule_count", "rule_tree_sha256")
     )
 
 
