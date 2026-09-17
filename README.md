@@ -69,6 +69,9 @@ fails if it drifts. A Codex package may add a local build suffix to its version,
 but its release base is regression-checked against the server manifest.
 Snapshot parity proves packaged source and corpus identity, not that a
 particular client has provisioned a compatible Python environment or refreshed
+its installed cache. CI installs the bundled runtime requirements on a clean
+runner and completes a package-wrapper MCP handshake, but that remains a
+Python-runtime check rather than evidence that a particular client refreshed
 its installed cache. After installation, verify a real MCP handshake in the
 target client before treating the package as ready.
 

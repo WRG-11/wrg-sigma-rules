@@ -200,6 +200,32 @@ jobs:
       - name: Report dependency license mix
         run: python -m piplicenses --format=markdown --with-urls
 
+  packaged-runtime:
+    # A clean GitHub runner installs the dependency record carried inside the
+    # Codex package, then starts the package wrapper itself. This is separate
+    # from checkout and Docker smoke tests: parity alone cannot prove that the
+    # bundled requirements file still provisions a runnable stdio server.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install packaged runtime dependencies on the clean runner
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r plugins/wrg-sigma-rules/runtime/requirements.txt
+
+      - name: Smoke packaged Codex runtime over stdio MCP
+        run: |
+          EXPECTED_FINGERPRINT="$(python -c "from tools.resources.coverage_resource import collect_coverage; print(collect_coverage()['corpus_sha256'])")"
+          python scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint "$EXPECTED_FINGERPRINT" -- python plugins/wrg-sigma-rules/scripts/codex_server.py
+
   ruff:
     # F-rules only (unused imports/names, undefined names) -- see ruff.toml's
     # own comment on why this starts narrow instead of ruff's full default set.
@@ -291,5 +317,5 @@ jobs:
       - name: Smoke the container over stdio MCP and compare corpus identity
         run: |
           python -m pip install --disable-pip-version-check "PyYAML>=6.0.3,<7"
-          EXPECTED_FINGERPRINT="$(python -c \"from tools.resources.coverage_resource import collect_coverage; print(collect_coverage()['corpus_sha256'])\")"
+          EXPECTED_FINGERPRINT="$(python -c "from tools.resources.coverage_resource import collect_coverage; print(collect_coverage()['corpus_sha256'])")"
           python scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint "$EXPECTED_FINGERPRINT" -- docker run -i --rm wrg-sigma-rules-mcp

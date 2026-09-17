@@ -286,6 +286,12 @@ growth.
    the snapshot untouched; the existing live/container smoke evidence remains
    a separate requirement.
 
+   **Packaged-runtime install guard (2026-09-17):** CI installs the bundled
+   runtime's own requirements file on a clean runner, then completes a real
+   MCP stdio handshake through the Codex package wrapper while checking corpus
+   identity. This is Python-runtime evidence, not an assertion that a specific
+   Codex client refreshed its plugin cache or marketplace state.
+
 ## Explicitly out of scope
 
 - A hosted multi-tenant MCP service or remote telemetry collection.
