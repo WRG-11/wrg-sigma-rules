@@ -91,11 +91,35 @@ def test_cli_exact_audit_uses_explicit_examples_directory(tmp_path: Path) -> Non
     ) == 0
 
     payload = json.loads(report.read_text(encoding="utf-8"))
+    assert payload["contract"] == {"tool": "duplicate_rule_check", "version": 1}
     assert len(payload["groups"]) == 1
     assert [rule["path"] for rule in payload["groups"][0]["rules"]] == [
         "observed_first.yml",
         "observed_second.yml",
     ]
+
+
+def test_cli_default_report_offers_a_versioned_json_envelope(tmp_path: Path) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    (examples / "first.yml").write_text(
+        "tags: [attack.t1190]\nlogsource: {product: windows}\n",
+        encoding="utf-8",
+    )
+    (examples / "second.yml").write_text(
+        "tags: [attack.t1190]\nlogsource: {product: windows}\n",
+        encoding="utf-8",
+    )
+    report = tmp_path / "default.json"
+
+    assert duplicate_rule_check.main(
+        ["--examples-dir", str(examples), "--json", str(report), "--json-envelope"]
+    ) == 0
+
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    assert payload["contract"] == {"tool": "duplicate_rule_check", "version": 1}
+    assert len(payload["groups"]) == 1
+    assert "not assessed" in payload["limitations"]
 
 
 def test_cli_refuses_a_missing_examples_directory(tmp_path: Path, capsys) -> None:

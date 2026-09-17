@@ -67,6 +67,7 @@ def test_cli_uses_explicit_examples_and_notes_directories(tmp_path: Path) -> Non
         ]
     ) == 0
     payload = json.loads(report.read_text(encoding="utf-8"))
+    assert payload["contract"] == {"tool": "detection_note_gap", "version": 1}
     assert payload["scored"][0]["relpath"] == (
         "resources/examples/impact/observed_example.yml"
     )

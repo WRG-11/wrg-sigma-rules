@@ -61,6 +61,7 @@ _REFERENCES_BLOCK_RE = re.compile(
     r"^references:\n((?:^- .+\n)+)", re.MULTILINE
 )
 _VENDOR_PREFIX_RE = re.compile(r"^observed_([a-z0-9]+(?:_[a-z0-9]+)?)_")
+_REPORT_CONTRACT = {"tool": "detection_note_gap", "version": 1}
 
 
 def _source_kind(url: str) -> str:
@@ -263,6 +264,7 @@ def _to_json(
         }
 
     return {
+        "contract": _REPORT_CONTRACT,
         "scored": [_dump(g) for g in scored],
         "unscored": [_dump(g) for g in unscored],
         "clusters": {

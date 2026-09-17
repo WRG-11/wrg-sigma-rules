@@ -182,6 +182,14 @@ machine-readable snapshot; the advisory reports carry their scope limitation
 inside that JSON so a copied count is not detached from its evidence boundary.
 Each report creates the parent directory of its `--json` target, so the same
 automation path can be used across all four tools.
+Object-shaped report payloads carry `contract.tool` and `contract.version`;
+consumers should ignore unknown keys and only treat a version change as a
+compatibility boundary. `duplicate_rule_check` preserves its legacy bare-list
+default JSON for existing consumers; pass `--json-envelope` to receive its
+versioned `{contract, groups, limitations}` form.
+For a fixed corpus and option set, report arrays are emitted deterministically;
+JSON object-member order is not a compatibility guarantee, so consumers should
+parse fields rather than byte-diff raw JSON.
 The inventory retains its attribution, platform and
 telemetry-manifestation fields as `not_assessed` until a human has documented
 the three source matches in [`CONTRIBUTING.md`](CONTRIBUTING.md). Those

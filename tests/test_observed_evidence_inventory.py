@@ -135,6 +135,7 @@ def test_cli_uses_explicit_corpus_and_notes_directories(tmp_path: Path) -> None:
     ) == 0
 
     payload = json.loads(report.read_text(encoding="utf-8"))
+    assert payload["contract"] == {"tool": "observed_evidence_inventory", "version": 1}
     assert payload["summary"]["observed_rule_files"] == 1
     assert payload["public_traceability_queue"] == []
     assert "do not prove attribution" in payload["limitations"]

@@ -31,6 +31,7 @@ from tools.convert_rule.convert_rule import convert_rule_body
 # converter implementation, and reporting aliases as independent evidence
 # would inflate the apparent backend coverage.
 CANONICAL_TARGETS = ("splunk", "elastic", "opensearch", "opensearch-ppl")
+_REPORT_CONTRACT = {"tool": "correlation_conversion_audit", "version": 1}
 Converter = Callable[..., dict[str, Any]]
 
 
@@ -111,6 +112,7 @@ def audit_correlation_rules(
             )
         )
     return {
+        "contract": _REPORT_CONTRACT,
         "summary": {
             "correlation_rule_files": len(records),
             "targets": list(targets),

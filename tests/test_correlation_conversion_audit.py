@@ -76,6 +76,7 @@ def test_audit_records_capability_and_missing_backend_separately(tmp_path: Path)
             "prove equivalent alert behavior in a deployed SIEM."
         ),
     }
+    assert payload["contract"] == {"tool": "correlation_conversion_audit", "version": 1}
     assert payload["records"] == [
         {
             "path": "resources/examples/lateral_movement/correlation.yml",
@@ -94,6 +95,7 @@ def test_cli_uses_an_explicit_examples_directory(monkeypatch, tmp_path: Path) ->
     examples.mkdir()
     report = tmp_path / "audit.json"
     expected = {
+        "contract": {"tool": "correlation_conversion_audit", "version": 1},
         "summary": {
             "correlation_rule_files": 0,
             "targets": [],

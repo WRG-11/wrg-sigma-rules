@@ -36,6 +36,7 @@ EXAMPLES_DIR = REPO_ROOT / "resources" / "examples"
 _ATTACK_PREFIX = "attack."
 _TECHNIQUE_PREFIX = "attack.t"
 _ACTOR_PREFIX = "wrg.observed.actor."
+_REPORT_CONTRACT = {"tool": "duplicate_rule_check", "version": 1}
 
 
 def _fingerprint(doc: dict[str, Any]) -> tuple[tuple[str, ...], str, str] | None:
@@ -182,6 +183,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", type=Path, metavar="PATH", default=None,
                         help="write findings as JSON instead of only printing")
     parser.add_argument(
+        "--json-envelope",
+        action="store_true",
+        help=("write the default fingerprint report in the versioned envelope; "
+              "the legacy default JSON remains a bare list"),
+    )
+    parser.add_argument(
         "--examples-dir",
         type=Path,
         default=EXAMPLES_DIR,
@@ -194,6 +201,8 @@ def main(argv: list[str] | None = None) -> int:
               "actor-labelled observed rules"),
     )
     args = parser.parse_args(argv)
+    if args.json_envelope and args.json is None:
+        parser.error("--json-envelope requires --json")
 
     if not args.examples_dir.is_dir():
         print(f"[duplicate-check] examples directory unavailable: {args.examples_dir}", file=sys.stderr)
@@ -218,6 +227,7 @@ def main(argv: list[str] | None = None) -> int:
               "equivalence, source attribution, and consolidation are "
               "not assessed")
         payload: Any = {
+            "contract": _REPORT_CONTRACT,
             "groups": groups,
             "limitations": (
                 "Exact structural equality only; threshold equivalence, source "
@@ -238,10 +248,22 @@ def main(argv: list[str] | None = None) -> int:
                       f"(product={product or '-'}, category={category or '-'}):")
                 for f in files:
                     print(f"    - {f}")
-        payload = [
+        groups = [
             {"techniques": list(fp[0]), "product": fp[1], "category": fp[2], "files": files}
             for fp, files in sorted(groups.items())
         ]
+        payload = (
+            {
+                "contract": _REPORT_CONTRACT,
+                "groups": groups,
+                "limitations": (
+                    "Fingerprint equality only; source quality, actor attribution, "
+                    "and consolidation are not assessed."
+                ),
+            }
+            if args.json_envelope
+            else groups
+        )
 
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)

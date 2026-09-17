@@ -32,6 +32,7 @@ _RULE_PATH_RE = re.compile(r"resources/examples/[A-Za-z0-9_./-]+\.ya?ml")
 _REVIEW_STATUSES = frozenset({"not_assessed", "supported", "not_supported"})
 _WRG_BREACH_CATALOG_RE = re.compile(r"\bWRG\s+breach\s+catalog\b", re.IGNORECASE)
 _MAX_SOURCE_REVIEW_QUOTE_CHARS = 1_000
+_REPORT_CONTRACT = {"tool": "observed_evidence_inventory", "version": 1}
 
 
 def _is_mitre_reference(url: str) -> bool:
@@ -411,6 +412,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     summary = summarize(records)
     payload = {
+        "contract": _REPORT_CONTRACT,
         "summary": summary,
         "records": records,
         "public_traceability_queue": public_traceability_queue(records),
