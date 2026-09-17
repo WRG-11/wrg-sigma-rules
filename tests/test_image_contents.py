@@ -161,6 +161,13 @@ def test_ci_container_smokes_keep_the_runtime_filesystem_read_only() -> None:
         )
 
 
+def test_release_smoke_checks_the_checkout_corpus_identity() -> None:
+    """Do not publish an image whose live resource differs from its source."""
+    workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+    assert "collect_coverage()['corpus_sha256']" in workflow
+    assert "--expect-corpus-fingerprint \"$EXPECTED_FINGERPRINT\"" in workflow
+
+
 def test_the_probe_finds_known_runtime_paths() -> None:
     """Control arm: the two tests above pass trivially if the AST walk finds
     nothing. Pin the one directory we know is read at runtime, so an extraction

@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **933 tests**, Ruff, README metric stamping and the
+- The checkout now passes **934 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -203,6 +203,10 @@ review and release decision.
   read-only root filesystem and a bounded, non-executable `/tmp` tmpfs. The
   current image completed the full stdio handshake under that profile, and a
   regression test prevents either smoke command from silently dropping it.
+- The release-prepublish smoke also derives a corpus fingerprint from the
+  checkout and requires the image's live coverage resource to return the same
+  value. This extends the existing CI identity gate to the publish boundary;
+  it verifies runtime data identity, not a GitHub release or registry claim.
 
 ## Later, only with evidence
 

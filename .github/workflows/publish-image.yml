@@ -40,9 +40,14 @@ jobs:
         run: docker build -t "$IMAGE_NAME:${{ github.event.release.tag_name || 'dry-run' }}" -t "$IMAGE_NAME:latest" .
 
       # Same proof-of-life check tests.yml's docker job runs -- a pushed
-      # image that never actually serves MCP is worse than no image at all.
+      # image that never actually serves MCP, or serves a different corpus, is
+      # worse than no image at all. Compute the expected fingerprint outside
+      # the image, then require the live resource to announce it.
       - name: Smoke the built image over stdio MCP before pushing
-        run: python3 scripts/mcp_stdio_smoke.py docker run -i --rm --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m "$IMAGE_NAME:latest"
+        run: |
+          python3 -m pip install --disable-pip-version-check "PyYAML>=6.0.3,<7"
+          EXPECTED_FINGERPRINT="$(python3 -c "from tools.resources.coverage_resource import collect_coverage; print(collect_coverage()['corpus_sha256'])")"
+          python3 scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint "$EXPECTED_FINGERPRINT" -- docker run -i --rm --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m "$IMAGE_NAME:latest"
 
       - name: Push (skipped on workflow_dispatch dry runs)
         if: github.event_name == 'release'
