@@ -21,6 +21,7 @@ import json
 import re
 import subprocess
 import sys
+from pathlib import Path
 from typing import Any
 
 # Tool and resource names the plugin promises. Kept here rather than derived
@@ -35,6 +36,8 @@ _EXPECTED_RESOURCES = {
 
 _PROTOCOL_VERSION = "2024-11-05"
 _TIMEOUT_SECONDS = 60
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_PLUGIN_MANIFEST = _REPO_ROOT / ".claude-plugin" / "plugin.json"
 _CORPUS_FINGERPRINT_RE = re.compile(
     r"^- Rules-content SHA-256: `[0-9a-f]{64}`$", re.MULTILINE
 )
@@ -67,6 +70,18 @@ def _has_coverage_corpus_identity(contents: list[dict[str, Any]]) -> bool:
         for content in contents
         if isinstance(content, dict)
     )
+
+
+def _expected_server_version(manifest: Path = _PLUGIN_MANIFEST) -> str:
+    """Read the version the image/check-out server must announce."""
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError("cannot read expected plugin version") from exc
+    version = data.get("version") if isinstance(data, dict) else None
+    if not isinstance(version, str) or not version.strip():
+        raise ValueError("expected plugin version is missing or invalid")
+    return version
 
 
 def _request(request_id: int, method: str, params: dict[str, Any] | None = None) -> str:
@@ -209,6 +224,16 @@ def main(argv: list[str]) -> int:
     if not server_version:
         return _fail(
             "initialize response carried no serverInfo.version", stderr=stderr_text
+        )
+    try:
+        expected_server_version = _expected_server_version()
+    except ValueError as exc:
+        return _fail(str(exc), stderr=stderr_text)
+    if server_version != expected_server_version:
+        return _fail(
+            "server announced version "
+            f"{server_version!r}, expected {expected_server_version!r}",
+            stderr=stderr_text,
         )
 
     if 2 not in responses:

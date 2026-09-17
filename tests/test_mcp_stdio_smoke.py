@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,3 +24,13 @@ def test_coverage_resource_identity_requires_a_full_sha256_line() -> None:
     assert not smoke._has_coverage_corpus_identity(
         [{"text": "- Rules-content SHA-256: `short`\n"}]
     )
+
+
+def test_expected_server_version_requires_a_nonempty_manifest_value(tmp_path: Path) -> None:
+    manifest = tmp_path / "plugin.json"
+    manifest.write_text(json.dumps({"version": "1.2.3"}), encoding="utf-8")
+    assert smoke._expected_server_version(manifest) == "1.2.3"
+
+    manifest.write_text(json.dumps({"version": " "}), encoding="utf-8")
+    with pytest.raises(ValueError, match="missing or invalid"):
+        smoke._expected_server_version(manifest)
