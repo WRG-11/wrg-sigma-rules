@@ -79,6 +79,22 @@ def test_exact_actor_logic_ignores_unlabelled_observed_rules(tmp_path: Path) -> 
     assert duplicate_rule_check.find_exact_actor_logic_groups(examples) == []
 
 
+def test_all_audit_modes_skip_an_undecodable_rule_file(tmp_path: Path) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    (examples / "broken.yml").write_bytes(b"\xff\xfe\x00")
+
+    assert duplicate_rule_check.find_groups(examples) == {}
+    assert duplicate_rule_check.find_exact_actor_logic_groups(examples) == []
+    assert duplicate_rule_check.find_actor_review_queues(examples) == {
+        "exact_logic_groups": [],
+        "threshold_variant_candidates": [],
+        "shared_adjacent_sample_groups": [],
+    }
+    for mode in ([], ["--exact-actor-logic"], ["--actor-review-queues"]):
+        assert duplicate_rule_check.main([*mode, "--examples-dir", str(examples)]) == 0
+
+
 def test_actor_review_queues_keep_threshold_candidates_separate_from_exact_logic(
     tmp_path: Path,
 ) -> None:

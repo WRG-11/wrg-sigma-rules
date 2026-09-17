@@ -198,6 +198,9 @@ consumers should ignore unknown keys and only treat a version change as a
 compatibility boundary. `duplicate_rule_check` preserves its legacy bare-list
 default JSON for existing consumers; pass `--json-envelope` to receive its
 versioned `{contract, groups, limitations}` form.
+That option only changes the default fingerprint report: the exact-logic and
+actor-review-queue modes always write their own versioned envelopes when
+`--json` is supplied.
 `--actor-review-queues` instead writes a versioned envelope with three separate
 mechanical queues: exact logic, same comparison shape with different numeric
 thresholds, and shared adjacent sidecar bytes. They are source-review inputs,

@@ -63,7 +63,7 @@ def find_groups(
         rel = path.relative_to(examples_dir).as_posix()
         try:
             docs = list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
-        except yaml.YAMLError:
+        except (OSError, UnicodeDecodeError, yaml.YAMLError):
             continue
         for doc in docs:
             if not isinstance(doc, dict):
@@ -311,7 +311,8 @@ def main(argv: list[str] | None = None) -> int:
         "--json-envelope",
         action="store_true",
         help=("write the default fingerprint report in the versioned envelope; "
-              "the legacy default JSON remains a bare list"),
+              "the legacy default JSON remains a bare list (other report "
+              "modes are always enveloped)"),
     )
     parser.add_argument(
         "--examples-dir",
