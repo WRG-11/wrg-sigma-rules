@@ -160,6 +160,26 @@ starting point to bind to your own logsource and tune; each rule's
 - README counts are stamped from ground truth: `python readme_stamp.py --check`
   fails CI on any drift, so the numbers here cannot silently go stale.
 
+### Evidence-review audits
+
+The following local reports make review queues and conversion boundaries
+visible. They are advisory: none promotes a rule, proves an actor attribution,
+or replaces reading the cited source. Pass `--examples-dir` (and, where
+applicable, `--notes-dir`) when auditing a copied or isolated corpus; a missing
+examples directory is an error rather than an empty result.
+
+```bash
+python scripts/observed_evidence_inventory.py --examples-dir resources/examples
+python scripts/duplicate_rule_check.py --examples-dir resources/examples --exact-actor-logic
+python scripts/correlation_conversion_audit.py --examples-dir resources/examples
+python scripts/detection_note_gap.py --examples-dir resources/examples --notes-dir docs/detection-notes
+```
+
+Use `--json path/to/report.json` with any report when a review needs a
+machine-readable snapshot. The inventory retains its attribution, platform and
+telemetry-manifestation fields as `not_assessed` until a human has documented
+the three source matches in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 ## Contributing
 
 Contributions are welcome. Add YAML under `resources/examples/<tactic>/` with an
