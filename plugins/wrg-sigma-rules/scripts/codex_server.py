@@ -5,9 +5,15 @@ import sys
 from pathlib import Path
 
 
-def _runtime_root() -> Path:
-    runtime = Path(__file__).resolve().parents[1] / "runtime"
-    if (runtime / "server.py").is_file() and (runtime / "tools").is_dir():
+def _runtime_root(script_path: Path | None = None) -> Path:
+    """Return a complete package-local runtime, never a checkout-relative one."""
+    script = script_path if script_path is not None else Path(__file__)
+    runtime = script.resolve().parents[1] / "runtime"
+    required_files = ("server.py", "requirements.txt", ".claude-plugin/plugin.json")
+    required_directories = ("tools", "resources")
+    if all((runtime / path).is_file() for path in required_files) and all(
+        (runtime / path).is_dir() for path in required_directories
+    ):
         return runtime
     raise RuntimeError("WRG Sigma Rules Codex runtime is incomplete")
 

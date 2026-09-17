@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **909 tests**, Ruff, README metric stamping and the
+- The checkout now passes **910 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -166,6 +166,10 @@ review and release decision.
   with the checkout's independently computed fingerprint. This guards the
   runtime-data boundary only; it neither establishes a GitHub release identity
   nor changes the release-owner's tag/version policy.
+- The Codex entry wrapper now refuses an incomplete package-local runtime
+  before importing the server: it requires the executable, dependency record,
+  manifest, tools and corpus resources. This is an install-integrity guard,
+  not evidence of marketplace publication or client-side dependency install.
 
 ## Later, only with evidence
 

@@ -2,13 +2,21 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "wrg-sigma-rules"
 RUNTIME = PLUGIN / "runtime"
+WRAPPER = PLUGIN / "scripts" / "codex_server.py"
+SPEC = importlib.util.spec_from_file_location("wrg_sigma_codex_server", WRAPPER)
+assert SPEC and SPEC.loader
+codex_server = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(codex_server)
 
 
 def _files(root: Path) -> dict[Path, str]:
@@ -47,3 +55,24 @@ def test_codex_package_base_version_matches_the_server_manifest() -> None:
 
     assert codex_manifest["name"] == server_manifest["name"]
     assert _release_version(codex_manifest["version"]) == server_manifest["version"]
+
+
+def test_codex_wrapper_requires_every_runtime_input(tmp_path: Path) -> None:
+    """A missing corpus must fail before a client sees an empty resource."""
+    script = tmp_path / "plugin" / "scripts" / "codex_server.py"
+    script.parent.mkdir(parents=True)
+    script.write_text("# test anchor\n", encoding="utf-8")
+    runtime = script.parents[1] / "runtime"
+    runtime.mkdir()
+    for name in ("server.py", "requirements.txt"):
+        (runtime / name).write_text("# runtime\n", encoding="utf-8")
+    manifest = runtime / ".claude-plugin" / "plugin.json"
+    manifest.parent.mkdir()
+    manifest.write_text("{}\n", encoding="utf-8")
+    (runtime / "tools").mkdir()
+
+    with pytest.raises(RuntimeError, match="runtime is incomplete"):
+        codex_server._runtime_root(script)
+
+    (runtime / "resources").mkdir()
+    assert codex_server._runtime_root(script) == runtime
