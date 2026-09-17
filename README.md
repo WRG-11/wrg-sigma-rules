@@ -169,7 +169,7 @@ starting point to bind to your own logsource and tune; each rule's
 
 ## Quality and testing
 
-- <!-- METRIC:test_module_count -->29<!-- /METRIC:test_module_count --> Python test
+- <!-- METRIC:test_module_count -->30<!-- /METRIC:test_module_count --> Python test
   modules cover rule validation and tool-integration smoke tests.
 - pySigma 1.x compatibility is verified against the Splunk, Elasticsearch and
   OpenSearch backend packages.
@@ -179,6 +179,10 @@ starting point to bind to your own logsource and tune; each rule's
   image cannot silently serve stale rule data.
 - README counts are stamped from ground truth: `python readme_stamp.py --check`
   fails CI on any drift, so the numbers here cannot silently go stale.
+- To compare an installed or cached Codex runtime with this checkout without
+  modifying either one, run `python scripts/runtime_identity.py --runtime-root
+  <runtime-path> --expect-same-as .`. A match proves only local runtime/corpus
+  identity; it does not claim marketplace publication or a client cache refresh.
 
 ### Evidence-review audits
 

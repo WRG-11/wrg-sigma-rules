@@ -147,7 +147,7 @@ review and release decision.
 
 ### 2026-09-17 — continued verification and audit execution
 
-- The checkout now passes **939 tests**, Ruff, README metric stamping and the
+- The checkout now passes **943 tests**, Ruff, README metric stamping and the
   read-only bundled-runtime parity check. This supplements, rather than
   rewrites, the earlier 880-test baseline above.
 - CI now runs the observed-evidence, correlation-conversion and detection-note
@@ -334,6 +334,12 @@ growth.
    **Bounded stdio exchange (2026-09-17):** the MCP smoke harness now applies
    its reply timeout before every protocol step, so an unresponsive server
    fails as a diagnostic rather than consuming a whole CI job timeout.
+
+   **External-client identity diagnostic (2026-09-17):**
+   `scripts/runtime_identity.py` measures a supplied installed or cached runtime's
+   manifest version, rule count and path/content corpus SHA-256, and can fail
+   closed against a checkout. It is read-only and deliberately does not infer
+   marketplace publication, cache refresh or client dependency installation.
 
 ## Explicitly out of scope
 
