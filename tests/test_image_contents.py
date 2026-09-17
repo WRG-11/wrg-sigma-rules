@@ -27,6 +27,7 @@ DOCKERFILE = REPO / "Dockerfile"
 DOCKERIGNORE = REPO / ".dockerignore"
 TESTS_WORKFLOW = REPO / ".github" / "workflows" / "tests.yml"
 PUBLISH_WORKFLOW = REPO / ".github" / "workflows" / "publish-image.yml"
+README_STAMP_WORKFLOW = REPO / ".github" / "workflows" / "readme-stamp.yml"
 
 #: Top-level names that are source, not runtime data -- copied as whole trees.
 _SOURCE_TREES = {"tools"}
@@ -181,6 +182,16 @@ def test_workflow_actions_are_pinned_to_immutable_commit_shas() -> None:
             assert re.fullmatch(r"[^@\s]+@[0-9a-f]{40}", action), (
                 f"{workflow.name} action is not pinned to a full commit SHA: {action}"
             )
+
+
+def test_readme_stamp_write_job_is_main_and_readme_scoped() -> None:
+    """The sole contents-write job must not write a caller-selected ref."""
+    workflow = README_STAMP_WORKFLOW.read_text(encoding="utf-8")
+    assert "if: github.ref == 'refs/heads/main'" in workflow
+    assert "git add README.md" in workflow
+    assert "git push origin HEAD:main" in workflow
+    assert "git add ." not in workflow
+    assert "git add -A" not in workflow
 
 
 def test_the_probe_finds_known_runtime_paths() -> None:
