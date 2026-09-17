@@ -267,9 +267,10 @@ growth.
    regression test against its corpus fixture. This proves converter syntax
    output only, not deployed-SIEM alert semantics.
 
-   **Audit-input integrity (2026-09-17):** correlation conversion now fails
-   clearly when a selected corpus file cannot be read, decoded, or parsed,
-   rather than omitting it from a partial measurement.
+   **Audit-input integrity (2026-09-17):** correlation conversion and the
+   observed-evidence inventory now fail clearly when selected rule YAML cannot
+   be read, decoded, or parsed; the inventory also rejects unreadable
+   detection notes rather than publishing a partial measurement.
 4. **Keep install and runtime claims reproducible.** Evolve MCP/package
    surfaces only after checkout, bundled-runtime and clean-client handshake
    evidence agrees. Any change must preserve non-root container execution and

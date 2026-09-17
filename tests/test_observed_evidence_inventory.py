@@ -146,6 +146,48 @@ def test_cli_refuses_a_missing_examples_directory(tmp_path: Path, capsys) -> Non
     assert "examples directory unavailable" in capsys.readouterr().out
 
 
+def test_cli_fails_closed_on_invalid_observed_rule_yaml(tmp_path: Path, capsys) -> None:
+    examples = tmp_path / "examples"
+    notes = tmp_path / "notes"
+    reviews = tmp_path / "reviews"
+    examples.mkdir()
+    notes.mkdir()
+    reviews.mkdir()
+    examples.joinpath("observed_broken.yml").write_text("title: [", encoding="utf-8")
+
+    assert inventory.main(
+        [
+            "--examples-dir", str(examples),
+            "--notes-dir", str(notes),
+            "--source-reviews-dir", str(reviews),
+        ]
+    ) == 2
+    assert "observed rule" in capsys.readouterr().out
+
+
+def test_cli_fails_closed_on_undecodable_detection_note(tmp_path: Path, capsys) -> None:
+    examples = tmp_path / "examples"
+    notes = tmp_path / "notes"
+    reviews = tmp_path / "reviews"
+    examples.mkdir()
+    notes.mkdir()
+    reviews.mkdir()
+    examples.joinpath("observed_valid.yml").write_text(
+        "title: Valid\nreferences: [https://example.test]\n",
+        encoding="utf-8",
+    )
+    notes.joinpath("broken.md").write_bytes(b"\xff\xfe\x00")
+
+    assert inventory.main(
+        [
+            "--examples-dir", str(examples),
+            "--notes-dir", str(notes),
+            "--source-reviews-dir", str(reviews),
+        ]
+    ) == 2
+    assert "detection note" in capsys.readouterr().out
+
+
 def test_inventory_marks_literal_catalog_mentions_and_later_references(
     tmp_path: Path,
 ) -> None:

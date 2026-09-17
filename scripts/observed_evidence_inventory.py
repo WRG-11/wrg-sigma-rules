@@ -35,6 +35,14 @@ _MAX_SOURCE_REVIEW_QUOTE_CHARS = 1_000
 _REPORT_CONTRACT = {"tool": "observed_evidence_inventory", "version": 1}
 
 
+def _read_input_text(path: Path, label: str) -> str:
+    """Read an audit input or fail before publishing a partial inventory."""
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ValueError(f"{label} {path}: cannot read: {exc}") from exc
+
+
 def _is_mitre_reference(url: str) -> bool:
     """Return whether *url* is an ATT&CK taxonomy reference.
 
@@ -55,7 +63,7 @@ def _covered_rule_paths(notes_dir: Path) -> set[str]:
         return set()
     covered: set[str] = set()
     for note in notes_dir.glob("*.md"):
-        covered.update(_RULE_PATH_RE.findall(note.read_text(encoding="utf-8")))
+        covered.update(_RULE_PATH_RE.findall(_read_input_text(note, "detection note")))
     return covered
 
 
@@ -67,11 +75,14 @@ def _string_list(value: Any) -> list[str]:
 
 def _documents(path: Path) -> list[dict[str, Any]]:
     """Load mapping documents, ignoring empty YAML document separators."""
-    return [
-        doc
-        for doc in yaml.safe_load_all(path.read_text(encoding="utf-8"))
-        if isinstance(doc, dict)
-    ]
+    try:
+        return [
+            doc
+            for doc in yaml.safe_load_all(_read_input_text(path, "observed rule"))
+            if isinstance(doc, dict)
+        ]
+    except yaml.YAMLError as exc:
+        raise ValueError(f"observed rule {path}: cannot parse YAML: {exc}") from exc
 
 
 def _review_error(path: Path, message: str) -> ValueError:
@@ -274,7 +285,7 @@ def build_inventory(
                 "first_document_references": first_document_references,
                 "later_document_references": later_document_references,
                 "has_wrg_breach_catalog_mention": bool(
-                    _WRG_BREACH_CATALOG_RE.search(path.read_text(encoding="utf-8"))
+                    _WRG_BREACH_CATALOG_RE.search(_read_input_text(path, "observed rule"))
                 ),
                 # Preferred names describe what the inventory can establish,
                 # not a judgment about source quality or note endorsement.

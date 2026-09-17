@@ -182,6 +182,9 @@ examples directory is an error rather than an empty result.
 The correlation-conversion audit also fails clearly if any selected corpus YAML
 file cannot be read, decoded, or parsed; a partial conversion count is not a
 reproducible measurement.
+The observed-evidence inventory likewise fails clearly on unreadable or
+invalid observed-rule YAML and unreadable detection notes, rather than
+publishing a partial provenance inventory.
 
 ```bash
 python scripts/observed_evidence_inventory.py --examples-dir resources/examples
