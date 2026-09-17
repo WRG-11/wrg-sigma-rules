@@ -14,7 +14,9 @@
 #   https://glama.ai/mcp/servers (Glama MCP server catalog)
 #   https://modelcontextprotocol.io/quickstart/server
 
-FROM python:3.12-slim
+# Pin the multi-platform image index, not its mutable tag. Dependabot's Docker
+# ecosystem entry updates this digest in a reviewed change.
+FROM python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
 
 # Glama best-practice: non-root user for MCP server runtime to limit
 # blast radius if a malicious rule body somehow escapes interpreter scope.
@@ -25,7 +27,7 @@ WORKDIR /app
 # Install plugin runtime deps (cache layer; rebuild only when reqs change).
 # `mcp` SDK is pinned in requirements.txt like every other runtime dep.
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && pip check
 
 # Copy server entrypoint + tool source. Skills/tests/scripts stay out via
 # .dockerignore — Glama runs the MCP server, not the Claude Code plugin

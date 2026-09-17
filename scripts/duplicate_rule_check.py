@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""duplicate_rule_check.py -- advisory report of rules sharing the same
-(technique tags, logsource) fingerprint.
+"""duplicate_rule_check.py -- advisory reports for potentially duplicated
+Sigma rules.
 
 CONTRIBUTING.md states a value ("more rules is not the goal") with nothing
 mechanical checking it as the corpus grows. This does not enforce that value
@@ -17,10 +17,13 @@ from day one or train everyone to ignore it.
 Usage:
     python scripts/duplicate_rule_check.py
     python scripts/duplicate_rule_check.py --json out.json
+    python scripts/duplicate_rule_check.py --exact-actor-logic
+    python scripts/duplicate_rule_check.py --actor-review-queues
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from collections import defaultdict
@@ -33,6 +36,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES_DIR = REPO_ROOT / "resources" / "examples"
 _ATTACK_PREFIX = "attack."
 _TECHNIQUE_PREFIX = "attack.t"
+_ACTOR_PREFIX = "wrg.observed.actor."
+_REPORT_CONTRACT = {"tool": "duplicate_rule_check", "version": 1}
 
 
 def _fingerprint(doc: dict[str, Any]) -> tuple[tuple[str, ...], str, str] | None:
@@ -50,13 +55,19 @@ def _fingerprint(doc: dict[str, Any]) -> tuple[tuple[str, ...], str, str] | None
     return (tuple(techniques), product, category)
 
 
-def find_groups() -> dict[tuple[Any, ...], list[str]]:
+def find_groups(
+    examples_dir: Path = EXAMPLES_DIR,
+    *,
+    skipped_files: list[str] | None = None,
+) -> dict[tuple[Any, ...], list[str]]:
     groups: dict[tuple[Any, ...], list[str]] = defaultdict(list)
-    for path in sorted(EXAMPLES_DIR.rglob("*.yml")):
-        rel = path.relative_to(EXAMPLES_DIR).as_posix()
+    for path in sorted(examples_dir.rglob("*.yml")):
+        rel = path.relative_to(examples_dir).as_posix()
         try:
             docs = list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
-        except yaml.YAMLError:
+        except (OSError, UnicodeDecodeError, yaml.YAMLError):
+            if skipped_files is not None:
+                skipped_files.append(rel)
             continue
         for doc in docs:
             if not isinstance(doc, dict):
@@ -68,33 +79,371 @@ def find_groups() -> dict[tuple[Any, ...], list[str]]:
     return {fp: files for fp, files in groups.items() if len(files) > 1}
 
 
+def _actor_tags(docs: list[dict[str, Any]]) -> list[str]:
+    """Return actor labels from all documents in a multi-document rule."""
+    return sorted({
+        str(tag).strip().lower()
+        for doc in docs
+        for tag in (doc.get("tags") or [])
+        if str(tag).strip().lower().startswith(_ACTOR_PREFIX)
+    })
+
+
+def _logic_digest(docs: list[dict[str, Any]]) -> str:
+    """Hash only detection-relevant structure, excluding rule identity/text.
+
+    This intentionally does not try to infer semantic equivalence. For
+    example, ``gt: 10`` and ``gte: 11`` remain different structures even
+    where a backend might treat their integer match sets alike.
+    """
+    local_base_names = {
+        str(doc["name"])
+        for doc in docs
+        if isinstance(doc.get("name"), str)
+    }
+    normalized = {
+        "documents": [
+            _normalized_logic_document(doc, local_base_names)
+            for doc in docs
+        ]
+    }
+    rendered = json.dumps(normalized, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(rendered.encode("utf-8")).hexdigest()
+
+
+def _normalized_logic_document(
+    doc: dict[str, Any], local_base_names: set[str]
+) -> dict[str, Any]:
+    """Remove a local base-rule name from an otherwise semantic correlation.
+
+    A correlation's ``rules`` field normally points to the base rule in the
+    same YAML file. That generated name varies by actor and should not block
+    an exact logic comparison. References to anything else stay intact.
+    """
+    normalized = {
+        key: doc[key]
+        for key in ("logsource", "detection", "correlation")
+        if key in doc
+    }
+    correlation = normalized.get("correlation")
+    if not isinstance(correlation, dict):
+        return normalized
+    rules = correlation.get("rules")
+    if not isinstance(rules, list):
+        return normalized
+    replaced_rules = [
+        "<local_base_rule>" if str(rule) in local_base_names else rule
+        for rule in rules
+    ]
+    if replaced_rules != rules:
+        normalized["correlation"] = {**correlation, "rules": replaced_rules}
+    return normalized
+
+
+def _sidecar_digest(path: Path) -> str | None:
+    """Hash an adjacent sample when present; do not interpret its contents."""
+    sample_path = path.with_suffix(".sample.json")
+    if not sample_path.is_file():
+        return None
+    return hashlib.sha256(sample_path.read_bytes()).hexdigest()
+
+
+def find_exact_actor_logic_groups(
+    examples_dir: Path = EXAMPLES_DIR,
+    *,
+    skipped_files: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Find exact structural duplicates among actor-labelled observed rules.
+
+    Matching logic or sidecar bytes do not establish actor attribution,
+    source provenance, or safe consolidation.
+    """
+    groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for path in sorted(examples_dir.rglob("observed_*.yml")):
+        try:
+            docs = [
+                doc
+                for doc in yaml.safe_load_all(path.read_text(encoding="utf-8"))
+                if isinstance(doc, dict)
+            ]
+        except (OSError, UnicodeDecodeError, yaml.YAMLError):
+            if skipped_files is not None:
+                skipped_files.append(path.relative_to(examples_dir).as_posix())
+            continue
+        actors = _actor_tags(docs)
+        if not actors:
+            continue
+        digest = _logic_digest(docs)
+        groups[digest].append({
+            "path": path.relative_to(examples_dir).as_posix(),
+            "actor_tags": actors,
+            "adjacent_sample_sha256": _sidecar_digest(path),
+        })
+
+    return [
+        {"logic_sha256": digest, "rules": rules}
+        for digest, rules in sorted(groups.items())
+        if len(rules) > 1
+    ]
+
+
+def _threshold_shape_document(
+    document: dict[str, Any], local_base_names: set[str]
+) -> dict[str, Any]:
+    """Normalize numeric correlation thresholds without claiming equivalence.
+
+    This is deliberately narrower than a semantic comparison: only numeric
+    values under the standard correlation-condition comparison keys are
+    replaced. ``gt: 10`` and ``gte: 11`` therefore remain distinct candidates,
+    even if a particular backend happened to interpret them equivalently.
+    """
+    normalized = _normalized_logic_document(document, local_base_names)
+    correlation = normalized.get("correlation")
+    if not isinstance(correlation, dict):
+        return normalized
+    condition = correlation.get("condition")
+    if not isinstance(condition, dict):
+        return normalized
+    threshold_condition = {
+        key: (
+            "<numeric_threshold>"
+            if key in {"eq", "ne", "gt", "gte", "lt", "lte"}
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            else value
+        )
+        for key, value in condition.items()
+    }
+    if threshold_condition == condition:
+        return normalized
+    normalized["correlation"] = {**correlation, "condition": threshold_condition}
+    return normalized
+
+
+def _actor_logic_records(
+    examples_dir: Path,
+    *,
+    skipped_files: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Return deterministic facts about actor-labelled observed rule files."""
+    records: list[dict[str, Any]] = []
+    for path in sorted(examples_dir.rglob("observed_*.yml")):
+        try:
+            documents = [
+                document
+                for document in yaml.safe_load_all(path.read_text(encoding="utf-8"))
+                if isinstance(document, dict)
+            ]
+        except (OSError, UnicodeDecodeError, yaml.YAMLError):
+            if skipped_files is not None:
+                skipped_files.append(path.relative_to(examples_dir).as_posix())
+            continue
+        actors = _actor_tags(documents)
+        if not actors:
+            continue
+        local_base_names = {
+            str(document["name"])
+            for document in documents
+            if isinstance(document.get("name"), str)
+        }
+        normalized = {
+            "documents": [
+                _normalized_logic_document(document, local_base_names)
+                for document in documents
+            ]
+        }
+        threshold_shape = {
+            "documents": [
+                _threshold_shape_document(document, local_base_names)
+                for document in documents
+            ]
+        }
+        records.append({
+            "path": path.relative_to(examples_dir).as_posix(),
+            "actor_tags": actors,
+            "logic_sha256": hashlib.sha256(
+                json.dumps(normalized, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest(),
+            "threshold_shape_sha256": hashlib.sha256(
+                json.dumps(threshold_shape, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest(),
+            "adjacent_sample_sha256": _sidecar_digest(path),
+        })
+    return records
+
+
+def find_actor_review_queues(
+    examples_dir: Path = EXAMPLES_DIR,
+    *,
+    skipped_files: list[str] | None = None,
+) -> dict[str, list[dict[str, Any]]]:
+    """Surface mechanical review candidates without judging their provenance.
+
+    Exact logic, threshold-shape, and adjacent-sidecar-byte groupings are three
+    separate facts. None proves semantic equivalence, actor attribution, or
+    that any files should be consolidated.
+    """
+    by_logic: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    by_threshold_shape: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    by_sample: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in _actor_logic_records(examples_dir, skipped_files=skipped_files):
+        by_logic[record["logic_sha256"]].append(record)
+        by_threshold_shape[record["threshold_shape_sha256"]].append(record)
+        sample = record["adjacent_sample_sha256"]
+        if sample is not None:
+            by_sample[sample].append(record)
+
+    def _members(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [
+            {key: record[key] for key in ("path", "actor_tags", "logic_sha256", "adjacent_sample_sha256")}
+            for record in records
+        ]
+
+    exact_logic_groups = [
+        {"logic_sha256": digest, "rules": _members(records)}
+        for digest, records in sorted(by_logic.items())
+        if len(records) > 1
+    ]
+    threshold_variant_candidates = [
+        {"threshold_shape_sha256": digest, "rules": _members(records)}
+        for digest, records in sorted(by_threshold_shape.items())
+        if len(records) > 1 and len({record["logic_sha256"] for record in records}) > 1
+    ]
+    shared_adjacent_sample_groups = [
+        {"adjacent_sample_sha256": digest, "rules": _members(records)}
+        for digest, records in sorted(by_sample.items())
+        if len(records) > 1
+    ]
+    return {
+        "exact_logic_groups": exact_logic_groups,
+        "threshold_variant_candidates": threshold_variant_candidates,
+        "shared_adjacent_sample_groups": shared_adjacent_sample_groups,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--json", metavar="PATH", default=None,
+    parser.add_argument("--json", type=Path, metavar="PATH", default=None,
                         help="write findings as JSON instead of only printing")
+    parser.add_argument(
+        "--json-envelope",
+        action="store_true",
+        help=("write the default fingerprint report in the versioned envelope; "
+              "the legacy default JSON remains a bare list (other report "
+              "modes are always enveloped)"),
+    )
+    parser.add_argument(
+        "--examples-dir",
+        type=Path,
+        default=EXAMPLES_DIR,
+        help="Sigma examples root to inspect (default: repository corpus)",
+    )
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--exact-actor-logic",
+        action="store_true",
+        help=("report exact detection/correlation structure duplicates among "
+              "actor-labelled observed rules"),
+    )
+    mode.add_argument(
+        "--actor-review-queues",
+        action="store_true",
+        help=("report mechanical exact-logic, threshold-shape, and shared-sidecar "
+              "review queues for actor-labelled observed rules"),
+    )
     args = parser.parse_args(argv)
+    if args.json_envelope and args.json is None:
+        parser.error("--json-envelope requires --json")
 
-    groups = find_groups()
+    if not args.examples_dir.is_dir():
+        print(f"[duplicate-check] examples directory unavailable: {args.examples_dir}", file=sys.stderr)
+        return 2
 
-    if not groups:
-        print("[duplicate-check] no rules share an identical "
-              "(technique-tags, logsource) fingerprint")
+    skipped_files: list[str] = []
+    if args.actor_review_queues:
+        queues = find_actor_review_queues(args.examples_dir, skipped_files=skipped_files)
+        print("[duplicate-check] actor-labelled review queues (all advisory):")
+        for name, groups in queues.items():
+            print(f"  {name}: {len(groups)} group(s)")
+        print("[duplicate-check] mechanical grouping only; semantic equivalence, "
+              "source attribution, and consolidation are not assessed")
+        payload = {
+            "contract": {**_REPORT_CONTRACT, "mode": "actor_review_queues"},
+            "queues": queues,
+            "skipped_files": skipped_files,
+            "limitations": (
+                "Mechanical grouping only; semantic equivalence, source attribution, "
+                "and consolidation are not assessed. Threshold-shape candidates do not "
+                "treat comparator or threshold values as equivalent."
+            ),
+        }
+    elif args.exact_actor_logic:
+        groups = find_exact_actor_logic_groups(args.examples_dir, skipped_files=skipped_files)
+        if not groups:
+            print("[duplicate-check] no exact actor-labelled logic duplicates")
+        else:
+            print(f"[duplicate-check] {len(groups)} exact actor-labelled "
+                  "logic group(s) worth source review:")
+            for group in groups:
+                print(f"  {group['logic_sha256'][:12]}:")
+                for rule in group["rules"]:
+                    actors = ", ".join(rule["actor_tags"]) or "-"
+                    sample = rule["adjacent_sample_sha256"]
+                    sample_text = sample[:12] if sample else "none"
+                    print(f"    - {rule['path']} (actors={actors}; "
+                          f"sample_sha256={sample_text})")
+        print("[duplicate-check] exact structural equality only; threshold "
+              "equivalence, source attribution, and consolidation are "
+              "not assessed")
+        payload: Any = {
+            "contract": _REPORT_CONTRACT,
+            "groups": groups,
+            "skipped_files": skipped_files,
+            "limitations": (
+                "Exact structural equality only; threshold equivalence, source "
+                "attribution, and consolidation are not assessed."
+            ),
+        }
     else:
-        print(f"[duplicate-check] {len(groups)} fingerprint group(s) worth a look "
-              "(not necessarily a problem -- see this script's own docstring):")
-        for (techniques, product, category), files in sorted(groups.items()):
-            print(f"  {', '.join(t.upper() for t in techniques)} "
-                  f"(product={product or '-'}, category={category or '-'}):")
-            for f in files:
-                print(f"    - {f}")
+        groups = find_groups(args.examples_dir, skipped_files=skipped_files)
 
-    if args.json:
-        payload = [
+        if not groups:
+            print("[duplicate-check] no rules share an identical "
+                  "(technique-tags, logsource) fingerprint")
+        else:
+            print(f"[duplicate-check] {len(groups)} fingerprint group(s) worth a look "
+                  "(not necessarily a problem -- see this script's own docstring):")
+            for (techniques, product, category), files in sorted(groups.items()):
+                print(f"  {', '.join(t.upper() for t in techniques)} "
+                      f"(product={product or '-'}, category={category or '-'}):")
+                for f in files:
+                    print(f"    - {f}")
+        groups = [
             {"techniques": list(fp[0]), "product": fp[1], "category": fp[2], "files": files}
             for fp, files in sorted(groups.items())
         ]
-        Path(args.json).write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        payload = (
+            {
+                "contract": _REPORT_CONTRACT,
+                "groups": groups,
+                "skipped_files": skipped_files,
+                "limitations": (
+                    "Fingerprint equality only; source quality, actor attribution, "
+                    "and consolidation are not assessed."
+                ),
+            }
+            if args.json_envelope
+            else groups
+        )
+
+    if args.json:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         print(f"[duplicate-check] wrote {args.json}")
+
+    if skipped_files:
+        print("[duplicate-check] skipped unreadable or invalid YAML file(s): "
+              + ", ".join(skipped_files))
 
     return 0  # advisory: never fails the build
 

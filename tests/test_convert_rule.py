@@ -9,7 +9,6 @@ Design-discipline coverage:
 """
 from __future__ import annotations
 
-import importlib.util
 import sys
 from pathlib import Path
 
@@ -20,18 +19,6 @@ sys.path.insert(0, str(_PLUGIN_ROOT))
 
 from tools.convert_rule import convert_rule_body  # noqa: E402
 from tools.draft_rule import draft_rule_body  # noqa: E402
-
-# pysigma-backend-opensearch is installed nowhere and declared in
-# neither requirements.txt. An absent optional backend is not a defect;
-# asserting through it would measure the environment, not the code. The very
-# thing these tests check -- convert_rule telling backend_missing apart from
-# backend_capability_gap -- can only be checked where the backend is present.
-requires_opensearch_backend = pytest.mark.skipif(
-    importlib.util.find_spec("sigma.backends.opensearch") is None,
-    reason="pysigma-backend-opensearch not installed (undeclared optional dep)",
-)
-
-
 
 def _good_yaml() -> str:
     draft = draft_rule_body(
@@ -160,6 +147,55 @@ def test_convert_correlation_rule_elastic_fails_gracefully() -> None:
     assert "correlation" in result["error"].lower()
 
 
+def test_convert_temporal_ordered_correlation_reports_type_capability_gap() -> None:
+    """Splunk supports event-count correlations but not temporal ordering.
+
+    That distinction changes the operator's next action: changing backend or
+    redesigning the correlation is appropriate; treating it as malformed YAML
+    is not.
+    """
+    rule = (
+        _PLUGIN_ROOT
+        / "resources"
+        / "examples"
+        / "initial_access"
+        / "observed_clawhavoc_claude_skills_t1195_002.yml"
+    )
+
+    result = convert_rule_body(rule.read_text(encoding="utf-8"), target="splunk")
+
+    assert result["ok"] is False
+    assert result["kind"] == "backend_capability_gap"
+    assert result["capability"] == "correlation_type:temporal_ordered"
+    assert "opensearch-ppl" in result["hint"]
+    assert "splunk" not in result["hint"]
+
+
+def test_corpus_splunk_correlations_have_no_unclassified_conversion_failure() -> None:
+    """Keep a backend upgrade from silently turning a rule defect into a gap.
+
+    Splunk currently converts the supported corpus correlation types. The only
+    measured exception is pySigma's explicit lack of ``temporal_ordered``;
+    any generic conversion error must be investigated rather than accepted.
+    """
+    correlation_rules = [
+        path
+        for path in (_PLUGIN_ROOT / "resources" / "examples").rglob("*.yml")
+        if any(
+            line.startswith("correlation:")
+            for line in path.read_text(encoding="utf-8").splitlines()
+        )
+    ]
+
+    assert correlation_rules
+    for rule in correlation_rules:
+        result = convert_rule_body(rule.read_text(encoding="utf-8"), target="splunk")
+        if result["ok"]:
+            continue
+        assert result["kind"] == "backend_capability_gap", rule
+        assert result["capability"] == "correlation_type:temporal_ordered", rule
+
+
 def _windows_process_creation_yaml() -> str:
     return (
         "title: Encoded PowerShell\n"
@@ -172,14 +208,12 @@ def _windows_process_creation_yaml() -> str:
     )
 
 
-@requires_opensearch_backend
 def test_convert_opensearch_happy_path() -> None:
     result = convert_rule_body(_good_yaml(), target="opensearch")
     assert result["ok"] is True
     assert result["target"] == "opensearch"
 
 
-@requires_opensearch_backend
 def test_convert_opensearch_ppl_is_not_the_lucene_target() -> None:
     """PPL and Lucene are different query languages, so the two OpenSearch
     targets must not quietly return the same string."""
@@ -200,7 +234,6 @@ def test_convert_elasticsearch_alias_is_advertised_and_works() -> None:
     assert "elasticsearch" in unknown["hint"]
 
 
-@requires_opensearch_backend
 def test_sysmon_pipeline_changes_the_query_not_just_a_flag() -> None:
     """The pipeline must alter the emitted query, not merely be recorded.
 
@@ -222,7 +255,6 @@ def test_sysmon_pipeline_changes_the_query_not_just_a_flag() -> None:
     assert plain["pipelines_applied"] == []
 
 
-@requires_opensearch_backend
 def test_pipeline_accepts_a_list() -> None:
     result = convert_rule_body(
         _windows_process_creation_yaml(),
@@ -252,6 +284,16 @@ def test_pipeline_wrong_type_is_rejected() -> None:
     assert result["kind"] == "invalid_pipeline"
 
 
+def test_pipeline_list_longer_than_registry_is_rejected() -> None:
+    result = convert_rule_body(
+        _good_yaml(), target="splunk", config={"pipeline": ["sysmon"] * 4}
+    )
+
+    assert result["ok"] is False
+    assert result["kind"] == "invalid_pipeline"
+    assert "at most 3" in result["error"]
+
+
 def test_missing_pipeline_package_returns_actionable_envelope(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -273,7 +315,6 @@ def test_missing_pipeline_package_returns_actionable_envelope(
     assert "pip install pysigma-pipeline-sysmon" in result["hint"]
 
 
-@requires_opensearch_backend
 def test_pipeline_config_alone_does_not_trigger_unapplied_warning() -> None:
     """'pipeline' is now an applied key, so warning about it would be a lie."""
     result = convert_rule_body(
@@ -290,6 +331,21 @@ def test_convert_unknown_target_returns_actionable_error() -> None:
     assert result["ok"] is False
     assert result["kind"] == "unknown_target"
     assert "splunk" in result["hint"]
+
+
+def test_convert_redacts_unknown_target_and_pipeline_errors() -> None:
+    """OPSEC must hold even when conversion stops before producing a query."""
+    target = convert_rule_body(_good_yaml(), target="backend.acme.corp")
+    pipeline = convert_rule_body(
+        _good_yaml(),
+        target="splunk",
+        config={"pipeline": "sysmon-10.10.5.42.acme.corp"},
+    )
+    for result in (target, pipeline):
+        assert result["ok"] is False
+        assert "10.10.5.42" not in str(result)
+        assert "acme.corp" not in str(result)
+        assert "<internal-domain>" in result["error"]
 
 
 def test_convert_empty_yaml_returns_input_missing() -> None:
@@ -344,6 +400,38 @@ def test_convert_unused_config_is_flagged_not_silently_dropped() -> None:
     assert any("config parameter is currently accepted but not applied" in w for w in result["warnings"])
 
 
+def test_convert_redacts_internal_identifiers_from_echoed_config() -> None:
+    """OPSEC applies to the full envelope, not only the generated query."""
+    result = convert_rule_body(
+        _good_yaml(),
+        target="splunk",
+        config={"index": "logs-10.10.5.42.acme.corp"},
+    )
+    assert result["ok"] is True
+    assert "10.10.5.42" not in str(result)
+    assert "acme.corp" not in str(result)
+    assert result["config_used"]["index"] == "logs-<internal-ip>.<internal-domain>"
+    assert result.get("redaction_applied") is True
+
+
+def test_convert_redacts_internal_identifiers_from_echoed_metadata() -> None:
+    yaml_content = _good_yaml().replace(
+        "title: Detect suspicious PowerShell MITRE T1059",
+        "title: Investigation for acme.corp",
+    )
+    result = convert_rule_body(yaml_content, target="splunk")
+    assert result["ok"] is True
+    assert "acme.corp" not in str(result)
+    assert result["metadata"]["title"] == "Investigation for <internal-domain>"
+    assert result.get("redaction_applied") is True
+
+
+def test_convert_rejects_non_mapping_config() -> None:
+    result = convert_rule_body(_good_yaml(), target="splunk", config=["sysmon"])  # type: ignore[arg-type]
+    assert result["ok"] is False
+    assert result["kind"] == "invalid_config"
+
+
 def test_convert_no_config_has_no_config_warning() -> None:
     result = convert_rule_body(_good_yaml(), target="splunk")
     assert not any("config parameter" in w for w in result["warnings"])
@@ -396,7 +484,6 @@ def test_convert_backend_missing_returns_actionable_envelope(
     assert "pip install pysigma-backend-splunk" in result["hint"]
 
 
-@requires_opensearch_backend
 def test_correlation_on_lucene_backend_reports_a_capability_gap() -> None:
     """A backend that cannot express correlations at all is a capability gap,
     not a broken rule -- and the distinction changes what the caller does
@@ -412,7 +499,6 @@ def test_correlation_on_lucene_backend_reports_a_capability_gap() -> None:
         assert "splunk" in result["hint"]
 
 
-@requires_opensearch_backend
 def test_correlation_capable_targets_really_are_capable() -> None:
     """Guard against the hint naming a target that cannot do the job -- the
     list is a measurement, so it has to keep matching reality."""
@@ -424,6 +510,52 @@ def test_correlation_capable_targets_really_are_capable() -> None:
             f"{target} is advertised as correlation-capable but failed: "
             f"{result.get('error')}"
         )
+
+
+def test_type_specific_correlation_hints_are_narrower_than_general_hints() -> None:
+    """Do not recommend a backend that rejects the failed correlation type."""
+    from tools.convert_rule.convert_rule import _CORRELATION_TYPE_CAPABLE_TARGETS
+
+    assert _CORRELATION_TYPE_CAPABLE_TARGETS["temporal_ordered"] == (
+        "opensearch-ppl",
+    )
+
+
+def test_temporal_ordered_capable_target_really_converts() -> None:
+    """Keep the type-specific hint tied to a real converter outcome.
+
+    This establishes syntax conversion only. It deliberately does not claim
+    that a deployed OpenSearch installation will provide equivalent alerting
+    semantics for this correlation type.
+    """
+    from tools.convert_rule.convert_rule import _CORRELATION_TYPE_CAPABLE_TARGETS
+
+    rule = (
+        _PLUGIN_ROOT
+        / "resources"
+        / "examples"
+        / "initial_access"
+        / "observed_clawhavoc_claude_skills_t1195_002.yml"
+    ).read_text(encoding="utf-8")
+
+    for target in _CORRELATION_TYPE_CAPABLE_TARGETS["temporal_ordered"]:
+        result = convert_rule_body(rule, target=target)
+        assert result["ok"] is True, (
+            f"{target} is advertised for temporal_ordered but failed: "
+            f"{result.get('error')}"
+        )
+        assert result["target"] == target
+        assert result["query"]
+
+
+def test_unmeasured_correlation_type_does_not_receive_a_guessing_hint() -> None:
+    """A general-capability list cannot safely stand in for a new type."""
+    from tools.convert_rule.convert_rule import _correlation_capability_hint
+
+    hint = _correlation_capability_hint(())
+    assert "No target" in hint
+    assert "splunk" not in hint
+    assert "opensearch-ppl" not in hint
 
 
 def test_deprecated_pipe_syntax_is_not_a_capability_gap() -> None:

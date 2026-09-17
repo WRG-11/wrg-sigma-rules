@@ -131,6 +131,11 @@ Two things to get right here:
   finding against the rule. Point the user at the targets in the envelope's
   `hint`.
 
+Conversion and validation are syntax evidence only. They do not establish
+semantic equivalence in a deployed SIEM, field mappings, data availability,
+or production readiness; label those items unverified unless the operator
+supplies environment-specific evidence.
+
 ## Output discipline
 
 - **Honest severity** -- do not soften "FAIL" to "WARN" to make the user feel
@@ -148,6 +153,7 @@ Two things to get right here:
 - Rewriting the entire rule without showing the original (loss of operator
   decision authority)
 - Marking a rule PASS when warnings exist (warnings matter)
+- Treating parser success or backend conversion as deployed semantic evidence
 - Ignoring `falsepositives:` block emptiness (top-3 cause of SOC alert
   fatigue observed across this corpus)
 - Adding closure cues ("Hope this is helpful!") -- operator drives next step

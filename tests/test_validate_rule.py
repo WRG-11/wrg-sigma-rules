@@ -212,6 +212,21 @@ def test_validate_pattern_34_redacts_internal_identifiers() -> None:
     assert "acme.corp" not in flat
 
 
+def test_validate_redacts_internal_identifiers_from_schema_errors() -> None:
+    yaml_str = (
+        "title: Demo\n"
+        "id: acme.corp-10.10.5.42\n"
+        "logsource: {category: process_creation}\n"
+        "detection: {selection: {Image: cmd.exe}, condition: selection}\n"
+    )
+    result = validate_rule_body(yaml_str, strict=True)
+    assert result["valid"] is False
+    assert "acme.corp" not in str(result)
+    assert "10.10.5.42" not in str(result)
+    assert "<internal-domain>" in str(result["schema_errors"])
+    assert result.get("redaction_applied") is True
+
+
 def test_validate_strict_mode_promotes_warnings() -> None:
     yaml_str = (
         "title: A short title\n"
@@ -229,6 +244,28 @@ def test_validate_strict_mode_promotes_warnings() -> None:
     assert any(
         e.get("kind") == "linter_strict" for e in strict["schema_errors"]
     )
+
+
+@pytest.mark.parametrize("target_backend", [None, 7, {}, "  "])
+def test_validate_rejects_invalid_target_backend_type(target_backend: object) -> None:
+    result = validate_rule_body("title: Demo", target_backend=target_backend)
+
+    assert result == {
+        "ok": False,
+        "error": "target_backend must be a non-empty string",
+        "kind": "invalid_input",
+    }
+
+
+@pytest.mark.parametrize("strict", ["false", 1, None])
+def test_validate_rejects_non_boolean_strict(strict: object) -> None:
+    result = validate_rule_body("title: Demo", strict=strict)
+
+    assert result == {
+        "ok": False,
+        "error": "strict must be a boolean",
+        "kind": "invalid_input",
+    }
 
 
 def test_validate_oversized_input_rejected_before_parse() -> None:

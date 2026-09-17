@@ -26,10 +26,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools.resources.coverage_resource import collect_coverage
 
-# Measured 2026-08-03: total_techniques=66, untagged=0, unparseable=0.
+# Measured 2026-09-17: total_techniques=91, untagged=0, unparseable=0.
 # Update these ONLY as a deliberate decision alongside the corpus change that
 # moved them -- not to silence a failing gate.
-MIN_TECHNIQUES = 66
+MIN_TECHNIQUES = 91
 MAX_UNTAGGED = 0
 MAX_UNPARSEABLE = 0
 

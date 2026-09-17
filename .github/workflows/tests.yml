@@ -90,7 +90,9 @@ jobs:
           pip install -r requirements.txt pytest
 
       - name: Pin the MCP SDK for this matrix leg
-        run: pip install "mcp${{ matrix.mcp-version }}"
+        run: |
+          pip install "mcp${{ matrix.mcp-version }}"
+          python -m pip check
 
       - name: Show resolved MCP SDK
         run: python -c "from importlib.metadata import version; print('mcp', version('mcp'))"
@@ -114,6 +116,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest coverage
+          python -m pip check
+
+      # The packaged Codex runtime is intentionally checked in.  Test its
+      # sync contract directly so a drifted snapshot cannot rely solely on
+      # indirect byte-parity tests to be caught.
+      - name: Check bundled Codex runtime snapshot
+        run: python scripts/sync_codex_runtime.py --check
 
       # COVERAGE_CORE=sysmon is load-bearing: under coverage.py's default C
       # tracer, pysigma's YAML loader corrupts and the suite reports false
@@ -139,6 +148,23 @@ jobs:
 
       - name: Report fingerprint-sharing rule groups (advisory, never fails)
         run: python scripts/duplicate_rule_check.py
+
+      - name: Report actor-labelled mechanical review queues (advisory, never fails)
+        run: python scripts/duplicate_rule_check.py --actor-review-queues
+
+      # These reports remain advisory about corpus decisions: a non-empty
+      # queue is review input, not a CI failure. Their input schema and parser
+      # failures intentionally remain gating, so a malformed ledger cannot
+      # silently publish misleading measurements. Running them on the published
+      # corpus also keeps measurements reproducible with conversion tests.
+      - name: Report observed-rule evidence inventory (advisory)
+        run: python scripts/observed_evidence_inventory.py
+
+      - name: Report correlation conversion boundaries (advisory)
+        run: python scripts/correlation_conversion_audit.py
+
+      - name: Report detection-note gaps (advisory)
+        run: python scripts/detection_note_gap.py
 
       # Gate, not advisory: a rule whose sidecar .sample.json no longer
       # matches its own detection: logic is a real regression (the rule
@@ -173,9 +199,37 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pip-licenses
+          python -m pip check
 
       - name: Report dependency license mix
         run: python -m piplicenses --format=markdown --with-urls
+
+  packaged-runtime:
+    # A clean GitHub runner installs the dependency record carried inside the
+    # Codex package, then starts the package wrapper itself. This is separate
+    # from checkout and Docker smoke tests: parity alone cannot prove that the
+    # bundled requirements file still provisions a runnable stdio server.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install packaged runtime dependencies on the clean runner
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r plugins/wrg-sigma-rules/runtime/requirements.txt
+          python -m pip check
+
+      - name: Smoke packaged Codex runtime over stdio MCP
+        run: |
+          EXPECTED_FINGERPRINT="$(python -c "from tools.resources.coverage_resource import collect_coverage; print(collect_coverage()['corpus_sha256'])")"
+          python scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint "$EXPECTED_FINGERPRINT" -- python plugins/wrg-sigma-rules/scripts/codex_server.py
 
   ruff:
     # F-rules only (unused imports/names, undefined names) -- see ruff.toml's
@@ -262,6 +316,11 @@ jobs:
       # Building is not evidence that it serves. Speak MCP to the container
       # over stdio and require it to announce the tools and resources the
       # plugin promises -- a server that starts and announces nothing would
-      # pass a build check and fail this one.
-      - name: Smoke the container over stdio MCP
-        run: python scripts/mcp_stdio_smoke.py docker run -i --rm wrg-sigma-rules-mcp
+      # pass a build check and fail this one. Compare the live resource's
+      # corpus fingerprint with the checked-out resource too: an otherwise
+      # healthy stale image layer must not look like current runtime data.
+      - name: Smoke the container over stdio MCP and compare corpus identity
+        run: |
+          python -m pip install --disable-pip-version-check "PyYAML>=6.0.3,<7"
+          EXPECTED_FINGERPRINT="$(python -c "from tools.resources.coverage_resource import collect_coverage; print(collect_coverage()['corpus_sha256'])")"
+          python scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint "$EXPECTED_FINGERPRINT" -- docker run -i --rm --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m wrg-sigma-rules-mcp

@@ -53,8 +53,12 @@ the same way a probe that ran and found nothing does.
 Usage:
     python scripts/sample_match_gate.py                    # advisory report
     python scripts/sample_match_gate.py --require-samples  # every status:test needs a sample
-    python scripts/sample_match_gate.py --require-new-samples --baseline resources/examples/SAMPLE_EXCEPTION_BASELINE.json
+    python scripts/sample_match_gate.py --require-new-samples --baseline path/to/reviewed-baseline.json
     python scripts/sample_match_gate.py --json out.json
+
+The repository CI uses the stricter ``--require-samples`` path. The optional
+baseline mode is only for a deliberate staged-policy migration and requires an
+explicit, reviewed file; this repository ships no grandfathered baseline.
 """
 from __future__ import annotations
 
@@ -142,7 +146,9 @@ def _expand_of_expressions(condition: str, selection_results: dict[str, bool]) -
         matching = sorted(name for name in selection_results if name.startswith(prefix))
         if not matching:
             raise EvaluatorError(f"'{count_token} of {prefix}*' matched no selection name")
-        if count_token == "all":
+        # ``all`` is Sigma condition grammar (e.g. ``all of selection_*``),
+        # not a credential literal.
+        if count_token == "all":  # nosec B105
             return "(" + " and ".join(matching) + ")"
         n = int(count_token)
         if n == 1:

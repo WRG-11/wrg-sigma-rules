@@ -3,14 +3,14 @@
 Resource exposed:
 
 * ``wrg-sigma://coverage/mitre-attack-matrix`` -- markdown report of which
-  ATT&CK techniques the published rule corpus actually covers, grouped by
+  ATT&CK techniques the active runtime corpus actually covers, grouped by
   the tactic directory each rule lives in.
 
 The report is computed from the corpus at read time rather than stored.
 A checked-in coverage table is a second copy of the truth, and the corpus
 is edited far more often than a hand-maintained table gets refreshed --
 it would start drifting the first time a rule was added. Reading the
-rules is cheap (73 small YAML files) and cannot go stale.
+rules is cheap for this small YAML corpus and cannot go stale.
 
 Test surface: ``coverage_matrix_body()`` and ``collect_coverage()`` are
 exposed at module level so unit tests can assert content without invoking
@@ -21,6 +21,7 @@ ASCII-only discipline (cross-platform safe).
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -30,6 +31,7 @@ import yaml
 _EXAMPLES_DIR = (
     Path(__file__).resolve().parent.parent.parent / "resources" / "examples"
 )
+_EXAMPLES_RELATIVE_DIR = "resources/examples"
 
 # Sigma tags are a flat namespace. `attack.t1059.001` is a technique,
 # `attack.execution` is a tactic, and this corpus additionally carries
@@ -66,9 +68,12 @@ def collect_coverage() -> dict[str, Any]:
     unparseable: list[str] = []
     untagged: list[str] = []
     total_rules = 0
+    corpus_digest = hashlib.sha256()
 
     for path in sorted(_EXAMPLES_DIR.rglob("*.yml")):
         rel = path.relative_to(_EXAMPLES_DIR).as_posix()
+        corpus_digest.update(rel.encode("utf-8"))
+        corpus_digest.update(b"\0")
         tactic = path.parent.name
         kind = _rule_kind(path.name)
         total_rules += 1
@@ -82,8 +87,12 @@ def collect_coverage() -> dict[str, Any]:
         entry[kind] += 1
 
         try:
-            docs = list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
-        except yaml.YAMLError:
+            raw = path.read_bytes()
+            corpus_digest.update(raw)
+            corpus_digest.update(b"\0")
+            docs = list(yaml.safe_load_all(raw.decode("utf-8")))
+        except (OSError, UnicodeError, yaml.YAMLError):
+            corpus_digest.update(b"<unreadable-or-unparseable>\0")
             unparseable.append(rel)
             continue
 
@@ -110,6 +119,7 @@ def collect_coverage() -> dict[str, Any]:
 
     return {
         "total_rules": total_rules,
+        "corpus_sha256": corpus_digest.hexdigest(),
         "total_techniques": len(techniques),
         "tactics": tactics,
         "techniques": techniques,
@@ -120,12 +130,12 @@ def collect_coverage() -> dict[str, Any]:
 
 def coverage_matrix_body() -> str:
     """Return the corpus ATT&CK coverage report as ASCII markdown."""
-    if not _EXAMPLES_DIR.exists():
+    if not _EXAMPLES_DIR.is_dir():
         return json.dumps(
             {
                 "ok": False,
                 "error": "rule corpus directory not found",
-                "expected_path": str(_EXAMPLES_DIR),
+                "expected_path": _EXAMPLES_RELATIVE_DIR,
             },
             indent=2,
         )
@@ -138,7 +148,7 @@ def coverage_matrix_body() -> str:
     lines.append("# WRG Sigma Corpus -- MITRE ATT&CK Coverage")
     lines.append("")
     lines.append(
-        "Computed from the published rule corpus when this resource is read, "
+        "Computed from the active runtime corpus when this resource is read, "
         "not from a stored table."
     )
     lines.append("")
@@ -154,6 +164,15 @@ def coverage_matrix_body() -> str:
         lines.append(f"- Unprefixed rules: {other}")
     lines.append(f"- Distinct ATT&CK techniques covered: {data['total_techniques']}")
     lines.append(f"- Tactic groupings: {len(tactics)}")
+    lines.append("")
+
+    lines.append("## Corpus identity")
+    lines.append("")
+    lines.append(f"- Rules-content SHA-256: `{data['corpus_sha256']}`")
+    lines.append(
+        "- Compare this fingerprint before comparing counts from separate "
+        "installed or checkout runtimes."
+    )
     lines.append("")
 
     lines.append("## Coverage by tactic")
@@ -183,7 +202,7 @@ def coverage_matrix_body() -> str:
         lines.append("## Rules contributing no coverage")
         lines.append("")
         for rel in data["unparseable"]:
-            lines.append(f"- `{rel}` -- could not be parsed")
+            lines.append(f"- `{rel}` -- could not be read or parsed")
         for rel in data["untagged"]:
             lines.append(f"- `{rel}` -- no `attack.tNNNN` tag")
         lines.append("")
@@ -223,7 +242,7 @@ def register_coverage_resources(mcp: Any) -> None:
         "wrg-sigma://coverage/mitre-attack-matrix",
         name="wrg-sigma-attack-coverage",
         description=(
-            "MITRE ATT&CK coverage state of the published sigma rule "
+            "MITRE ATT&CK coverage state of the active runtime sigma rule "
             "corpus: technique-by-tactic rollup, per-technique rule "
             "counts, observed vs template split, and any rule that "
             "contributes no coverage. Computed from the corpus at read "

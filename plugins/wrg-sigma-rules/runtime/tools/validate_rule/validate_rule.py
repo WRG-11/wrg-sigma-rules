@@ -197,6 +197,31 @@ def _redact_string(value: str) -> tuple[str, bool]:
     return redacted, flagged
 
 
+def _redact_response_value(value: Any) -> tuple[Any, bool]:
+    """Redact every echoed response value, including parser error messages."""
+    if isinstance(value, str):
+        redacted, flagged = _redact_string(value)
+        return _ascii_safe(redacted), flagged
+    if isinstance(value, dict):
+        result: dict[Any, Any] = {}
+        flagged = False
+        for key, item in value.items():
+            safe_key, key_flagged = _redact_response_value(key)
+            safe_item, item_flagged = _redact_response_value(item)
+            result[safe_key] = safe_item
+            flagged = flagged or key_flagged or item_flagged
+        return result, flagged
+    if isinstance(value, (list, tuple)):
+        items: list[Any] = []
+        flagged = False
+        for item in value:
+            safe_item, item_flagged = _redact_response_value(item)
+            items.append(safe_item)
+            flagged = flagged or item_flagged
+        return items, flagged
+    return value, False
+
+
 _MAX_YAML_INPUT_BYTES = 256 * 1024  # plain-oversized-input guard
 
 
@@ -818,6 +843,18 @@ def validate_rule_body(
                 "the rule is on disk."
             ),
         }
+    if not isinstance(target_backend, str) or not target_backend.strip():
+        return {
+            "ok": False,
+            "error": "target_backend must be a non-empty string",
+            "kind": "invalid_input",
+        }
+    if not isinstance(strict, bool):
+        return {
+            "ok": False,
+            "error": "strict must be a boolean",
+            "kind": "invalid_input",
+        }
 
     parsed, schema_parse_errors = _parse_yaml(yaml_content)
     schema_errors: list[dict[str, Any]] = list(schema_parse_errors)
@@ -887,9 +924,11 @@ def validate_rule_body(
         "strict": strict,
     }
     if redacted_rule is not None and redaction_applied:
-        out["redaction_applied"] = True
         out["redacted_rule_preview"] = redacted_rule
-    return out
+    safe_out, output_redacted = _redact_response_value(out)
+    if redaction_applied or output_redacted:
+        safe_out["redaction_applied"] = True
+    return safe_out
 
 
 def register_validate_rule_tool(mcp: Any) -> None:

@@ -1,4 +1,4 @@
-"""The image must contain every directory the server reads at runtime.
+"""The image must contain every path the server reads at runtime.
 
 2026-07-30: the published image answered its own MITRE coverage resource with
 ``{"ok": false, "error": "rule corpus directory not found"}``. Nothing was
@@ -25,6 +25,9 @@ import pytest
 REPO = Path(__file__).resolve().parent.parent
 DOCKERFILE = REPO / "Dockerfile"
 DOCKERIGNORE = REPO / ".dockerignore"
+TESTS_WORKFLOW = REPO / ".github" / "workflows" / "tests.yml"
+PUBLISH_WORKFLOW = REPO / ".github" / "workflows" / "publish-image.yml"
+README_STAMP_WORKFLOW = REPO / ".github" / "workflows" / "readme-stamp.yml"
 
 #: Top-level names that are source, not runtime data -- copied as whole trees.
 _SOURCE_TREES = {"tools"}
@@ -40,8 +43,8 @@ def _copied_paths() -> list[str]:
     return out
 
 
-def _runtime_dirs() -> set[str]:
-    """Repo-root-relative directories the runtime code resolves.
+def _runtime_paths() -> set[str]:
+    """Repo-root-relative paths the runtime code resolves.
 
     Matches the shape the modules actually use -- walking up from ``__file__``
     with ``.parent`` and then joining literal segments:
@@ -66,7 +69,8 @@ def _runtime_dirs() -> set[str]:
         return []
 
     found: set[str] = set()
-    for py in sorted((REPO / "tools").rglob("*.py")):
+    source_files = [REPO / "server.py", *sorted((REPO / "tools").rglob("*.py"))]
+    for py in source_files:
         try:
             tree = ast.parse(py.read_text(encoding="utf-8", errors="replace"))
         except SyntaxError:  # pragma: no cover - a parse failure is its own test's job
@@ -79,11 +83,38 @@ def _runtime_dirs() -> set[str]:
             segs = segments(node)
             if segs:
                 found.add("/".join(segs))
-    return found
+    # AST visits both the full path expression and every inner ``/`` node.
+    # Keep only leaves: ``.claude-plugin`` is an intermediate component of
+    # ``.claude-plugin/plugin.json``, not a separately-read runtime path.
+    return {
+        path for path in found
+        if not any(other.startswith(path + "/") for other in found)
+    }
 
 
-@pytest.mark.parametrize("path", sorted(_runtime_dirs()))
-def test_every_runtime_directory_is_copied_into_the_image(path: str) -> None:
+def _is_ignored_by_build_context(path: str) -> bool:
+    """Evaluate the simple literal .dockerignore rules used by this image."""
+    ignored = False
+    for line in DOCKERIGNORE.read_text(encoding="utf-8").splitlines():
+        rule = line.strip().rstrip("/")
+        if not rule or rule.startswith("#"):
+            continue
+        include = rule.startswith("!")
+        rule = rule.removeprefix("!")
+        if path == rule or path.startswith(rule + "/"):
+            ignored = not include
+    return ignored
+
+
+def test_build_context_honors_the_manifest_reinclude_rule() -> None:
+    """The one runtime manifest is intentionally re-included after its parent."""
+    assert not _is_ignored_by_build_context(".claude-plugin/plugin.json")
+    assert _is_ignored_by_build_context(".claude-plugin/other.json")
+    assert _is_ignored_by_build_context("skills/sigma-rule-writer/SKILL.md")
+
+
+@pytest.mark.parametrize("path", sorted(_runtime_paths()))
+def test_every_runtime_path_is_copied_into_the_image(path: str) -> None:
     copied = _copied_paths()
     assert any(path == c or path.startswith(c + "/") or c.startswith(path + "/")
                for c in copied), (
@@ -101,24 +132,108 @@ def test_the_rule_corpus_is_not_excluded_from_the_build_context() -> None:
     how the original defect survived: the COPY list looked deliberate and the
     ignore list looked deliberate, and neither mentioned the other.
     """
-    ignored = [ln.strip().rstrip("/") for ln in
-               DOCKERIGNORE.read_text(encoding="utf-8").splitlines()
-               if ln.strip() and not ln.lstrip().startswith("#")]
-    for path in sorted(_runtime_dirs()):
-        head = path.split("/")[0]
-        assert head not in ignored, (
-            f".dockerignore excludes {head!r}, so the COPY of {path!r} brings "
+    for path in sorted(_runtime_paths()):
+        assert not _is_ignored_by_build_context(path), (
+            f".dockerignore excludes {path!r}, so its Dockerfile COPY brings "
             f"in nothing. Narrow the ignore rule or drop it."
         )
 
 
-def test_the_probe_finds_the_known_runtime_directory() -> None:
+def test_base_image_is_digest_pinned() -> None:
+    """The Docker base must be reproducible rather than follow a mutable tag."""
+    dockerfile = DOCKERFILE.read_text(encoding="utf-8")
+    assert re.search(
+        r"^FROM python:3\.12-slim@sha256:[0-9a-f]{64}$",
+        dockerfile,
+        flags=re.MULTILINE,
+    ), "Dockerfile must pin python:3.12-slim to a sha256 digest"
+
+
+def test_ci_container_smokes_keep_the_runtime_filesystem_read_only() -> None:
+    """Both pre-merge and pre-publish MCP checks must prove no app write need."""
+    expected_run = (
+        "docker run -i --rm --read-only "
+        "--tmpfs /tmp:rw,noexec,nosuid,size=16m"
+    )
+    for workflow in (TESTS_WORKFLOW, PUBLISH_WORKFLOW):
+        assert expected_run in workflow.read_text(encoding="utf-8"), (
+            f"{workflow.name} MCP smoke must run with a read-only rootfs and "
+            "a narrowly scoped temporary filesystem"
+        )
+
+
+def test_release_smoke_checks_the_checkout_corpus_identity() -> None:
+    """Do not publish an image whose live resource differs from its source."""
+    workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+    assert "collect_coverage()['corpus_sha256']" in workflow
+    assert "--expect-corpus-fingerprint \"$EXPECTED_FINGERPRINT\"" in workflow
+
+
+def test_manual_image_dry_run_has_no_registry_write_capability() -> None:
+    """Selected-ref verification must not carry the release job's token."""
+    workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+    dry_run, release = workflow.split("  publish-release:\n", maxsplit=1)
+
+    assert "  dry-run:\n" in dry_run
+    assert "if: github.event_name == 'workflow_dispatch'" in dry_run
+    assert "docker/login-action" not in dry_run
+    assert "secrets.GITHUB_TOKEN" not in dry_run
+    assert "packages: write" not in dry_run
+    assert "if: github.event_name == 'release'" in release
+    assert "packages: write" in release
+
+
+def test_workflow_actions_are_pinned_to_immutable_commit_shas() -> None:
+    """A mutable action tag must not enter the public CI supply chain."""
+    for workflow in sorted((REPO / ".github" / "workflows").glob("*.yml")):
+        actions = re.findall(
+            r"^\s*(?:-\s+)?uses:\s*([^\s#]+)",
+            workflow.read_text(encoding="utf-8"),
+            flags=re.MULTILINE,
+        )
+        assert actions, f"{workflow.name} has no action references to inspect"
+        for action in actions:
+            assert re.fullmatch(r"[^@\s]+@[0-9a-f]{40}", action), (
+                f"{workflow.name} action is not pinned to a full commit SHA: {action}"
+            )
+
+
+def test_readme_stamp_write_job_is_main_and_readme_scoped() -> None:
+    """The sole contents-write job must not write a caller-selected ref."""
+    workflow = README_STAMP_WORKFLOW.read_text(encoding="utf-8")
+    assert "if: github.ref == 'refs/heads/main'" in workflow
+    assert "git add README.md" in workflow
+    assert "git push origin HEAD:main" in workflow
+    assert "git add ." not in workflow
+    assert "git add -A" not in workflow
+
+
+def test_ci_keeps_both_declared_mcp_sdk_compatibility_legs() -> None:
+    """Do not reduce the MCP 1.x/2.x support claim to one untested major."""
+    workflow = TESTS_WORKFLOW.read_text(encoding="utf-8")
+    assert 'mcp-version: ["<2", ">=2"]' in workflow
+    assert 'pip install "mcp${{ matrix.mcp-version }}"' in workflow
+
+
+def test_runtime_dependency_installs_run_pip_check() -> None:
+    """Clean CI and image builds must reject inconsistent dependency graphs."""
+    assert "RUN pip install --no-cache-dir -r requirements.txt && pip check" in (
+        DOCKERFILE.read_text(encoding="utf-8")
+    )
+    workflow = TESTS_WORKFLOW.read_text(encoding="utf-8")
+    assert workflow.count("python -m pip check") >= 4
+
+
+def test_the_probe_finds_known_runtime_paths() -> None:
     """Control arm: the two tests above pass trivially if the AST walk finds
     nothing. Pin the one directory we know is read at runtime, so an extraction
     that silently stops working fails here instead of going quiet."""
-    dirs = _runtime_dirs()
-    assert "resources/examples" in dirs, (
+    paths = _runtime_paths()
+    assert "resources/examples" in paths, (
         f"the coverage resource resolves resources/examples from __file__; "
-        f"the probe found {sorted(dirs)}"
+        f"the probe found {sorted(paths)}"
     )
-    assert not (dirs & _SOURCE_TREES), "source trees are copied wholesale, not derived"
+    assert ".claude-plugin/plugin.json" in paths, (
+        "server.py resolves the manifest from __file__; the image must copy it"
+    )
+    assert not (paths & _SOURCE_TREES), "source trees are copied wholesale, not derived"

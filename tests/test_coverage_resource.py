@@ -6,6 +6,8 @@ says something true about the corpus, AND a real MCP client can reach it.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -18,6 +20,7 @@ from tools.resources.coverage_resource import (  # noqa: E402
     collect_coverage,
     coverage_matrix_body,
 )
+import tools.resources.coverage_resource as coverage_resource  # noqa: E402
 
 _EXAMPLES = _PLUGIN_ROOT / "resources" / "examples"
 
@@ -27,6 +30,57 @@ def test_rule_total_matches_the_corpus_on_disk() -> None:
     so compare against the filesystem rather than a literal."""
     on_disk = len(list(_EXAMPLES.rglob("*.yml")))
     assert collect_coverage()["total_rules"] == on_disk
+
+
+def test_corpus_fingerprint_covers_sorted_paths_and_rule_bytes() -> None:
+    digest = hashlib.sha256()
+    for path in sorted(_EXAMPLES.rglob("*.yml")):
+        digest.update(path.relative_to(_EXAMPLES).as_posix().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+
+    assert collect_coverage()["corpus_sha256"] == digest.hexdigest()
+
+
+def test_unreadable_rule_does_not_break_coverage_resource(
+    tmp_path: Path, monkeypatch: object
+) -> None:
+    corpus = tmp_path / "examples"
+    tactic = corpus / "discovery"
+    tactic.mkdir(parents=True)
+    (tactic / "broken.yml").write_bytes(b"\xff\xfe")
+    monkeypatch.setattr(coverage_resource, "_EXAMPLES_DIR", corpus)
+
+    data = collect_coverage()
+
+    assert data["total_rules"] == 1
+    assert data["unparseable"] == ["discovery/broken.yml"]
+
+
+def test_missing_corpus_error_does_not_expose_host_path(
+    tmp_path: Path, monkeypatch: object
+) -> None:
+    missing = tmp_path / "acme.corp" / "examples"
+    monkeypatch.setattr(coverage_resource, "_EXAMPLES_DIR", missing)
+
+    payload = json.loads(coverage_matrix_body())
+
+    assert payload["expected_path"] == "resources/examples"
+    assert "acme.corp" not in coverage_matrix_body()
+
+
+def test_corpus_path_must_be_a_directory(
+    tmp_path: Path, monkeypatch: object
+) -> None:
+    corpus_file = tmp_path / "examples"
+    corpus_file.write_text("not a directory", encoding="utf-8")
+    monkeypatch.setattr(coverage_resource, "_EXAMPLES_DIR", corpus_file)
+
+    payload = json.loads(coverage_matrix_body())
+
+    assert payload["ok"] is False
+    assert payload["expected_path"] == "resources/examples"
 
 
 def test_technique_count_matches_an_independent_recount() -> None:
@@ -53,6 +107,8 @@ def test_every_tactic_directory_appears() -> None:
 def test_body_is_markdown_and_ascii_only() -> None:
     body = coverage_matrix_body()
     assert body.startswith("# WRG Sigma Corpus -- MITRE ATT&CK Coverage")
+    assert "active runtime corpus" in body
+    assert "Rules-content SHA-256:" in body
     body.encode("ascii")
 
 

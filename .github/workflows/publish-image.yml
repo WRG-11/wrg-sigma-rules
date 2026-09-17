@@ -1,32 +1,46 @@
 name: publish-image
 
-# Activated: this only runs on a GitHub Release being published, never on
-# an ordinary push -- so a push alone does not publish anything. The
-# Dockerfile is already built + stdio-smoked on every push (tests.yml's
-# `docker` job); this job additionally PUSHES that same image to GHCR at
-# each release boundary. `ghcr.io/wrg-11/wrg-sigma-rules-mcp` has existed
-# since the v1.4.0 release (2026-08-05) and has pushed successfully on
-# every release since (v1.5.0, v1.6.0, v1.7.0) -- it is a public GHCR
-# package, a separately-visible surface from the repo itself.
-
+# A release publishes the GHCR image. A manual dispatch is intentionally only
+# a build-and-stdio verification: it must not receive a package-write token or
+# a registry login just to test an arbitrary selected ref.
 on:
   release:
     types: [published]
-  workflow_dispatch:  # manual trigger for a dry run against a specific ref
+  workflow_dispatch:  # manual, read-only dry run against a selected ref
 
 permissions:
   contents: read
-  packages: write
 
 env:
   IMAGE_NAME: ghcr.io/wrg-11/wrg-sigma-rules-mcp
 
 jobs:
-  publish:
+  dry-run:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout
+      - name: Checkout selected ref
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Build the MCP server image without registry credentials
+        run: docker build -t "$IMAGE_NAME:dry-run" .
+
+      - name: Smoke the built image over stdio MCP
+        run: |
+          python3 -m pip install --disable-pip-version-check "PyYAML>=6.0.3,<7"
+          EXPECTED_FINGERPRINT="$(python3 -c "from tools.resources.coverage_resource import collect_coverage; print(collect_coverage()['corpus_sha256'])")"
+          python3 scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint "$EXPECTED_FINGERPRINT" -- docker run -i --rm --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m "$IMAGE_NAME:dry-run"
+
+  publish-release:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout published release
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Log in to GHCR
@@ -37,13 +51,16 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build the MCP server image
-        run: docker build -t "$IMAGE_NAME:${{ github.event.release.tag_name || 'dry-run' }}" -t "$IMAGE_NAME:latest" .
+        run: docker build -t "$IMAGE_NAME:${{ github.event.release.tag_name }}" -t "$IMAGE_NAME:latest" .
 
-      # Same proof-of-life check tests.yml's docker job runs -- a pushed
-      # image that never actually serves MCP is worse than no image at all.
+      # A pushed image that never actually serves MCP, or serves a different
+      # corpus, is worse than no image at all. Compute the expected fingerprint
+      # outside the image, then require the live resource to announce it.
       - name: Smoke the built image over stdio MCP before pushing
-        run: python3 scripts/mcp_stdio_smoke.py docker run -i --rm "$IMAGE_NAME:latest"
+        run: |
+          python3 -m pip install --disable-pip-version-check "PyYAML>=6.0.3,<7"
+          EXPECTED_FINGERPRINT="$(python3 -c "from tools.resources.coverage_resource import collect_coverage; print(collect_coverage()['corpus_sha256'])")"
+          python3 scripts/mcp_stdio_smoke.py --expect-corpus-fingerprint "$EXPECTED_FINGERPRINT" -- docker run -i --rm --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m "$IMAGE_NAME:latest"
 
-      - name: Push (skipped on workflow_dispatch dry runs)
-        if: github.event_name == 'release'
+      - name: Push released image
         run: docker push "$IMAGE_NAME" --all-tags

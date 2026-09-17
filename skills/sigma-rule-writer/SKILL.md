@@ -115,6 +115,13 @@ detections/sigma/<platform>/<ttp-id>_<short-slug>.yml
 
 Use `Write` tool with the validated YAML content.
 
+For a public corpus contribution, do not save a generated scaffold as an
+`observed_*` rule. That label requires the cited source to establish
+attribution, platform, and telemetry manifestation as defined in
+`CONTRIBUTING.md`. Without those three matches, keep the artifact user-local
+or label it a generic template candidate; do not invent a source, incident,
+or telemetry claim to make it publishable.
+
 ## Output discipline
 
 - **Sigma spec compliant** YAML -- pySigma parses without error
@@ -138,6 +145,8 @@ Use `Write` tool with the validated YAML content.
 
 - Drafting without validating (skip Step 3)
 - Inventing TTP IDs (always cite a real `Txxxx` or omit the tag)
+- Treating a validated generated scaffold as evidence for an `observed_*`
+  public contribution
 - Wrapping in code comments instead of producing a parseable YAML document
 - Adding closure cues ("Hope this helps!", "Let me know if...") -- operator
   drives next step

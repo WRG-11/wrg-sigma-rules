@@ -45,6 +45,13 @@ def test_draft_rule_empty_description_returns_error() -> None:
     assert "description" in result["error"].lower()
 
 
+def test_draft_rule_oversized_input_is_rejected_before_processing() -> None:
+    result = draft_rule_body("A" * (300 * 1024))
+    assert result["ok"] is False
+    assert result["kind"] == "input_too_large"
+    assert "262144" in result["error"]
+
+
 def test_draft_rule_long_no_period_description_title_not_cut_mid_word() -> None:
     """G dogfood-audit: no caller-supplied title + a description with no
     period (common for a short one-liner) used to hard-slice the raw
@@ -107,6 +114,41 @@ def test_pattern_34_internal_domain_redacted() -> None:
     assert "finance.lan" not in result["yaml"]
 
 
+def test_draft_rule_redacts_all_echoed_text_inputs() -> None:
+    result = draft_rule_body(
+        "Normal description",
+        title="Investigation for acme.corp at 10.10.5.42",
+        author="joe@acme.corp",
+        references=["https://acme.corp/runbook?host=10.10.5.42"],
+    )
+    assert result["ok"] is True
+    assert "acme.corp" not in str(result)
+    assert "10.10.5.42" not in str(result)
+    assert "joe@acme.corp" not in str(result)
+    assert "<internal-domain>" in result["yaml"]
+    assert result["draft_notes"]
+
+
+def test_draft_rule_redacts_invalid_severity_error() -> None:
+    result = draft_rule_body("Normal description", severity="acme.corp")
+    assert result["ok"] is False
+    assert "acme.corp" not in str(result)
+    assert "<internal-domain>" in result["error"]
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "field"),
+    [
+        ({"description": 7}, "description"),
+        ({"description": "Normal", "references": "https://example.com"}, "references"),
+        ({"description": "Normal", "mitre_ttps": ["T1059", 7]}, "mitre_ttps"),
+    ],
+)
+def test_draft_rule_rejects_invalid_input_types(kwargs: dict[str, object], field: str) -> None:
+    result = draft_rule_body(**kwargs)  # type: ignore[arg-type]
+    assert result == {"ok": False, "error": f"{field} must be a string" if field == "description" else f"{field} must be a list of strings", "kind": "invalid_input"}
+
+
 def test_ascii_only_output() -> None:
     # ASCII-only -- em-dashes + non-ASCII inputs scrubbed in YAML body.
     result = draft_rule_body(
@@ -148,6 +190,17 @@ def test_deterministic_uuid_for_same_inputs() -> None:
         "Identical threat description", rule_type="process_creation"
     )
     assert a["yaml"].split("\n")[1] == b["yaml"].split("\n")[1]
+
+
+def test_distinct_drafts_with_the_same_truncated_title_get_distinct_uuids() -> None:
+    prefix = (
+        "Detect a suspicious process with a deliberately identical long title "
+        "prefix used for identity collision "
+    )
+    first = draft_rule_body(prefix + "first behaviour T1059", rule_type="process_creation")
+    second = draft_rule_body(prefix + "second behaviour T1057", rule_type="file_event")
+
+    assert first["yaml"].split("\n")[1] != second["yaml"].split("\n")[1]
 
 
 def test_mitre_ttps_declared_wins_over_description_scan() -> None:

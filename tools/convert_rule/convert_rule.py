@@ -131,15 +131,37 @@ _PIPELINE_SPECS: dict[str, tuple[str, str, str]] = {
 }
 
 _PIPELINE_KEYS: tuple[str, ...] = tuple(_PIPELINE_SPECS)
+_MAX_PIPELINE_COUNT = len(_PIPELINE_SPECS)
 
-# Targets that can express sigma correlation rules, measured against the
-# installed backends on 2026-07-29 by converting all 76 corpus rules to each:
-# splunk and opensearch-ppl succeeded on all 76; elastic and opensearch
-# (Lucene) failed on the same 10 -- every correlation rule in the corpus.
-# kibana and wazuh route through the elasticsearch Lucene backend, so they
-# share that limit. Re-measure rather than trust this list if a backend
-# package is upgraded; it is a snapshot of what those versions could do.
+# Targets whose pySigma implementations can express Sigma correlation rules.
+# Kibana and Wazuh route through the Elasticsearch Lucene backend, so they
+# share its limit. Corpus-level outcomes are intentionally not hard-coded here:
+# rerun ``scripts/correlation_conversion_audit.py`` after a backend upgrade.
 _CORRELATION_CAPABLE_TARGETS: tuple[str, ...] = ("splunk", "opensearch-ppl")
+
+# General correlation support does not imply every correlation shape. Keep
+# type-specific hints narrower than the general list so a user whose
+# ``temporal_ordered`` conversion failed is not told to retry Splunk, which
+# cannot express that type. These are converter-capability statements only,
+# not claims of deployed-SIEM semantic equivalence.
+_CORRELATION_TYPE_CAPABLE_TARGETS: dict[str, tuple[str, ...]] = {
+    "temporal_ordered": ("opensearch-ppl",),
+}
+
+
+def _correlation_capability_hint(capable_targets: tuple[str, ...]) -> str:
+    """Describe only converter capability that the plugin has measured."""
+    if capable_targets:
+        return (
+            "the rule is valid -- this backend cannot express this correlation "
+            "shape. Targets in this plugin that can convert it: "
+            + ", ".join(capable_targets)
+        )
+    return (
+        "the rule is valid -- this backend cannot express this correlation "
+        "shape. No target in this plugin is currently measured to convert "
+        "this correlation type."
+    )
 
 # Config keys convert_rule actually acts on. Anything else is echoed back
 # and flagged rather than silently ignored.
@@ -261,6 +283,43 @@ _REDACT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
 )
 
 
+def _redact_output_value(value: Any) -> tuple[Any, bool]:
+    """Recursively redact and ASCII-normalise every echoed output value.
+
+    Converted queries already pass through ``_redact_query``, but the MCP
+    envelope also echoes metadata, configuration, and warning text. Keeping
+    that second path unredacted would let an internal identifier supplied in
+    ``config`` bypass the tool's OPSEC boundary.
+    """
+    if isinstance(value, str):
+        redacted, flagged = _redact_string(value)
+        return _ascii_safe(redacted), flagged
+    if isinstance(value, dict):
+        result: dict[Any, Any] = {}
+        flagged = False
+        for key, item in value.items():
+            safe_key, key_flagged = _redact_output_value(key)
+            safe_item, item_flagged = _redact_output_value(item)
+            result[safe_key] = safe_item
+            flagged = flagged or key_flagged or item_flagged
+        return result, flagged
+    if isinstance(value, (list, tuple)):
+        items: list[Any] = []
+        flagged = False
+        for item in value:
+            safe_item, item_flagged = _redact_output_value(item)
+            items.append(safe_item)
+            flagged = flagged or item_flagged
+        return items, flagged
+    return value, False
+
+
+def _safe_text(value: object) -> str:
+    """Redact and ASCII-normalise text used in an early error envelope."""
+    redacted, _ = _redact_string(str(value))
+    return _ascii_safe(redacted)
+
+
 def _missing_pysigma_envelope() -> dict[str, Any]:
     """pySigma-missing envelope -- pySigma core missing."""
     return {
@@ -295,10 +354,30 @@ def _normalise_pipelines(raw: Any) -> tuple[list[str], dict[str, Any] | None]:
     """
     if raw is None:
         return [], None
-    names = [raw] if isinstance(raw, str) else raw
-    if not isinstance(names, (list, tuple)) or not all(
-        isinstance(n, str) for n in names
-    ):
+    if isinstance(raw, str):
+        names = [raw]
+    elif isinstance(raw, (list, tuple)):
+        # Check cardinality before traversing every client-supplied element.
+        # There can never be a useful pipeline chain longer than the local
+        # registry, so accepting one only creates needless work.
+        if len(raw) > _MAX_PIPELINE_COUNT:
+            return [], {
+                "ok": False,
+                "error": (
+                    "config['pipeline'] contains too many entries; at most "
+                    f"{_MAX_PIPELINE_COUNT} are supported"
+                ),
+                "kind": "invalid_pipeline",
+            }
+        names = raw
+    else:
+        return [], {
+            "ok": False,
+            "error": "config['pipeline'] must be a string or list of strings",
+            "hint": "known pipelines: " + ", ".join(_PIPELINE_KEYS),
+            "kind": "invalid_pipeline",
+        }
+    if not all(isinstance(n, str) for n in names):
         return [], {
             "ok": False,
             "error": "config['pipeline'] must be a string or list of strings",
@@ -321,7 +400,7 @@ def _load_pipeline(names: list[str]) -> tuple[Any, dict[str, Any] | None]:
         if spec is None:
             return None, {
                 "ok": False,
-                "error": f"unknown processing pipeline '{name}'",
+                "error": f"unknown processing pipeline '{_safe_text(name)}'",
                 "hint": "known pipelines: " + ", ".join(_PIPELINE_KEYS),
                 "kind": "unknown_pipeline",
             }
@@ -361,7 +440,7 @@ def _load_backend(
             warnings,
             {
                 "ok": False,
-                "error": f"unknown target backend '{target}'",
+                "error": f"unknown target backend '{_safe_text(target)}'",
                 "hint": (
                     "supported targets: "
                     + ", ".join(_BACKEND_KEYS)
@@ -424,6 +503,12 @@ def convert_rule_body(
             ),
             "kind": "input_missing",
         }
+    if config is not None and not isinstance(config, dict):
+        return {
+            "ok": False,
+            "error": "config must be a mapping when provided",
+            "kind": "invalid_config",
+        }
 
     safety_error = _yaml_input_safety_error(yaml_content)
     if safety_error is not None:
@@ -446,7 +531,7 @@ def convert_rule_body(
     except Exception as exc:
         err: dict[str, Any] = {
             "ok": False,
-            "error": _ascii_safe(f"sigma rule parse failed: {exc}"),
+            "error": _safe_text(f"sigma rule parse failed: {exc}"),
             "kind": "yaml_parse",
         }
         for attr in ("line", "column"):
@@ -487,33 +572,45 @@ def convert_rule_body(
         # distinguishing, because the caller's next move is different. The
         # rule needs no edit; it needs a backend that supports correlations.
         # Naming those backends here saves the caller discovering the set by
-        # trying each one, which is how this gap went unnoticed: 10 of the 76
-        # corpus rules fail on every Lucene-family target (elastic, kibana,
-        # wazuh and opensearch all route through the same backend), while
-        # converting cleanly on splunk and opensearch-ppl.
+        # trying each one. A backend can also support correlation generally
+        # while lacking one correlation type; that is still a backend
+        # capability gap, not a generic rule-conversion defect.
         # Matched narrowly on the backend's own capability wording. A bare
         # "correlation" substring also appears in the deprecated-pipe-syntax
         # error ("...replaced by Sigma correlations"), which is a rule defect
         # and must keep the generic classification.
-        if "does not support correlation" in message.lower():
+        lowered_message = message.lower()
+        unsupported_type = re.search(
+            r"correlation type '([^']+)' is not supported by backend",
+            message,
+            re.IGNORECASE,
+        )
+        if (
+            "does not support correlation" in lowered_message
+            or unsupported_type is not None
+        ):
+            capability = "correlation_rules"
+            capable_targets = _CORRELATION_CAPABLE_TARGETS
+            if unsupported_type is not None:
+                correlation_type = unsupported_type.group(1)
+                capability = f"correlation_type:{correlation_type}"
+                capable_targets = _CORRELATION_TYPE_CAPABLE_TARGETS.get(
+                    correlation_type, ()
+                )
             return {
                 "ok": False,
                 "error": _ascii_safe(
                     f"backend '{target}' does not support sigma correlation "
                     f"rules: {message}"
                 ),
-                "hint": (
-                    "the rule is valid -- this backend cannot express "
-                    "correlations. Targets in this plugin that can: "
-                    + ", ".join(_CORRELATION_CAPABLE_TARGETS)
-                ),
+                "hint": _correlation_capability_hint(capable_targets),
                 "kind": "backend_capability_gap",
                 "target": target.lower(),
-                "capability": "correlation_rules",
+                "capability": capability,
             }
         return {
             "ok": False,
-            "error": _ascii_safe(
+            "error": _safe_text(
                 f"pySigma backend '{target}' conversion failed: {exc}"
             ),
             "kind": "backend_conversion",
@@ -599,9 +696,10 @@ def convert_rule_body(
     }
     if alternate:
         out["alternate_queries"] = alternate
-    if redaction_applied:
-        out["redaction_applied"] = True
-    return out
+    safe_out, output_redacted = _redact_output_value(out)
+    if redaction_applied or output_redacted:
+        safe_out["redaction_applied"] = True
+    return safe_out
 
 
 def register_convert_rule_tool(mcp: Any) -> None:

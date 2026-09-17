@@ -117,6 +117,20 @@ def test_canonical_pattern_by_id_empty_returns_envelope() -> None:
     assert "at least one digit" in doc["error"]
 
 
+def test_canonical_pattern_by_id_does_not_echo_invalid_input() -> None:
+    body = canonical_pattern_by_id_body("acme.corp")
+    doc = json.loads(body)
+    assert doc["ok"] is False
+    assert "acme.corp" not in body
+
+
+def test_canonical_pattern_by_id_rejects_non_string_input() -> None:
+    body = canonical_pattern_by_id_body(7)  # type: ignore[arg-type]
+    doc = json.loads(body)
+    assert doc["ok"] is False
+    assert "must be a string" in doc["error"]
+
+
 def test_canonical_pattern_by_id_includes_canonical_yaml_shape() -> None:
     # Pattern 1 should contain a YAML shape block
     body = canonical_pattern_by_id_body("01")

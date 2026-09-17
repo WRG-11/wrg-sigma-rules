@@ -18,7 +18,10 @@ It runs under Claude Code, Codex, Cursor and any MCP-capable client.
   best-practice linter. `convert_rule` compiles a rule to a Splunk, Elastic,
   OpenSearch, Wazuh or Kibana query.
 - Three Claude Code skills: `sigma-rule-writer`, `sigma-rule-reviewer` and
-  `threat-coverage-gap-analyzer`.
+  `threat-coverage-gap-analyzer`. The packaged Codex variants retain the same
+  evidence boundaries: coverage counts do not establish missing ATT&CK scope,
+  conversion does not establish deployed semantics, and `observed_*` public
+  contributions require the sourcing bar in `CONTRIBUTING.md`.
 - A published corpus of <!-- METRIC:sigma_rule_count -->296<!-- /METRIC:sigma_rule_count -->
   rules across <!-- METRIC:tactic_category_count -->14<!-- /METRIC:tactic_category_count -->
   MITRE ATT&CK tactic categories. Every rule carries an honest Sigma `status:`
@@ -63,7 +66,19 @@ codex plugin add wrg-sigma-rules@wrg-11
 
 The Codex plugin carries a self-contained runtime snapshot of the server and
 corpus, so its installed cache does not rely on checkout-relative paths. Keep it
-current with `python scripts/sync_codex_runtime.py`; CI fails if it drifts.
+current with `python scripts/sync_codex_runtime.py`. Check parity without
+rewriting the snapshot via `python scripts/sync_codex_runtime.py --check`; CI
+fails if it drifts. A Codex package may add a local build suffix to its version,
+but its release base is regression-checked against the server manifest.
+Snapshot parity proves packaged source and corpus identity, not that a
+particular client has provisioned a compatible Python environment or refreshed
+its installed cache. CI installs the bundled runtime requirements on a clean
+runner and completes a package-wrapper MCP handshake, but that remains a
+Python-runtime check rather than evidence that a particular client refreshed
+its installed cache. After installation, verify a real MCP handshake in the
+target client before treating the package as ready.
+The repository smoke harness bounds every protocol reply, so an unresponsive
+server fails the check rather than consuming the workflow timeout.
 
 ### Cursor
 
@@ -148,17 +163,105 @@ starting point to bind to your own logsource and tune; each rule's
 - `wrg-sigma://patterns/canonical-5` and `wrg-sigma://patterns/canonical-5/{01..05}`:
   canonical detection-pattern definitions.
 - `wrg-sigma://coverage/mitre-attack-matrix`: an ATT&CK coverage rollup computed
-  from the corpus at read time.
+  from the corpus at read time. Its `Rules-content SHA-256` identifies the
+  exact corpus bytes behind a count, so installed and checkout runtimes can be
+  compared without treating different releases as measurement drift.
 
 ## Quality and testing
 
-- <!-- METRIC:test_module_count -->22<!-- /METRIC:test_module_count --> Python test
+- <!-- METRIC:test_module_count -->30<!-- /METRIC:test_module_count --> Python test
   modules cover rule validation and tool-integration smoke tests.
 - pySigma 1.x compatibility is verified against the Splunk, Elasticsearch and
   OpenSearch backend packages.
 - CI runs the full suite on Ubuntu, Windows and macOS runners on every push.
+- The Docker CI smoke exchange compares the container coverage resource's
+  corpus fingerprint with the checked-out corpus, so an otherwise healthy
+  image cannot silently serve stale rule data.
 - README counts are stamped from ground truth: `python readme_stamp.py --check`
   fails CI on any drift, so the numbers here cannot silently go stale.
+- To compare an installed or cached Codex runtime with this checkout without
+  modifying either one, run `python scripts/runtime_identity.py --runtime-root
+  <runtime-path> --expect-same-as .`. A match proves only local runtime/corpus
+  identity. Its `rule_tree_sha256` is a file-tree comparison digest, not the
+  live MCP coverage resource's identity; neither value claims marketplace
+  publication or a client cache refresh.
+
+### Evidence-review audits
+
+The following local reports make review queues and conversion boundaries
+visible. They are advisory: none promotes a rule, proves an actor attribution,
+or replaces reading the cited source. Pass `--examples-dir` (and, where
+applicable, `--notes-dir`) when auditing a copied or isolated corpus; a missing
+examples directory is an error rather than an empty result.
+The correlation-conversion audit also fails clearly if any selected corpus YAML
+file cannot be read, decoded, or parsed; a partial conversion count is not a
+reproducible measurement.
+The observed-evidence inventory likewise fails clearly on unreadable or
+invalid observed-rule YAML and unreadable detection notes, rather than
+publishing a partial provenance inventory.
+The detection-note gap report uses the same rule and note input boundary, so a
+partial documentation queue cannot be mistaken for a complete review queue.
+
+```bash
+python scripts/observed_evidence_inventory.py --examples-dir resources/examples
+python scripts/duplicate_rule_check.py --examples-dir resources/examples --exact-actor-logic
+python scripts/duplicate_rule_check.py --examples-dir resources/examples --actor-review-queues
+python scripts/correlation_conversion_audit.py --examples-dir resources/examples
+python scripts/detection_note_gap.py --examples-dir resources/examples --notes-dir docs/detection-notes
+```
+
+Use `--json path/to/report.json` with any report when a review needs a
+machine-readable snapshot; the advisory reports carry their scope limitation
+inside that JSON so a copied count is not detached from its evidence boundary.
+Each report creates the parent directory of its `--json` target, so the same
+automation path can be used across all four tools.
+Object-shaped report payloads carry `contract.tool` and `contract.version`;
+consumers should ignore unknown keys and only treat a version change as a
+compatibility boundary. `duplicate_rule_check` preserves its legacy bare-list
+default JSON for existing consumers; pass `--json-envelope` to receive its
+versioned `{contract, groups, limitations}` form.
+That option only changes the default fingerprint report: the exact-logic and
+actor-review-queue modes always write their own versioned envelopes when
+`--json` is supplied.
+`--actor-review-queues` instead writes a versioned envelope with three separate
+mechanical queues: exact logic, same comparison shape with different numeric
+thresholds, and shared adjacent sidecar bytes. They are source-review inputs,
+not semantic-equivalence, attribution, provenance, or consolidation verdicts.
+Versioned duplicate-report envelopes also carry `skipped_files` for YAML files
+that the selected mode could not read, decode, or parse. The legacy default
+bare-list JSON remains unchanged; use `--json-envelope` when that visibility is
+needed in a default-mode automation.
+For a fixed corpus and option set, report arrays are emitted deterministically;
+JSON object-member order is not a compatibility guarantee, so consumers should
+parse fields rather than byte-diff raw JSON.
+The inventory retains its attribution, platform and
+telemetry-manifestation fields as `not_assessed` until a human has documented
+the three source matches in [`CONTRIBUTING.md`](CONTRIBUTING.md). Those
+review records live under [`docs/source-reviews/`](docs/source-reviews/): each
+must cite a URL already on the rule, record a review date that is not in the
+future, and include a source quote for every supported or not-supported
+conclusion. The inventory rejects malformed or future-dated records rather
+than treating them as evidence; source or rule drift still requires human
+re-review.
+It also records the literal presence of `WRG breach catalog` and whether a
+multi-document rule keeps references only in a later document. Both are public
+traceability review cues, never source-quality or attribution verdicts.
+The JSON report preserves the public reference lists (including their
+first/later-document split) for human review, without assigning source ranks.
+Its summary distinguishes a structured review record, completion of all three
+source matches, and an explicit unsupported boundary; none of those counts is
+an attribution or promotion decision.
+`public_traceability_queue` is a convenience subset for the two mechanical
+public-review cues; it is not a verdict about a rule or its sources.
+For per-rule JSON, prefer `reference_shape` and
+`is_mentioned_by_detection_note`: both are literal inventory facts, not source
+quality or note-endorsement labels. The older `reference_hygiene` and
+`has_companion_note` fields remain compatibility aliases with identical values.
+
+The correlation audit separately counts a backend's declared capability
+boundaries (for example, `correlation_rules` or
+`correlation_type:temporal_ordered`). A successful conversion remains syntax
+evidence only; it does not assert equivalent alert behavior in a deployed SIEM.
 
 ## Contributing
 
@@ -172,6 +275,9 @@ Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before submitting an `observed_*` rule
 It sets the sourcing bar (attribution, platform and manifestation, each matched
 against the cited source) and documents the three upstream rejections that
 produced it.
+
+See [`ROADMAP.md`](ROADMAP.md) for the repository's current direction, explicit
+product boundaries and evidence required before an item is considered complete.
 
 ## License
 
