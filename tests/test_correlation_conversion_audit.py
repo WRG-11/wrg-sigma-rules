@@ -71,6 +71,10 @@ def test_audit_records_capability_and_missing_backend_separately(tmp_path: Path)
                 "opensearch": {},
             },
         "semantic_equivalence": "not_assessed",
+        "limitations": (
+            "Conversion outcomes and declared capability boundaries do not "
+            "prove equivalent alert behavior in a deployed SIEM."
+        ),
     }
     assert payload["records"] == [
         {
@@ -96,6 +100,10 @@ def test_cli_uses_an_explicit_examples_directory(monkeypatch, tmp_path: Path) ->
             "outcomes_by_target": {},
             "capabilities_by_target": {},
             "semantic_equivalence": "not_assessed",
+            "limitations": (
+                "Conversion outcomes and declared capability boundaries do not "
+                "prove equivalent alert behavior in a deployed SIEM."
+            ),
         },
         "records": [],
     }

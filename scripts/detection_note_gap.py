@@ -269,6 +269,12 @@ def _to_json(
             prefix: [g.relpath for g in members]
             for prefix, members in clusters.items()
         },
+        "limitations": (
+            "Companion-note presence is a documentation inventory only; this "
+            "report does not assess source quality, actor attribution, or "
+            "whether a rule should be promoted. Unscored entries are "
+            "unmeasured by the CVSS regex, not low priority."
+        ),
     }
 
 

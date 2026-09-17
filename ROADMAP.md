@@ -138,6 +138,13 @@ review and release decision.
   `--require-samples` mode, so this documentation correction does not relax
   the sidecar requirement.
 
+### 2026-09-17 — quote-safe advisory reports
+
+- The observed-evidence, detection-note and correlation audit JSON reports now
+  embed their evidence boundary alongside the measured queue or conversion
+  result. This prevents a consumer from treating a copied count as a
+  provenance verdict, promotion decision, or semantic-equivalence claim.
+
 ## Later, only with evidence
 
 - Additional backend and processing-pipeline support, after each target has

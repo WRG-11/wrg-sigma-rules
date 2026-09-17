@@ -117,6 +117,10 @@ def audit_correlation_rules(
             "outcomes_by_target": by_target,
             "capabilities_by_target": capabilities_by_target,
             "semantic_equivalence": "not_assessed",
+            "limitations": (
+                "Conversion outcomes and declared capability boundaries do not "
+                "prove equivalent alert behavior in a deployed SIEM."
+            ),
         },
         "records": records,
     }

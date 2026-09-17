@@ -303,7 +303,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[observed-evidence-inventory] {exc}")
         return 2
     summary = summarize(records)
-    payload = {"summary": summary, "records": records}
+    payload = {
+        "summary": summary,
+        "records": records,
+        "limitations": (
+            "Reference and companion-note presence are mechanical facts; they "
+            "do not prove attribution, platform, or telemetry manifestation. "
+            "Only cited structured source-review records may change those "
+            "fields from not_assessed."
+        ),
+    }
 
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)

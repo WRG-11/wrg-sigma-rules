@@ -178,7 +178,9 @@ python scripts/detection_note_gap.py --examples-dir resources/examples --notes-d
 ```
 
 Use `--json path/to/report.json` with any report when a review needs a
-machine-readable snapshot. The inventory retains its attribution, platform and
+machine-readable snapshot; the advisory reports carry their scope limitation
+inside that JSON so a copied count is not detached from its evidence boundary.
+The inventory retains its attribution, platform and
 telemetry-manifestation fields as `not_assessed` until a human has documented
 the three source matches in [`CONTRIBUTING.md`](CONTRIBUTING.md). Those
 review records live under [`docs/source-reviews/`](docs/source-reviews/): each

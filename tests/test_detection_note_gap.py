@@ -66,9 +66,11 @@ def test_cli_uses_explicit_examples_and_notes_directories(tmp_path: Path) -> Non
             "--examples-dir", str(examples), "--notes-dir", str(notes), "--json", str(report)
         ]
     ) == 0
-    assert json.loads(report.read_text(encoding="utf-8"))["scored"][0]["relpath"] == (
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    assert payload["scored"][0]["relpath"] == (
         "resources/examples/impact/observed_example.yml"
     )
+    assert "does not assess source quality" in payload["limitations"]
 
 
 def test_cli_refuses_a_missing_examples_directory(tmp_path: Path, capsys) -> None:
