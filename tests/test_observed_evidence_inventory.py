@@ -203,6 +203,10 @@ def test_inventory_uses_a_cited_structured_source_review(tmp_path: Path) -> None
     assert records[0]["source_review"] == {
         "source": "https://vendor.example/advisory",
         "reviewed_on": "2026-09-17",
+        "evidence": {
+            "attribution_evidence": "The advisory attributes this activity.",
+            "platform_evidence": "The advisory describes a different platform.",
+        },
     }
     summary = inventory.summarize(records)
     assert summary["with_structured_source_review"] == 1

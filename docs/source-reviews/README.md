@@ -20,3 +20,8 @@ that is absent from the rule, and a supported/not-supported outcome without a
 quote. This is intentionally a ledger of review judgments, not an automatic
 promotion mechanism: a rule hit remains detection evidence, not actor
 attribution.
+
+For an accepted supported or not-supported outcome, the inventory's JSON
+output preserves the recorded quote under `source_review.evidence`. This lets
+a consumer audit the recorded boundary without turning the status itself into
+a detached assertion.

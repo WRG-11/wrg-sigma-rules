@@ -77,7 +77,7 @@ def _review_error(path: Path, message: str) -> ValueError:
     return ValueError(f"source review {path}: {message}")
 
 
-def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, str]]:
+def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, Any]]:
     """Load explicit human-review outcomes without interpreting prose notes.
 
     A review record is deliberately narrow: it names one corpus rule, one
@@ -89,7 +89,7 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, str]]:
     if not reviews_dir.is_dir():
         return {}
 
-    reviews: dict[str, dict[str, str]] = {}
+    reviews: dict[str, dict[str, Any]] = {}
     for path in sorted(reviews_dir.glob("*.yml")):
         try:
             document = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -132,7 +132,7 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, str]]:
             if rule in reviews:
                 raise _review_error(path, f"duplicates review for {rule}")
 
-            outcomes: dict[str, str] = {}
+            outcomes: dict[str, Any] = {}
             for field in (
                 "attribution_evidence",
                 "platform_evidence",
@@ -150,6 +150,8 @@ def load_source_reviews(reviews_dir: Path) -> dict[str, dict[str, str]]:
                 ):
                     raise _review_error(path, f"review {index} {field} needs a source quote")
                 outcomes[field] = status
+                if status != "not_assessed":
+                    outcomes[f"_{field}_quote"] = quote.strip()
 
             outcomes["_source"] = source
             outcomes["_reviewed_on"] = reviewed_on
@@ -170,7 +172,7 @@ def _references(documents: Iterable[dict[str, Any]]) -> list[str]:
 def build_inventory(
     examples_dir: Path,
     notes_dir: Path,
-    source_reviews: dict[str, dict[str, str]] | None = None,
+    source_reviews: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """Build records without making source-quality claims.
 
@@ -238,6 +240,15 @@ def build_inventory(
                     {
                         "source": review["_source"],
                         "reviewed_on": review["_reviewed_on"],
+                        "evidence": {
+                            field: review[f"_{field}_quote"]
+                            for field in (
+                                "attribution_evidence",
+                                "platform_evidence",
+                                "telemetry_manifestation_evidence",
+                            )
+                            if f"_{field}_quote" in review
+                        },
                     }
                     if review
                     else None
@@ -349,7 +360,8 @@ def main(argv: list[str] | None = None) -> int:
             "A WRG breach-catalog mention is a literal public-traceability "
             "review cue, not a source-quality verdict. "
             "Only cited structured source-review records may change those "
-            "fields from not_assessed."
+            "fields from not_assessed; their recorded evidence locators are "
+            "preserved with the review result."
         ),
     }
 
