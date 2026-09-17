@@ -259,6 +259,11 @@ growth.
    Splunk `correlation_type:temporal_ordered` boundaries and 52
    `correlation_rules` boundaries for each Lucene-family target; it still does
    not establish target-side semantic equivalence.
+
+   **Type-specific conversion guard (2026-09-17):** the advertised
+   `opensearch-ppl` path for `temporal_ordered` now has a live conversion
+   regression test against its corpus fixture. This proves converter syntax
+   output only, not deployed-SIEM alert semantics.
 4. **Keep install and runtime claims reproducible.** Evolve MCP/package
    surfaces only after checkout, bundled-runtime and clean-client handshake
    evidence agrees. Any change must preserve non-root container execution and

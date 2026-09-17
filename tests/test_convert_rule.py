@@ -9,7 +9,6 @@ Design-discipline coverage:
 """
 from __future__ import annotations
 
-import importlib.util
 import sys
 from pathlib import Path
 
@@ -20,18 +19,6 @@ sys.path.insert(0, str(_PLUGIN_ROOT))
 
 from tools.convert_rule import convert_rule_body  # noqa: E402
 from tools.draft_rule import draft_rule_body  # noqa: E402
-
-# pysigma-backend-opensearch is installed nowhere and declared in
-# neither requirements.txt. An absent optional backend is not a defect;
-# asserting through it would measure the environment, not the code. The very
-# thing these tests check -- convert_rule telling backend_missing apart from
-# backend_capability_gap -- can only be checked where the backend is present.
-requires_opensearch_backend = pytest.mark.skipif(
-    importlib.util.find_spec("sigma.backends.opensearch") is None,
-    reason="pysigma-backend-opensearch not installed (undeclared optional dep)",
-)
-
-
 
 def _good_yaml() -> str:
     draft = draft_rule_body(
@@ -221,14 +208,12 @@ def _windows_process_creation_yaml() -> str:
     )
 
 
-@requires_opensearch_backend
 def test_convert_opensearch_happy_path() -> None:
     result = convert_rule_body(_good_yaml(), target="opensearch")
     assert result["ok"] is True
     assert result["target"] == "opensearch"
 
 
-@requires_opensearch_backend
 def test_convert_opensearch_ppl_is_not_the_lucene_target() -> None:
     """PPL and Lucene are different query languages, so the two OpenSearch
     targets must not quietly return the same string."""
@@ -249,7 +234,6 @@ def test_convert_elasticsearch_alias_is_advertised_and_works() -> None:
     assert "elasticsearch" in unknown["hint"]
 
 
-@requires_opensearch_backend
 def test_sysmon_pipeline_changes_the_query_not_just_a_flag() -> None:
     """The pipeline must alter the emitted query, not merely be recorded.
 
@@ -271,7 +255,6 @@ def test_sysmon_pipeline_changes_the_query_not_just_a_flag() -> None:
     assert plain["pipelines_applied"] == []
 
 
-@requires_opensearch_backend
 def test_pipeline_accepts_a_list() -> None:
     result = convert_rule_body(
         _windows_process_creation_yaml(),
@@ -332,7 +315,6 @@ def test_missing_pipeline_package_returns_actionable_envelope(
     assert "pip install pysigma-pipeline-sysmon" in result["hint"]
 
 
-@requires_opensearch_backend
 def test_pipeline_config_alone_does_not_trigger_unapplied_warning() -> None:
     """'pipeline' is now an applied key, so warning about it would be a lie."""
     result = convert_rule_body(
@@ -502,7 +484,6 @@ def test_convert_backend_missing_returns_actionable_envelope(
     assert "pip install pysigma-backend-splunk" in result["hint"]
 
 
-@requires_opensearch_backend
 def test_correlation_on_lucene_backend_reports_a_capability_gap() -> None:
     """A backend that cannot express correlations at all is a capability gap,
     not a broken rule -- and the distinction changes what the caller does
@@ -518,7 +499,6 @@ def test_correlation_on_lucene_backend_reports_a_capability_gap() -> None:
         assert "splunk" in result["hint"]
 
 
-@requires_opensearch_backend
 def test_correlation_capable_targets_really_are_capable() -> None:
     """Guard against the hint naming a target that cannot do the job -- the
     list is a measurement, so it has to keep matching reality."""
@@ -539,6 +519,33 @@ def test_type_specific_correlation_hints_are_narrower_than_general_hints() -> No
     assert _CORRELATION_TYPE_CAPABLE_TARGETS["temporal_ordered"] == (
         "opensearch-ppl",
     )
+
+
+def test_temporal_ordered_capable_target_really_converts() -> None:
+    """Keep the type-specific hint tied to a real converter outcome.
+
+    This establishes syntax conversion only. It deliberately does not claim
+    that a deployed OpenSearch installation will provide equivalent alerting
+    semantics for this correlation type.
+    """
+    from tools.convert_rule.convert_rule import _CORRELATION_TYPE_CAPABLE_TARGETS
+
+    rule = (
+        _PLUGIN_ROOT
+        / "resources"
+        / "examples"
+        / "initial_access"
+        / "observed_clawhavoc_claude_skills_t1195_002.yml"
+    ).read_text(encoding="utf-8")
+
+    for target in _CORRELATION_TYPE_CAPABLE_TARGETS["temporal_ordered"]:
+        result = convert_rule_body(rule, target=target)
+        assert result["ok"] is True, (
+            f"{target} is advertised for temporal_ordered but failed: "
+            f"{result.get('error')}"
+        )
+        assert result["target"] == target
+        assert result["query"]
 
 
 def test_unmeasured_correlation_type_does_not_receive_a_guessing_hint() -> None:
