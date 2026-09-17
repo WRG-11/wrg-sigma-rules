@@ -205,6 +205,10 @@ actor-review-queue modes always write their own versioned envelopes when
 mechanical queues: exact logic, same comparison shape with different numeric
 thresholds, and shared adjacent sidecar bytes. They are source-review inputs,
 not semantic-equivalence, attribution, provenance, or consolidation verdicts.
+Versioned duplicate-report envelopes also carry `skipped_files` for YAML files
+that the selected mode could not read, decode, or parse. The legacy default
+bare-list JSON remains unchanged; use `--json-envelope` when that visibility is
+needed in a default-mode automation.
 For a fixed corpus and option set, report arrays are emitted deterministically;
 JSON object-member order is not a compatibility guarantee, so consumers should
 parse fields rather than byte-diff raw JSON.

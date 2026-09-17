@@ -247,6 +247,8 @@ growth.
    numeric thresholds, and shared adjacent-sidecar bytes among actor-labelled
    `observed_*` files. These are advisory source-review inputs only: they do
    not infer semantic equivalence, attribution, provenance, or consolidation.
+   Its versioned reports also disclose mode-scoped unreadable or invalid YAML
+   paths, so a reduced queue cannot silently look like a clean scan.
 3. **Constrain backend claims with end-to-end fixtures.** Treat the measured
    correlation conversion gaps as capability boundaries. Add a backend only
    when its generated query and documented lossiness are proven by a fixture;

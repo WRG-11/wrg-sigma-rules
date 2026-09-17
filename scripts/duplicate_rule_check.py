@@ -57,6 +57,8 @@ def _fingerprint(doc: dict[str, Any]) -> tuple[tuple[str, ...], str, str] | None
 
 def find_groups(
     examples_dir: Path = EXAMPLES_DIR,
+    *,
+    skipped_files: list[str] | None = None,
 ) -> dict[tuple[Any, ...], list[str]]:
     groups: dict[tuple[Any, ...], list[str]] = defaultdict(list)
     for path in sorted(examples_dir.rglob("*.yml")):
@@ -64,6 +66,8 @@ def find_groups(
         try:
             docs = list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
         except (OSError, UnicodeDecodeError, yaml.YAMLError):
+            if skipped_files is not None:
+                skipped_files.append(rel)
             continue
         for doc in docs:
             if not isinstance(doc, dict):
@@ -146,6 +150,8 @@ def _sidecar_digest(path: Path) -> str | None:
 
 def find_exact_actor_logic_groups(
     examples_dir: Path = EXAMPLES_DIR,
+    *,
+    skipped_files: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Find exact structural duplicates among actor-labelled observed rules.
 
@@ -161,6 +167,8 @@ def find_exact_actor_logic_groups(
                 if isinstance(doc, dict)
             ]
         except (OSError, UnicodeDecodeError, yaml.YAMLError):
+            if skipped_files is not None:
+                skipped_files.append(path.relative_to(examples_dir).as_posix())
             continue
         actors = _actor_tags(docs)
         if not actors:
@@ -212,7 +220,11 @@ def _threshold_shape_document(
     return normalized
 
 
-def _actor_logic_records(examples_dir: Path) -> list[dict[str, Any]]:
+def _actor_logic_records(
+    examples_dir: Path,
+    *,
+    skipped_files: list[str] | None = None,
+) -> list[dict[str, Any]]:
     """Return deterministic facts about actor-labelled observed rule files."""
     records: list[dict[str, Any]] = []
     for path in sorted(examples_dir.rglob("observed_*.yml")):
@@ -223,6 +235,8 @@ def _actor_logic_records(examples_dir: Path) -> list[dict[str, Any]]:
                 if isinstance(document, dict)
             ]
         except (OSError, UnicodeDecodeError, yaml.YAMLError):
+            if skipped_files is not None:
+                skipped_files.append(path.relative_to(examples_dir).as_posix())
             continue
         actors = _actor_tags(documents)
         if not actors:
@@ -258,7 +272,11 @@ def _actor_logic_records(examples_dir: Path) -> list[dict[str, Any]]:
     return records
 
 
-def find_actor_review_queues(examples_dir: Path = EXAMPLES_DIR) -> dict[str, list[dict[str, Any]]]:
+def find_actor_review_queues(
+    examples_dir: Path = EXAMPLES_DIR,
+    *,
+    skipped_files: list[str] | None = None,
+) -> dict[str, list[dict[str, Any]]]:
     """Surface mechanical review candidates without judging their provenance.
 
     Exact logic, threshold-shape, and adjacent-sidecar-byte groupings are three
@@ -268,7 +286,7 @@ def find_actor_review_queues(examples_dir: Path = EXAMPLES_DIR) -> dict[str, lis
     by_logic: dict[str, list[dict[str, Any]]] = defaultdict(list)
     by_threshold_shape: dict[str, list[dict[str, Any]]] = defaultdict(list)
     by_sample: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for record in _actor_logic_records(examples_dir):
+    for record in _actor_logic_records(examples_dir, skipped_files=skipped_files):
         by_logic[record["logic_sha256"]].append(record)
         by_threshold_shape[record["threshold_shape_sha256"]].append(record)
         sample = record["adjacent_sample_sha256"]
@@ -341,8 +359,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[duplicate-check] examples directory unavailable: {args.examples_dir}", file=sys.stderr)
         return 2
 
+    skipped_files: list[str] = []
     if args.actor_review_queues:
-        queues = find_actor_review_queues(args.examples_dir)
+        queues = find_actor_review_queues(args.examples_dir, skipped_files=skipped_files)
         print("[duplicate-check] actor-labelled review queues (all advisory):")
         for name, groups in queues.items():
             print(f"  {name}: {len(groups)} group(s)")
@@ -351,6 +370,7 @@ def main(argv: list[str] | None = None) -> int:
         payload = {
             "contract": {**_REPORT_CONTRACT, "mode": "actor_review_queues"},
             "queues": queues,
+            "skipped_files": skipped_files,
             "limitations": (
                 "Mechanical grouping only; semantic equivalence, source attribution, "
                 "and consolidation are not assessed. Threshold-shape candidates do not "
@@ -358,7 +378,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
         }
     elif args.exact_actor_logic:
-        groups = find_exact_actor_logic_groups(args.examples_dir)
+        groups = find_exact_actor_logic_groups(args.examples_dir, skipped_files=skipped_files)
         if not groups:
             print("[duplicate-check] no exact actor-labelled logic duplicates")
         else:
@@ -378,13 +398,14 @@ def main(argv: list[str] | None = None) -> int:
         payload: Any = {
             "contract": _REPORT_CONTRACT,
             "groups": groups,
+            "skipped_files": skipped_files,
             "limitations": (
                 "Exact structural equality only; threshold equivalence, source "
                 "attribution, and consolidation are not assessed."
             ),
         }
     else:
-        groups = find_groups(args.examples_dir)
+        groups = find_groups(args.examples_dir, skipped_files=skipped_files)
 
         if not groups:
             print("[duplicate-check] no rules share an identical "
@@ -405,6 +426,7 @@ def main(argv: list[str] | None = None) -> int:
             {
                 "contract": _REPORT_CONTRACT,
                 "groups": groups,
+                "skipped_files": skipped_files,
                 "limitations": (
                     "Fingerprint equality only; source quality, actor attribution, "
                     "and consolidation are not assessed."
@@ -418,6 +440,10 @@ def main(argv: list[str] | None = None) -> int:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         print(f"[duplicate-check] wrote {args.json}")
+
+    if skipped_files:
+        print("[duplicate-check] skipped unreadable or invalid YAML file(s): "
+              + ", ".join(skipped_files))
 
     return 0  # advisory: never fails the build
 

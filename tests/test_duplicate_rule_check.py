@@ -95,6 +95,46 @@ def test_all_audit_modes_skip_an_undecodable_rule_file(tmp_path: Path) -> None:
         assert duplicate_rule_check.main([*mode, "--examples-dir", str(examples)]) == 0
 
 
+def test_enveloped_reports_expose_skipped_files_without_changing_bare_json(
+    tmp_path: Path,
+) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    (examples / "broken.yml").write_bytes(b"\xff\xfe\x00")
+    envelope = tmp_path / "envelope.json"
+    bare = tmp_path / "bare.json"
+
+    assert duplicate_rule_check.main(
+        [
+            "--examples-dir", str(examples), "--json", str(envelope),
+            "--json-envelope",
+        ]
+    ) == 0
+    assert duplicate_rule_check.main(
+        ["--examples-dir", str(examples), "--json", str(bare)]
+    ) == 0
+
+    assert json.loads(envelope.read_text(encoding="utf-8"))["skipped_files"] == [
+        "broken.yml"
+    ]
+    assert json.loads(bare.read_text(encoding="utf-8")) == []
+
+
+def test_actor_queue_envelope_exposes_mode_scoped_skipped_files(tmp_path: Path) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    (examples / "observed_broken.yml").write_bytes(b"\xff\xfe\x00")
+    report = tmp_path / "queue.json"
+
+    assert duplicate_rule_check.main(
+        ["--actor-review-queues", "--examples-dir", str(examples), "--json", str(report)]
+    ) == 0
+
+    assert json.loads(report.read_text(encoding="utf-8"))["skipped_files"] == [
+        "observed_broken.yml"
+    ]
+
+
 def test_actor_review_queues_keep_threshold_candidates_separate_from_exact_logic(
     tmp_path: Path,
 ) -> None:
