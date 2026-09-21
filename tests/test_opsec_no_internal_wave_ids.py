@@ -1,9 +1,8 @@
-"""OPSEC guard: no internal wave-dispatch identifiers in public tracked content.
+"""OPSEC guard: no internal routing identifiers in public tracked content.
 
-WinstonRedGuard's internal multi-agent workflow tags each unit of work with a
-wave-dispatch identifier of the form ``R<round>-<wave><agent-letter>`` (a capital
-R, digits, a dash, digits, and an optional lowercase agent letter). These encode
-internal fleet topology and must never ship in this public repo.
+An internal workflow can tag each unit of work with a private routing identifier.
+Those identifiers encode implementation metadata and must never ship in this
+public repo.
 
 They have leaked three times as corpus-migration provenance comments/docstrings,
 each caught *after* it was already public by a post-hoc opsec scan. This test
@@ -23,37 +22,28 @@ import pytest
 
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 
-# Internal fleet wave-dispatch id: R<round>-<wave><agent?>. IGNORECASE catches a
-# lowercased leak too; verified zero false-positives against the current corpus.
-# Word-bounded on purpose. Without `\b` this pattern matches INSIDE longer
-# identifiers: `GHSA-8jr5-6gvj-rfpf` (a real published advisory id, cited by a
-# detection note) embeds a run shaped exactly like a wave id.
-# Measured 2026-09-05: that false positive was the only thing standing between
-# a clean corpus and this gate, and a gate wider than its defect gets switched
-# off. The bounded form still catches every real wave id (a full
-# `R<round>-<wave><agent>` token or a bare lowercase run) -- so the narrowing costs
-# no detection power.
+# Internal routing id: a capital letter, digits, a dash, digits, and an
+# optional lowercase lane letter. IGNORECASE catches a lowercased leak too.
+# Word-bounded matching prevents the pattern from firing inside longer public
+# identifiers such as external advisory IDs. The allowlist below documents the
+# two known advisory-reference exceptions without repeating their contents.
 _WAVE_ID_RE = re.compile(r"\bR\d+-\d+[a-z]?\b", re.IGNORECASE)
 
 # Paths permitted to contain the pattern (documented exceptions only).
 #
-# gitlab_mcp_server rule: the GHSA advisory id it cites (see that file's
-# `references:` block -- an external, real GitHub Security Advisory id,
-# not written out again here to avoid re-tripping this same regex inside
-# this comment) contains a short digit-dash-digit-letter run that
-# coincidentally matches R\d+-\d+[a-z]? -- not an internal wave-dispatch
-# id. Confirmed: every match in that file resolves to a substring of that
-# one external id, quoted verbatim from the advisory URL.
+# gitlab_mcp_server rule: the external advisory id it cites (see that file's
+# `references:` block -- a real, public GitHub Security Advisory id, not
+# written out again here to avoid re-tripping the pattern inside this
+# comment) contains a short run that coincidentally matches the routing
+# pattern -- not a private routing id. Confirmed: every match in that file
+# resolves to a substring of that one external id, quoted verbatim from the
+# advisory URL.
 _ALLOWLIST: frozenset[str] = frozenset(
     {
         "resources/examples/initial_access/observed_gitlab_mcp_server_unauth_pat_abuse_t1190.yml",
-        # Same exemption, one file over: this note cites the published advisory
-        # id GHSA-8jr5-6gvj-rfpf, whose `8jr5-6gvj` component embeds a run -- shaped
-        # exactly like a wave id but part of a real, public GHSA number. The
-        # pattern is deliberately NOT narrowed (this file's own instruction),
-        # so the exemption is scoped to the one path that legitimately quotes
-        # an advisory id. Verified 2026-09-05: this file's only matches come
-        # from that advisory reference.
+        # Same exemption, one file over: this note quotes a public advisory ID
+        # whose characters happen to match the generic routing pattern. The
+        # exception is scoped to this path; the pattern itself stays strict.
         "docs/detection-notes/gitlab-mcp-server-unauth-pat-abuse-detection-2026-09-04.md",
     }
 )
@@ -74,7 +64,7 @@ def _tracked_files() -> list[str]:
 
 
 def test_no_internal_wave_dispatch_ids_in_tracked_content() -> None:
-    """Fail if any internal wave-dispatch id leaked into public tracked content."""
+    """Fail if any internal routing identifier leaked into public tracked content."""
     offenders: list[str] = []
     for rel in _tracked_files():
         if rel in _ALLOWLIST:
@@ -88,7 +78,7 @@ def test_no_internal_wave_dispatch_ids_in_tracked_content() -> None:
             offenders.append(f"{rel}:{line_no}: {match.group(0)}")
 
     assert not offenders, (
-        "Internal wave-dispatch id(s) leaked into public tracked content. "
+        "Internal routing identifier(s) leaked into public tracked content. "
         "Genericize them before publishing (drop the id, keep the meaning):\n  "
         + "\n  ".join(offenders)
     )
