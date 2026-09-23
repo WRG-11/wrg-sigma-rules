@@ -3,7 +3,7 @@
 [![tests](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml/badge.svg)](https://github.com/WRG-11/wrg-sigma-rules/actions/workflows/tests.yml)
 [![release](https://img.shields.io/github/v/release/WRG-11/wrg-sigma-rules)](https://github.com/WRG-11/wrg-sigma-rules/releases)
 [![last commit](https://img.shields.io/github/last-commit/WRG-11/wrg-sigma-rules)](https://github.com/WRG-11/wrg-sigma-rules/commits/main)
-[![sigma rules](https://img.shields.io/badge/sigma__rules-296-1f6feb)](resources/examples/INDEX.json)
+[![sigma rules](https://img.shields.io/badge/sigma__rules-299-1f6feb)](resources/examples/INDEX.json)
 [![license](https://img.shields.io/github/license/WRG-11/wrg-sigma-rules)](LICENSE)
 [![python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](requirements.txt)
 
@@ -22,7 +22,7 @@ It runs under Claude Code, Codex, Cursor and any MCP-capable client.
   evidence boundaries: coverage counts do not establish missing ATT&CK scope,
   conversion does not establish deployed semantics, and `observed_*` public
   contributions require the sourcing bar in `CONTRIBUTING.md`.
-- A published corpus of <!-- METRIC:sigma_rule_count -->296<!-- /METRIC:sigma_rule_count -->
+- A published corpus of <!-- METRIC:sigma_rule_count -->299<!-- /METRIC:sigma_rule_count -->
   rules across <!-- METRIC:tactic_category_count -->14<!-- /METRIC:tactic_category_count -->
   MITRE ATT&CK tactic categories. Every rule carries an honest Sigma `status:`
   (see [Rule status](#rule-status)).
@@ -150,7 +150,7 @@ This corpus uses Sigma's `status:` field literally rather than aspirationally:
 | `status:` | Count | Meaning here |
 |---|---|---|
 | `test` | <!-- METRIC:status_test_count -->82<!-- /METRIC:status_test_count --> | Derived from a real, cited incident (the `observed_*` rules) |
-| `experimental` | <!-- METRIC:status_experimental_count -->214<!-- /METRIC:status_experimental_count --> | Canonical detection shapes, many self-described as synthetic exemplars |
+| `experimental` | <!-- METRIC:status_experimental_count -->217<!-- /METRIC:status_experimental_count --> | Canonical detection shapes, many self-described as synthetic exemplars |
 | `stable` | <!-- METRIC:status_stable_count -->0<!-- /METRIC:status_stable_count --> | Unused, deliberately |
 
 `stable` in the Sigma specification means a rule runs in production and is well

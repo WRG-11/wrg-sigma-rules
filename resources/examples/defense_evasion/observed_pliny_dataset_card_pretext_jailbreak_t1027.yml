@@ -1,0 +1,64 @@
+title: Dataset-card pretext jailbreak frame in an LLM gateway prompt -- T1027
+id: 924c6c57-46f7-45d1-8647-758c395f1079
+status: experimental
+description: |
+  Detects the dataset-card pretext jailbreak framing publicly demonstrated by
+  Pliny the Liberator (@elder_plinius) against Google Gemini 3.5 Flash in May
+  2026. In the published autonomous jailbreaking run, a restricted request
+  was framed as filling in example records for an open-source HuggingFace
+  dataset card for a detection benchmark, and the model went on to produce
+  content beyond the initial request.
+
+  The rule matches the framing, not any restricted payload: an LLM gateway or
+  AI-proxy prompt that combines a HuggingFace dataset-card or model-card
+  structure with reviewer or placeholder pretext markers asking the model to
+  complete canonical example content.
+
+  The escalation observed in the run is behavioural, so pair this per-prompt
+  rule with a session-level breadth metric. LLM gateway prompt logging is not
+  yet standard SOC telemetry; bind the field names to your AI-proxy log
+  schema before deployment.
+references:
+  - https://x.com/elder_plinius/status/2056853157162999903
+  - https://huggingface.co/docs/hub/datasets-cards
+  - https://attack.mitre.org/techniques/T1027/
+author: WRG-11
+date: '2026-06-27'
+logsource:
+  category: application
+  product: llm_gateway
+  service: prompt_log
+detection:
+  selection_dataset_card_frame:
+    prompt|contains:
+      - dataset card
+      - dataset-card
+      - model card
+      - huggingface.co/docs/hub/datasets-cards
+      - '## Dataset Description'
+  selection_reviewer_placeholder_pretext:
+    prompt|contains:
+      - canonical example
+      - reviewer-auditable
+      - fill in the placeholder
+      - placeholder content for
+      - as if completing
+      - example values for the
+  condition: selection_dataset_card_frame and selection_reviewer_placeholder_pretext
+falsepositives:
+  - Data curation users drafting a real HuggingFace dataset card or model card;
+    scope by identity and by the absence of a restricted-content target in the
+    same session.
+  - AI-safety researchers exercising pretext-frame jailbreaks against a gateway
+    during an authorised evaluation.
+  - Template tooling that auto-populates dataset-card placeholders for open
+    dataset publication.
+level: medium
+tags:
+  - attack.defense_evasion
+  - attack.t1027
+  - wrg.observed
+  - wrg.observed.actor.pliny_the_liberator
+  - wrg.observed.novel.dataset_card_pretext_jailbreak
+  - wrg.severity.medium
+  - wrg.tactic.defense_evasion

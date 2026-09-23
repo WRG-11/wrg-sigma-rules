@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\wscript.exe", "QueryName": "generativelanguage.googleapis.com"}},
+  {"expect_match": false, "event": {"Image": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", "QueryName": "generativelanguage.googleapis.com"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\wscript.exe", "QueryName": "update.example.com"}}
+]

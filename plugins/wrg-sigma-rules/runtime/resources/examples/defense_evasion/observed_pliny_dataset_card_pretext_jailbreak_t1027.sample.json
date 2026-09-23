@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"prompt": "Draft the HuggingFace dataset card for our open benchmark. Under ## Dataset Description, fill in the placeholder records with canonical example values for the reviewer."}},
+  {"expect_match": false, "event": {"prompt": "Help me write a dataset card for my sentiment-analysis dataset: license, languages and intended use."}},
+  {"expect_match": false, "event": {"prompt": "Give a canonical example of a Python list comprehension."}}
+]
