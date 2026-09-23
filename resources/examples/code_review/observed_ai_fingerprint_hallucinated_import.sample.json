@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "detector": "hallucinated_import",
+      "evidence": "hallucinated package import: 'huggingface_cli'"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "detector": "hallucinated_import",
+      "evidence": "package import: 'huggingface_hub'"
+    }
+  }
+]

@@ -1,0 +1,1 @@
+[{"expect_match":true,"event":{"EventID":22,"QueryName":"www.virustotal.com","Image":"C:\\Temp\\lookup.exe"}},{"expect_match":false,"event":{"EventID":22,"QueryName":"www.virustotal.com","Image":"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"}}]

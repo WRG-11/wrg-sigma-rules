@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"EventID": 5140, "ShareName": "\\\\server\\ADMIN$", "AccountName": "operator"}},
+  {"expect_match": false, "event": {"EventID": 5140, "ShareName": "\\\\server\\ADMIN$", "AccountName": "SERVER$"}}
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "Image": "C:\\Windows\\System32\\cmd.exe",
+      "CommandLine": "cmd.exe /c tree /f C:\\Users"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "Image": "C:\\Windows\\System32\\cmd.exe",
+      "CommandLine": "cmd.exe /c dir C:\\Users"
+    }
+  }
+]

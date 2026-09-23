@@ -1,0 +1,378 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 0
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 1
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 2
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 3
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 4
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 5
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 6
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 7
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 8
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 9
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 10
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 11
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 12
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 13
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 14
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 15
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 16
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 17
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 18
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 19
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 20
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 21
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 22
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 23
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 24
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 25
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 26
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 27
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 28
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 29
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 30
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 0
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 1
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 2
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 3
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 4
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 5
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 6
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 7
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 8
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 9
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 10
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 11
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 12
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 13
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 14
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 15
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 16
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 17
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 18
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 19
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 20
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 21
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 22
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 23
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 24
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 25
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 26
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 27
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 28
+      },
+      {
+        "DestinationHostname": "c2.example.invalid",
+        "DestinationPort": 443,
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "Sequence": 29
+      }
+    ]
+  }
+]

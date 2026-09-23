@@ -1,0 +1,1 @@
+[{"expect_match":true,"event":{"cs-host":"www.linkedin.com","cs-uri-stem":"/signup","cs-user-agent":"Mozilla/5.0"}},{"expect_match":false,"event":{"cs-host":"www.linkedin.com","cs-uri-stem":"/signup","cs-user-agent":"BrandProtection/1.0"}}]

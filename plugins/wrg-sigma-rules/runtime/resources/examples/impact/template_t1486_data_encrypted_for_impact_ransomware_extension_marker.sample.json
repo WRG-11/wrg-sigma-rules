@@ -1,0 +1,176 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-00.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-01.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-02.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-03.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-04.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-05.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-06.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-07.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-08.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-09.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-10.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-11.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-12.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-13.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-14.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-15.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-16.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-17.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-18.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-19.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-20.locked"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-00.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-01.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-02.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-03.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-04.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-05.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-06.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-07.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-08.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-09.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-10.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-11.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-12.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-13.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-14.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-15.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-16.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-17.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-18.locked"
+      },
+      {
+        "Image": "C:\\Temp\\encryptor.exe",
+        "TargetFilename": "C:\\Data\\file-19.locked"
+      }
+    ]
+  }
+]

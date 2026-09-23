@@ -1,5 +1,16 @@
 [
-  {"expect_match": true, "event": {"ParentImage": "C:\\Program Files\\nodejs\\npm.cmd", "CommandLine": "node-gyp rebuild --release"}},
-  {"expect_match": false, "event": {"ParentImage": "C:\\Program Files\\nodejs\\npm.cmd", "CommandLine": "npm install express"}},
-  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "node-gyp rebuild --release"}}
+  {
+    "expect_match": true,
+    "events": [
+      {"Computer": "sample-host", "ParentImage": "C:\\Program Files\\nodejs\\npm.cmd", "CommandLine": "node-gyp rebuild --release", "timestamp": "2026-09-11T12:00:00+00:00"},
+      {"Computer": "sample-host", "Image": "C:\\Program Files\\bun\\bun.exe", "CommandLine": "bun.sh install", "timestamp": "2026-09-11T12:02:00+00:00"}
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {"Computer": "sample-host", "ParentImage": "C:\\Program Files\\nodejs\\npm.cmd", "CommandLine": "node-gyp rebuild --release", "timestamp": "2026-09-11T12:00:00+00:00"},
+      {"Computer": "sample-host", "Image": "C:\\Program Files\\bun\\bun.exe", "CommandLine": "bun.sh install", "timestamp": "2026-09-11T12:06:00+00:00"}
+    ]
+  }
 ]

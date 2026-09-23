@@ -169,11 +169,15 @@ jobs:
       # Gate, not advisory: a rule whose sidecar .sample.json no longer
       # matches its own detection: logic is a real regression (the rule
       # changed, or the sample did, and nobody re-checked the pairing) --
-      # not something to note and move past. Rules with NO sample yet are
-      # Every status:test rule MUST carry a sidecar, including event_count
-      # correlations whose sample supplies an event sequence.
+      # not something to note and move past.
+      # Every status:test rule and every correlation MUST carry a sidecar.
+      # Correlation samples supply an event sequence that proves their own
+      # count/value/time semantics, including experimental templates.
       - name: Verify sidecar samples still match their rule's own logic
-        run: python scripts/sample_match_gate.py --require-samples
+        run: >-
+          python scripts/sample_match_gate.py --require-samples
+          --require-correlation-samples --require-new-experimental-samples
+          --experimental-baseline resources/examples/EXPERIMENTAL_SAMPLE_EXCEPTION_BASELINE.json
 
   dependency-licenses:
     # Advisory, not a gate: a transitive dependency's license can change on a

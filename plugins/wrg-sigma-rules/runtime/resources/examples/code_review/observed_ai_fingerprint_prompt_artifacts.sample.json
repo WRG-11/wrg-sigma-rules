@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "detector": "prompt_artifacts",
+      "evidence": "System prompt starts: Core Judgment Rules:"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "detector": "prompt_artifacts",
+      "evidence": "Configuration key: review rules"
+    }
+  }
+]

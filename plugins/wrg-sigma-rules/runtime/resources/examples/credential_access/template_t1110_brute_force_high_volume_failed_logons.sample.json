@@ -1,0 +1,138 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 0
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 1
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 2
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 3
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 4
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 5
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 6
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 7
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 8
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 9
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 10
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 0
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 1
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 2
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 3
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 4
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 5
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 6
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 7
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 8
+      },
+      {
+        "EventID": 4625,
+        "LogonType": 3,
+        "SourceIP": "198.51.100.10",
+        "Sequence": 9
+      }
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "detector": "docstring_density",
+      "evidence": "metrics docstring_ratio=0.62"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "detector": "docstring_density",
+      "evidence": "metrics docstring_ratio=0.12"
+    }
+  }
+]

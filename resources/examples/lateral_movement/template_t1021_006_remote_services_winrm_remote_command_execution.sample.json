@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"ParentImage": "C:\\Windows\\System32\\wsmprovhost.exe", "Image": "C:\\Windows\\System32\\whoami.exe"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\wsmprovhost.exe", "Image": "C:\\Windows\\System32\\notepad.exe"}}
+]

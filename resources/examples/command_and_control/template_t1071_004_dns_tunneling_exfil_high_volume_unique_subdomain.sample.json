@@ -1,0 +1,18 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "EventID": 1,
+      "QueryName": "mfrggzdf.exfil.example.invalid",
+      "SourceIP": "198.51.100.10"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "EventID": 3,
+      "QueryName": "www.example.com",
+      "SourceIP": "198.51.100.10"
+    }
+  }
+]

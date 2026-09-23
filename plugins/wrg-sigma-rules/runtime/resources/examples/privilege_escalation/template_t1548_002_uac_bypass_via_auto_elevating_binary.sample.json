@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"ParentImage": "C:\\Windows\\System32\\fodhelper.exe", "Image": "C:\\Windows\\System32\\cmd.exe"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\fodhelper.exe", "Image": "C:\\Windows\\System32\\notepad.exe"}}
+]

@@ -1,0 +1,34 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "Computer": "sample-host",
+        "Image": "C:\\Windows\\System32\\vssadmin.exe",
+        "CommandLine": "vssadmin delete shadows /all",
+        "timestamp": "2026-09-11T12:00:00+00:00"
+      },
+      {
+        "Computer": "sample-host",
+        "TargetFilename": "C:\\Data\\financials.locked",
+        "timestamp": "2026-09-11T12:02:00+00:00"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "Computer": "sample-host",
+        "Image": "C:\\Windows\\System32\\vssadmin.exe",
+        "CommandLine": "vssadmin delete shadows /all",
+        "timestamp": "2026-09-11T12:00:00+00:00"
+      },
+      {
+        "Computer": "sample-host",
+        "TargetFilename": "C:\\Data\\financials.locked",
+        "timestamp": "2026-09-11T12:31:00+00:00"
+      }
+    ]
+  }
+]

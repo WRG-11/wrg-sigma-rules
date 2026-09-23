@@ -1,0 +1,47 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "EventID": 4738,
+        "ObjectName": "CN=MFA Policy",
+        "Sequence": 0
+      },
+      {
+        "EventID": 4738,
+        "ObjectName": "CN=MFA Policy",
+        "Sequence": 1
+      },
+      {
+        "EventID": 4738,
+        "ObjectName": "CN=MFA Policy",
+        "Sequence": 2
+      },
+      {
+        "EventID": 4738,
+        "ObjectName": "CN=MFA Policy",
+        "Sequence": 3
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "EventID": 4738,
+        "ObjectName": "CN=MFA Policy",
+        "Sequence": 0
+      },
+      {
+        "EventID": 4738,
+        "ObjectName": "CN=MFA Policy",
+        "Sequence": 1
+      },
+      {
+        "EventID": 4738,
+        "ObjectName": "CN=MFA Policy",
+        "Sequence": 2
+      }
+    ]
+  }
+]

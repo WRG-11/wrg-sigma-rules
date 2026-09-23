@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "detector": "ansi_color_class",
+      "evidence": "class Colors: RED = '\\033[91m'"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "detector": "ansi_color_class",
+      "evidence": "import rich.console"
+    }
+  }
+]

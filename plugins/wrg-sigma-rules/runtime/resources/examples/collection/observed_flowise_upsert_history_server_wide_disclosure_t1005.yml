@@ -49,10 +49,9 @@ falsepositives:
   the returned body was actually scoped correctly; correlate with
   response body size to confirm a disproportionate, multi-tenant
   response was returned
-- Pattern library v1 -- review for environment-specific tuning before
-  deployment; a precise size-based threshold requires web server access
-  logs that capture response byte count, which not all deployments
-  enable by default
+- Reverse-proxy access logs that omit response-byte fields, where this
+  endpoint-only rule is used as a temporary investigation lead until byte
+  logging and a size threshold can be enabled
 level: high
 tags:
 - attack.t1005

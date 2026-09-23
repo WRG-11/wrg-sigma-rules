@@ -1,0 +1,14 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "TargetObject": "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\notepad.exe\\Debugger"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "TargetObject": "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\notepad.exe\\GlobalFlag"
+    }
+  }
+]

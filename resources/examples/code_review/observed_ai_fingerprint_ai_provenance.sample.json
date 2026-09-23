@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "detector": "ai_provenance",
+      "evidence": "provenance marker: 'co-authored-by: claude'"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "detector": "ai_provenance",
+      "evidence": "provenance marker: 'co-authored-by: human'"
+    }
+  }
+]
