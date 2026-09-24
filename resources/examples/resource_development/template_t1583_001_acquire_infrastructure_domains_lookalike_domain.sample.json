@@ -1,0 +1,1 @@
+[{"expect_match":true,"event":{"cs-uri-query":"new-domain=true","cs-host":"bbc-news-press.example"}},{"expect_match":false,"event":{"cs-uri-query":"new-domain=true","cs-host":"bbc.com"}}]

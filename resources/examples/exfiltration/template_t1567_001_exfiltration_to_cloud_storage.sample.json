@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "DestinationHostname": "content.dropboxusercontent.com",
+      "DestinationPort": 443
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "DestinationHostname": "updates.example.com",
+      "DestinationPort": 443
+    }
+  }
+]

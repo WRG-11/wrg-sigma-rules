@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Program Files\\7-Zip\\7z.exe", "CommandLine": "7z a C:\\Temp\\docs.7z C:\\Users\\alex\\Documents"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\notepad.exe", "CommandLine": "notepad C:\\Users\\alex\\Documents\\notes.txt"}}
+]

@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"EventID": 4624, "LogonType": 10, "TargetUserName": "operator"}},
+  {"expect_match": false, "event": {"EventID": 4624, "LogonType": 10, "TargetUserName": "admin_dave"}}
+]

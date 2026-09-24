@@ -23,12 +23,13 @@ examples). Two kinds of entries are meaningful:
   shown to reject anything, which is exactly the asymmetry this gate is
   built to catch.
 
-For a base-rule plus ``event_count`` correlation, use the same shape with an
-``events`` list instead of ``event``. The gate first evaluates the named base
-rule for every event, groups matching events using the correlation's
-``group-by`` fields, and then evaluates its ``gt``/``gte`` threshold. This is
-deliberately only the correlation form used by this corpus; an unsupported
-correlation is an error, never a silently passing sample.
+For a correlation, use the same shape with an ``events`` list instead of
+``event``. ``event_count`` samples prove their ``gt``/``gte`` threshold.
+``value_count`` samples prove the number of distinct field values in a group.
+``temporal`` and ``temporal_ordered`` samples provide source-order events with
+ISO-8601 ``timestamp`` values, so the gate can prove the configured time
+window (and named-rule ordering for the latter). An unsupported correlation is
+an error, never a silently passing sample.
 
 This is advisory by default. ``--require-samples`` applies the requirement
 to every ``status: test`` rule. ``--require-new-samples`` makes it a CI
@@ -53,18 +54,25 @@ the same way a probe that ran and found nothing does.
 Usage:
     python scripts/sample_match_gate.py                    # advisory report
     python scripts/sample_match_gate.py --require-samples  # every status:test needs a sample
+    python scripts/sample_match_gate.py --require-correlation-samples  # every correlation needs a sequence sample
     python scripts/sample_match_gate.py --require-new-samples --baseline path/to/reviewed-baseline.json
+    python scripts/sample_match_gate.py --require-new-experimental-samples --experimental-baseline resources/examples/EXPERIMENTAL_SAMPLE_EXCEPTION_BASELINE.json
     python scripts/sample_match_gate.py --json out.json
 
-The repository CI uses the stricter ``--require-samples`` path. The optional
-baseline mode is only for a deliberate staged-policy migration and requires an
-explicit, reviewed file; this repository ships no grandfathered baseline.
+The repository CI uses the stricter ``--require-samples`` path for
+``status: test`` rules, so the optional status:test baseline mode is only for
+a deliberate staged-policy migration and this repository ships no
+grandfathered status:test baseline. Experimental rules are ratcheted instead:
+``EXPERIMENTAL_SAMPLE_EXCEPTION_BASELINE.json`` enumerates the reviewed
+pre-policy debt, any new experimental rule without a sidecar fails, and
+entries are removed as the existing debt is covered.
 """
 from __future__ import annotations
 
 import ast
 
 import argparse
+from datetime import datetime, timedelta
 import ipaddress
 import json
 import re
@@ -279,13 +287,29 @@ def _load_docs(path: Path) -> list[dict[str, Any]]:
 
 
 def _correlation_fires(docs: list[dict[str, Any]], events: list[dict[str, Any]]) -> bool:
-    """Evaluate the repository's event_count correlation shape over *events*."""
+    """Evaluate the repository-supported correlation shapes over *events*."""
     correlation_doc = next((doc for doc in reversed(docs) if "correlation" in doc), None)
     if not correlation_doc:
         raise EvaluatorError("correlation document not found")
     correlation = correlation_doc["correlation"]
-    if not isinstance(correlation, dict) or correlation.get("type") != "event_count":
-        raise EvaluatorError("only event_count correlations are supported")
+    if not isinstance(correlation, dict):
+        raise EvaluatorError("correlation must be an object")
+    correlation_type = correlation.get("type")
+    if correlation_type == "event_count":
+        return _event_count_correlation_fires(docs, correlation, events)
+    if correlation_type == "value_count":
+        return _value_count_correlation_fires(docs, correlation, events)
+    if correlation_type == "temporal":
+        return _temporal_correlation_fires(docs, correlation, events)
+    if correlation_type == "temporal_ordered":
+        return _temporal_ordered_correlation_fires(docs, correlation, events)
+    raise EvaluatorError(f"unsupported correlation type {correlation_type!r}")
+
+
+def _event_count_correlation_fires(
+    docs: list[dict[str, Any]], correlation: dict[str, Any], events: list[dict[str, Any]]
+) -> bool:
+    """Evaluate an event_count correlation over *events*."""
     rule_names = correlation.get("rules")
     if not isinstance(rule_names, list) or len(rule_names) != 1 or not isinstance(rule_names[0], str):
         raise EvaluatorError("event_count correlation must name exactly one base rule")
@@ -313,6 +337,172 @@ def _correlation_fires(docs: list[dict[str, Any]], events: list[dict[str, Any]])
     if operator == "gte":
         return any(count >= threshold for count in counts.values())
     raise EvaluatorError(f"unsupported event_count threshold {operator!r}")
+
+
+def _base_rule(docs: list[dict[str, Any]], name: str) -> dict[str, Any]:
+    base_rule = next((doc for doc in docs if doc.get("name") == name), None)
+    if not isinstance(base_rule, dict):
+        raise EvaluatorError(f"base rule {name!r} not found")
+    return base_rule
+
+
+def _threshold_fires(values: dict[tuple[Any, ...], set[Any]], condition: dict[str, Any]) -> bool:
+    if len(condition) != 2 or not isinstance(condition.get("field"), str):
+        raise EvaluatorError("value_count condition needs one field and one threshold")
+    threshold_items = [(operator, threshold) for operator, threshold in condition.items() if operator != "field"]
+    operator, threshold = threshold_items[0]
+    if not isinstance(threshold, int):
+        raise EvaluatorError("value_count threshold must be an integer")
+    if operator == "gt":
+        return any(len(group_values) > threshold for group_values in values.values())
+    if operator == "gte":
+        return any(len(group_values) >= threshold for group_values in values.values())
+    raise EvaluatorError(f"unsupported value_count threshold {operator!r}")
+
+
+def _value_count_correlation_fires(
+    docs: list[dict[str, Any]], correlation: dict[str, Any], events: list[dict[str, Any]]
+) -> bool:
+    """Evaluate a value_count correlation over distinct values per group."""
+    rule_names = correlation.get("rules")
+    if not isinstance(rule_names, list) or len(rule_names) != 1 or not isinstance(rule_names[0], str):
+        raise EvaluatorError("value_count correlation must name exactly one base rule")
+    base_rule = _base_rule(docs, rule_names[0])
+    group_by = correlation.get("group-by", [])
+    if not isinstance(group_by, list) or not all(isinstance(field, str) for field in group_by):
+        raise EvaluatorError("correlation group-by must be a list of field names")
+    condition = correlation.get("condition")
+    if not isinstance(condition, dict):
+        raise EvaluatorError("value_count correlation needs an object condition")
+    field = condition.get("field")
+    if not isinstance(field, str):
+        raise EvaluatorError("value_count condition field must be a string")
+    values: dict[tuple[Any, ...], set[Any]] = {}
+    for event in events:
+        if not isinstance(event, dict):
+            raise EvaluatorError("correlation sample events must be objects")
+        if rule_fires(base_rule, event) and event.get(field) is not None:
+            key = tuple(event.get(group_field) for group_field in group_by)
+            values.setdefault(key, set()).add(event[field])
+    return _threshold_fires(values, condition)
+
+
+def _parse_timespan(value: Any) -> timedelta:
+    if not isinstance(value, str):
+        raise EvaluatorError("correlation timespan must be a string such as '5m'")
+    match = re.fullmatch(r"(\d+)([smhd])", value)
+    if not match:
+        raise EvaluatorError(f"unsupported correlation timespan {value!r}")
+    amount, unit = match.groups()
+    keyword = {"s": "seconds", "m": "minutes", "h": "hours", "d": "days"}[unit]
+    return timedelta(**{keyword: int(amount)})
+
+
+def _event_timestamp(event: dict[str, Any]) -> datetime:
+    value = event.get("timestamp")
+    if not isinstance(value, str):
+        raise EvaluatorError("temporal_ordered sample events require an ISO-8601 'timestamp'")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise EvaluatorError(f"invalid temporal_ordered event timestamp {value!r}") from exc
+    if parsed.tzinfo is None:
+        raise EvaluatorError("temporal_ordered event timestamps must include a timezone")
+    return parsed
+
+
+def _temporal_correlation_fires(
+    docs: list[dict[str, Any]], correlation: dict[str, Any], events: list[dict[str, Any]]
+) -> bool:
+    """Find distinct named base-rule matches in one group and time window."""
+    rule_names = correlation.get("rules")
+    if not isinstance(rule_names, list) or len(rule_names) < 2 or not all(
+        isinstance(name, str) for name in rule_names
+    ):
+        raise EvaluatorError("temporal correlation must name at least two base rules")
+    base_rules = [_base_rule(docs, name) for name in rule_names]
+    group_by = correlation.get("group-by", [])
+    if not isinstance(group_by, list) or not all(isinstance(field, str) for field in group_by):
+        raise EvaluatorError("correlation group-by must be a list of field names")
+    timespan = _parse_timespan(correlation.get("timespan"))
+    grouped: dict[tuple[Any, ...], list[tuple[dict[str, Any], datetime]]] = {}
+    for event in events:
+        if not isinstance(event, dict):
+            raise EvaluatorError("correlation sample events must be objects")
+        key = tuple(event.get(field) for field in group_by)
+        grouped.setdefault(key, []).append((event, _event_timestamp(event)))
+
+    for grouped_events in grouped.values():
+        matches = [
+            [index for index, (event, _) in enumerate(grouped_events) if rule_fires(rule, event)]
+            for rule in base_rules
+        ]
+        if any(not candidates for candidates in matches):
+            continue
+
+        def has_window(stage: int, selected: list[int]) -> bool:
+            if stage == len(matches):
+                timestamps = [grouped_events[index][1] for index in selected]
+                return max(timestamps) - min(timestamps) <= timespan
+            return any(
+                index not in selected and has_window(stage + 1, [*selected, index])
+                for index in matches[stage]
+            )
+
+        if has_window(0, []):
+            return True
+    return False
+
+
+def _temporal_ordered_correlation_fires(
+    docs: list[dict[str, Any]], correlation: dict[str, Any], events: list[dict[str, Any]]
+) -> bool:
+    """Find an ordered, same-group base-rule sequence inside its time window."""
+    rule_names = correlation.get("rules")
+    if not isinstance(rule_names, list) or len(rule_names) < 2 or not all(
+        isinstance(name, str) for name in rule_names
+    ):
+        raise EvaluatorError("temporal_ordered correlation must name at least two base rules")
+    base_rules = []
+    for name in rule_names:
+        base_rule = next((doc for doc in docs if doc.get("name") == name), None)
+        if not isinstance(base_rule, dict):
+            raise EvaluatorError(f"base rule {name!r} not found")
+        base_rules.append(base_rule)
+    group_by = correlation.get("group-by", [])
+    if not isinstance(group_by, list) or not all(isinstance(field, str) for field in group_by):
+        raise EvaluatorError("correlation group-by must be a list of field names")
+    timespan = _parse_timespan(correlation.get("timespan"))
+
+    grouped: dict[tuple[Any, ...], list[tuple[dict[str, Any], datetime]]] = {}
+    for event in events:
+        if not isinstance(event, dict):
+            raise EvaluatorError("correlation sample events must be objects")
+        key = tuple(event.get(field) for field in group_by)
+        grouped.setdefault(key, []).append((event, _event_timestamp(event)))
+
+    for grouped_events in grouped.values():
+        stage = 0
+        first_timestamp: datetime | None = None
+        previous_timestamp: datetime | None = None
+        for event, timestamp in grouped_events:
+            if previous_timestamp is not None and timestamp < previous_timestamp:
+                raise EvaluatorError(
+                    "temporal_ordered sample events must be in non-decreasing timestamp order"
+                )
+            previous_timestamp = timestamp
+            if rule_fires(base_rules[stage], event):
+                first_timestamp = first_timestamp or timestamp
+                if timestamp - first_timestamp > timespan:
+                    stage = 0
+                    first_timestamp = None
+                    if not rule_fires(base_rules[stage], event):
+                        continue
+                    first_timestamp = timestamp
+                stage += 1
+                if stage == len(base_rules):
+                    return True
+    return False
 
 
 def check_rule(rule_path: Path) -> RuleCheck:
@@ -347,14 +537,14 @@ def check_rule(rule_path: Path) -> RuleCheck:
 
     saw_positive = False
     saw_negative = False
-    correlation_requires_sequence = "correlation" in rule_doc and status == "test"
+    correlation_requires_sequence = "correlation" in rule_doc
     if correlation_requires_sequence and any(
         not isinstance(case, dict) or "events" not in case for case in cases
     ):
         check.ok = False
         check.sample_results.append(
-            "ERR: status:test event_count correlation requires an 'events' "
-            "sequence to prove its threshold, not only a base-rule event"
+            "ERR: correlation requires an 'events' sequence to prove its "
+            "threshold or ordering, not only a base-rule event"
         )
     for i, case in enumerate(cases):
         if not isinstance(case, dict):
@@ -409,16 +599,16 @@ def check_rule(rule_path: Path) -> RuleCheck:
     return check
 
 
-def _load_baseline(path: Path) -> set[str]:
+def _load_baseline(path: Path, field: str) -> set[str]:
     """Read the explicit, reviewable allowlist for pre-policy sample debt."""
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise ValueError(f"could not read sample baseline {path}: {exc}") from exc
-    rules = payload.get("missing_status_test_samples") if isinstance(payload, dict) else None
+    rules = payload.get(field) if isinstance(payload, dict) else None
     if not isinstance(rules, list) or not all(isinstance(rule, str) for rule in rules):
         raise ValueError(
-            f"sample baseline {path} must contain a string-list 'missing_status_test_samples'"
+            f"sample baseline {path} must contain a string-list {field!r}"
         )
     return set(rules)
 
@@ -427,10 +617,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--require-samples", action="store_true",
                         help="fail if any status:test rule has no sidecar sample")
+    parser.add_argument("--require-correlation-samples", action="store_true",
+                        help="fail if any correlation rule has no sidecar sample")
     parser.add_argument("--require-new-samples", action="store_true",
                         help="fail missing status:test samples not listed in --baseline")
     parser.add_argument("--baseline", metavar="PATH", default=None,
                         help="reviewed allowlist for status:test rules predating this policy")
+    parser.add_argument("--require-new-experimental-samples", action="store_true",
+                        help="fail missing experimental-rule samples not listed in --experimental-baseline")
+    parser.add_argument("--experimental-baseline", metavar="PATH", default=None,
+                        help="reviewed allowlist for experimental rules predating the sample policy")
     parser.add_argument("--json", metavar="PATH", default=None)
     args = parser.parse_args(argv)
 
@@ -440,19 +636,42 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.require_new_samples and not args.baseline:
         parser.error("--require-new-samples requires --baseline")
+    if args.require_new_experimental_samples and not args.experimental_baseline:
+        parser.error("--require-new-experimental-samples requires --experimental-baseline")
 
-    checks = [check_rule(p) for p in sorted(EXAMPLES_DIR.rglob("*.yml"))]
+    rule_paths = sorted(EXAMPLES_DIR.rglob("*.yml"))
+    checks = [check_rule(path) for path in rule_paths]
     with_sample = [c for c in checks if c.has_sample]
     without_sample_test_status = [c for c in checks if not c.has_sample and c.status == "test"]
+    without_sample_experimental = [
+        c for c in checks if not c.has_sample and c.status == "experimental"
+    ]
+    without_sample_correlation = [
+        (path, check)
+        for path, check in zip(rule_paths, checks)
+        if not check.has_sample and "correlation" in (_load_docs(path)[-1] if _load_docs(path) else {})
+    ]
     failing = [c for c in with_sample if not c.ok]
     baseline: set[str] = set()
+    experimental_baseline: set[str] = set()
     if args.baseline:
         try:
-            baseline = _load_baseline(Path(args.baseline))
+            baseline = _load_baseline(Path(args.baseline), "missing_status_test_samples")
         except ValueError as exc:
             print(f"[sample-match-gate] ERROR: {exc}", file=sys.stderr)
             return 2
     newly_missing = [c for c in without_sample_test_status if c.relpath not in baseline]
+    if args.experimental_baseline:
+        try:
+            experimental_baseline = _load_baseline(
+                Path(args.experimental_baseline), "missing_experimental_samples"
+            )
+        except ValueError as exc:
+            print(f"[sample-match-gate] ERROR: {exc}", file=sys.stderr)
+            return 2
+    newly_missing_experimental = [
+        c for c in without_sample_experimental if c.relpath not in experimental_baseline
+    ]
 
     print(f"[sample-match-gate] {len(with_sample)}/{len(checks)} rules have a sidecar sample")
     for c in with_sample:
@@ -466,6 +685,11 @@ def main(argv: list[str] | None = None) -> int:
         for c in without_sample_test_status:
             print(f"  {c.relpath}")
 
+    if without_sample_correlation:
+        print(f"\n[sample-match-gate] {len(without_sample_correlation)} correlation rule(s) with NO sample:")
+        for _, c in without_sample_correlation:
+            print(f"  {c.relpath}")
+
     if args.json:
         payload = {
             "with_sample": [
@@ -473,7 +697,9 @@ def main(argv: list[str] | None = None) -> int:
                 for c in with_sample
             ],
             "test_status_missing_sample": [c.relpath for c in without_sample_test_status],
+            "correlation_missing_sample": [c.relpath for _, c in without_sample_correlation],
             "new_test_status_missing_sample": [c.relpath for c in newly_missing],
+            "new_experimental_missing_sample": [c.relpath for c in newly_missing_experimental],
         }
         Path(args.json).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
@@ -483,10 +709,22 @@ def main(argv: list[str] | None = None) -> int:
     if args.require_samples and without_sample_test_status:
         print(f"\n[sample-match-gate] FAIL: --require-samples set, {len(without_sample_test_status)} status:test rule(s) missing a sample")
         return 1
+    if args.require_correlation_samples and without_sample_correlation:
+        print(
+            f"\n[sample-match-gate] FAIL: --require-correlation-samples set, "
+            f"{len(without_sample_correlation)} correlation rule(s) missing a sample"
+        )
+        return 1
     if args.require_new_samples and newly_missing:
         print(
             f"\n[sample-match-gate] FAIL: {len(newly_missing)} new status:test rule(s) "
             "missing a sample (not in the reviewed baseline)"
+        )
+        return 1
+    if args.require_new_experimental_samples and newly_missing_experimental:
+        print(
+            f"\n[sample-match-gate] FAIL: {len(newly_missing_experimental)} new experimental "
+            "rule(s) missing a sample (not in the reviewed baseline)"
         )
         return 1
     print("\n[sample-match-gate] ok")

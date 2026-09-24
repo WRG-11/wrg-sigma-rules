@@ -11,6 +11,46 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [1.10.1] - 2026-09-23
+
+Sample-coverage and source-accuracy release. Corpus 296 → 299 rules; rules
+with a sidecar sample 197 → 236, rules without one 99 → 63.
+
+### Added
+- **Sidecar samples for 36 existing rules** (26 templates, 10 observed): C2,
+  credential access, lateral movement, persistence, exfiltration, discovery,
+  DNS tunneling, resource development, UAC bypass, collection and AI
+  fingerprint, each with matching and non-matching cases.
+- **Three hosted-LLM abuse rules**, all `experimental` with sidecar samples
+  and a companion detection note:
+  - Gemini API resolved by a Windows scripting host (the PROMPTFLUX /
+    HONESTCUE network surface, `dns_query`).
+  - PROMPTFLUX self-regeneration artefacts: its model-response log and a
+    Windows Script Host write into a Startup folder (`file_event`).
+  - Dataset-card pretext jailbreak frame in an LLM gateway prompt log.
+  Attribution follows the GTIG sources: neither malware family is attributed
+  to a named actor there, so neither rule names one.
+- `--require-correlation-samples`: every correlation must carry an event
+  sequence sample. The gate now proves `value_count`, `temporal` and
+  `temporal_ordered` semantics in addition to `event_count`.
+- `--require-new-experimental-samples`: a new `experimental` rule without a
+  sidecar fails CI. The 63 pre-policy rules are listed in
+  `EXPERIMENTAL_SAMPLE_EXCEPTION_BASELINE.json`, and entries are removed as
+  that debt is covered. `status: test` rules still need a sample with no
+  baseline.
+
+### Changed
+- Three existing supply-chain sidecars rewritten as timestamped event
+  sequences, and one placeholder false-positive note replaced with a
+  concrete deployment condition.
+
+### Fixed
+- Pin `pyparsing` below 3.3.3, which breaks pySigma correlation conversion
+  ("'str' object is not callable"), in both the root and packaged-runtime
+  requirements (#86).
+- The leak-guard test no longer describes the identifier grammar it guards
+  against (#85).
+
 ## [1.10.0] - 2026-09-17
 
 Provenance and supply-chain hardening release. Corpus 296 → 296 rules

@@ -1,0 +1,1 @@
+[{"expect_match":true,"event":{"EventID":22,"QueryName":"newly-registered.example"}},{"expect_match":false,"event":{"EventID":22,"QueryName":"established.example"}}]

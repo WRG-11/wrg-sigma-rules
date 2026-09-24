@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"TargetFilename": "C:\\Users\\alex\\mail.pst", "Image": "C:\\Temp\\collector.exe"}},
+  {"expect_match": false, "event": {"TargetFilename": "C:\\Users\\alex\\mail.pst", "Image": "C:\\Program Files\\Microsoft Office\\root\\Office16\\outlook.exe"}}
+]

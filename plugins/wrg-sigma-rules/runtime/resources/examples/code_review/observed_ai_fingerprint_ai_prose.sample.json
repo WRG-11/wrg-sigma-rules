@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "detector": "ai_prose",
+      "evidence": "scan ai_phrase: 'it is worth noting'; ai_vocab: delve, meticulous"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "detector": "ai_prose",
+      "evidence": "human-authored release notes"
+    }
+  }
+]

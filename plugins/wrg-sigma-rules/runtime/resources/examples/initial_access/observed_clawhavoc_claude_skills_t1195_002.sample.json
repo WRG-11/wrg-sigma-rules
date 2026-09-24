@@ -1,5 +1,16 @@
 [
-  {"expect_match": true, "event": {"ParentImage": "C:\\Users\\dev\\AppData\\Local\\Programs\\claude\\claude.exe", "Image": "C:\\Windows\\System32\\curl.exe", "CommandLine": "curl .claude/skills/malicious/SKILL.md"}},
-  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\cmd.exe", "Image": "C:\\Windows\\System32\\curl.exe", "CommandLine": "curl .claude/skills/malicious/SKILL.md"}},
-  {"expect_match": false, "event": {"ParentImage": "C:\\Users\\dev\\AppData\\Local\\Programs\\claude\\claude.exe", "Image": "C:\\Windows\\System32\\curl.exe", "CommandLine": "curl https://api.anthropic.com/v1/messages"}}
+  {
+    "expect_match": true,
+    "events": [
+      {"Computer": "sample-host", "ParentImage": "C:\\Users\\dev\\AppData\\Local\\Programs\\claude\\claude.exe", "Image": "C:\\Windows\\System32\\curl.exe", "CommandLine": "curl .claude/skills/malicious/SKILL.md", "timestamp": "2026-09-11T12:00:00+00:00"},
+      {"Computer": "sample-host", "ParentImage": "C:\\Program Files\\nodejs\\node.exe", "Image": "C:\\Program Files\\nodejs\\node.exe", "CommandLine": "node scan .npmrc", "timestamp": "2026-09-11T12:02:00+00:00"}
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {"Computer": "sample-host", "ParentImage": "C:\\Users\\dev\\AppData\\Local\\Programs\\claude\\claude.exe", "Image": "C:\\Windows\\System32\\curl.exe", "CommandLine": "curl .claude/skills/malicious/SKILL.md", "timestamp": "2026-09-11T12:00:00+00:00"},
+      {"Computer": "sample-host", "ParentImage": "C:\\Program Files\\nodejs\\node.exe", "Image": "C:\\Program Files\\nodejs\\node.exe", "CommandLine": "node scan .npmrc", "timestamp": "2026-09-11T12:06:00+00:00"}
+    ]
+  }
 ]

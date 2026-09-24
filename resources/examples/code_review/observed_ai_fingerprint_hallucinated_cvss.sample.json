@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "detector": "hallucinated_cvss",
+      "evidence": "# CVSS 9.8 critical (hallucinated)"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "detector": "hallucinated_cvss",
+      "evidence": "# CVSS assessment documented in review"
+    }
+  }
+]

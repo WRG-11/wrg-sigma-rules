@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/sites/finance/_api/web/lists", "sc-status": 200}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/sites/finance/_api/web/lists", "sc-status": 404}}
+]

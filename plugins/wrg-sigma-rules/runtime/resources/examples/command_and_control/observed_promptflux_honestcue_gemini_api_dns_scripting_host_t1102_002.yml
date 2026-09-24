@@ -1,0 +1,66 @@
+title: PROMPTFLUX / HONESTCUE pattern -- Gemini API resolved by a scripting host -- T1102.002
+id: 18100830-e9ec-4a11-b242-6cc2299c1736
+status: experimental
+description: |
+  Detects a Windows scripting host resolving the Google Gemini API host
+  (generativelanguage.googleapis.com). Google Threat Intelligence Group
+  (GTIG) reports AI-augmented malware families that call the Gemini API at
+  runtime instead of shipping their evasion logic statically: PROMPTFLUX, a
+  VBScript dropper that sends a POST request to the Gemini API with a
+  hard-coded key and asks the model to rewrite its own source code, and
+  HONESTCUE, which requests VBScript obfuscation and evasion techniques from
+  the Gemini API for just-in-time self-modification.
+
+  GTIG does not attribute either family to a named threat actor; the
+  November 2025 report notes PROMPTFLUX filenames suggest financially
+  motivated operators. This rule is therefore keyed on the behaviour, not on
+  an actor.
+
+  Legitimate Gemini integrations resolve the same host, so the rule narrows
+  on the resolving process: wscript, cscript and mshta resolving a hosted
+  LLM API are uncommon in benign software. PowerShell and the LOLBin hosts
+  are included because they are common launchers for the same script
+  payloads, and are the main false-positive surface.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/threat-actor-usage-of-ai-tools
+  - https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+  - https://attack.mitre.org/techniques/T1102/002/
+  - https://attack.mitre.org/techniques/T1071/001/
+author: WRG-11
+date: '2026-06-27'
+logsource:
+  category: dns_query
+  product: windows
+detection:
+  selection_gemini_endpoint:
+    QueryName|endswith:
+      - generativelanguage.googleapis.com
+  selection_scripting_host:
+    Image|endswith:
+      - \wscript.exe
+      - \cscript.exe
+      - \mshta.exe
+      - \powershell.exe
+      - \pwsh.exe
+      - \rundll32.exe
+      - \regsvr32.exe
+  condition: selection_gemini_endpoint and selection_scripting_host
+falsepositives:
+  - Administrative automation that calls the Gemini API from a PowerShell
+    script; allowlist the specific script path or signed automation account.
+  - Internal AI tooling packaged behind a scripting host; confirm the
+    resolving binary and its parent before alerting.
+  - Red-team tooling exercising LLM API endpoints during an authorised
+    engagement.
+level: medium
+tags:
+  - attack.command_and_control
+  - attack.t1102.002
+  - attack.t1071.001
+  - wrg.observed
+  - wrg.observed.family.promptflux
+  - wrg.observed.family.honestcue
+  - wrg.observed.ioc.generativelanguage_googleapis_com
+  - wrg.observed.novel.llm_api_as_malware_capability
+  - wrg.severity.medium
+  - wrg.tactic.command_and_control

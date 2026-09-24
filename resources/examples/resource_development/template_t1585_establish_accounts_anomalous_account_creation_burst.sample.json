@@ -1,0 +1,67 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 0
+      },
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 1
+      },
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 2
+      },
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 3
+      },
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 4
+      },
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 5
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 0
+      },
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 1
+      },
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 2
+      },
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 3
+      },
+      {
+        "SubjectUserName": "provisioning-admin",
+        "EventID": 4720,
+        "Sequence": 4
+      }
+    ]
+  }
+]

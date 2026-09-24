@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"cs-uri-stem": "/api/v1/upsert-history", "cs-method": "GET"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/api/v1/upsert-history", "cs-method": "POST"}}
+]

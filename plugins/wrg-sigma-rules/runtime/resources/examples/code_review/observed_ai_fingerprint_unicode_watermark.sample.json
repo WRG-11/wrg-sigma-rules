@@ -1,0 +1,16 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "detector": "unicode_watermark",
+      "evidence": "zero-width char U+200B at column 10"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "detector": "unicode_watermark",
+      "evidence": "plain ASCII identifier"
+    }
+  }
+]

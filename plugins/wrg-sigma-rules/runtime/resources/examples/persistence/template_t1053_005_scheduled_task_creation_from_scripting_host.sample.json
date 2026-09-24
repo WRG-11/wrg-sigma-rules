@@ -1,0 +1,20 @@
+[
+  {
+    "expect_match": true,
+    "event": {
+      "Image": "C:\\Windows\\System32\\schtasks.exe",
+      "ParentImage": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "CommandLine": "schtasks.exe /create /tn UpdateCheck /tr C:\\Temp\\agent.exe /sc onlogon",
+      "User": "LAB\\operator"
+    }
+  },
+  {
+    "expect_match": false,
+    "event": {
+      "Image": "C:\\Windows\\System32\\schtasks.exe",
+      "ParentImage": "C:\\Windows\\System32\\cmd.exe",
+      "CommandLine": "schtasks.exe /create /tn Maintenance /tr C:\\Program Files\\Vendor\\maint.exe /sc daily",
+      "User": "NT AUTHORITY\\SYSTEM"
+    }
+  }
+]

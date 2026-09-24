@@ -1,0 +1,57 @@
+title: PROMPTFLUX -- LLM self-regeneration artefacts of a VBScript dropper -- T1027
+id: e64e2a1d-3732-4ef9-8719-38ec1a44ffe6
+status: experimental
+description: |
+  Detects the on-disk artefacts GTIG reports for PROMPTFLUX, a VBScript
+  dropper that asks the Gemini API to rewrite its own source code and saves
+  the new, obfuscated version to the Startup folder for persistence. Its
+  "Thinking Robot" module periodically queries Gemini for new evasion code
+  and logs the model responses to %TEMP%\thinking_robot_log.txt.
+
+  Two observable surfaces are matched: the response log file name reported
+  by GTIG, and a Windows Script Host process writing a script into a Startup
+  folder. The log file name is a family-specific indicator and can be
+  changed by the author; the Startup write is the behavioural surface that
+  survives renaming, because a metamorphic script must still persist
+  somewhere it will be re-launched.
+
+  GTIG does not attribute PROMPTFLUX to a named threat actor and describes
+  the observed samples as experimental.
+references:
+  - https://cloud.google.com/blog/topics/threat-intelligence/threat-actor-usage-of-ai-tools
+  - https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+  - https://attack.mitre.org/techniques/T1027/
+  - https://attack.mitre.org/techniques/T1547/001/
+author: WRG-11
+date: '2026-09-23'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_thinking_robot_log:
+    TargetFilename|endswith: \thinking_robot_log.txt
+  selection_wsh_image:
+    Image|endswith:
+      - \wscript.exe
+      - \cscript.exe
+  selection_startup_script:
+    TargetFilename|contains: \Start Menu\Programs\Startup\
+    TargetFilename|endswith:
+      - .vbs
+      - .vbe
+      - .js
+  condition: selection_thinking_robot_log or (selection_wsh_image and selection_startup_script)
+falsepositives:
+  - Login scripts that a Windows Script Host job deliberately copies into a
+    user Startup folder; allowlist the known script names.
+level: high
+tags:
+  - attack.defense_evasion
+  - attack.persistence
+  - attack.t1027
+  - attack.t1547.001
+  - wrg.observed
+  - wrg.observed.family.promptflux
+  - wrg.observed.novel.llm_metamorphic_self_modification
+  - wrg.severity.high
+  - wrg.tactic.defense_evasion
