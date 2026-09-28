@@ -1,0 +1,29 @@
+title: Template -- AWS Root Console Login Without MFA
+id: 7ea92052-1ca0-4b89-b1e5-3a94b125a748
+status: experimental
+description: >-
+  Detects an AWS root-account console login without MFA. Root-account use is
+  high impact and can indicate unauthorized use of valid cloud credentials.
+references:
+  - https://attack.mitre.org/techniques/T1078/004/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: cloud_audit
+  product: aws
+  service: cloudtrail
+detection:
+  selection_console_login:
+    eventSource: signin.amazonaws.com
+    eventName: ConsoleLogin
+  selection_root_without_mfa:
+    userIdentity.type: Root
+    additionalEventData.MFAUsed: 'No'
+  condition: selection_console_login and selection_root_without_mfa
+falsepositives:
+  - Authorized break-glass root-account access where MFA is unavailable
+level: high
+tags:
+  - attack.t1078.004
+  - wrg.template
+  - wrg.tactic.initial_access

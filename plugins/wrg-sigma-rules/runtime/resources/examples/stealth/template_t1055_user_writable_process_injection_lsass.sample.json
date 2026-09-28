@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"SourceImage": "C:\\Users\\alice\\AppData\\Local\\Temp\\m.exe", "TargetImage": "C:\\Windows\\System32\\lsass.exe"}},
+  {"expect_match": false, "event": {"SourceImage": "C:\\Program Files\\Vendor EDR\\edr.exe", "TargetImage": "C:\\Windows\\System32\\lsass.exe"}},
+  {"expect_match": false, "event": {"SourceImage": "C:\\Users\\alice\\AppData\\Local\\Temp\\m.exe", "TargetImage": "C:\\Windows\\System32\\notepad.exe"}}
+]

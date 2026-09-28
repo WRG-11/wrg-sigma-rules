@@ -1,0 +1,42 @@
+title: Crypto24 -- Service Created With a Masqueraded svchost Host or a Documented Crypto24 Service Group
+id: e8bfda1b-ca6b-40b0-af4c-10d3452bbb90
+status: experimental
+description: >-
+  Detects sc.exe creating a Windows service whose binary path points to the
+  typosquatted host scvhost.exe, or whose svchost service group is WinMainSvc
+  or MSRuntime. Trend Micro documented Crypto24 operators on victim Windows
+  hosts running "sc create WinMainSvc type= share start= auto binPath=
+  C:\Windows\System32\scvhost.exe -k WinMainSvc" for a keylogger service and
+  "sc create MSRuntime type= share start= auto binpath=
+  C:\Windows\System32\svchost.exe -k MSRuntime" for the ransomware service.
+  The rule matches that service-creation behaviour, not the actor name; a hit
+  is evidence of this masquerade, not proof of Crypto24 involvement.
+references:
+- https://www.trendmicro.com/en_us/research/25/h/crypto24-ransomware-stealth-attacks.html
+author: WinstonRedGuard -- sigma plugin observed rules
+date: '2026-09-28'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_sc_create:
+    Image|endswith: '\sc.exe'
+    CommandLine|contains: ' create '
+  selection_typosquatted_host:
+    CommandLine|contains: '\scvhost.exe'
+  selection_documented_service_group:
+    CommandLine|contains:
+    - '-k WinMainSvc'
+    - '-k MSRuntime'
+  condition: selection_sc_create and (selection_typosquatted_host or selection_documented_service_group)
+falsepositives:
+- An in-house or third-party installer that registers a svchost-hosted service
+  under a group literally named WinMainSvc or MSRuntime; confirm the service
+  DLL's publisher and signature before closing
+level: high
+tags:
+- attack.t1543.003
+- wrg.observed
+- wrg.observed.actor.crypto24
+- wrg.severity.high
+- wrg.tactic.persistence

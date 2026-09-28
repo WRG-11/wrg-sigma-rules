@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Program Files\\7-Zip\\7z.exe", "CommandLine": "7z.exe a -pS3cret -mx9 C:\\Users\\Public\\out.7z C:\\Users\\alice\\Documents"}},
+  {"expect_match": true, "event": {"Image": "C:\\Program Files\\WinRAR\\rar.exe", "CommandLine": "rar.exe a -pS3cret C:\\ProgramData\\d.rar C:\\Shares\\Finance"}},
+  {"expect_match": false, "event": {"Image": "C:\\Program Files\\7-Zip\\7z.exe", "CommandLine": "7z.exe x C:\\Users\\alice\\Downloads\\setup.7z -oC:\\Tools"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\tar.exe", "CommandLine": "tar.exe -c -f C:\\Backup\\logs.tar C:\\Logs"}}
+]

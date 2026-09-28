@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Users\\alice\\Downloads\\AnyDesk.exe", "CommandLine": "AnyDesk.exe"}},
+  {"expect_match": true, "event": {"Image": "C:\\Program Files\\RustDesk\\rustdesk.exe", "CommandLine": "rustdesk.exe --service"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\mstsc.exe", "CommandLine": "mstsc.exe /v:10.0.0.21"}}
+]

@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Set-MpPreference -DisableRealtimeMonitoring $true"}},
+  {"expect_match": true, "event": {"Image": "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "CommandLine": "pwsh.exe -c Set-MpPreference -DisableRealtimeMonitoring 1"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Set-MpPreference -DisableRealtimeMonitoring $false"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-MpPreference | Select DisableRealtimeMonitoring"}}
+]

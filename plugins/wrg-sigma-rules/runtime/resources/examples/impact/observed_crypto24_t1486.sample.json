@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\svchost.exe", "TargetFilename": "C:\\Users\\alice\\Documents\\Q3-budget.xlsx.crypto24"}},
+  {"expect_match": false, "event": {"Image": "C:\\Program Files\\7-Zip\\7z.exe", "TargetFilename": "C:\\Users\\alice\\Documents\\Q3-budget.xlsx.7z"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\explorer.exe", "TargetFilename": "C:\\Users\\alice\\Documents\\crypto24-notes.docx"}}
+]

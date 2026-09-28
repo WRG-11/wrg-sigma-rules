@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\rundll32.exe", "CommandLine": "rundll32.exe C:\\Users\\alice\\AppData\\Local\\Temp\\x.dll,Start"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\rundll32.exe", "CommandLine": "rundll32.exe C:\\ProgramData\\cache\\y.dll,DllRegisterServer"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\rundll32.exe", "CommandLine": "rundll32.exe C:\\Windows\\System32\\shell32.dll,Control_RunDLL"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\rundll32.exe", "CommandLine": "rundll32.exe C:\\Users\\alice\\AppData\\Local\\Temp\\x.dll"}}
+]

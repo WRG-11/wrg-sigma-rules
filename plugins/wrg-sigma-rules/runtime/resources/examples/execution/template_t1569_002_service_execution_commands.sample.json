@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\sc.exe", "CommandLine": "sc.exe \\\\10.0.0.21 start updsvc"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Start-Service -Name updsvc"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\sc.exe", "CommandLine": "sc.exe query updsvc"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-Service updsvc"}}
+]

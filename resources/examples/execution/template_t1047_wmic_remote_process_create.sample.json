@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\wbem\\wmic.exe", "CommandLine": "wmic.exe /node:10.0.0.21 process call create \"cmd.exe /c whoami\""}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\wbem\\wmic.exe", "CommandLine": "wmic.exe process call create \"notepad.exe\""}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\wbem\\wmic.exe", "CommandLine": "wmic.exe /node:10.0.0.21 os get caption"}}
+]

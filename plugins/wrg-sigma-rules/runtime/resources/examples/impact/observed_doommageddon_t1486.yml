@@ -1,0 +1,33 @@
+title: Doommageddon -- File Renamed With the .doomag Extension
+id: 59a66908-044d-46b0-a2c6-ff92020396c3
+status: experimental
+description: >-
+  Detects a file written with the .doomag suffix. PCrisk ran a Doommageddon
+  sample found on VirusTotal and reported that it "encrypted files and
+  appended the '.doomag' extension to their filenames" (for example 1.jpg
+  became 1.jpg.doomag). CYFIRMA reports the ransomware primarily affects
+  Windows. The extension is specific to this family; the README_DECRYPT.txt
+  ransom note name is not used because many unrelated families share it.
+references:
+- https://www.pcrisk.com/removal-guides/35523-doommageddon-ransomware
+- https://www.cyfirma.com/news/weekly-intelligence-report-10-jul-2026/
+- https://www.watchguard.com/wgrd-security-hub/ransomware-tracker/doommageddon
+author: WinstonRedGuard -- sigma plugin observed rules
+date: '2026-09-28'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_doommageddon_extension:
+    TargetFilename|endswith: '.doomag'
+  condition: selection_doommageddon_extension
+falsepositives:
+- A malware analyst or security product storing or restoring a Doommageddon-encrypted
+  sample on an analysis host
+level: high
+tags:
+- attack.t1486
+- wrg.observed
+- wrg.observed.actor.doommageddon
+- wrg.severity.high
+- wrg.tactic.impact

@@ -1,0 +1,31 @@
+title: Crypto24 -- File Renamed With the .crypto24 Extension
+id: e3952dc2-2093-45a4-a9e7-c3126e2351a2
+status: experimental
+description: >-
+  Detects a file written with the .crypto24 suffix. Trend Micro documented
+  that during Crypto24 encryption on victim Windows hosts "files are renamed
+  during encryption by appending the .crypto24 extension to their original
+  names". The extension is specific to this ransomware family, so a single
+  write is already a strong signal; it is also a lagging one, because
+  encryption is under way when it fires.
+references:
+- https://www.trendmicro.com/en_us/research/25/h/crypto24-ransomware-stealth-attacks.html
+author: WinstonRedGuard -- sigma plugin observed rules
+date: '2026-09-28'
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_crypto24_extension:
+    TargetFilename|endswith: '.crypto24'
+  condition: selection_crypto24_extension
+falsepositives:
+- A malware analyst or security product storing or restoring a Crypto24-encrypted
+  sample on an analysis host
+level: high
+tags:
+- attack.t1486
+- wrg.observed
+- wrg.observed.actor.crypto24
+- wrg.severity.high
+- wrg.tactic.impact

@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\wevtutil.exe", "CommandLine": "wevtutil.exe cl Security"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Clear-EventLog -LogName System"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\wevtutil.exe", "CommandLine": "wevtutil.exe qe Security /c:5"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-EventLog -LogName System -Newest 5"}}
+]

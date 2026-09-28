@@ -1,0 +1,34 @@
+title: Template -- PowerShell Retrieval From Public Web Services
+id: d20c14c7-f1cf-4416-bc27-542f4234341b
+status: experimental
+description: >-
+  Detects PowerShell retrieving content from public web services frequently
+  abused to host or relay command-and-control content.
+references:
+  - https://attack.mitre.org/techniques/T1102/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_powershell:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+    CommandLine|contains:
+      - Invoke-WebRequest
+      - ' iwr '
+  selection_public_service:
+    CommandLine|contains:
+      - pastebin.com
+      - discord.com
+      - raw.githubusercontent.com
+  condition: selection_powershell and selection_public_service
+falsepositives:
+  - Approved automation retrieving scripts or content from these services
+level: medium
+tags:
+  - attack.t1102
+  - wrg.template
+  - wrg.tactic.command_and_control

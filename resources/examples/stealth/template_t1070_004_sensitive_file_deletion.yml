@@ -1,0 +1,43 @@
+title: Template -- Sensitive security artifacts deleted from the command line
+id: f91b10c0-8087-5644-9f45-89bd99d4e53d
+status: experimental
+description: >-
+  Canonical Sigma detection template for MITRE ATT&CK T1070.004 (File
+  Deletion). Detects command-line deletion of common shell-history, browser
+  history, and event-log artifact locations. Synthetic exemplar from the
+  WinstonRedGuard threat-intel corpus -- no actor binding; review and bind to
+  your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1070/004/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-16'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_delete_tool:
+    Image|endswith:
+    - '\cmd.exe'
+    - '\powershell.exe'
+    - '\pwsh.exe'
+  selection_delete_action:
+    CommandLine|contains:
+    - ' del '
+    - Remove-Item
+    - Clear-Content
+  selection_sensitive_artifact:
+    CommandLine|contains:
+    - ConsoleHost_history.txt
+    - WebCacheV01.dat
+    - History
+    - winevt\Logs
+  condition: selection_delete_tool and selection_delete_action and selection_sensitive_artifact
+falsepositives:
+- User-approved browser cleanup, profile reset, or PowerShell-history reset
+- IT maintenance removing corrupted event-log files under an approved repair
+  procedure
+level: medium
+tags:
+- attack.t1070.004
+- wrg.template
+- wrg.tactic.stealth

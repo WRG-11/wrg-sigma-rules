@@ -1,0 +1,36 @@
+title: Template -- Windows Process Discovery Commands
+id: a5bafc03-12e0-4aa4-8500-8e3a09e794bb
+status: experimental
+description: >-
+  Detects common Windows command-line utilities used to enumerate running
+  processes. Process discovery can help an intruder identify security tools,
+  privileged applications, and targets for follow-on actions.
+references:
+  - https://attack.mitre.org/techniques/T1057/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_tasklist:
+    Image|endswith: '\tasklist.exe'
+  selection_powershell:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+    CommandLine|contains: Get-Process
+  selection_wmic:
+    Image|endswith: '\wmic.exe'
+    CommandLine|contains|all:
+      - process
+      - list
+  condition: 1 of selection_*
+falsepositives:
+  - Approved endpoint inventory, troubleshooting, or asset-management tooling
+  - Administrators investigating performance or application incidents
+level: medium
+tags:
+  - attack.t1057
+  - wrg.template
+  - wrg.tactic.discovery

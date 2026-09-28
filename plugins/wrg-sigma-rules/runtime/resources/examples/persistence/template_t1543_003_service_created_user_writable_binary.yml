@@ -1,0 +1,34 @@
+title: Template -- Windows service created with a user-writable binary path
+id: 99a6eeb8-809a-505d-a8ec-501ba4acd70d
+status: experimental
+description: >-
+  Canonical Sigma detection template for MITRE ATT&CK T1543.003 (Create or
+  Modify System Process: Windows Service). Detects service-install events whose
+  executable path is a common user-writable location. Synthetic exemplar from
+  the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind
+  to your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1543/003/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-16'
+logsource:
+  service: system
+  product: windows
+detection:
+  selection_service_install:
+    EventID: 7045
+  selection_user_writable_binary:
+    ServiceFileName|contains:
+    - '\Users\'
+    - '\ProgramData\'
+    - '\Windows\Temp\'
+  condition: selection_service_install and selection_user_writable_binary
+falsepositives:
+- Approved software installers that stage a signed service binary beneath
+  ProgramData before moving it to its final location
+- Endpoint-management agents installed per user in a supported environment
+level: high
+tags:
+- attack.t1543.003
+- wrg.template
+- wrg.tactic.persistence

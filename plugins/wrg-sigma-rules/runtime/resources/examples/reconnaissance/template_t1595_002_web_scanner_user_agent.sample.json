@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"cs-user-agent": "sqlmap/1.8.4#stable (https://sqlmap.org)", "cs-uri-stem": "/login.php"}},
+  {"expect_match": true, "event": {"cs-user-agent": "Mozilla/5.0 (compatible; Nuclei - Open-source project (github.com/projectdiscovery/nuclei))", "cs-uri-stem": "/.git/config"}},
+  {"expect_match": false, "event": {"cs-user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36", "cs-uri-stem": "/login.php"}}
+]

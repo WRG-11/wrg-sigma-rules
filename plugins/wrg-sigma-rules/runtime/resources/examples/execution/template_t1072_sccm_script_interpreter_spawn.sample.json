@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"ParentImage": "C:\\Windows\\CCM\\CcmExec.exe", "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -ep bypass -f C:\\Windows\\ccmcache\\1\\run.ps1"}},
+  {"expect_match": true, "event": {"ParentImage": "C:\\Windows\\CCM\\CcmExec.exe", "Image": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "cmd.exe /c whoami"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\CCM\\CcmExec.exe", "Image": "C:\\Windows\\CCM\\CcmEval.exe", "CommandLine": "CcmEval.exe"}},
+  {"expect_match": false, "event": {"ParentImage": "C:\\Windows\\System32\\services.exe", "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-Date"}}
+]

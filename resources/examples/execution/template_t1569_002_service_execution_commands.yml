@@ -1,0 +1,32 @@
+title: Template -- Windows Service Execution Commands
+id: 6b7e7d8d-d383-42a3-914d-20aad3cf8790
+status: experimental
+description: >-
+  Detects command-line requests to start a Windows service through Service
+  Control or PowerShell. Adversaries can execute a payload registered as a
+  service to gain execution under the service-control manager.
+references:
+  - https://attack.mitre.org/techniques/T1569/002/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_sc_start:
+    Image|endswith: '\sc.exe'
+    CommandLine|contains: ' start '
+  selection_powershell_start_service:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+    CommandLine|contains: Start-Service
+  condition: 1 of selection_*
+falsepositives:
+  - Approved software deployments or endpoint-management workflows
+  - Administrators starting services during maintenance or incident response
+level: medium
+tags:
+  - attack.t1569.002
+  - wrg.template
+  - wrg.tactic.execution

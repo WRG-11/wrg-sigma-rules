@@ -1,0 +1,28 @@
+title: Template -- Netsh Portproxy Configuration
+id: 1d3f6f3d-1200-4fd8-956d-10523586ac7e
+status: experimental
+description: >-
+  Detects netsh portproxy configuration, which can relay traffic through a
+  compromised Windows host and support proxy-based command and control.
+references:
+  - https://attack.mitre.org/techniques/T1090/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_netsh:
+    Image|endswith: '\netsh.exe'
+  selection_portproxy_add:
+    CommandLine|contains|all:
+      - interface portproxy
+      - ' add '
+  condition: selection_netsh and selection_portproxy_add
+falsepositives:
+  - Approved port-forwarding configuration for a documented service
+level: high
+tags:
+  - attack.t1090
+  - wrg.template
+  - wrg.tactic.command_and_control

@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"EventID": 7045, "ServiceName": "UpdaterSvc", "ServiceFileName": "C:\\ProgramData\\upd\\svc.exe"}},
+  {"expect_match": true, "event": {"EventID": 7045, "ServiceName": "tmpsvc", "ServiceFileName": "C:\\Windows\\Temp\\x.exe"}},
+  {"expect_match": false, "event": {"EventID": 7045, "ServiceName": "VendorAgent", "ServiceFileName": "\"C:\\Program Files\\Vendor\\agent.exe\""}},
+  {"expect_match": false, "event": {"EventID": 7036, "ServiceName": "UpdaterSvc", "ServiceFileName": "C:\\ProgramData\\upd\\svc.exe"}}
+]

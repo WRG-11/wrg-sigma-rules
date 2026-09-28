@@ -1,0 +1,30 @@
+title: Template -- Certificate Private Key Export
+id: 94af0a6b-b58a-459b-8f01-c90972adb66e
+status: experimental
+description: >-
+  Detects common Windows commands that export certificates together with their
+  private keys, which can enable theft or forgery of authentication material.
+references:
+  - https://attack.mitre.org/techniques/T1649/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_certutil:
+    Image|endswith: '\certutil.exe'
+    CommandLine|contains: ' -exportPFX '
+  selection_powershell:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+    CommandLine|contains: Export-PfxCertificate
+  condition: 1 of selection_*
+falsepositives:
+  - Approved certificate backup, renewal, or migration activities
+level: high
+tags:
+  - attack.t1649
+  - wrg.template
+  - wrg.tactic.credential_access

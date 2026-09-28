@@ -1,0 +1,30 @@
+title: Template -- Windows Remote System Discovery Commands
+id: eb286730-9a36-4968-9c5b-bca9e5020a7d
+status: experimental
+description: >-
+  Detects common Windows commands used to enumerate reachable remote systems
+  or domain computers before lateral movement.
+references:
+  - https://attack.mitre.org/techniques/T1018/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_net_view:
+    Image|endswith: '\net.exe'
+    CommandLine|contains: ' view'
+  selection_powershell_domain_computers:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+    CommandLine|contains: Get-ADComputer
+  condition: 1 of selection_*
+falsepositives:
+  - Approved asset inventory, domain administration, or troubleshooting
+level: medium
+tags:
+  - attack.t1018
+  - wrg.template
+  - wrg.tactic.discovery

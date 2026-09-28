@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\netsh.exe", "CommandLine": "netsh interface portproxy add v4tov4 listenport=8443 connectaddress=10.0.0.5 connectport=3389"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\netsh.exe", "CommandLine": "netsh interface portproxy show all"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\netsh.exe", "CommandLine": "netsh advfirewall firewall add rule name=web dir=in action=allow protocol=TCP localport=443"}}
+]

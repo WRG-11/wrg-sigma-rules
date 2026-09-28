@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"EventID": 4769, "TicketEncryptionType": "0x17", "ServiceName": "MSSQLSvc", "TargetUserName": "alice@CORP.EXAMPLE"}},
+  {"expect_match": false, "event": {"EventID": 4769, "TicketEncryptionType": "0x12", "ServiceName": "MSSQLSvc", "TargetUserName": "alice@CORP.EXAMPLE"}},
+  {"expect_match": false, "event": {"EventID": 4769, "TicketEncryptionType": "0x17", "ServiceName": "krbtgt", "TargetUserName": "alice@CORP.EXAMPLE"}}
+]
