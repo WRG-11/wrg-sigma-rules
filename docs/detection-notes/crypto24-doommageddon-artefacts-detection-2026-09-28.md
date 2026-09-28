@@ -3,7 +3,7 @@ Companion detection note for three observed rules:
 - resources/examples/persistence/observed_crypto24_t1543_003.yml
 - resources/examples/impact/observed_crypto24_t1486.yml
 - resources/examples/impact/observed_doommageddon_t1486.yml
-Source review records: docs/source-reviews/2026-09-29-crypto24-doommageddon.yml
+Source review records: docs/source-reviews/2026-09-28-crypto24-doommageddon.yml
 Detection/defense only, no exploit/PoC reproduced.
 -->
 

@@ -13,7 +13,7 @@ references:
 - https://www.cyfirma.com/news/weekly-intelligence-report-10-jul-2026/
 - https://www.watchguard.com/wgrd-security-hub/ransomware-tracker/doommageddon
 author: WinstonRedGuard -- sigma plugin observed rules
-date: '2026-09-29'
+date: '2026-09-28'
 logsource:
   category: file_event
   product: windows

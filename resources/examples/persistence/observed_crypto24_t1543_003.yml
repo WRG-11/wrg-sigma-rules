@@ -14,7 +14,7 @@ description: >-
 references:
 - https://www.trendmicro.com/en_us/research/25/h/crypto24-ransomware-stealth-attacks.html
 author: WinstonRedGuard -- sigma plugin observed rules
-date: '2026-09-29'
+date: '2026-09-28'
 logsource:
   category: process_creation
   product: windows

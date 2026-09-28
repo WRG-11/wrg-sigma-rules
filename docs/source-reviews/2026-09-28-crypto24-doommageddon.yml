@@ -4,7 +4,7 @@ schema_version: 1
 reviews:
   - rule: resources/examples/persistence/observed_crypto24_t1543_003.yml
     source: https://www.trendmicro.com/en_us/research/25/h/crypto24-ransomware-stealth-attacks.html
-    reviewed_on: "2026-09-29"
+    reviewed_on: "2026-09-28"
     attribution_evidence:
       status: supported
       quote: "The operators of the Crypto24 ransomware conduct coordinated, multi-stage attacks using both legitimate tools and custom malware"
@@ -16,7 +16,7 @@ reviews:
       quote: "sc create WinMainSvc type= share start= auto binPath= \"C:\\Windows\\System32\\scvhost.exe -k WinMainSvc\""
   - rule: resources/examples/impact/observed_crypto24_t1486.yml
     source: https://www.trendmicro.com/en_us/research/25/h/crypto24-ransomware-stealth-attacks.html
-    reviewed_on: "2026-09-29"
+    reviewed_on: "2026-09-28"
     attribution_evidence:
       status: supported
       quote: "The operators of the Crypto24 ransomware conduct coordinated, multi-stage attacks using both legitimate tools and custom malware"
@@ -28,7 +28,7 @@ reviews:
       quote: "files are renamed during encryption by appending the .crypto24 extension to their original names"
   - rule: resources/examples/impact/observed_doommageddon_t1486.yml
     source: https://www.pcrisk.com/removal-guides/35523-doommageddon-ransomware
-    reviewed_on: "2026-09-29"
+    reviewed_on: "2026-09-28"
     attribution_evidence:
       status: supported
       quote: "Besides encrypting files, this group also runs a dedicated data leak site on the Tor network, where stolen files are threatened to be published if the ransom is not paid."
