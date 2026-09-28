@@ -1,0 +1,7 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\tasklist.exe", "CommandLine": "tasklist.exe /v"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-Process | Sort-Object CPU"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\wbem\\wmic.exe", "CommandLine": "wmic.exe process list brief"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-Service"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\wbem\\wmic.exe", "CommandLine": "wmic.exe os get caption"}}
+]

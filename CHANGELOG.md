@@ -11,6 +11,51 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [Unreleased]
+
+Technique-coverage release. Corpus 299 → 327 rules; rules with a sidecar
+sample 236 → 264, rules without one unchanged at 63.
+
+### Added
+- **28 technique templates**, all `experimental`, each with a sidecar sample
+  holding matching and non-matching cases. Twenty-six target Windows
+  telemetry (process creation, Security, System and `create_remote_thread`),
+  one AWS CloudTrail, one web-server access logs:
+  - Collection: password-protected or compressed archive creation (T1560).
+  - Command and control: `netsh` port-proxy configuration (T1090),
+    PowerShell retrieval from public paste/code hosts (T1102).
+  - Credential access: WebDAV forced authentication via `davclnt.dll`
+    (T1187), RC4 service-ticket requests (T1558.003), certificate private-key
+    export (T1649).
+  - Defense evasion / stealth / defense impairment: .NET reflective assembly
+    load (T1620), Defender real-time protection disabled (T1562.001), event
+    log clearing (T1070.001), deletion of shell-history, browser-history and
+    event-log files (T1070.004), `Run` key added through `reg.exe` (T1112),
+    `rundll32` loading a DLL from a user-writable path (T1218.011), a
+    user-writable process creating a remote thread in LSASS (T1055).
+  - Discovery: remote-system (T1018), network-service scans with `nmap`
+    (T1046), process listing (T1057), domain-trust enumeration (T1482).
+  - Execution: remote `wmic process call create` (T1047), a script
+    interpreter spawned by the SCCM client (T1072), service start from the
+    command line (T1569.002).
+  - Impact: security-service stop (T1489).
+  - Initial access: AWS root console login without MFA (T1078.004).
+  - Lateral movement: remote-access tool execution (T1219), copy to an
+    administrative share (T1570).
+  - Persistence and privilege escalation: local account created (T1136),
+    service installed from a user-writable path (T1543.003), user added to
+    the local Administrators group (T1098).
+  - Reconnaissance: web-scanner user agents in access logs (T1595.002).
+- Two tactic directories, `stealth` and `defense_impairment`, following the
+  ATT&CK split of the former Defense Evasion tactic.
+
+### Notes
+- These are templates, not incident-derived rules: none names an actor, and
+  each needs environment-specific tuning before deployment.
+- Path values use the single-backslash form used across the rest of the
+  corpus. Splunk and Lucene conversions were compared before and after the
+  normalisation and are identical for every rule.
+
 ## [1.10.1] - 2026-09-23
 
 Sample-coverage and source-accuracy release. Corpus 296 → 299 rules; rules
@@ -1661,5 +1706,5 @@ README `sigma_rule_count` self-stamp are all in sync at **68**.
 [1.4.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.3.0...v1.4.0
 [1.5.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.4.0...v1.5.0
 [1.6.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.5.0...v1.6.0
-[Unreleased]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.10.1...HEAD
 [1.7.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.6.0...v1.7.0

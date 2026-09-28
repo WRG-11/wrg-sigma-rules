@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Program Files (x86)\\Nmap\\nmap.exe", "CommandLine": "nmap.exe -sS -p 1-1024 10.0.0.0/24"}},
+  {"expect_match": true, "event": {"Image": "C:\\Program Files (x86)\\Nmap\\nmap.exe", "CommandLine": "nmap.exe -sV 10.0.0.12"}},
+  {"expect_match": false, "event": {"Image": "C:\\Program Files (x86)\\Nmap\\nmap.exe", "CommandLine": "nmap.exe --version"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\PING.EXE", "CommandLine": "ping.exe -n 1 10.0.0.12"}}
+]

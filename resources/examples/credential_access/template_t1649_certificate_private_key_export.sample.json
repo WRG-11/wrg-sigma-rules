@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\certutil.exe", "CommandLine": "certutil.exe -exportPFX -p Pass123 My 1a2b3c4d C:\\Users\\Public\\c.pfx"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-ChildItem Cert:\\LocalMachine\\My | Export-PfxCertificate -FilePath C:\\Temp\\k.pfx -Password $p"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\certutil.exe", "CommandLine": "certutil.exe -store My"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Export-Certificate -Cert $c -FilePath C:\\Temp\\pub.cer"}}
+]

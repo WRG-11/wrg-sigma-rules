@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\reg.exe", "CommandLine": "reg.exe add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v upd /d C:\\Users\\Public\\u.exe /f"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\reg.exe", "CommandLine": "reg.exe query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\reg.exe", "CommandLine": "reg.exe add HKCU\\Software\\Vendor\\Settings /v theme /d dark /f"}}
+]

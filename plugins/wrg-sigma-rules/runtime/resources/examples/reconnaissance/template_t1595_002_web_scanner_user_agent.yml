@@ -1,0 +1,40 @@
+title: Template -- Web scanner user-agent in HTTP access logs
+id: 63b6ba50-eb67-5076-bade-690ce0ff0993
+status: experimental
+description: >-
+  Canonical Sigma detection template for MITRE ATT&CK T1595.002 (Active
+  Scanning: Vulnerability Scanning). Detects HTTP access logs where the
+  client identifies itself as a common vulnerability or content-discovery
+  scanner. It is a narrow, passive indicator of scanning against services
+  you operate, not proof of malicious intent or a substitute for rate and
+  request-pattern analysis. Synthetic exemplar from the WinstonRedGuard
+  threat-intel corpus -- no actor binding; review and bind to your environment
+  before deployment.
+references:
+- https://attack.mitre.org/techniques/T1595/002/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-16'
+logsource:
+  category: webserver
+detection:
+  selection_scanner_user_agent:
+    cs-user-agent|contains:
+    - sqlmap
+    - nikto
+    - nuclei
+    - zgrab
+    - gobuster
+    - feroxbuster
+    - ffuf
+  condition: selection_scanner_user_agent
+falsepositives:
+- Approved vulnerability scanning by an internal security team, CI/CD system,
+  managed scanner, or contracted penetration tester
+- Internet-wide research scans from recognised measurement projects where the
+  scanner has not customised its user-agent
+- Test traffic generated in a dedicated staging environment or security lab
+level: low
+tags:
+- attack.t1595.002
+- wrg.template
+- wrg.tactic.reconnaissance

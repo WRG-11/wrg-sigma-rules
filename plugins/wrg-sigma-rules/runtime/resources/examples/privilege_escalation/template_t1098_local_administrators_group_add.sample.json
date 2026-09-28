@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\net.exe", "CommandLine": "net.exe localgroup administrators svc_update /add"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\net.exe", "CommandLine": "net.exe localgroup administrators"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\net.exe", "CommandLine": "net.exe localgroup \"Remote Desktop Users\" alice /add"}}
+]

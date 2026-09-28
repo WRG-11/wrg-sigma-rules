@@ -1,0 +1,42 @@
+title: Template -- Archive collection through command-line tooling
+id: 9dc32a89-4de2-562f-b473-cc6fb1d0500d
+status: experimental
+description: >-
+  Canonical Sigma detection template for MITRE ATT&CK T1560 (Archive Collected
+  Data). Detects common archive utilities creating password-protected or high
+  compression archives from the command line, a useful precursor signal before
+  exfiltration. Synthetic exemplar from the WinstonRedGuard threat-intel corpus
+  -- no actor binding; review and bind to your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1560/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-16'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_archiver:
+    Image|endswith:
+    - '\7z.exe'
+    - '\rar.exe'
+    - '\winrar.exe'
+    - '\tar.exe'
+  selection_archive_create:
+    CommandLine|contains:
+    - ' a '
+    - ' -a '
+    - ' -c '
+  selection_protection_or_compression:
+    CommandLine|contains:
+    - ' -p'
+    - ' -m'
+    - ' -mx'
+  condition: selection_archiver and selection_archive_create and selection_protection_or_compression
+falsepositives:
+- Approved backup, packaging, software-release, or data-migration jobs
+- A user encrypting a personal archive under an allowed business process
+level: medium
+tags:
+- attack.t1560
+- wrg.template
+- wrg.tactic.collection

@@ -1,0 +1,7 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\nltest.exe", "CommandLine": "nltest.exe /domain_trusts /all_trusts"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\netdom.exe", "CommandLine": "netdom.exe query trust /domain:corp.example"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-ADTrust -Filter *"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\nltest.exe", "CommandLine": "nltest.exe /dsgetdc:corp.example"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\netdom.exe", "CommandLine": "netdom.exe query fsmo"}}
+]

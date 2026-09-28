@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c [System.Reflection.Assembly]::Load([Convert]::FromBase64String($b))"}},
+  {"expect_match": true, "event": {"Image": "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "CommandLine": "pwsh.exe -c [Reflection.Assembly]::Load($bytes)"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Add-Type -AssemblyName System.Windows.Forms"}},
+  {"expect_match": false, "event": {"Image": "C:\\Program Files\\dotnet\\dotnet.exe", "CommandLine": "dotnet.exe run [System.Reflection.Assembly]::Load"}}
+]

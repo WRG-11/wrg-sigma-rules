@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\xcopy.exe", "CommandLine": "xcopy.exe C:\\Temp\\payload.exe \\\\10.0.0.21\\ADMIN$\\Temp\\"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\robocopy.exe", "CommandLine": "robocopy.exe C:\\Tools \\\\fs01\\C$\\ProgramData\\t tool.exe"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\robocopy.exe", "CommandLine": "robocopy.exe C:\\Data \\\\fs01\\Backups\\Data /MIR"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "cmd.exe /c dir \\\\10.0.0.21\\ADMIN$\\"}}
+]

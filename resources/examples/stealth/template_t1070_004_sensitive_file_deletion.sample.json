@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Remove-Item $env:APPDATA\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "cmd.exe /c del /f /q C:\\Windows\\System32\\winevt\\Logs\\Security.evtx"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "cmd.exe /c del /q C:\\Temp\\build\\*.obj"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-Content ConsoleHost_history.txt"}}
+]

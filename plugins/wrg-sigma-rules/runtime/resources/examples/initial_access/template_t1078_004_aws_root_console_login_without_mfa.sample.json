@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"eventSource": "signin.amazonaws.com", "eventName": "ConsoleLogin", "userIdentity.type": "Root", "additionalEventData.MFAUsed": "No"}},
+  {"expect_match": false, "event": {"eventSource": "signin.amazonaws.com", "eventName": "ConsoleLogin", "userIdentity.type": "Root", "additionalEventData.MFAUsed": "Yes"}},
+  {"expect_match": false, "event": {"eventSource": "signin.amazonaws.com", "eventName": "ConsoleLogin", "userIdentity.type": "IAMUser", "additionalEventData.MFAUsed": "No"}}
+]

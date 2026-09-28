@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\rundll32.exe", "CommandLine": "rundll32.exe C:\\Windows\\System32\\davclnt.dll,DavSetCookie 203.0.113.7@80 http://203.0.113.7/share/a.png"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\rundll32.exe", "CommandLine": "rundll32.exe C:\\Windows\\System32\\shell32.dll,Control_RunDLL desk.cpl"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\svchost.exe", "CommandLine": "svchost.exe -k LocalService -p -s WebClient davclnt.dll"}}
+]

@@ -1,0 +1,32 @@
+title: Template -- SCCM Client Spawning Script Interpreters
+id: 69843217-84cc-4cd0-b0ea-6fd41ba14846
+status: experimental
+description: >-
+  Detects the Microsoft Configuration Manager client spawning command or
+  scripting interpreters. Software-deployment systems can be abused to run
+  commands across managed endpoints.
+references:
+  - https://attack.mitre.org/techniques/T1072/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_sccm_parent:
+    ParentImage|endswith: '\CcmExec.exe'
+  selection_interpreter:
+    Image|endswith:
+      - '\cmd.exe'
+      - '\powershell.exe'
+      - '\pwsh.exe'
+      - '\cscript.exe'
+      - '\wscript.exe'
+  condition: selection_sccm_parent and selection_interpreter
+falsepositives:
+  - Approved Configuration Manager package, task-sequence, or remediation runs
+level: medium
+tags:
+  - attack.t1072
+  - wrg.template
+  - wrg.tactic.execution

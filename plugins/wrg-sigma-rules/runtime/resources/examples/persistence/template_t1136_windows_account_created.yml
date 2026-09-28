@@ -1,0 +1,29 @@
+title: Template -- Windows account created
+id: b2b582c5-7e67-575d-bf42-1bdda36a48e8
+status: experimental
+description: >-
+  Canonical Sigma detection template for MITRE ATT&CK T1136 (Create Account).
+  Detects Windows Security event 4720, which records a newly created user
+  account. Account creation needs an ownership and change-record check because
+  the event alone does not establish malicious intent. Synthetic exemplar from
+  the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind
+  to your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1136/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-16'
+logsource:
+  service: security
+  product: windows
+detection:
+  selection_account_created:
+    EventID: 4720
+  condition: selection_account_created
+falsepositives:
+- Approved joiner, service-account, break-glass, or lab-account provisioning
+- Identity-management automation with an auditable ticket or provisioning run
+level: medium
+tags:
+- attack.t1136
+- wrg.template
+- wrg.tactic.persistence

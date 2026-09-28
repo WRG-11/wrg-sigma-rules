@@ -1,0 +1,6 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\net.exe", "CommandLine": "net.exe view /domain:CORP"}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-ADComputer -Filter * -Properties Name"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\net.exe", "CommandLine": "net.exe use Z: \\\\fileserver\\share"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "CommandLine": "powershell.exe -c Get-ADUser -Identity alice"}}
+]
