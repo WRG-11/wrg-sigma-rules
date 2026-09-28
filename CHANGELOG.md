@@ -11,7 +11,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
-## [Unreleased]
+## [1.11.0] - 2026-09-28
 
 Technique-coverage release. Corpus 299 → 330 rules; rules with a sidecar
 sample 236 → 267, rules without one unchanged at 63.
@@ -1725,5 +1725,6 @@ README `sigma_rule_count` self-stamp are all in sync at **68**.
 [1.4.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.3.0...v1.4.0
 [1.5.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.4.0...v1.5.0
 [1.6.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.5.0...v1.6.0
-[Unreleased]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.10.1...HEAD
+[Unreleased]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.10.1...v1.11.0
 [1.7.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.6.0...v1.7.0
