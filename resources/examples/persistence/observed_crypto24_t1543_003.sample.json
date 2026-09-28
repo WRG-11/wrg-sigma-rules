@@ -1,0 +1,7 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\sc.exe", "CommandLine": "sc create WinMainSvc type= share start= auto binPath= \"C:\\Windows\\System32\\scvhost.exe -k WinMainSvc\""}},
+  {"expect_match": true, "event": {"Image": "C:\\Windows\\System32\\sc.exe", "CommandLine": "sc create MSRuntime type= share start= auto binpath= \"C:\\Windows\\System32\\svchost.exe -k MSRuntime\" displayname= \"Microsoft Runtime Manager\""}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\sc.exe", "CommandLine": "sc create VendorUpdate type= share start= auto binPath= \"C:\\Windows\\System32\\svchost.exe -k netsvcs\""}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\sc.exe", "CommandLine": "sc query WinMainSvc"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\System32\\cmd.exe", "CommandLine": "cmd.exe /c type C:\\Windows\\System32\\scvhost.exe.log"}}
+]

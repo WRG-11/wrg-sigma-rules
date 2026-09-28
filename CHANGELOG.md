@@ -13,10 +13,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Technique-coverage release. Corpus 299 → 327 rules; rules with a sidecar
-sample 236 → 264, rules without one unchanged at 63.
+Technique-coverage release. Corpus 299 → 330 rules; rules with a sidecar
+sample 236 → 267, rules without one unchanged at 63.
 
 ### Added
+- **Three family-specific observed rules**, all `experimental`, each with a
+  sidecar sample, a companion detection note and a source-review record for
+  attribution, platform and telemetry manifestation:
+  - Crypto24 creating a service through `sc.exe` whose binary path uses the
+    typosquatted host `scvhost.exe`, or whose svchost group is `WinMainSvc`
+    or `MSRuntime` (T1543.003), as documented by Trend Micro.
+  - Crypto24's `.crypto24` encrypted-file extension (T1486), same source.
+  - Doommageddon's `.doomag` encrypted-file extension (T1486), observed by
+    PCrisk on a test machine; CYFIRMA states the Windows platform.
+  Each rule matches a documented artefact, not an actor name.
+- First records in the source-review ledger (`docs/source-reviews/`): the
+  inventory now reports 3 observed rules with a structured review, 2 of them
+  complete. Doommageddon's platform match stays `not_assessed` in its record
+  because the reviewed source (PCrisk) does not name the operating system.
 - **28 technique templates**, all `experimental`, each with a sidecar sample
   holding matching and non-matching cases. Twenty-six target Windows
   telemetry (process creation, Security, System and `create_remote_thread`),
@@ -49,11 +63,16 @@ sample 236 → 264, rules without one unchanged at 63.
 - Two tactic directories, `stealth` and `defense_impairment`, following the
   ATT&CK split of the former Defense Evasion tactic.
 
+### Fixed
+- `test_cli_uses_explicit_corpus_and_notes_directories` now isolates the
+  source-review directory as well. It read the repository's own ledger and
+  only passed while that ledger was empty.
+
 ### Notes
-- These are templates, not incident-derived rules: none names an actor, and
-  each needs environment-specific tuning before deployment.
-- Path values use the single-backslash form used across the rest of the
-  corpus. Splunk and Lucene conversions were compared before and after the
+- The 28 templates are not incident-derived: none names an actor, and each
+  needs environment-specific tuning before deployment.
+- Template path values use the single-backslash form used across the rest of
+  the corpus. Splunk and Lucene conversions were compared before and after the
   normalisation and are identical for every rule.
 
 ## [1.10.1] - 2026-09-23

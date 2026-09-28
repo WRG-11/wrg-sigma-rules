@@ -1,0 +1,5 @@
+[
+  {"expect_match": true, "event": {"Image": "C:\\Users\\alice\\AppData\\Local\\Temp\\update.exe", "TargetFilename": "C:\\Users\\alice\\Pictures\\1.jpg.doomag"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\explorer.exe", "TargetFilename": "C:\\Users\\alice\\Pictures\\1.jpg"}},
+  {"expect_match": false, "event": {"Image": "C:\\Windows\\explorer.exe", "TargetFilename": "C:\\Users\\alice\\Documents\\doomag-review.pdf"}}
+]

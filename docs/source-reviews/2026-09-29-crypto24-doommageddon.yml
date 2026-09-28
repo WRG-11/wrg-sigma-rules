@@ -1,0 +1,42 @@
+# Source review for the three rules added with the Crypto24 and Doommageddon
+# detection note. Each record covers one rule and one of its references.
+schema_version: 1
+reviews:
+  - rule: resources/examples/persistence/observed_crypto24_t1543_003.yml
+    source: https://www.trendmicro.com/en_us/research/25/h/crypto24-ransomware-stealth-attacks.html
+    reviewed_on: "2026-09-29"
+    attribution_evidence:
+      status: supported
+      quote: "The operators of the Crypto24 ransomware conduct coordinated, multi-stage attacks using both legitimate tools and custom malware"
+    platform_evidence:
+      status: supported
+      quote: "sc.exe (service control) a tool use to create, manage, and control Windows services, to establish new services for the deployment of a keylogger and the Crypto24 ransomware"
+    telemetry_manifestation_evidence:
+      status: supported
+      quote: "sc create WinMainSvc type= share start= auto binPath= \"C:\\Windows\\System32\\scvhost.exe -k WinMainSvc\""
+  - rule: resources/examples/impact/observed_crypto24_t1486.yml
+    source: https://www.trendmicro.com/en_us/research/25/h/crypto24-ransomware-stealth-attacks.html
+    reviewed_on: "2026-09-29"
+    attribution_evidence:
+      status: supported
+      quote: "The operators of the Crypto24 ransomware conduct coordinated, multi-stage attacks using both legitimate tools and custom malware"
+    platform_evidence:
+      status: supported
+      quote: "The threat actor maintains persistence on compromised systems via Windows Scheduled Tasks and services, effectively leveraging legitimate processes"
+    telemetry_manifestation_evidence:
+      status: supported
+      quote: "files are renamed during encryption by appending the .crypto24 extension to their original names"
+  - rule: resources/examples/impact/observed_doommageddon_t1486.yml
+    source: https://www.pcrisk.com/removal-guides/35523-doommageddon-ransomware
+    reviewed_on: "2026-09-29"
+    attribution_evidence:
+      status: supported
+      quote: "Besides encrypting files, this group also runs a dedicated data leak site on the Tor network, where stolen files are threatened to be published if the ransom is not paid."
+    platform_evidence:
+      # PCrisk does not name the operating system of its test machine. The
+      # rule's second reference (CYFIRMA) states the Windows platform; this
+      # record covers the PCrisk source only.
+      status: not_assessed
+    telemetry_manifestation_evidence:
+      status: supported
+      quote: "On our test machine, Doommageddon encrypted files and appended the '.doomag' extension to their filenames without changing anything else about the name. For example, a file named '1.jpg' was renamed to '1.jpg.doomag'"

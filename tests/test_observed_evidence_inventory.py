@@ -121,6 +121,10 @@ def test_cli_uses_explicit_corpus_and_notes_directories(tmp_path: Path) -> None:
     )
     notes = tmp_path / "notes"
     notes.mkdir()
+    # Isolate the review ledger too: the repository's own ledger names rules
+    # that this temporary corpus does not contain.
+    reviews = tmp_path / "reviews"
+    reviews.mkdir()
     report = tmp_path / "inventory.json"
 
     assert inventory.main(
@@ -129,6 +133,8 @@ def test_cli_uses_explicit_corpus_and_notes_directories(tmp_path: Path) -> None:
             str(examples),
             "--notes-dir",
             str(notes),
+            "--source-reviews-dir",
+            str(reviews),
             "--json",
             str(report),
         ]
