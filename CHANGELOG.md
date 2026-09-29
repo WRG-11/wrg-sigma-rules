@@ -11,6 +11,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [Unreleased]
+
+Description-accuracy change. Corpus 330 → 330 rules; no rule content changed.
+
+### Changed
+- The plugin manifest description no longer opens with "Production-grade".
+  The roadmap's product boundary states that the project does not claim a
+  generated rule is production-ready, and `stable` is deliberately unused;
+  the marketplace-facing description now agrees with both.
+- The plugin manifest, `CITATION.cff` and the README corpus summary now name
+  both halves of the corpus: ransomware and threat-actor activity, and
+  vulnerabilities disclosed in AI/LLM applications and MCP servers. None of
+  these descriptions gains a new count.
+- `CITATION.cff` no longer states that rules are never generated from
+  technique lists; it now distinguishes `observed_*` rules (derived from a
+  specific, cited incident) from `template_*` technique shapes, matching the
+  README's definition.
+
 ## [1.11.0] - 2026-09-28
 
 Technique-coverage release. Corpus 299 → 330 rules; rules with a sidecar

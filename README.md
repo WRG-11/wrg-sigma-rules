@@ -24,8 +24,9 @@ It runs under Claude Code, Codex, Cursor and any MCP-capable client.
   contributions require the sourcing bar in `CONTRIBUTING.md`.
 - A published corpus of <!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count -->
   rules across <!-- METRIC:tactic_category_count -->17<!-- /METRIC:tactic_category_count -->
-  MITRE ATT&CK tactic categories. Every rule carries an honest Sigma `status:`
-  (see [Rule status](#rule-status)).
+  MITRE ATT&CK tactic categories, covering ransomware and threat-actor activity
+  as well as vulnerabilities disclosed in AI/LLM applications and MCP servers.
+  Every rule carries an honest Sigma `status:` (see [Rule status](#rule-status)).
 - Multi-backend conversion on pySigma 1.x: Splunk SPL, Elastic and Kibana Lucene,
   OpenSearch Lucene and PPL, plus Wazuh. The Lucene-family targets cannot express
   Sigma correlation rules, so `convert_rule` reports the
