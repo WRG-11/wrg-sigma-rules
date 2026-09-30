@@ -32,7 +32,7 @@ Examples of unacceptable behavior:
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported via GitHub Security Advisories at
 https://github.com/WRG-11/wrg-sigma-rules/security/advisories/new
-(private, tracked — sister SECURITY.md disclosure channel).
+(the same private channel as SECURITY.md).
 
 All complaints will be reviewed and investigated promptly and fairly.
 

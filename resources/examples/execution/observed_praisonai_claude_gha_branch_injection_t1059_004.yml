@@ -64,7 +64,7 @@ falsepositives:
   sequence for unrelated reasons -- rare in practice given git ref naming
   conventions, but log sources that cannot distinguish a PR-sourced branch
   name from a maintainer-created one will see this as a coincidental match
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

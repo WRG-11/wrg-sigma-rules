@@ -61,7 +61,7 @@ falsepositives:
   installed binary rather than adding a new Startup entry, but a log
   source that cannot distinguish "new Startup file" from "existing
   Startup file rewritten" may alias the two
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

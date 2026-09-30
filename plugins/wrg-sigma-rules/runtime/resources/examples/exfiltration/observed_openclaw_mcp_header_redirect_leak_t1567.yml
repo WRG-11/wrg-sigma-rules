@@ -65,7 +65,7 @@ falsepositives:
   forwarding or successful exfiltration; the advisory names neither a
   specific custom-header name nor the legitimate server's host, so a
   header-content-based selection is not possible from the source alone
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; the `mcp` substring match on the URI is a coarse proxy for
   "this is an MCP-related request" and needs tightening against a given
   deployment's actual MCP endpoint paths

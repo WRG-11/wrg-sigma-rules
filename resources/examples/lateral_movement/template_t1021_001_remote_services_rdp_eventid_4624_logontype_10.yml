@@ -15,8 +15,8 @@ detection:
   selection_rdp:
     EventID: 4624
     LogonType: 10
-  # Filter add — sister to observed_lapsus_t1078
-  # (cross-corpus backport) and template_t1078_valid_accounts (this
+  # Filter added to match observed_lapsus_t1078 and
+  # template_t1078_valid_accounts (this
   # rule family). Authorized admin operators routinely access servers
   # via RDP (LogonType 10) for maintenance; the rule previously fired
   # on legit_rdp_logon (admin_dave / LogonType 10) in

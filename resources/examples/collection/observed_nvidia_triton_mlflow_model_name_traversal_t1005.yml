@@ -47,7 +47,7 @@ falsepositives:
 - A legitimate model name that happens to contain a `..` sequence for
   unrelated reasons (uncommon given typical model-naming conventions,
   but not impossible) -- narrow in practice
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; NVIDIA's advisory does not specify the exact fixed version
   in the summary available at authoring time -- confirm the current
   patched release against NVIDIA's own bulletin before relying on a

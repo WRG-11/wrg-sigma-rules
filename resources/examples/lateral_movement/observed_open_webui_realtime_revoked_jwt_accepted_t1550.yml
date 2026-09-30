@@ -63,7 +63,7 @@ falsepositives:
   supported without Redis and sign-out does not invalidate JWTs by
   design in that configuration, so there is nothing this rule can
   detect there
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; correlating a specific revoked `jti` with a subsequent
   realtime connection using that same token requires application-level
   logging most infrastructure log sources do not capture by default --

@@ -53,7 +53,7 @@ falsepositives:
   cannot distinguish the vulnerable model-configuration case from a safe
   one by request content alone; correlate with which model the request
   targets
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

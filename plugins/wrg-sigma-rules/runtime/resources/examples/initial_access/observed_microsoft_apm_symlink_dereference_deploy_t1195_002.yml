@@ -68,7 +68,7 @@ falsepositives:
   rule cannot distinguish that from a malicious dependency by command-line
   content alone; correlate with whether the symlink originates from a
   THIRD-PARTY dependency package vs. the project's own source
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; the two-step selection (symlink creation, THEN dereference
   into a deploy dir) approximates the advisory's chain but a real file
   system event log may capture these as a single rename/copy operation

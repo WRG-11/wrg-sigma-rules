@@ -48,7 +48,7 @@ falsepositives:
   to hit this path pattern without credentials -- narrow given the
   specific `:credentialId` segment this endpoint requires to do
   anything meaningful
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; on a vulnerable deployment EVERY call to this endpoint
   is unauthenticated by construction (it is whitelisted from the auth
   middleware entirely), so this rule flags the endpoint itself rather

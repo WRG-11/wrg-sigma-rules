@@ -54,7 +54,7 @@ falsepositives:
   typically cannot determine the caller's actual granted permission;
   correlate with the account's permission grant to confirm a
   revoked-permission user actually reached the handler
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of chat-
   completions request bodies, which most infrastructure log sources do
   not capture by default

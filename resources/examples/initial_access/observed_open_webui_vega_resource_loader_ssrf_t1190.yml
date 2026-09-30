@@ -53,7 +53,7 @@ falsepositives:
 - A legitimate chart spec that references a public IP address literal
   containing similar digit sequences for unrelated reasons -- narrow in
   practice given the specific private/loopback/link-local ranges matched
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of stored
   chat message content, which most infrastructure log sources do not
   capture by default

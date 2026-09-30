@@ -52,7 +52,7 @@ falsepositives:
   cross-knowledge-base id mismatch on their own; correlate the
   body-supplied ids against the URL-named knowledge base (from
   application-level logs) to confirm a real cross-KB deletion
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

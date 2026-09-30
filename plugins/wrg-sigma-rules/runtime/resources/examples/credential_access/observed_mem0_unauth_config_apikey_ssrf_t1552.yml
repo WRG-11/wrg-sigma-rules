@@ -77,7 +77,7 @@ falsepositives:
   intentionally co-located and the operator has configured a
   private-range `ollama_base_url` on purpose -- this rule cannot
   distinguish that from an attacker-supplied value by content alone'
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

@@ -12,7 +12,7 @@ allowed-tools:
 # Threat Coverage Gap Analyzer
 
 Maps an existing sigma rule corpus to the MITRE ATT&CK matrix and surfaces
-coverage gaps with priority ranking. Sister skill to `sigma-rule-writer`
+coverage gaps with priority ranking. Companion to `sigma-rule-writer`
 (which drafts new rules) and `sigma-rule-reviewer` (which reviews existing
 rules); this skill answers the strategic question "what should I detect
 next".

@@ -53,7 +53,7 @@ falsepositives:
 - A legitimate embedding request with a negative value in an unrelated
   numeric field the regex coincidentally matches -- narrow in practice
   given the specific `indices` field context required
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the
   actual embedding request payload, which most infrastructure log
   sources do not capture by default

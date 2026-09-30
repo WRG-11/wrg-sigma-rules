@@ -24,4 +24,4 @@ tags:
 - wrg.tactic.stealth
 falsepositives:
 - Legitimate privacy-preserving usage (research, journalism, dissident)
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Review for environment-specific tuning before deployment

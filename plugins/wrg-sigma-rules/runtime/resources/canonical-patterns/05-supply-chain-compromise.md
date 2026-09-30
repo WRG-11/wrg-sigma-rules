@@ -109,12 +109,11 @@ detection:
 - **Pip + dependency confusion**: pivot to `pip install` with private
   package name resolving against public PyPI (organisation
   namespace-takeover variant).
-- **VSCode extension supply chain (Pattern 18 sister)**: pivot to
+- **VSCode extension supply chain**: pivot to
   VSCode extension install path + post-install scripted command
   execution.
 - **IoT/printer firmware supply chain**: pivot to printer-vendor
-  firmware download + post-install configuration mutation (IoT
-  sister pattern).
+  firmware download + post-install configuration mutation.
 
 ## Severity guidance
 
@@ -123,13 +122,3 @@ the blast radius extends to every downstream consumer of the
 compromised dependency. Lower to **medium** for single-package
 install-script signals without secondary corroboration (network or
 file-event signal).
-
-## Why this pattern matters
-
-The 2020-2026 window has seen supply chain compromise climb from
-fringe-tactic to top-3-attack-vector. WRG's Pattern 18 (trust-but-
-verify endpoint-supply-chain) v1.1 5-vaka super-cluster documents
-TeamPCP NPM + browser-extension supply-chain + TeamPCP VSCode + IoT printer +
-Anthropic resmi marketplace plugin drift -- "even resmi vendor not
-exempt" critical observation. Pattern 5 here is the detection-side
-sister to Pattern 18's operational discipline.

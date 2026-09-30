@@ -58,7 +58,7 @@ falsepositives:
   variable name was requested without deeper parsing; correlate with
   the specific variable name interpolated to confirm a secret was
   actually read
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of workflow
   step parameters, which most infrastructure log sources do not
   capture by default

@@ -57,7 +57,7 @@ detection:
     TargetUserName|startswith: admin_
   condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Review for environment-specific tuning before deployment
 - 'an internal tuning cycle: aggregation (count() by TargetUserName > 3 in 15m) dropped --
   pySigma parses the pipe form but every real backend rejects it at conversion time (see T1567.001''s
   documented fix for the same class). Single-event precision narrow until a correlation-rule

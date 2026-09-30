@@ -69,7 +69,7 @@ falsepositives:
   default sandbox location by operator design, on a deployment that
   has not yet adopted the sandbox confinement model -- narrow given the
   root/system-path targets this signature looks for
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of workflow
   module parameters, which most infrastructure log sources do not
   capture by default

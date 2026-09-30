@@ -63,7 +63,7 @@ falsepositives:
   documentation mirror deliberately allowlisted) -- narrow in practice
   since the whole point of RAG URL ingestion is external content, but
   possible in some internal-tooling deployments
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

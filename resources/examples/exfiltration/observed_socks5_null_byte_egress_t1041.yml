@@ -28,17 +28,17 @@ description: 'Tool-bound sigma detection for the SOCKS5 hostname null-byte injec
   SOCKS5 raw connection logs (typically port 1080 CONNECT payload) are the
   primary detection surface; HTTP-level egress logs miss the bypass by design.
 
-  Sister context: Anthropic-self transparency gap -- a 5.5-month silent
+  Context: a 5.5-month silent
   fix window (2025-10-20 to 2026-04-01) elapsed before public disclosure.
   Operators on Claude Code v2.1.90 or later are not affected; environments
   active during the window should rotate exposed Anthropic API keys and
   GitHub OAuth credentials as defense-in-depth.
 
-  Source: Tier 1 multi-source disclosure (Cyber Security News, TheRegister,
+  Source: multi-source disclosure (Cyber Security News, TheRegister,
   SecurityWeek, ThaiCERT, Cybernews, Aonan Guan researcher blog). Aggregated
   from 1 active researcher disclosure 2026-05-20.
 
-  Sister extension: see observed_socks5_null_byte_egress_t1041_extension.yml
+  Companion rule: see observed_socks5_null_byte_egress_t1041_extension.yml
   for the backslash-escape form coverage (backslash-x +
   backslash-u textual representations); pair both rules for full coverage
   across log-serialization forms.'
@@ -78,7 +78,7 @@ falsepositives:
 - Resolver telemetry that escapes null bytes literally as percent-encoded sequences from legitimate test harnesses (not actual attack traffic) -- correlate with downstream connection logs and connection-success indicators to filter
 - Penetration-testing harness emitting deliberately crafted hostnames with embedded null bytes for sandbox-bypass evaluation -- exclude known internal test infrastructure source identity
 - Custom application protocols that intentionally embed binary markers in hostname fields (rare; usually proprietary internal tooling) -- whitelist by source application identity
-- Pattern library v1 -- review for environment-specific tuning before deployment; environment-specific backslash-x or backslash-u serialization forms require additional detection entries
+- Review for environment-specific tuning before deployment; environment-specific backslash-x or backslash-u serialization forms require additional detection entries
 level: high
 tags:
 - attack.t1041

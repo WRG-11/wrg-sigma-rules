@@ -59,7 +59,7 @@ falsepositives:
   inside the file content; the advisory's own recommended mitigation
   (prefer `.safetensors`) is the stronger control this rule cannot
   verify the absence of
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule is IDENTICAL in shape to its sibling
   `SHORT_BINUNICODE` rule since host-level file-event logging cannot
   distinguish which specific opcode handler within the same file-load

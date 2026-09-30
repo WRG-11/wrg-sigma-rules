@@ -56,7 +56,7 @@ falsepositives:
   intent from URL shape alone; the vulnerability is in the sandbox
   configuration applying to every HTML preview, not in any specific
   malicious pattern within the file
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

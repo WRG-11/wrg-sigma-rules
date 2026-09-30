@@ -53,7 +53,7 @@ falsepositives:
   deployment, EVERY minutely/hourly rule is expensive by construction,
   not only malicious ones, so this is closer to a configuration-risk
   signal than an attack-only one
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

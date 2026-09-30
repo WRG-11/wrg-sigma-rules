@@ -55,7 +55,7 @@ falsepositives:
   attacker by endpoint name alone; correlate the caller's source
   address against the deployment's known internal cluster nodes to
   reduce false positives
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; the exact endpoint path names are inferred from the
   advisory's description of the mechanism (weight broadcasting via NCCL
   plus a data-transfer trigger), not quoted verbatim, since the specific

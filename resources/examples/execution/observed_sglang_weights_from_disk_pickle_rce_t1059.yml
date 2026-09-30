@@ -57,7 +57,7 @@ falsepositives:
   since network proxy logs typically cannot inspect the source
   repository's trust status; correlate against an allowlist of approved
   HuggingFace repositories to reduce false positives
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

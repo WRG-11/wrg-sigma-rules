@@ -64,7 +64,7 @@ falsepositives:
   request, per the advisory's own stated remediation) has been applied --
   the log line would still appear, but the session-caching bypass it
   enables would not function
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; log field names (`Message`, `LevelName`) are a best-effort
   approximation, since the advisory does not quote an exact log line
   format

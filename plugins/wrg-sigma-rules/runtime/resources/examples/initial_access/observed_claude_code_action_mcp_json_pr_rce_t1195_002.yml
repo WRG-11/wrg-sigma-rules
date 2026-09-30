@@ -71,7 +71,7 @@ falsepositives:
   wrapper for benign reasons (e.g. a `bash -c` one-liner invoking a real
   tool) -- this rule is pattern-library-only and needs environment-specific
   tuning against known-good `.mcp.json` shapes before deployment
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

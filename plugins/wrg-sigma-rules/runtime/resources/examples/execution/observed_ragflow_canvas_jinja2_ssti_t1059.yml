@@ -67,7 +67,7 @@ falsepositives:
   discuss Python dunder-attribute syntax in prose (e.g. a documentation
   or tutorial Canvas) -- narrow in practice given the specific combination
   of endpoint + payload idiom required
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; the log source must capture request body content for this
   rule to fire, since the payload lives in the POST body, not the URL
 level: critical

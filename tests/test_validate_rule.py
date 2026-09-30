@@ -568,6 +568,7 @@ def test_placeholder_falsepositives_are_flagged() -> None:
         "N/A",
         "TODO -- replace with a concrete benign scenario",
         "Pattern library v1 -- review for environment-specific tuning before deployment",
+        "Review for environment-specific tuning before deployment",
         # A bare denial is still an unfilled block, so `none` stays flagged
         # when nothing follows it -- see the sibling test for the shape that
         # does carry a scenario.

@@ -21,8 +21,8 @@ detection:
     - 10
   filter_service_accounts:
     TargetUserName|startswith: svc_
-  # Filter add — sister to observed_lapsus_t1078
-  # (cross-corpus backport). Authorized admin operators routinely access
+  # Filter added to match observed_lapsus_t1078.
+  # Authorized admin operators routinely access
   # servers via RDP (LogonType 10) for maintenance; the rule
   # previously fired on legit_rdp_logon (admin_dave / LogonType 10) in
   # a prior false-positive review. Filter requires BOTH conditions (Sigma

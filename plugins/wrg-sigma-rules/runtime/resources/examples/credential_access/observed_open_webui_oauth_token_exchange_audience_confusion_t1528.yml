@@ -57,7 +57,7 @@ falsepositives:
   proxy logs typically cannot inspect the token's issuing-client claim;
   correlate with application-level OAuth audit logs to confirm a
   foreign-client token was actually accepted
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

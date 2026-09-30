@@ -53,7 +53,7 @@ falsepositives:
   distinguishing signal (timing variance between hits and misses)
   requires response-latency measurement this rule's log-content-only
   selection cannot directly express
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule is a coarse volume-based proxy for the actual
   timing side-channel, since Sigma cannot natively express a
   latency-comparison condition

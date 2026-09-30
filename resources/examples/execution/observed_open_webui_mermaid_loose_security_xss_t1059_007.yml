@@ -51,7 +51,7 @@ falsepositives:
 - A legitimate Markdown file discussing Mermaid syntax and HTML/script
   examples together for documentation purposes -- narrow in practice
   given the specific fenced-block + markup combination required
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the
   actual Markdown file content previewed, which most infrastructure log
   sources do not capture by default

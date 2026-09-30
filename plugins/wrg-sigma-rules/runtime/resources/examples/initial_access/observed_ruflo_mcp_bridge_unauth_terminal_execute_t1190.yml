@@ -59,7 +59,7 @@ falsepositives:
   correctly-configured bearer-token header -- the missing-Authorization
   condition is the discriminator; a log source that does not capture
   request headers cannot safely deploy this rule as-is
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

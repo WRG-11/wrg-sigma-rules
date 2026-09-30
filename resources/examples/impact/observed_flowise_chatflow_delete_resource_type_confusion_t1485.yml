@@ -51,7 +51,7 @@ falsepositives:
   the caller's granted permission set or the resolved resource's type;
   correlate with the API key's actual permission grant and the
   deleted resource's type to confirm a cross-type deletion occurred
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

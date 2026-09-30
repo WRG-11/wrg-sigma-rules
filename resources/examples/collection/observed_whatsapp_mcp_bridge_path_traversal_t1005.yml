@@ -57,7 +57,7 @@ falsepositives:
 - Legitimate local automation that happens to pass an absolute path to a
   correctly-scoped, patched bridge instance -- this rule targets the
   pre-fix behavior where the parameter was NOT confined at all
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

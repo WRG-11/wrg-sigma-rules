@@ -51,7 +51,7 @@ falsepositives:
   cannot distinguish that from an unauthorized cross-backend request by
   URL shape alone; correlate the accessed index against the caller's
   actual model permissions for confirmation
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

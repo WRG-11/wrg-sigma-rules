@@ -67,7 +67,7 @@ falsepositives:
   process-attribution condition narrows this to Copilot's own `fetchPage`
   path, but a log source that cannot distinguish which VS Code extension
   issued the read will alias the two
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule detects the read/access half of the chain, not
   the JSON-schema exfiltration half, since no log-observable signature
   for the schema-fetch step is documented in the source material

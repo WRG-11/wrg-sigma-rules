@@ -62,7 +62,7 @@ falsepositives:
   certificate) -- this rule cannot distinguish that from an attack by
   command-line content alone; correlate the `--server` target against a
   known-good cluster endpoint allowlist to reduce false positives
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

@@ -658,8 +658,8 @@ def convert_rule_body(
     Returns ``{ok, query, target, warnings, metadata}`` on success; on
     failure returns ``{ok: False, error, hint, kind}``. The ``metadata``
     block preserves source rule title + id + level so the caller can
-    correlate the query back to the rule (sister convention used by
-    this corpus's ``observed_*`` rules).
+    correlate the query back to the rule (the same convention
+    this corpus's ``observed_*`` rules follow).
 
     ``config`` accepts ``{"pipeline": "sysmon"}`` (or a list of pipeline
     keys), which IS applied to the conversion -- see the module docstring

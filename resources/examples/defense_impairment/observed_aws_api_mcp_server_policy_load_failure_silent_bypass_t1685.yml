@@ -56,7 +56,7 @@ falsepositives:
   applying any additional security policies` warning, not the error
   this rule matches, and represents an intentional no-policy
   configuration rather than a load failure
-- Pattern library v1 -- a single occurrence of this log line at startup
+- A single occurrence of this log line at startup
   is the complete signal the advisory documents; correlate with
   subsequent AWS API calls executed by the same process to determine
   whether an operation the intended policy would have denied actually

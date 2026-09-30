@@ -63,7 +63,7 @@ falsepositives:
   application logs typically cannot determine channel membership;
   correlate with the account's actual channel roster to confirm an
   out-of-channel write occurred
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of chat-
   completions request bodies, which most infrastructure log sources do
   not capture by default

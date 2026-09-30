@@ -55,7 +55,7 @@ falsepositives:
   command-line content alone; the process-lineage condition (child of
   `webui.py`) narrows the search space but does not resolve this
   ambiguity
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

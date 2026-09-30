@@ -56,7 +56,7 @@ falsepositives:
   `/claude/response.md` for unrelated reasons -- narrow in practice given
   the specific path, but a log source without full-path visibility (only a
   basename) will alias this
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule detects symlink PLANTING (the setup step), not the
   privileged process's write that actually triggers the overwrite --
   correlate with a subsequent Claude Code `/copy` invocation for

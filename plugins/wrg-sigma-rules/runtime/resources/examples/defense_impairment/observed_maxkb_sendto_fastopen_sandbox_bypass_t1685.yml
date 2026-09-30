@@ -53,7 +53,7 @@ falsepositives:
   logging (Sysmon and equivalents) does not capture socket flags, so most
   log sources cannot populate this selection; treat this as a template
   for whatever syscall-audit tooling a given environment actually runs
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

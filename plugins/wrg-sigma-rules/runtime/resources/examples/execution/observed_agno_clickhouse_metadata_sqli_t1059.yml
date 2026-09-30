@@ -60,7 +60,7 @@ falsepositives:
   substrings for unrelated reasons (e.g. a document title containing
   "--") -- narrow in practice given the specific `JSONExtractString`
   function-call context required alongside it
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires database/application query-log content,
   which many infrastructure log sources do not capture by default
 level: high

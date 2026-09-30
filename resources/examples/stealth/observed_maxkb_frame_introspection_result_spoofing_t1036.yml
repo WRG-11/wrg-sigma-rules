@@ -60,7 +60,7 @@ falsepositives:
   `sys.exit` in the same submission -- narrow in practice given the
   specific combination required, but not impossible in advanced
   data-science or debugging workloads run through the sandbox
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the actual
   code string submitted to the sandbox, which most infrastructure log
   sources do not capture by default

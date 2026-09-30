@@ -60,7 +60,7 @@ falsepositives:
   `SGLANG_BACKUP_PORT_BASE`'s default value), so deployment requires
   substituting the actual configured base port and excluding known
   cluster-node source addresses
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

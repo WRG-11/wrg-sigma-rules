@@ -54,7 +54,7 @@ falsepositives:
   without touching `database` -- this rule specifically requires the
   `database` key to target a system configuration path, which no
   ordinary Record Manager configuration would do
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of node
   configuration content, which most infrastructure log sources do not
   capture by default

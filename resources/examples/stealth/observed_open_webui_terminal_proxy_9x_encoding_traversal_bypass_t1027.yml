@@ -57,7 +57,7 @@ falsepositives:
   practice given the specific 9-plus round depth this signature
   requires, well past any normal single or double encoding a client
   would produce
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires infrastructure logging that captures
   the full request path/query with encoding intact, which some proxy
   configurations normalize before logging

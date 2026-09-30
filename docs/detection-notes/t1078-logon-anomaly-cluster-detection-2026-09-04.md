@@ -30,7 +30,7 @@ Two things worth flagging about this comment, read plainly rather than edited in
 ## Per-actor attribution
 
 - **ShinyHunters** (also covered for a different technique, T1110, in this corpus's `credential-access-correlation-quartet-detection-2026-09-04.md`) — one of this corpus's most consequential extortion actors: AT&T (73M customers), Snowflake-adjacent, and Instructure breaches, a named DOJ federal criminal charge, and FBI PSA I-051526-PSA (2026-05-15).
-- **TeamPCP/UNC6780** (also covered for T1071 in `misc-correlation-actor-rules-detection-2026-09-04.md`, and for T1195 in this corpus's Tier-1 vendor-CVE singles note) — this corpus's most heavily-cited actor by reference count, tied to the Megalodon mass GitHub Actions supply-chain attack (5,561+ repositories) and the Mini Shai-Hulud npm worm resurgence.
+- **TeamPCP/UNC6780** (also covered for T1071 in `misc-correlation-actor-rules-detection-2026-09-04.md`, and for T1195 in this corpus's vendor-CVE singles note) — this corpus's most heavily-cited actor by reference count, tied to the Megalodon mass GitHub Actions supply-chain attack (5,561+ repositories) and the Mini Shai-Hulud npm worm resurgence.
 - **Unknown (tj-actions/reviewdog GHA Supply-chain 2025-03)** (also covered for T1552 and T1567 in this corpus's sibling notes) — the well-documented March 2025 `tj-actions/changed-files` GitHub Action supply-chain compromise (CVE-2025-30066), sourced from Unit42, Wiz, CISA, and StepSecurity — one of the best-documented CI/CD supply-chain incidents in this corpus despite the "unknown" actor label.
 
 ## Known limitations

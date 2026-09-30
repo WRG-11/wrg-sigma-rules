@@ -54,7 +54,7 @@ falsepositives:
   user-chosen collection named "sandbox") -- narrow in practice given
   the specific metacharacter combination required, but a possible source
   of noise
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; only applies to deployments configured with Milvus as the
   vector-store backend AND multitenancy mode enabled
 level: medium

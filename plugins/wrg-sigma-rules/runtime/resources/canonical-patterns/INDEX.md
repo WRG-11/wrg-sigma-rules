@@ -1,7 +1,6 @@
 # WRG Canonical Sigma Detection Patterns
 
-5 canonical detection pattern shape definitions distilled from
-the published rule corpus and 50+ sigma rule operations.
+Five canonical detection-pattern shapes distilled from the rule corpus.
 Each pattern captures a recurring detection shape that recurs across
 multiple actors and incidents -- they are the "design patterns" of
 sigma rule writing.
@@ -30,8 +29,7 @@ Use these patterns when:
 5 is the curated middle ground. <=3 patterns oversimplify (you lose
 the distinct shapes that warrant separate rule scaffolding); >=7
 patterns over-fragment (rule writers cannot remember the catalog
-without referencing it every time). The 5-pattern surface captures
-~80% of the published corpus rule distribution while staying memorable.
+without referencing it every time).
 
 ## Pattern selection heuristic
 
@@ -62,21 +60,13 @@ layer at:
 
 See `tools/resources/canonical_patterns_resource.py` for the URI resource implementation.
 
-## Source attribution
+## Source
 
-These patterns are distilled from:
-
-- TECHNIQUE_PATTERN_LIBRARY (apps/<wrg-app>/breach/sigma/templates.py)
-  -- 37 hand-curated MITRE technique patterns covering ~90% of WRG
-  catalog technique-incident mentions.
-- 6 observed actor goldens (ALPHV/BlackCat + LAPSUS$ + LockBit + Nullsec
-  Nigeria).
-- 2 OFAC crypto sanctions goldens (Lazarus + LockBit BTC operator).
-- 5 wrg_ai_fingerprint code-review detector goldens.
-
-Total internal distillation corpus: 51 sigma rules across 11 ATT&CK
-tactics. (This is the source set these 5 patterns were distilled from; the
-published plugin corpus is 80 rules -- see `resources/examples/INDEX.json`.)
+The patterns were distilled from the rules this corpus started with: the
+technique templates, the observed ALPHV/BlackCat, LAPSUS$, LockBit and
+Nullsec Nigeria rules, the two OFAC-sanctioned crypto-address rules
+(Lazarus, LockBit) and the code-review rules. The current corpus is listed
+in `resources/examples/INDEX.json`.
 
 ## License
 

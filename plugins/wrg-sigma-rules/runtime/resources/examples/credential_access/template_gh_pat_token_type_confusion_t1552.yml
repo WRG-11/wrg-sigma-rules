@@ -30,7 +30,7 @@ description: 'Detects exfiltration or exposure of GitHub OAuth (gho_),
 
   Detection logic targets process_creation events where CommandLine
   contains any of the 4 non-PAT-classic token prefixes (gho_, ghu_, ghs_,
-  ghr_) followed by the standard 36+ character base62 body. Sister to
+  ghr_) followed by the standard 36+ character base62 body. Related to
   observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml (npm token form)
   and observed_clawhavoc_claude_skills_t1195_002.yml (broad credential
   sweep). This rule fills the non-classic-PAT token-prefix coverage gap:

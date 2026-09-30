@@ -55,7 +55,7 @@ falsepositives:
   source can capture the request body, correlate with a
   `mcpServerConfig.command` value outside a known-safe allow-list to
   confirm exploitation rather than routine internal traffic
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

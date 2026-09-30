@@ -22,7 +22,7 @@ description: 'Campaign-bound sigma detection for the Kali365 Phishing-as-a-Servi
   classes. Tune the filter_known_legitimate_device_code_apps list per tenant
   (kiosks, IoT, dev tooling such as PowerShell / VS Code device-code login).
 
-  Source: Tier 1 government PSA (FBI IC3 direct; via @DarkWebInformer Twitter
+  Source: government PSA (FBI IC3 direct; via @DarkWebInformer Twitter
   aggregator 2026-05-22 14.6K view amplification). Aggregated from 1 first-party
   source disclosure 2026-05-21.'
 references:
@@ -50,7 +50,7 @@ falsepositives:
 - Legitimate device-code flow use by enterprise-approved kiosk / IoT / dev tooling -- tune the filter_known_legitimate_device_code_apps list per tenant
 - Microsoft Authenticator app registration and similar identity bootstrap flows -- consider time-window filtering
 - First-time device-code adoption by users transitioning from legacy auth -- monitor for sustained pattern vs one-off
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Review for environment-specific tuning before deployment
 level: high
 tags:
 - attack.t1528

@@ -50,7 +50,7 @@ falsepositives:
   confusion this rule keys on is rejected by the fix -- a hit on an
   up-to-date installation indicates a rejected attempt, not successful
   exploitation
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule has not been validated against a live macOS
   process-monitoring log source (no such source was available at
   authoring time), only against the advisory's own text

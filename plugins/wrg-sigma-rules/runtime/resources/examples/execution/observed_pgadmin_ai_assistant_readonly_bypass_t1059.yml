@@ -68,7 +68,7 @@ falsepositives:
   bug undermines) -- this rule cannot distinguish the two from SQL content
   alone; correlate with the originating pgAdmin feature/tool if the log
   source captures it
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

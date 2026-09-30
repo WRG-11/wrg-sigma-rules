@@ -53,7 +53,7 @@ falsepositives:
   the 25MB default for a legitimate use case -- this rule's threshold
   needs adjustment to match the deployment's actual configured limit
   rather than assuming the default
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; the exact byte threshold here assumes the documented 25MB
   default and should be tuned to match a given deployment's configured
   `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` value

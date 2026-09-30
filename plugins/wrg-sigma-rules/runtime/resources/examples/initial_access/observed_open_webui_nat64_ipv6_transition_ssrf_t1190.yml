@@ -61,7 +61,7 @@ falsepositives:
 - A legitimate use of a genuinely public IPv4-mapped NAT64 address for
   an unrelated reason -- narrow in practice given the specific prefix
   matched
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

@@ -533,7 +533,7 @@ def draft_rule_body(
     detection = _draft_detection_block(rule_type, target_platform)
 
     # Tags: MITRE TTPs + severity convention used by this corpus
-    # (sister: ``wrg.severity.<level>`` tag in migrated examples).
+    # (the ``wrg.severity.<level>`` tag the corpus examples carry).
     tags: list[str] = []
     for ttp in inferred_ttps:
         tags.append(f"attack.{ttp.lower()}")
@@ -611,9 +611,6 @@ def draft_rule_body(
 
 def register_draft_rule_tool(mcp: Any) -> None:
     """Register the ``draft_rule`` tool on an MCP server.
-
-    Sister to ``register_canonical_pattern_resources`` (Resources
-    layer; Tools layer 1st application).
     """
 
     @mcp.tool()

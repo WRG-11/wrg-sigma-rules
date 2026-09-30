@@ -69,7 +69,7 @@ falsepositives:
   public -- this rule specifically requires the SECOND answer to fall
   in a private/loopback/link-local range, which a normal multi-IP
   public service does not produce
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires DNS telemetry correlated with the
   requesting process and its two independent resolutions within one
   request lifecycle, which most infrastructure log sources do not

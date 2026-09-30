@@ -50,7 +50,7 @@ falsepositives:
   has_access_to_file()''s model branch), not a specific log line
   format; deploying this rule requires adapting it to whatever Open
   WebUI''s actual application logs capture'
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

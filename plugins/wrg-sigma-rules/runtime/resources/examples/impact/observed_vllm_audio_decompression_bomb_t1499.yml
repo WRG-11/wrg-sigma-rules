@@ -54,7 +54,7 @@ falsepositives:
   codec; this rule flags every large OPUS upload since it cannot
   distinguish benign large audio files from a deliberate
   decompression-bomb attempt by request metadata alone
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; the codec detection and size threshold are approximations
   and need tuning against a deployment's actual upload patterns
 level: medium

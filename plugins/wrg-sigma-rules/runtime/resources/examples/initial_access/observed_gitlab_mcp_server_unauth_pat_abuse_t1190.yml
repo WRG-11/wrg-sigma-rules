@@ -59,7 +59,7 @@ falsepositives:
   source-IP scope (non-loopback origin) to distinguish local development
   from real exposure, the same discrimination this corpus's other
   no-host-bind MCP rules (mcp-pinot, Network-AI) use
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

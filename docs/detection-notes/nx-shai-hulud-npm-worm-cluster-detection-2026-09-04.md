@@ -6,10 +6,8 @@ easily-confused clusters:
 - resources/examples/initial_access/observed_clawhavoc_claude_skills_t1195_002.yml
 - resources/examples/initial_access/observed_megalodon_github_actions_base64_payload_t1195_002.yml
   (these four complete this corpus's "Nx campaign" cluster together with
-  observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml, already covered in a prior note -- the
-  cluster is FIVE vectors total, not four; the rule's own description miscounts itself as the
-  "5th sister vector" of a "4-vector cluster," which is arithmetically its own fifth member, not a
-  fifth vector of a four-vector set -- see the note on this below)
+  observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml, already covered in a prior note -- five
+  vectors in total)
 - resources/examples/execution/observed_shai_hulud_npm_worm_t1059.yml
 - resources/examples/initial_access/observed_shared_t1195_unsigned_binary_from_download_folders.yml (shared rule; merged 2026-09-30 from single-actor files)
   (a SEPARATE, generically-authored pair -- see the honesty note in Part B below)
@@ -24,7 +22,7 @@ Detection/defense only, no exploit/PoC reproduced beyond what the source disclos
 
 Six rules, two genuinely different things. Part A is four rules that complete a real, well-documented campaign cluster this corpus tracks (a fifth vector, `s1ngularity_nx_npm_token_exfil`, was covered in an earlier note — five total). Part B is two rules that share the "Shai-Hulud" name with a real, independently-disclosed npm worm but whose OWN description and detection logic never actually encode that campaign's specifics — worth reading as a documented content gap, not another vector of anything.
 
-## Part A: The Nx Campaign 4-Vector Cluster (COMPLETE)
+## Part A: The Nx Campaign Cluster
 
 Microsoft's May 2026 disclosures and Docker's own incident writeup describe FOUR independent-but-related supply-chain compromise vectors converging on developers using the Nx build-system ecosystem and AI coding tools. This corpus tracks all four as sibling rules that explicitly cross-reference each other; vector 2 (`s1ngularity_nx_npm_token_exfil`, the compromised Nx CLI installer) was detailed in this corpus's earlier npm-supply-chain-worm-cluster note. Here are vectors 1, 3, and 4:
 
@@ -87,4 +85,4 @@ Both rules will generate substantial false-positive volume in any environment wi
 
 ---
 
-*Detection content from WinstonRedGuard (WRG-11). Defensive detection of a completed 4-vector supply-chain campaign cluster (Part A) plus an honest assessment of two generically-authored rules whose rich references are not yet reflected in their detection logic (Part B). References: [Microsoft Threat Intelligence: Mini Shai Hulud](https://www.microsoft.com/en-us/security/blog/2026/05/20/mini-shai-hulud-compromised-antv-npm-packages-enable-ci-cd-credential-theft/), [StepSecurity: nx-console VS Code extension compromised](https://www.stepsecurity.io/blog/nx-console-vs-code-extension-compromised), [Docker: AI Coding Agent Horror Stories](https://www.docker.com/blog/ai-coding-agent-horror-stories-security-risks), [StepSecurity: binding.gyp npm supply chain attack](https://www.stepsecurity.io/blog/binding-gyp-npm-supply-chain-attack-spreads-like-worm), [Datadog Security Labs: Shai-Hulud 2.0 npm worm](https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/), [Unit42: npm supply chain attack](https://unit42.paloaltonetworks.com/npm-supply-chain-attack/).*
+*Detection content from WinstonRedGuard (WRG-11). Defensive detection of the Nx supply-chain campaign cluster (Part A) plus an honest assessment of two generically-authored rules whose rich references are not yet reflected in their detection logic (Part B). References: [Microsoft Threat Intelligence: Mini Shai Hulud](https://www.microsoft.com/en-us/security/blog/2026/05/20/mini-shai-hulud-compromised-antv-npm-packages-enable-ci-cd-credential-theft/), [StepSecurity: nx-console VS Code extension compromised](https://www.stepsecurity.io/blog/nx-console-vs-code-extension-compromised), [Docker: AI Coding Agent Horror Stories](https://www.docker.com/blog/ai-coding-agent-horror-stories-security-risks), [StepSecurity: binding.gyp npm supply chain attack](https://www.stepsecurity.io/blog/binding-gyp-npm-supply-chain-attack-spreads-like-worm), [Datadog Security Labs: Shai-Hulud 2.0 npm worm](https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/), [Unit42: npm supply chain attack](https://unit42.paloaltonetworks.com/npm-supply-chain-attack/).*

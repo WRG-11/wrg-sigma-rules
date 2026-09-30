@@ -57,7 +57,7 @@ falsepositives:
   by `user_id`, or that binds the forwarded identity with a signed
   claim rather than a raw parameter -- the vulnerability's impact
   requires the upstream to trust the unsigned identity it receives
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of terminal
   WebSocket connect parameters, which most infrastructure log sources
   do not capture by default

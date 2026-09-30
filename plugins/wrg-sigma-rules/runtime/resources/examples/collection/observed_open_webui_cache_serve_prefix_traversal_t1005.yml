@@ -52,7 +52,7 @@ falsepositives:
 - A deployment with no sibling directory sharing the `cache` name
   prefix at all -- this specific bypass shape is unreachable regardless
   of request content in that case
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; the specific sibling directory names matched here are the
   advisory's own illustrative examples, not an exhaustive list --
   adjust to whatever directories actually exist alongside a given

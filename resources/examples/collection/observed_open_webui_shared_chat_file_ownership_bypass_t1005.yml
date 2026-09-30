@@ -53,7 +53,7 @@ falsepositives:
   message content alone; correlate the attached `file_id`'s actual owner
   against the sharing user's identity (from application-level audit
   logs) to confirm an ownership mismatch
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging that
   correlates file attachment, chat sharing, and file-access events,
   which most infrastructure log sources do not capture by default

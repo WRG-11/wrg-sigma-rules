@@ -50,7 +50,7 @@ falsepositives:
 - A deployment not using `WEB_LOADER_ENGINE=playwright` (the default or
   another loader engine) -- this vulnerability is specific to the
   Playwright rendering path and does not apply otherwise
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires browser-context network-request
   logging correlated to the Playwright loader process, which most
   infrastructure log sources do not capture by default

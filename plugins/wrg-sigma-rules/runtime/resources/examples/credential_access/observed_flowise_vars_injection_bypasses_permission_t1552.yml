@@ -56,7 +56,7 @@ falsepositives:
   see the caller's granted permission set at this call site; correlate
   with the API key's actual permission grant to confirm a
   permission-denied caller accessed it
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of custom
   function request bodies, which most infrastructure log sources do
   not capture by default

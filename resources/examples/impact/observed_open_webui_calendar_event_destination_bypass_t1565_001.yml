@@ -46,7 +46,7 @@ falsepositives:
   determine calendar ownership; correlate the destination
   `calendar_id`'s actual owner against the requesting user (application-
   level logs) to confirm an unauthorized move occurred
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

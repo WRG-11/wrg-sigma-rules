@@ -53,7 +53,7 @@ falsepositives:
   since web server logs cannot see the caller's `activeWorkspaceId` or
   the target path's owning workspace; correlate with the application's
   workspace assignment to confirm a cross-workspace operation occurred
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

@@ -55,7 +55,7 @@ falsepositives:
   this signature -- the pattern here specifically requires a shell
   metacharacter (`$(`, backtick, `;`, or whitespace) inside the
   brackets, which no valid comma-separated extras list contains
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the
   constructed pip install command string, which most infrastructure
   log sources do not capture by default

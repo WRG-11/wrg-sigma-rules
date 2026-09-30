@@ -73,7 +73,7 @@ falsepositives:
   coarse proxy for "high-privilege tool" -- this deployment-specific
   detail needs tuning against the actual tool names configured with
   elevated `scopesRequired` in a given MCP Toolbox instance'
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:
