@@ -2,9 +2,8 @@ title: Play Ransomware — T1021.002 (base)
 id: ae84d470-e68f-5cf2-85f2-475f8d18a8ba
 name: wrg_ae84d470e68f5cf2
 status: test
-description: Breach intel signature for actor play, MITRE technique T1021.002. Derived from 3 observed
-  incident(s) in the WRG breach catalog.
-author: WRG Breach Intel — Phase 6
+description: Breach intel signature for actor play, MITRE technique T1021.002. Derived from observed incident reporting; see references.
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2026-06-04'
 logsource:
   product: windows
@@ -29,7 +28,7 @@ tags:
 ---
 title: Play Ransomware — T1021.002
 id: 3157354e-88b1-51c1-923a-9830ca5a9f49
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 status: test
 description: Counting correlation over the base rule. The base rule matches single events; this document
   carries the threshold.

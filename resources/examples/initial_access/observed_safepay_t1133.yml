@@ -28,8 +28,7 @@ tags:
 title: SafePay -- T1133
 id: 5d7806e0-1c0b-5ed9-831f-fa6c140e4f01
 status: test
-description: Breach intel signature for actor safepay, MITRE technique T1133. Derived
-  from 1 observed incident(s) in the WRG breach catalog.
+description: Breach intel signature for actor safepay, MITRE technique T1133. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1133/
 - https://www.bitdefender.com/en-us/blog/businessinsights/safepay-ransomware-attacks-ttps

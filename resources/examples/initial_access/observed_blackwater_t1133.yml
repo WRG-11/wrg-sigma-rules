@@ -1,8 +1,7 @@
 title: Blackwater -- T1133
 id: 06132b2b-d662-593c-afba-a574591e4abe
 status: test
-description: Breach intel signature for actor blackwater, MITRE technique T1133. Derived
-  from 0 observed incident(s) in the WRG breach catalog.
+description: Breach intel signature for actor blackwater, MITRE technique T1133. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1133/
 - https://www.galaxywarden.com/blog/breach/shenzhen-gongjin-electronics-blackwater-2026-04

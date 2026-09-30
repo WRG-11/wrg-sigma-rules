@@ -1,8 +1,7 @@
 title: Shadow Copy or Backup Catalog Deletion
 id: 3c7f562d-76c0-5c10-8ddc-d191c28080c7
 status: test
-description: 'Shared detection for 2 actors with an observed T1490 incident in the WRG breach
-  catalog: direwolf, stormous_ransomware_operator. The logic is a generic pattern, not the
+description: 'Shared detection for 2 actors with an observed T1490 incident: direwolf, stormous_ransomware_operator. The logic is a generic pattern, not the
   documented tradecraft of these actors, so a hit does not say which actor, if any, is responsible.
   Merged on 2026-09-30 from 2 single-actor rules with identical logic (their ids are listed
   under related).'

@@ -24,8 +24,7 @@ tags:
 title: LAPSUS$ -- T1110
 id: b782545c-7b35-5e55-97fd-4f30d360c765
 status: test
-description: Breach intel signature for actor lapsus, MITRE technique T1110. Derived from 1 observed incident(s) in the WRG
-  breach catalog.
+description: Breach intel signature for actor lapsus, MITRE technique T1110. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1110/
 - https://attack.mitre.org/groups/G1004/

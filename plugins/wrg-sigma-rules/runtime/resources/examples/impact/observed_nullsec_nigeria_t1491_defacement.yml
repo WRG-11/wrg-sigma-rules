@@ -1,8 +1,7 @@
 title: Nullsec Nigeria -- T1491
 id: fba0f94c-dd9c-5547-a670-0c9e26aab827
 status: test
-description: Breach intel signature for actor nullsec_nigeria, MITRE technique T1491. Derived from 1 observed incident(s)
-  in the WRG breach catalog.
+description: Breach intel signature for actor nullsec_nigeria, MITRE technique T1491. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1491/
 - https://attack.mitre.org/techniques/T1190/

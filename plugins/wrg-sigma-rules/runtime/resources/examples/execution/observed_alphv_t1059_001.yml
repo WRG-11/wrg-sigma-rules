@@ -1,8 +1,7 @@
 title: ALPHV/BlackCat -- T1059.001
 id: 9aa6d2c4-4cf6-5cdd-8618-724ded1815de
 status: test
-description: Breach intel signature for actor alphv, MITRE technique T1059.001. Derived from 1 observed incident(s) in the
-  WRG breach catalog.
+description: Breach intel signature for actor alphv, MITRE technique T1059.001. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1059/001/
 - https://attack.mitre.org/software/S1068/

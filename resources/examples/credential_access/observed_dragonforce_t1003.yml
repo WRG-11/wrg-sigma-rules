@@ -25,7 +25,7 @@ title: DragonForce -- T1003
 id: c7efeb37-611a-537b-8f59-6475d2f8e472
 status: test
 description: Breach intel signature for actor dragonforce, MITRE technique T1003.
-  Derived from 4 observed incident(s) in the WRG breach catalog.
+  Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1003/
 - https://blog.barracuda.com/2025/06/09/dragonforce-ransomware-cartel-vs--everybody

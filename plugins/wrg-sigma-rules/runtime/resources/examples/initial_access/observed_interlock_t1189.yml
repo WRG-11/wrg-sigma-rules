@@ -1,8 +1,7 @@
 title: Interlock -- T1189
 id: 44b6e8fa-bc49-59bd-aa51-8ec53c31cfaa
 status: test
-description: Breach intel signature for actor interlock, MITRE technique T1189. Derived
-  from 0 observed incident(s) in the WRG breach catalog.
+description: Breach intel signature for actor interlock, MITRE technique T1189. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1189/
 - https://www.bleepingcomputer.com/news/security/interlock-ransomware-gang-pushes-fake-it-tools-in-clickfix-attacks/

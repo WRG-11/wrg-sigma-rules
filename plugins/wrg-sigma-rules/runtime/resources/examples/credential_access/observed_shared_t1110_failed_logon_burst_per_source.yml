@@ -5,7 +5,7 @@ status: test
 description: Base event match for the shared rule 'Burst of Failed Logons from One Source'.
   On its own it is not the alert; the correlation document carries the threshold and the actor
   list.
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2026-05-12'
 modified: '2026-09-30'
 related:
@@ -31,8 +31,7 @@ tags:
 title: Burst of Failed Logons from One Source
 id: b2c642e6-0bae-5c62-83d7-5ec39bbfabcc
 status: test
-description: 'Shared detection for 2 actors with an observed T1110 incident in the WRG breach
-  catalog: shinyhunters, thegentlemen. The logic is a generic pattern, not the documented
+description: 'Shared detection for 2 actors with an observed T1110 incident: shinyhunters, thegentlemen. The logic is a generic pattern, not the documented
   tradecraft of these actors, so a hit does not say which actor, if any, is responsible. Merged
   on 2026-09-30 from 2 single-actor rules with identical logic (their ids are listed under
   related).'
@@ -57,7 +56,7 @@ references:
 - https://www.ransomware.live/id/RWRnZXdvb2QgU3VyZ2ljYWwgSG9zcGl0YWxAdGhlZ2VudGxlbWVu
 - https://www.ransomware.live/id/TWljaGlnYW4gU3VyZ2ljYWwgQ2VudGVyQHRoZWdlbnRsZW1lbg==
 - https://www.ransomware.live/id/U29qYSBkZSBQb3J0dWdhbEB0aGVnZW50bGVtZW4=
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2026-05-12'
 modified: '2026-09-30'
 related:

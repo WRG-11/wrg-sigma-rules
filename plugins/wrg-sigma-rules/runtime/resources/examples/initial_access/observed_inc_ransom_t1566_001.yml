@@ -2,7 +2,7 @@ title: INC Ransom -- T1566.001
 id: a19de5f5-04f2-518d-83da-487a080564a6
 status: test
 description: Breach intel signature for actor inc_ransom, MITRE technique T1566.001.
-  Derived from 1 observed incident(s) in the WRG breach catalog.
+  Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1566/001/
 - https://www.microsoft.com/en-us/security/blog/2024/10/22/microsoft-threat-intelligence-healthcare-ransomware-report-highlights-need-for-collective-industry-action/

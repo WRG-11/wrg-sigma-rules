@@ -5,7 +5,7 @@ status: test
 description: Base event match for the shared rule 'Burst of Network or RDP Logons for One
   Account'. On its own it is not the alert; the correlation document carries the threshold
   and the actor list.
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2025-03-14'
 modified: '2026-09-30'
 related:
@@ -61,8 +61,7 @@ tags:
 title: Burst of Network or RDP Logons for One Account
 id: 7f5c87e2-ae14-56fd-b6f9-dd0c449f9a45
 status: test
-description: 'Shared detection for 3 actors with an observed T1078 incident in the WRG breach
-  catalog: shinyhunters, teampcp_unc6780, unknown_supply_chain_2025_03. The logic is a generic
+description: 'Shared detection for 3 actors with an observed T1078 incident: shinyhunters, teampcp_unc6780, unknown_supply_chain_2025_03. The logic is a generic
   pattern, not the documented tradecraft of these actors, so a hit does not say which actor,
   if any, is responsible. Merged on 2026-09-30 from 3 single-actor rules with identical logic
   (their ids are listed under related).'
@@ -103,7 +102,7 @@ references:
 - https://www.stepsecurity.io/blog/harden-runner-detection-tj-actions-changed-files-action-is-compromised
 - https://github.com/advisories/ghsa-mrrh-fwg8-r2c3
 - https://github.com/advisories/GHSA-qmg3-hpqr-gqvc
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2025-03-14'
 modified: '2026-09-30'
 related:

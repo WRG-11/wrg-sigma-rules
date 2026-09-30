@@ -1,8 +1,7 @@
 title: Network or RDP Logon Outside Service and Admin Accounts
 id: b9b55a5e-e741-5685-bd8e-bdd6f28611f4
 status: test
-description: 'Shared detection for 2 actors with an observed T1078 incident in the WRG breach
-  catalog: auditteam, ransomhouse. The logic is a generic pattern, not the documented tradecraft
+description: 'Shared detection for 2 actors with an observed T1078 incident: auditteam, ransomhouse. The logic is a generic pattern, not the documented tradecraft
   of these actors, so a hit does not say which actor, if any, is responsible. Merged on 2026-09-30
   from 2 single-actor rules with identical logic (their ids are listed under related).'
 references:

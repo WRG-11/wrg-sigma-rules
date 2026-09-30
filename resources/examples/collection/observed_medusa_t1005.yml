@@ -32,8 +32,7 @@ tags:
 title: Medusa Team -- T1005
 id: d956c59b-b168-5b1e-98bc-cd695e4c2383
 status: test
-description: Breach intel signature for actor medusa, MITRE technique T1005. Derived
-  from 1 observed incident(s) in the WRG breach catalog.
+description: Breach intel signature for actor medusa, MITRE technique T1005. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1005/
 - https://www.cisa.gov/news-events/cybersecurity-advisories/aa25-071a

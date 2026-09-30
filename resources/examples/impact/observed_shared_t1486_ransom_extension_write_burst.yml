@@ -5,7 +5,7 @@ status: test
 description: Base event match for the shared rule 'Burst of File Writes with Ransomware Extensions'.
   On its own it is not the alert; the correlation document carries the threshold and the actor
   list.
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2023-02-23'
 modified: '2026-09-30'
 related:
@@ -45,8 +45,7 @@ tags:
 title: Burst of File Writes with Ransomware Extensions
 id: 16a5ebac-7159-5d15-bfe6-a4eb736ac53b
 status: test
-description: 'Shared detection for 7 actors with an observed T1486 incident in the WRG breach
-  catalog: blackwater, crpxo, genesis, global_secret_group, lockbit, panzer, securotrop. The
+description: 'Shared detection for 7 actors with an observed T1486 incident: blackwater, crpxo, genesis, global_secret_group, lockbit, panzer, securotrop. The
   logic is a generic pattern, not the documented tradecraft of these actors, so a hit does
   not say which actor, if any, is responsible. Merged on 2026-09-30 from 7 single-actor rules
   with identical logic (their ids are listed under related).'
@@ -73,7 +72,7 @@ references:
 - https://www.suspectfile.com/a-young-ransomware-group-an-ancient-risk-securotrop-the-interview/
 - https://www.hookphish.com/blog/ransomware-group-securotrop-hits-structural-component-systems/
 - https://www.ransomware.live/group/securotrop
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2023-02-23'
 modified: '2026-09-30'
 related:

@@ -1,8 +1,7 @@
 title: LAPSUS$ -- T1078
 id: b6d23664-a6e7-583a-b2fc-f54bd7ef04e6
 status: test
-description: Breach intel signature for actor lapsus, MITRE technique T1078. Derived from 1 observed incident(s) in the WRG
-  breach catalog.
+description: Breach intel signature for actor lapsus, MITRE technique T1078. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1078/
 - https://attack.mitre.org/groups/G1004/

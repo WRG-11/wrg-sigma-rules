@@ -2,12 +2,12 @@ title: Unknown (JDownloader supply-chain 2026-05) — T1036.005
 id: ee545b17-b3cb-5a2b-855a-4e42ffbc15a7
 status: test
 description: Breach intel signature for actor unknown_supply_chain_2026_05, MITRE
-  technique T1036.005. Derived from 1 observed incident(s) in the WRG breach catalog.
+  technique T1036.005. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1036/005/
 - https://attack.mitre.org/techniques/T1195/
 - https://www.bleepingcomputer.com/news/security/jdownloader-site-hacked-to-replace-installers-with-python-rat-malware/
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2026-05-06'
 logsource:
   category: process_creation

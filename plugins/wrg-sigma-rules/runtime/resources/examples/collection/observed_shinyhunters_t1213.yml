@@ -28,7 +28,7 @@ title: ShinyHunters -- T1213
 id: 50949fc1-d03a-53e8-9a10-5a92039c911c
 status: test
 description: Breach intel signature for actor shinyhunters, MITRE technique T1213.
-  Derived from 2 observed incident(s) in the WRG breach catalog.
+  Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1213/
 - https://www.justice.gov/usao-wdwa/pr/seattle-area-man-charged-cyberattacks-multiple-companies-and-individuals-and

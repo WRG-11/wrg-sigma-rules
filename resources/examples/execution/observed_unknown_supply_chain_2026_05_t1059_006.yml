@@ -2,7 +2,7 @@ title: Unknown (JDownloader supply-chain 2026-05) -- T1059.006
 id: e2d087ab-7f3f-5527-bcf0-3f4c5cb0a872
 status: test
 description: Breach intel signature for actor unknown_supply_chain_2026_05, MITRE
-  technique T1059.006. Derived from 1 observed incident(s) in the WRG breach catalog.
+  technique T1059.006. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1059/006/
 - https://attack.mitre.org/techniques/T1195/

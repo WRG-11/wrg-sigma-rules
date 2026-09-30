@@ -1,8 +1,7 @@
 title: RDP Logon (Logon Type 10)
 id: 7e953a9f-ccd1-54a2-b4d6-91881245bb12
 status: test
-description: 'Shared detection for 2 actors with an observed T1021.001 incident in the WRG
-  breach catalog: akira, anubis_ransomware. The logic is a generic pattern, not the documented
+description: 'Shared detection for 2 actors with an observed T1021.001 incident: akira, anubis_ransomware. The logic is a generic pattern, not the documented
   tradecraft of these actors, so a hit does not say which actor, if any, is responsible. Merged
   on 2026-09-30 from 2 single-actor rules with identical logic (their ids are listed under
   related).'

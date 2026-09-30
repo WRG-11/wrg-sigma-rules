@@ -3,13 +3,13 @@ title: Iran-nexus Tortoiseshell (Imperial Kitten / TA456) recruitment-deception 
 id: e375afaf-fee4-5750-b973-645667117cb6
 status: test
 description: Breach intel signature for actor iran_nexus_tortoiseshell, MITRE technique
-  T1684.001. Derived from 1 observed incident(s) in the WRG breach catalog.
+  T1684.001. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1684/001/
 - https://attack.mitre.org/groups/G0107/
 - https://about.fb.com/news/2021/07/taking-action-against-hackers-in-iran/
 - https://www.proofpoint.com/us/blog/threat-insight/i-knew-you-were-trouble-ta456-targets-defense-contractor-alluring-social-media
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2021-07-08'
 logsource:
   category: process_creation
