@@ -72,6 +72,11 @@ Every rule:
 - [ ] `observed_*` prefix for incident-specific rules, `template_*` for
       canonical pattern templates — the prefix is a claim about provenance,
       so do not label a generic pattern `observed_`
+- [ ] If the corpus already has a rule with the same `logsource`,
+      `detection:` and `correlation:` for another actor, add your actor's
+      `wrg.observed.actor.*` tag and references to that rule instead of
+      a new file. CI rejects a second file with the same logic, including
+      one that only writes `gt: N` for `gte: N+1`
 - [ ] ATT&CK technique in `tags:` (e.g. `attack.t1071`); the coverage
       resource ignores rules without one
 - [ ] Passes `validate_rule` (pySigma round-trip + linter)

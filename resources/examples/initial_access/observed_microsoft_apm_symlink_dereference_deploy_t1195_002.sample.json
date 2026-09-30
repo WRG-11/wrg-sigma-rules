@@ -1,0 +1,4 @@
+[
+  {"expect_match": true, "event": {"Image": "/usr/bin/ln", "CommandLine": "ln -s ../.apm/agents/reviewer.md .claude/agents/reviewer.md"}},
+  {"expect_match": false, "event": {"Image": "/usr/bin/ln", "CommandLine": "ln ../.apm/agents/reviewer.md .claude/agents/reviewer.md"}}
+]

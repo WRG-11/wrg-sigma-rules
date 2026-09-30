@@ -21,7 +21,7 @@ references:
 - https://www.cisa.gov/known-exploited-vulnerabilities-catalog
 - https://www.rapid7.com/blog/post/etr-cve-2026-58644-microsoft-sharepoint-server-unauthenticated-remote-code-execution-vulnerability-exploited-in-the-wild/
 - https://attack.mitre.org/techniques/T1190/
-- https://attack.mitre.org/techniques/T1059.001/
+- https://attack.mitre.org/techniques/T1059/001/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-08-05'
 logsource:

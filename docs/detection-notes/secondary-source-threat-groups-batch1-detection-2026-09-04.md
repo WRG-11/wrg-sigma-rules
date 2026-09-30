@@ -7,7 +7,7 @@ CISA/first-party-vendor advisories -- the source-quality difference from this co
 notes is deliberately called out below, not glossed over.
 - resources/examples/execution/observed_crpxo_t1204_002.yml
 - resources/examples/impact/observed_coinbase_cartel_t1657.yml
-- resources/examples/impact/observed_direwolf_t1490.yml
+- resources/examples/impact/observed_shared_t1490_shadow_copy_or_catalog_deletion.yml (shared rule; merged 2026-09-30 from single-actor files)
 - resources/examples/impact/observed_nullsec_nigeria_t1491_defacement.yml
 Detection/defense only, no exploit/PoC involved -- these are generic technique detections
 associated with named actors via breach-catalog attribution, not actor-specific TTP research.
@@ -23,7 +23,7 @@ Four Sigma rules, each attributed to a named threat actor or group, but worth re
 
 **2. Coinbase Cartel — network egress to known cryptocurrency mixer/exchange infrastructure (T1657).** Coinbase Cartel is documented (Bitdefender, Fortiguard, socradar, Infostealers.com) as an extortion group whose initial access chain runs through infostealer-harvested credentials, with a claimed 100+-company spree. The rule's actual detection logic is a static domain allowlist of known mixer/no-KYC-exchange infrastructure (Tornado Cash, Blender.io, ChipMixer, Wasabi Wallet, and others) — this is the same "known-bad infrastructure" detection shape as this corpus's OFAC-sanctioned-address rules, generalized from a single address to a domain list, and is not specific to Coinbase Cartel's own operations at all; any actor or legitimate researcher reaching the same infrastructure fires identically.
 
-**3. Dire Wolf — Volume Shadow Copy deletion via the standard three tools (T1490).** Dire Wolf is a newer ransomware group (CSOonline reports a Singapore government alert naming it as targeting global tech/manufacturing firms specifically). The detection logic is the textbook `vssadmin`/`wmic`/`wbadmin` shadow-copy-deletion command pattern used by essentially every ransomware family for at least a decade — this is a near-universal ransomware-impact signature, not evidence specific to Dire Wolf.
+**3. Dire Wolf — Volume Shadow Copy deletion via the standard three tools (T1490).** Dire Wolf is a newer ransomware group (CSOonline reports a Singapore government alert naming it as targeting global tech/manufacturing firms specifically). The detection logic is the textbook `vssadmin`/`wmic`/`wbadmin` shadow-copy-deletion command pattern used by essentially every ransomware family for at least a decade — this is a near-universal ransomware-impact signature, not evidence specific to Dire Wolf. Since 2026-09-30 it is one rule shared with Stormous (`observed_shared_t1490_shadow_copy_or_catalog_deletion.yml`).
 
 **4. Nullsec Nigeria — web-root file writes outside the legitimate webserver process (T1491, defacement).** This rule's SOLE source is a single X.com/Twitter post from a dark-web-monitoring account — the weakest sourcing basis of the four rules in this note. The detection logic (a write to a common web-root path ending in a server-executable extension, excluding writes attributed to the webserver process itself) is a reasonable generic defacement-detection pattern, but nothing in the available source material ties a specific technical indicator to Nullsec Nigeria beyond a claimed defacement being reported.
 

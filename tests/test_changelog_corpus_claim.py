@@ -160,11 +160,30 @@ def test_chain_check_flags_a_seam_mismatch() -> None:
     assert newer_frm != older_to, "fixture must contain the gap it is testing"
 
 
+def shrink_is_declared(body: str, frm: int, to: int) -> bool:
+    """A shrinking range is legitimate only in a section that says BREAKING.
+
+    Removing rules breaks every deployment that references their ids, so a
+    corpus that shrinks without saying so is either a one-ended edit or an
+    undeclared breaking change. First legitimate shrink: 2026-09-30, when 47
+    single-actor clones were merged into 11 shared rules.
+    """
+    return frm <= to or "BREAKING" in body
+
+
+def test_shrink_is_declared_both_directions() -> None:
+    assert shrink_is_declared("Corpus 1 -> 2 rules", 1, 2)
+    assert shrink_is_declared("Corpus 3 -> 2 rules. **BREAKING**: merged", 3, 2)
+    assert not shrink_is_declared("Corpus 3 -> 2 rules", 3, 2)
+
+
 def test_claim_start_is_not_above_its_end() -> None:
-    """A backwards range means someone edited one end of it only."""
+    """A backwards range means someone edited one end of it only -- unless declared."""
     ver, body = newest_section(CHANGELOG.read_text(encoding="utf-8"))
     claim = corpus_claim(body)
     if claim is None:  # covered by the test above
         pytest.skip("no corpus claim in the newest section")
     frm, to = claim
-    assert frm <= to, f"section [{ver}] claims a shrinking corpus: {frm} -> {to}"
+    assert shrink_is_declared(body, frm, to), (
+        f"section [{ver}] claims a shrinking corpus without declaring BREAKING: {frm} -> {to}"
+    )

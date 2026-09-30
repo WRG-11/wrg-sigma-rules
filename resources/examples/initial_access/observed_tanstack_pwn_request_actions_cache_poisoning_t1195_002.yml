@@ -22,7 +22,7 @@ description: 'Real npm supply chain compromise, first published by TanStack''s o
 references:
 - https://tanstack.com/blog/npm-supply-chain-compromise-postmortem
 - https://orca.security/resources/blog/tanstack-npm-supply-chain-worm/
-- https://attack.mitre.org/techniques/T1195.002/
+- https://attack.mitre.org/techniques/T1195/002/
 - https://attack.mitre.org/techniques/T1552/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-08-05'

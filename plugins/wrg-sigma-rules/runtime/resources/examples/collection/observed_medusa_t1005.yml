@@ -37,7 +37,7 @@ description: Breach intel signature for actor medusa, MITRE technique T1005. Der
 references:
 - https://attack.mitre.org/techniques/T1005/
 - https://www.cisa.gov/news-events/cybersecurity-advisories/aa25-071a
-- https://www.bleepingcomputer.com/news/security/medusa-ransomware-hits-over-300-critical-infrastructure-orgs/
+- https://www.bleepingcomputer.com/news/security/cisa-medusa-ransomware-hit-over-300-critical-infrastructure-orgs/
 - https://www.ic3.gov/CSA/2025/250312.pdf
 - https://www.bleepingcomputer.com/news/security/toyota-confirms-breach-after-medusa-ransomware-threatens-to-leak-data/
 - https://www.toyota-fs.de/ueber-uns/aktuelle-informationen

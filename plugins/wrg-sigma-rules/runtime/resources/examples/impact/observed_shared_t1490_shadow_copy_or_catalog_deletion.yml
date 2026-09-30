@@ -1,0 +1,50 @@
+title: Shadow Copy or Backup Catalog Deletion
+id: 3c7f562d-76c0-5c10-8ddc-d191c28080c7
+status: test
+description: 'Shared detection for 2 actors with an observed T1490 incident in the WRG breach
+  catalog: direwolf, stormous_ransomware_operator. The logic is a generic pattern, not the
+  documented tradecraft of these actors, so a hit does not say which actor, if any, is responsible.
+  Merged on 2026-09-30 from 2 single-actor rules with identical logic (their ids are listed
+  under related).'
+references:
+- https://attack.mitre.org/techniques/T1490/
+- https://www.csoonline.com/article/4042182/singapore-issues-critical-alert-on-dire-wolf-ransomware-targeting-global-tech-and-manufacturing-firms.html
+- https://www.levelblue.com/blogs/spiderlabs-blog/dire-wolf-strikes-new-ransomware-group-targeting-global-sectors
+- https://www.halcyon.ai/threat-group/dire-wolf
+- https://x.com/search?q=stormous
+- https://www.ransomware.live/id/U0EyMDAwLkNPTUBzdG9ybW91cw==
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2026-06-04'
+modified: '2026-09-30'
+related:
+- id: 438370f3-2bdb-594b-9bb4-acbe47a5600f
+  type: merged
+- id: 0ba93cfb-cb40-5203-bf04-44fff7049c7d
+  type: merged
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_vss_delete:
+    Image|endswith:
+    - \vssadmin.exe
+    - \wmic.exe
+    - \wbadmin.exe
+    CommandLine|contains:
+    - delete shadows
+    - shadowcopy delete
+    - delete catalog
+  condition: selection_vss_delete
+falsepositives:
+- Authorized backup/DR software or IT administrators clearing old shadow copies as part of
+  scheduled disk-space maintenance
+- IT administrators legitimately clearing old shadow-copy storage as part of scheduled disk-space
+  maintenance
+level: medium
+tags:
+- attack.t1490
+- wrg.observed
+- wrg.observed.actor.direwolf
+- wrg.observed.actor.stormous_ransomware_operator
+- wrg.severity.medium
+- wrg.tactic.impact

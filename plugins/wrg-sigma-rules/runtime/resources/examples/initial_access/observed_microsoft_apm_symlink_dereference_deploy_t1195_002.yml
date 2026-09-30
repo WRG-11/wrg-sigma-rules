@@ -47,16 +47,17 @@ logsource:
 detection:
   selection_symlink_source:
     Image|endswith: /ln
-    CommandLine|contains: '-s'
     CommandLine|contains:
     - .apm/agents/
     - .apm/prompts/
+  selection_symlink_flag:
+    CommandLine|contains: '-s'
   selection_deploy_dir_target:
     CommandLine|contains:
     - .github/
     - .claude/
     - .codex/
-  condition: selection_symlink_source and selection_deploy_dir_target
+  condition: selection_symlink_source and selection_symlink_flag and selection_deploy_dir_target
 falsepositives:
 - A deployment already upgraded to 0.13.0+, where every finder routes
   through `find_files_by_glob()`'s symlink/hardlink check before reading

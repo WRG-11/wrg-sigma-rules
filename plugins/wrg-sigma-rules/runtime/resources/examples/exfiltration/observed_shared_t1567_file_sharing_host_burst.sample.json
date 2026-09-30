@@ -1,0 +1,126 @@
+[
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "DestinationHostname": "mega.nz"
+      },
+      {
+        "DestinationHostname": "mega.nz"
+      },
+      {
+        "DestinationHostname": "mega.nz"
+      },
+      {
+        "DestinationHostname": "mega.nz"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "DestinationHostname": "mega.nz"
+      },
+      {
+        "DestinationHostname": "mega.nz"
+      },
+      {
+        "DestinationHostname": "mega.nz"
+      }
+    ]
+  },
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "DestinationHostname": "www.mega.nz"
+      },
+      {
+        "DestinationHostname": "www.mega.nz"
+      },
+      {
+        "DestinationHostname": "www.mega.nz"
+      },
+      {
+        "DestinationHostname": "www.mega.nz"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "DestinationHostname": "www.mega.nz"
+      },
+      {
+        "DestinationHostname": "www.mega.nz"
+      },
+      {
+        "DestinationHostname": "www.mega.nz"
+      }
+    ]
+  },
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "DestinationHostname": "transfer.sh"
+      },
+      {
+        "DestinationHostname": "transfer.sh"
+      },
+      {
+        "DestinationHostname": "transfer.sh"
+      },
+      {
+        "DestinationHostname": "transfer.sh"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "DestinationHostname": "transfer.sh"
+      },
+      {
+        "DestinationHostname": "transfer.sh"
+      },
+      {
+        "DestinationHostname": "transfer.sh"
+      }
+    ]
+  },
+  {
+    "expect_match": true,
+    "events": [
+      {
+        "DestinationHostname": "file.io"
+      },
+      {
+        "DestinationHostname": "file.io"
+      },
+      {
+        "DestinationHostname": "file.io"
+      },
+      {
+        "DestinationHostname": "file.io"
+      }
+    ]
+  },
+  {
+    "expect_match": false,
+    "events": [
+      {
+        "DestinationHostname": "file.io"
+      },
+      {
+        "DestinationHostname": "file.io"
+      },
+      {
+        "DestinationHostname": "file.io"
+      }
+    ]
+  }
+]

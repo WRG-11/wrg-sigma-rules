@@ -29,6 +29,7 @@ tags:
 ---
 title: Play Ransomware — T1021.002
 id: 3157354e-88b1-51c1-923a-9830ca5a9f49
+author: WRG Breach Intel — Phase 6
 status: test
 description: Counting correlation over the base rule. The base rule matches single events; this document
   carries the threshold.
@@ -45,7 +46,7 @@ references:
 - https://attack.mitre.org/techniques/T1021/002/
 - https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-352a
 - https://www.ic3.gov/CSA/2023/231218.pdf
-- https://www.bleepingcomputer.com/news/security/fbi-play-ransomware-breached-300-organizations-worldwide/
+- https://www.bleepingcomputer.com/news/security/fbi-play-ransomware-breached-300-victims-including-critical-orgs/
 - https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001857154&type=8-K
 - https://www.bleepingcomputer.com/news/security/krispy-kreme-cyberattack-impacts-online-orders-and-operations/
 - https://www.ransomware.live/id/Q29ybGV5IE1GR0BwbGF5

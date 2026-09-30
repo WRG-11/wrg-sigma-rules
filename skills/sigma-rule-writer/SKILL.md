@@ -14,8 +14,9 @@ allowed-tools:
 # Sigma Rule Writer
 
 Guides a SOC analyst, threat-intel responder, or bug-bounty hunter through
-writing a production-grade sigma detection rule from a plain-English threat
-description.
+writing a validated Sigma detection rule from a plain-English threat
+description. The result is a starting point to tune against your own
+telemetry, not a production-ready rule.
 
 Trigger when the user says any of:
 
@@ -100,8 +101,14 @@ a list). The difference is visible: only the piped Splunk query carries
 **Correlation rules do not convert on every target.** The Lucene-family
 backends (elastic, kibana, wazuh, opensearch) cannot express them and return
 `kind: backend_capability_gap`. That is a backend limit, not a defect in the
-rule -- do not "fix" the rule in response. Use `splunk` or `opensearch-ppl`,
-which the envelope's `hint` names.
+rule -- do not "fix" the rule in response. Use a target the envelope's `hint`
+names (`splunk`, `esql`, `eql`, `opensearch-ppl`; for `temporal_ordered`, only
+`eql`).
+
+**A converted correlation is not automatically the same rule.** Read
+`correlation_semantics` in the result before showing the query, and tell the
+user about every entry -- a `window_dropped` or `cannot_fire_same_logsource`
+query looks fine and alerts on the wrong thing, or never.
 
 Show converted output side-by-side with source sigma YAML.
 

@@ -11,6 +11,191 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [2.0.0] - 2026-09-30
+
+Claim-accuracy release. Corpus 330 → 294 rules: 47 single-actor rules that
+repeated another rule's detection logic were merged into 11 shared rules
+(**BREAKING** for deployments that reference rule ids, see below). No rule's
+detection logic changed. Every other change below comes from re-checking a
+published claim against its source: MITRE ATT&CK Enterprise 19.2 (STIX), the
+cited web pages, the CVE and GitHub advisory databases, and live tool output.
+
+### Changed
+- **BREAKING: one rule per detection logic.** 47 `observed_*` rules repeated
+  one of 11 detection logics under a different actor tag; 43 were identical
+  byte for byte, 4 wrote the threshold as `gt: N` instead of `gte: N+1`, which
+  selects the same integer counts. The largest group was 14 files for one
+  "same file-sharing host 4+ times in 10 minutes" signature. Each group is now
+  one `observed_shared_*` rule that carries every member's actor tag and
+  references, and lists the replaced ids under `related` with `type: merged`;
+  the 47 files and their sidecars are gone. A deployment that pins one of those
+  ids finds it in the shared rule's `related` list. The shared rule takes the
+  highest member `level`, so no deployment's alert severity drops; that makes
+  three generic rules `critical`, a level that describes the most severe
+  member actor's record rather than the detection (see Known limitations).
+  Its description says the logic is a generic pattern, not the documented
+  tradecraft of the listed actors, as the companion notes already did. Twelve
+  detection notes now point at the shared rules, and the inline filter
+  rationale that two T1078 member files carried was kept on the shared rules.
+- **ATT&CK v19 taxonomy.** v19 split Defense Evasion into Stealth (TA0005)
+  and Defense Impairment (TA0112). The 22 rules under `defense_evasion/` moved
+  to `stealth/` or `defense_impairment/` by the tactic ATT&CK assigns to their
+  tagged technique. Five more rules changed directory because their directory
+  was not one of their technique's v19 tactics (for example T1219 is Command
+  and Control, T1112 is Defense Impairment and Persistence), and one was
+  renamed in place. The corpus now has one
+  directory per v19 tactic plus `code_review`; the README and plugin manifest
+  no longer call 16 directories "17 MITRE ATT&CK tactics".
+- **Revoked techniques replaced by their ATT&CK successors** (`revoked-by`
+  relationships in the v19 STIX data): T1562.001 → T1685, T1070.001 →
+  T1685.005, T1656 → T1684.001. Rule files whose names carried a revoked ID
+  were renamed; rule `id:` values are unchanged.
+- **T1656.002 removed.** Two rules tagged a technique ID that exists in no
+  ATT&CK release (checked against 18.1 and 19.2). Both describe impersonation
+  and now carry T1684.001.
+- Five rules tagged the retired `attack.defense_evasion` tactic; five rules
+  lacked the tactic tag for a technique they carry. Both are corrected, and
+  each rule's `wrg.tactic.*` tag now matches its directory.
+- **References that returned 404/410 or no longer resolved** were replaced by
+  the article that reports the same event, checked live for status and title,
+  or removed when no such article was found. Several dead URLs did not match
+  the real article's address at all (for example a BleepingComputer AT&T slug
+  and a The Register Claude Code slug that the sites never published); two
+  The Register URLs only lacked the article number the site now requires.
+  Two ATT&CK URLs used a dot instead of a slash (`T1059.001/`) and 404ed.
+- **LAPSUS$ and Vodafone Portugal.** A detection note called the February 2022
+  Vodafone Portugal attack a confirmed LAPSUS$ incident. The incident is
+  confirmed; the attribution rests on the group's own reported Telegram claim
+  (Security Boulevard), and The Portugal News reported the same day that the
+  group had not yet claimed it. The note now says so, and the rules cite both
+  the incident and the claim.
+- **Mini Shai-Hulud.** The rule cited a Twitter profile rather than the
+  disclosure; it now cites Microsoft Threat Intelligence's 2026-05-20 blog
+  post. Its description called 185.95.159.32 a "hardcoded C2 IP", which none
+  of eight campaign write-ups reports; the address is what `t.m-kosche.com`
+  resolved to when checked on 2026-09-30, and the description now says that.
+  An internal operations aside (including a non-English word) was removed
+  from the same description.
+- The plugin manifest description no longer opens with "Production-grade".
+  The roadmap's product boundary states that the project does not claim a
+  generated rule is production-ready, and `stable` is deliberately unused;
+  the marketplace-facing description now agrees with both.
+- The plugin manifest, `CITATION.cff` and the README corpus summary now name
+  both halves of the corpus: ransomware and threat-actor activity, and
+  vulnerabilities disclosed in AI/LLM applications and MCP servers. None of
+  these descriptions gains a new count.
+- `CITATION.cff` no longer states that rules are never generated from
+  technique lists; it now distinguishes `observed_*` rules (derived from a
+  specific, cited incident) from `template_*` technique shapes, matching the
+  README's definition.
+- README: the Rule status table no longer equates `test` with `observed_*`
+  (both prefixes appear under both statuses); `convert_rule`'s `wazuh` target
+  is described as Elasticsearch Lucene output with a warning, since pySigma has
+  no Wazuh backend; CI is described as running on pushes to `main` and pull
+  requests rather than "every push"; and the client list no longer says Zed
+  reads an `mcpServers` block (Zed uses `context_servers`).
+- DEMO.md: the input block is the rule file as it stands rather than an
+  unmarked abridgement; the correlation-gap `hint` matches current output;
+  `draft_rule`, which no demo exercises, is no longer listed as demonstrated;
+  "real production rules" is gone; and the reproduction steps clone before
+  installing requirements.
+- Skills: `sigma-rule-writer` no longer promises a "production-grade" rule,
+  and `threat-coverage-gap-analyzer`'s example no longer names T1078.004 as
+  absent from a corpus that now contains it, nor quotes an unsourced total.
+
+### Fixed
+Found by running RSigma 0.22.0's validator and linter over the corpus; this
+repository's own pySigma-based CI accepted every one of them.
+- **Three rules silently lost part of their detection.** Each repeated a
+  field key inside one selection (for example `cs-uri-stem|contains` twice).
+  YAML keeps only the last value, so pySigma evaluated a broader rule than the
+  one written: the Open WebUI knowledge-sync rule matched any POST/DELETE to a
+  path containing `/sync`, the terminal-WebSocket rule dropped `terminal`, and
+  the APM symlink rule dropped `-s`. They now use `|all` or a separate
+  selection. Each sidecar sample gained a negative case that the old rule
+  matched and the fixed rule does not; the APM rule gained its first sample
+  and left the exception baseline (63 → 62 entries).
+- A regex used a negative lookahead, which RE2-family engines (including
+  RSigma's) and Lucene `regexp` do not support. The lookahead was redundant:
+  the character class that follows cannot match `https://` or `data:`; old
+  and new patterns agree on every probe string tried.
+- Six `date:` values used `YYYY/MM/DD`; the specification requires
+  `YYYY-MM-DD`. Sixty-five logsource blocks carried `product: ""`; the key is
+  now omitted. Two correlation documents gained the `author` their base
+  document already had, one tag was lowercased, and a duplicate reference
+  introduced by the dead-link replacement above was removed.
+
+Found by converting every corpus correlation rule on the pinned backends
+(pySigma 1.5.1; elasticsearch 2.1.1, opensearch 2.0.3 and splunk 2.1.0
+backends) and reading the queries rather than the success flag:
+- **DEMO.md said `splunk` converts all 330 rules.** It converts 327: pySigma's
+  Splunk backend cannot express the 3 `temporal_ordered` correlations. The
+  count is now stamped (`splunk_esql_convert_count`) and a test ties it to a
+  real conversion; before, only the Lucene count had one.
+- **`convert_rule` recommended `opensearch-ppl` for `temporal_ordered`.** Its
+  query enforces no order and tells sub-rules apart by `dc(EventID)`. In all 3
+  corpus `temporal_ordered` rules both sub-rules read `process_creation`, so in
+  a single log source the count stays at 1 and the query can never alert. The
+  hint now names `eql`, whose `sequence ... maxspan` keeps both the order and
+  the window.
+
+### Added
+- **`esql` and `eql` conversion targets** (Elastic ES|QL and Event Query
+  Language, from the `pysigma-backend-elasticsearch` package the Lucene
+  targets already use). Unlike Lucene they convert correlation rules: `esql`
+  24 of the 27 corpus correlations (not `temporal_ordered`), `eql` all 27.
+- **`correlation_semantics` on every correlation conversion**: the measured
+  ways the query departs from the rule, each also appended to `warnings`.
+  Codes: `window_dropped` (`opensearch-ppl` drops the window of all 23 corpus
+  `event_count`/`value_count` rules, so "more than 10 in 10 minutes" becomes
+  "more than 10 in the whole search range"), `fixed_window` (Splunk `bin`,
+  ES|QL `date_trunc` and PPL `span` are fixed buckets, not sliding windows),
+  `order_not_enforced`, `subrule_identity_by_eventid`,
+  `cannot_fire_same_logsource`, `value_count_joins_on_field` (`eql` renders a
+  distinct-value count as a join on one repeated value, the opposite pattern)
+  and `threshold_off_by_one` (`eql` renders `gt N` as `runs=N`). An empty list
+  means none of these was found, not that the query is equivalent. Each check
+  is pinned in both directions by `tests/test_correlation_semantics.py`.
+- `scripts/correlation_conversion_audit.py` covers `esql` and `eql` and
+  reports `semantics_checked_by_target` and `semantic_deviations_by_target`,
+  so "no deviation" and "not checked" are different numbers.
+- `tests/test_shared_actor_logic.py`: no two `observed_*` rules may share
+  detection and correlation logic, counting `gt: N` and `gte: N+1` as the
+  same; every shared rule names each actor it tags and relates to the ids it
+  replaced. It fails against the previous corpus.
+- `tests/test_detection_note_rule_paths.py`: every rule path a detection note
+  names must exist. Nothing checked this before; merging the rules above left
+  12 notes pointing at 47 deleted files until they were updated.
+- `tests/test_no_duplicate_yaml_keys.py`: every rule and sample is loaded with
+  a strict YAML loader that rejects a repeated mapping key, so the silent loss
+  fixed above fails CI instead of passing it. It fails against the corpus as
+  it stood before that fix.
+- `.rsigma-lint.yml`, declaring the corpus's `wrg`, `owasp` and `ofac` tag
+  namespaces. With it the corpus validates under RSigma 0.22.0 with no parse
+  or compile errors and lints with no findings.
+- `tests/test_attack_v19_taxonomy.py`: directories must equal the v19 tactics
+  plus `code_review`, no rule may carry a retired ATT&CK tag, and every
+  `wrg.tactic.*` tag must match its directory. Against the previous corpus the
+  first two tests fail.
+
+### Known limitations
+- Five SGLang GitHub advisories cited by five rules return 404 publicly; the
+  companion note already documents this and names the corroborating sources.
+- A HackerOne report cited by two rules is not publicly disclosed; the rules
+  also cite press coverage of it.
+- Three cited pages (Barricade Cyber, Red Packet Security, Suspectfile) sit
+  behind a bot challenge that automated checks could not pass, and one
+  (toyota-fs.de) did not answer; they were left in place, unverified.
+- Three shared rules are `critical` (T1078 logon burst, T1195 unsigned
+  binary, T1071 script-host web connections) because one merged member was.
+  The level describes that actor's record, not a detection whose
+  probability "borders certainty"; re-levelling is a separate decision.
+- Some shared rules tag actors whose documented tradecraft does not match
+  the generic pattern: printer credential pages (T1552) for an npm worm and a
+  GitHub Actions compromise, unsigned `.exe` installers in `Temp` (T1195) for
+  npm packages. The descriptions and notes say so. Whether such rules should
+  be `template_*` or drop those actor tags is open.
+
 ## [1.11.0] - 2026-09-28
 
 Technique-coverage release. Corpus 299 → 330 rules; rules with a sidecar
@@ -1725,6 +1910,7 @@ README `sigma_rule_count` self-stamp are all in sync at **68**.
 [1.4.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.3.0...v1.4.0
 [1.5.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.4.0...v1.5.0
 [1.6.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.5.0...v1.6.0
-[Unreleased]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/WRG-11/wrg-sigma-rules/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.11.0...v2.0.0
 [1.11.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.10.1...v1.11.0
 [1.7.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.6.0...v1.7.0

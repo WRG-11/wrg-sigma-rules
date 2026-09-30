@@ -1,0 +1,12 @@
+# Lint configuration for RSigma (https://github.com/timescale/rsigma).
+#
+# The corpus uses three tag namespaces beyond the Sigma specification's set:
+#   wrg    -- corpus metadata (observed/template provenance, tactic directory, IOCs)
+#   owasp  -- OWASP Top 10 for LLM Applications mappings (for example owasp.llm06)
+#   ofac   -- OFAC sanctions-programme references on financially motivated actors
+# Declaring them keeps `rsigma rule lint` focused on spec findings instead of
+# reporting every custom tag as `unknown_tag_namespace`.
+tag_namespaces:
+  - wrg
+  - owasp
+  - ofac

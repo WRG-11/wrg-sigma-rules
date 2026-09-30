@@ -1,0 +1,140 @@
+title: Burst of Network or RDP Logons for One Account (base)
+name: wrg_cbfc4deaf9fa5a47
+id: cbfc4dea-f9fa-5a47-b349-3ea823d02b44
+status: test
+description: Base event match for the shared rule 'Burst of Network or RDP Logons for One
+  Account'. On its own it is not the alert; the correlation document carries the threshold
+  and the actor list.
+author: WRG Breach Intel — Phase 6
+date: '2025-03-14'
+modified: '2026-09-30'
+related:
+- id: 541c9329-ea0d-5f4a-b8e2-5499a8402f15
+  type: merged
+- id: 74454a20-763d-5183-a70d-a9d1b14b398e
+  type: merged
+- id: 990e144c-4ea5-59a9-9785-83b779c562b5
+  type: merged
+logsource:
+  product: windows
+  service: security
+detection:
+  selection_logon:
+    EventID:
+    - 4624
+    - 4625
+    LogonType:
+    - 3
+    - 10
+  filter_service_accounts:
+    TargetUserName|startswith: svc_
+  # false-positive fix (first tuning cycle): legitimate admin
+  # interactive RDP (LogonType 10) tripped the rule). Authorized
+  # admin operators routinely access servers via RDP for maintenance;
+  # the rule fired on legit_rdp_logon (admin_dave / LogonType 10).
+  #
+  # Narrow exclusion (chosen over a broader filter):
+  # exclude interactive RDP (LogonType 10) by admin-prefixed accounts.
+  # Filter requires BOTH conditions (selection-shape: multi-clause
+  # within one filter block = AND).
+  #
+  # Auto-attack canonical event (built from selection_logon first
+  # values: EventID=4624, LogonType=3, no TargetUserName) does NOT
+  # match LogonType=10 -> filter inert -> rule still fires.
+  # Self-consistency preserved.
+  #
+  # Known tradeoff (documented for V re-verify + Phase 2 evaluation):
+  # this is a SINGLE-EVENT precision narrow. The lapsus actor
+  # signature is multi-host admin-credential reuse within a short
+  # window -- proper detection requires correlation (count() by
+  # account across hosts over time). Phase 1b aggregation matcher
+  # (V design-prep) will support that pattern; this filter is the
+  # Phase 1a stop-gap that keeps precision-on-benign at 1.00.
+  filter_legit_admin_interactive_rdp:
+    LogonType: 10
+    TargetUserName|startswith: admin_
+  condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
+level: informational
+tags:
+- attack.t1078
+---
+title: Burst of Network or RDP Logons for One Account
+id: 7f5c87e2-ae14-56fd-b6f9-dd0c449f9a45
+status: test
+description: 'Shared detection for 3 actors with an observed T1078 incident in the WRG breach
+  catalog: shinyhunters, teampcp_unc6780, unknown_supply_chain_2025_03. The logic is a generic
+  pattern, not the documented tradecraft of these actors, so a hit does not say which actor,
+  if any, is responsible. Merged on 2026-09-30 from 3 single-actor rules with identical logic
+  (their ids are listed under related).'
+references:
+- https://attack.mitre.org/techniques/T1078/
+- https://www.justice.gov/usao-wdwa/pr/seattle-area-man-charged-cyberattacks-multiple-companies-and-individuals-and
+- https://www.bleepingcomputer.com/tag/shinyhunters/
+- https://databreaches.net/?s=shinyhunters
+- https://about.att.com/story/2024/addressing-data-set-released-on-dark-web.html
+- https://www.bleepingcomputer.com/news/security/atandt-confirms-data-for-73-million-customers-leaked-on-hacker-forum/
+- https://www.bleepingcomputer.com/news/security/instructure-reaches-agreement-with-shinyhunters-to-stop-data-leak/
+- https://databreaches.net/?s=instructure
+- https://ransomware.live/group/shinyhunters
+- https://www.ic3.gov/PSA/2026/PSA260515
+- 'FBI PSA Number: I-051526-PSA (2026-05-15)'
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+- https://www.hudsonrock.com/blog/infostealers-just-spawned-a-5000-repo-github-supply-chain-attack
+- https://thehackernews.com/2026/05/megalodon-github-attack-targets-5561.html
+- https://www.stepsecurity.io/blog/megalodon-mass-github-actions-secret-exfiltration-across-5-500-public-repositories
+- https://cybernews.com/security/megalodon-github-5000-repos-backdooring-supply-chain-attack/
+- https://www.rescana.com/post/megalodon-supply-chain-attack-teampcp-compromises-5-561-github-repositories-via-malicious-ci-cd-workflows
+- https://safedep.io/megalodon-mass-github-repo-backdooring-ci-workflows/
+- https://www.securityweek.com/over-5500-github-repositories-infected-in-megalodon-supply-chain-attack/
+- https://www.theregister.com/security/2026/05/22/megalodon-chums-the-waters-in-55k-github-repo-poisonings/5245342
+- https://openai.com/index/our-response-to-the-tanstack-npm-supply-chain-attack/
+- https://x.com/H4ckmanac
+- https://hackread.com/teampcp-mini-shai-hulud-worm-npm-pypi-packages/
+- https://www.stepsecurity.io/blog/mini-shai-hulud-is-back-a-self-spreading-supply-chain-attack-hits-the-npm-ecosystem
+- https://www.theregister.com/security/2026/05/15/openai-caught-in-tanstack-npm-supply-chain-chaos-after-employee-devices-compromised/5241019
+- https://www.opswat.com/blog/mini-shai-hulud-tanstack-openai-and-the-npm-supply-chain-trap
+- https://www.kaspersky.com/blog/critical-supply-chain-attack-trivy-litellm-checkmarx-teampcp/55510/
+- https://www.sans.org/blog/when-security-scanner-became-weapon-inside-teampcp-supply-chain-campaign
+- https://arcticwolf.com/resources/blog/teampcp-supply-chain-attack-campaign-targets-trivy-checkmarx-kics-and-litellm-potential-downstream-impact-to-additional-projects/
+- https://labs.cloudsecurityalliance.org/research/csa-research-note-teampcp-unc6780-ai-developer-supply-chain/
+- https://unit42.paloaltonetworks.com/github-actions-supply-chain-attack/
+- https://www.wiz.io/blog/github-action-tj-actions-changed-files-supply-chain-attack-cve-2025-30066
+- https://www.cisa.gov/news-events/alerts/2025/03/18/supply-chain-compromise-third-party-tj-actionschanged-files-cve-2025-30066-and-reviewdogaction
+- https://www.stepsecurity.io/blog/harden-runner-detection-tj-actions-changed-files-action-is-compromised
+- https://github.com/advisories/ghsa-mrrh-fwg8-r2c3
+- https://github.com/advisories/GHSA-qmg3-hpqr-gqvc
+author: WRG Breach Intel — Phase 6
+date: '2025-03-14'
+modified: '2026-09-30'
+related:
+- id: 7bfeedfd-c1fb-5811-a147-f62d012fa404
+  type: merged
+- id: e0c7a47e-b852-50da-b299-2b64fcbd2cd9
+  type: merged
+- id: fbe9abe4-bd77-551e-8e74-e4c7f2d13eb4
+  type: merged
+correlation:
+  type: event_count
+  rules:
+  - wrg_cbfc4deaf9fa5a47
+  group-by:
+  - TargetUserName
+  timespan: 15m
+  condition:
+    gte: 4
+falsepositives:
+- Approved vendor remote access, software supply-chain deployment, or account onboarding can
+  produce the same access telemetry.
+level: critical
+tags:
+- attack.initial-access
+- attack.persistence
+- attack.privilege-escalation
+- attack.stealth
+- attack.t1078
+- wrg.observed
+- wrg.observed.actor.shinyhunters
+- wrg.observed.actor.teampcp_unc6780
+- wrg.observed.actor.unknown_supply_chain_2025_03
+- wrg.severity.critical
+- wrg.correlation

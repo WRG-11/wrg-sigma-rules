@@ -4,8 +4,8 @@ mechanisms not fitting this corpus's other Open WebUI theme notes -- the final b
 corpus's Open WebUI coverage for now.
 - resources/examples/initial_access/observed_open_webui_milvus_collection_name_injection_t1190.yml
 - resources/examples/discovery/observed_open_webui_signin_timing_account_enumeration_t1087.yml
-- resources/examples/defense_evasion/observed_open_webui_terminal_proxy_9x_encoding_traversal_bypass_t1027.yml
-- resources/examples/credential_access/observed_open_webui_realtime_revoked_jwt_accepted_t1550.yml
+- resources/examples/stealth/observed_open_webui_terminal_proxy_9x_encoding_traversal_bypass_t1027.yml
+- resources/examples/lateral_movement/observed_open_webui_realtime_revoked_jwt_accepted_t1550.yml
 Advisory sources: GHSA-p5cp-r7rg-qpxc / GHSA-7rw5-9f7q-xj36 / GHSA-frvj-c5qp-xj4w / GHSA-855v-hq7w-jmjw,
 all fetched via `gh api repos/open-webui/open-webui/security-advisories/<id>`.
 RESOLVED corrections (2026-09-04) -- sixth and seventh CVSS/status discrepancies found in this corpus:

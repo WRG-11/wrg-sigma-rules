@@ -6,7 +6,7 @@ description: 'Campaign-bound sigma detection for the axios npm supply chain atta
   a malicious dependency plain-crypto-js (v4.2.0/v4.2.1, published ~22 minutes before the malicious axios release) into axios
   releases v1.14.1 and v0.30.4 (100M+ / 83M+ weekly downloads). The dependency''s postinstall hook runs an obfuscated dropper
   that deploys WAVESHAPER.V2 -- an updated variant of the WAVESHAPER backdoor previously attributed to UNC1069 -- across Windows/macOS/Linux.
-  Detects outbound C2 communication to sfrclak.com or hardcoded C2 IP 142.11.206.73 port 8000.
+  Detects outbound C2 communication to sfrclak.com or to 142.11.206.73 port 8000, the C2 address GTIG reports sfrclak.com resolving to.
 
 
   Attribution basis (GTIG): backdoor variant match + infrastructure overlap with prior UNC1069 operations + VPN node connections.

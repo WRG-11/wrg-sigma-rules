@@ -167,8 +167,11 @@ def test_convert_temporal_ordered_correlation_reports_type_capability_gap() -> N
     assert result["ok"] is False
     assert result["kind"] == "backend_capability_gap"
     assert result["capability"] == "correlation_type:temporal_ordered"
-    assert "opensearch-ppl" in result["hint"]
+    assert "eql" in result["hint"]
     assert "splunk" not in result["hint"]
+    # opensearch-ppl converts this type but enforces no order and, here,
+    # cannot reach its own threshold (tests/test_correlation_semantics.py).
+    assert "opensearch-ppl" not in result["hint"]
 
 
 def test_corpus_splunk_correlations_have_no_unclassified_conversion_failure() -> None:
@@ -206,6 +209,20 @@ def _windows_process_creation_yaml() -> str:
         "  condition: selection\n"
         "level: high\n"
     )
+
+
+def test_convert_esql_happy_path() -> None:
+    result = convert_rule_body(_good_yaml(), target="esql")
+    assert result["ok"] is True, result.get("error")
+    assert result["query"].startswith("from ")
+    assert any("ES|QL" in warning for warning in result["warnings"])
+
+
+def test_convert_eql_happy_path() -> None:
+    result = convert_rule_body(_good_yaml(), target="eql")
+    assert result["ok"] is True, result.get("error")
+    assert " where " in result["query"]
+    assert any("Event Query Language" in warning for warning in result["warnings"])
 
 
 def test_convert_opensearch_happy_path() -> None:
@@ -495,8 +512,10 @@ def test_correlation_on_lucene_backend_reports_a_capability_gap() -> None:
         assert result["kind"] == "backend_capability_gap", target
         assert result["capability"] == "correlation_rules"
         # The hint must name a target that actually works, so the caller does
-        # not have to discover the set by trying each one.
+        # not have to discover the set by trying each one -- including the
+        # Elastic-native one, so an Elastic user is not sent to Splunk.
         assert "splunk" in result["hint"]
+        assert "esql" in result["hint"]
 
 
 def test_correlation_capable_targets_really_are_capable() -> None:
@@ -516,17 +535,15 @@ def test_type_specific_correlation_hints_are_narrower_than_general_hints() -> No
     """Do not recommend a backend that rejects the failed correlation type."""
     from tools.convert_rule.convert_rule import _CORRELATION_TYPE_CAPABLE_TARGETS
 
-    assert _CORRELATION_TYPE_CAPABLE_TARGETS["temporal_ordered"] == (
-        "opensearch-ppl",
-    )
+    assert _CORRELATION_TYPE_CAPABLE_TARGETS["temporal_ordered"] == ("eql",)
 
 
 def test_temporal_ordered_capable_target_really_converts() -> None:
     """Keep the type-specific hint tied to a real converter outcome.
 
-    This establishes syntax conversion only. It deliberately does not claim
-    that a deployed OpenSearch installation will provide equivalent alerting
-    semantics for this correlation type.
+    The query must also pass the mechanical semantic checks (order enforced,
+    window kept). That is still not a claim about alert behaviour in a
+    deployed SIEM.
     """
     from tools.convert_rule.convert_rule import _CORRELATION_TYPE_CAPABLE_TARGETS
 
@@ -546,6 +563,7 @@ def test_temporal_ordered_capable_target_really_converts() -> None:
         )
         assert result["target"] == target
         assert result["query"]
+        assert result["correlation_semantics"] == [], result["correlation_semantics"]
 
 
 def test_unmeasured_correlation_type_does_not_receive_a_guessing_hint() -> None:

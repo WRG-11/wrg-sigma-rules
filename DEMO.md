@@ -1,9 +1,9 @@
 # wrg-sigma-rules -- DEMO
 
-End-to-end demonstration of the MCP tools (`validate_rule`, `convert_rule`,
-`draft_rule`) and the coverage resource, using real production rules from the
-plugin's corpus. Demos 1-3 use **Mini Shai-Hulud npm supply chain C2 egress**
-(MsftSecIntel 2026-05-21 disclosure; rule
+End-to-end demonstration of the `validate_rule` and `convert_rule` MCP tools
+and the coverage resource, using rules from the plugin's published corpus
+(none of them `stable`; see the README's Rule status section). Demos 1-3 use **Mini Shai-Hulud npm supply chain C2 egress**
+(Microsoft Threat Intelligence, 2026-05-20; rule
 `observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml`); demos 4-6 use the
 rules named in each section.
 
@@ -19,14 +19,31 @@ pipeline). All outputs are real tool invocations, not hand-edited.
 title: Mini Shai-Hulud -- T1071 npm supply chain C2 egress to m-kosche.com IOC
 id: 6d9183d6-562c-5445-987a-1df5f450f9af
 status: experimental
-description: Campaign-bound sigma detection for Mini Shai-Hulud npm supply chain
-  attack (MsftSecIntel 2026-05-21 disclosure). Detects outbound C2 communication
-  to the m-kosche.com domain family or hardcoded C2 IP 185.95.159.32.
+description: 'Campaign-bound sigma detection for Mini Shai-Hulud npm supply chain
+  attack (Microsoft Threat Intelligence, 2026-05-20). Detects outbound C2 communication
+  to the m-kosche.com domain family (apex + wildcard subdomains; published IOC
+  t.m-kosche.com) or to 185.95.159.32. That address is not an IOC in the cited
+  sources: it is what t.m-kosche.com resolved to when checked on 2026-09-30, and
+  the address behind a domain can change. Initial infection vector:
+  compromised npm packages (antv family confirmed; Bun preinstall hook activation
+  + SLSA provenance forge) -- post-install egress to credential-theft + worm
+  propagation C2 endpoint. The rule adds a SIEM-side detection layer for log
+  enrichment and retrospective hunting.
+
+  Aggregated from 1 active campaign disclosure 2026-05-20 (Microsoft Threat
+  Intelligence).
+
+  Sister cluster: Nx campaign 4-vector cluster (COMPLETE). Mini Shai-Hulud is the 1st vector (npm package compromise);
+  cross-reference observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml (2nd
+  vector; CLI installer), observed_nx_console_t1195_002.yml (3rd vector; VS
+  Code extension), and observed_clawhavoc_claude_skills_t1195_002.yml (4th
+  vector; Claude Code Skills) in the same corpus for campaign-wide detection
+  coverage.'
 references:
 - https://attack.mitre.org/techniques/T1071/
 - https://attack.mitre.org/techniques/T1195/002/
 - https://attack.mitre.org/techniques/T1041/
-- https://twitter.com/MsftSecIntel
+- https://www.microsoft.com/en-us/security/blog/2026/05/20/mini-shai-hulud-compromised-antv-npm-packages-enable-ci-cd-credential-theft/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-05-22'
 logsource:
@@ -60,6 +77,15 @@ tags:
 - attack.t1071
 - attack.t1195.002
 - attack.t1041
+- wrg.observed.campaign.mini_shai_hulud
+- wrg.observed.cluster.nx_campaign_4_vector
+- wrg.observed.cluster.nx_campaign_4_vector_complete
+- wrg.observed.ioc.m_kosche_com_domain_family
+- wrg.observed.ioc.ip_185_95_159_32
+- wrg.observed.vector.npm_supply_chain_bun_preinstall_hook
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.command_and_control
 ```
 
 ---
@@ -204,7 +230,7 @@ With `config={"pipeline": "sysmon"}`:
 
 The difference is the leading `EventID=1`. Without it the query matches *any*
 event carrying an `Image` field, not just process creation -- it runs, returns
-results, and is scoped wrong. <!-- METRIC:windows_product_count -->174<!-- /METRIC:windows_product_count --> of the <!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count --> corpus rules
+results, and is scoped wrong. <!-- METRIC:windows_product_count -->139<!-- /METRIC:windows_product_count --> of the <!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count --> corpus rules
 are `product: windows`, so this is the common case rather than an edge one.
 
 ---
@@ -229,7 +255,7 @@ Rule: `resources/examples/credential_access/template_t1110_brute_force_high_volu
 {
   "ok": false,
   "error": "backend 'elastic' does not support sigma correlation rules: Backend does not support correlation rules.",
-  "hint": "the rule is valid -- this backend cannot express correlations. Targets in this plugin that can: splunk, opensearch-ppl",
+  "hint": "the rule is valid -- this backend cannot express this correlation shape. Targets in this plugin that can convert it: splunk, esql, eql, opensearch-ppl. A successful conversion lists in 'correlation_semantics' where the query changes the rule's window, order or threshold",
   "kind": "backend_capability_gap",
   "capability": "correlation_rules"
 }
@@ -238,10 +264,49 @@ Rule: `resources/examples/credential_access/template_t1110_brute_force_high_volu
 This is a backend limit, not a defect in the rule, and the envelope says so
 rather than returning a bare parse error that reads as "your rule is broken".
 The Lucene-family targets (`elastic`, `kibana`, `wazuh`, `opensearch`) all
-share it: measured across the corpus, they convert <!-- METRIC:lucene_convert_count -->278<!-- /METRIC:lucene_convert_count --> of
-<!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count --> rules while `splunk` and `opensearch-ppl` convert all
-<!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count -->. All four Lucene targets fail on exactly the same
-set — the correlation rules — and on nothing else.
+share it: measured across the corpus, they convert <!-- METRIC:lucene_convert_count -->267<!-- /METRIC:lucene_convert_count --> of
+<!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count --> rules, and all four fail on exactly the same set — the
+<!-- METRIC:correlation_rule_count -->27<!-- /METRIC:correlation_rule_count --> correlation rules — and on nothing else. For Elastic, the
+correlation route is `esql` or `eql` from the same backend package.
+`splunk` and `esql` convert <!-- METRIC:splunk_esql_convert_count -->291<!-- /METRIC:splunk_esql_convert_count -->: every rule except the
+<!-- METRIC:temporal_ordered_rule_count -->3<!-- /METRIC:temporal_ordered_rule_count --> `temporal_ordered` correlations, which neither backend can
+express. `eql` and `opensearch-ppl` convert all <!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count -->.
+
+Converting is not the same as keeping the rule. The same rule on
+`opensearch-ppl`:
+
+```json
+{
+  "ok": true,
+  "query": "| search source=windows-authentication-* | where EventID=4625 AND (LogonType in (2, 3, 10)) | stats count() as event_count by SourceIP | where event_count > 10",
+  "correlation_semantics": [
+    {
+      "code": "window_dropped",
+      "detail": "the correlation timespan 10m does not appear in the opensearch-ppl query, so the threshold applies to the whole search time range instead of 10m"
+    }
+  ]
+}
+```
+
+"More than 10 failed logons in 10 minutes" became "more than 10 in whatever
+range the search covers". Every correlation conversion carries
+`correlation_semantics`; the deviations it checks for, all measured on the
+pinned backends:
+
+| Code | Meaning | Seen on |
+|---|---|---|
+| `window_dropped` | the timespan is not in the query at all | `opensearch-ppl` (`event_count`, `value_count`), `eql` (`temporal`) |
+| `fixed_window` | the window is a fixed bucket, not a sliding span | `splunk`, `esql`, `opensearch-ppl` |
+| `order_not_enforced` | a `temporal_ordered` query matches in any order | `opensearch-ppl` |
+| `subrule_identity_by_eventid` | sub-rules are told apart by distinct EventID | `opensearch-ppl` |
+| `cannot_fire_same_logsource` | ...and every sub-rule reads the same log type, so the query cannot reach its threshold | `opensearch-ppl` (all 3 corpus `temporal_ordered` rules) |
+| `value_count_joins_on_field` | a distinct-value count became a join on one repeated value | `eql` |
+| `threshold_off_by_one` | `gt N` became `runs=N`, one event short | `eql` |
+
+`eql`'s `sequence` is the one route that keeps a `temporal_ordered` rule's
+order and window. An empty list means none of these was found -- not that the
+query behaves like the rule in your SIEM. `python scripts/correlation_conversion_audit.py`
+prints the per-target counts for the whole corpus.
 
 ---
 
@@ -253,11 +318,11 @@ stale against the rules. Reading it returns markdown beginning:
 ```markdown
 ## Summary
 
-- Rules: 330
-- Incident rules (observed_*): 234
+- Rules: 294
+- Incident rules (observed_*): 198
 - Pattern rules (template_*): 96
-- Distinct ATT&CK techniques covered: 117
-- Tactic groupings: 17
+- Distinct ATT&CK techniques covered: 116
+- Tactic groupings: 16
 ```
 
 followed by a technique-by-tactic table, a per-technique rule count, and a
@@ -270,8 +335,9 @@ list of any rule contributing no coverage at all.
 To regenerate these outputs locally:
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/WRG-11/wrg-sigma-rules.git
 cd wrg-sigma-rules
+pip install -r requirements.txt
 python -c "
 import sys, json
 sys.path.insert(0, '.')

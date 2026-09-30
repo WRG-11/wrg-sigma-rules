@@ -2,8 +2,10 @@
 """Measure current conversion outcomes for every corpus correlation rule.
 
 The audit distinguishes a backend capability gap from a backend that is simply
-not installed. It records conversion envelopes; it does not prove that a
-successful query has production-equivalent semantics.
+not installed. For a successful conversion it also counts the deviations the
+converter checks for (``correlation_semantics``: dropped window, unenforced
+order, threshold one short ...). It does not prove that a query with no listed
+deviation has production-equivalent semantics.
 
 Usage:
     python scripts/correlation_conversion_audit.py
@@ -29,9 +31,17 @@ if str(REPO_ROOT) not in sys.path:
 from tools.convert_rule.convert_rule import convert_rule_body
 # Do not include aliases here: elastic/elasticsearch/kibana/wazuh share one
 # converter implementation, and reporting aliases as independent evidence
-# would inflate the apparent backend coverage.
-CANONICAL_TARGETS = ("splunk", "elastic", "opensearch", "opensearch-ppl")
+# would inflate the apparent backend coverage. esql and eql are separate
+# converters from the same package, not aliases.
+CANONICAL_TARGETS = ("splunk", "elastic", "esql", "eql", "opensearch", "opensearch-ppl")
 _REPORT_CONTRACT = {"tool": "correlation_conversion_audit", "version": 1}
+LIMITATIONS = (
+    "Conversion outcomes and declared capability boundaries do not "
+    "prove equivalent alert behavior in a deployed SIEM. "
+    "semantic_deviations_by_target counts only the specific deviations the "
+    "converter checks for; a converted rule with none listed is not proven "
+    "equivalent, and one without correlation_semantics was not checked."
+)
 Converter = Callable[..., dict[str, Any]]
 
 
@@ -83,6 +93,20 @@ def _capability(result: dict[str, Any], outcome: str) -> str | None:
     return capability if isinstance(capability, str) else None
 
 
+def _deviation_codes(result: dict[str, Any], outcome: str) -> list[str] | None:
+    """Codes of a converted envelope's checked deviations; None if unchecked."""
+    if outcome != "converted":
+        return None
+    semantics = result.get("correlation_semantics")
+    if not isinstance(semantics, list):
+        return None
+    return [
+        item["code"]
+        for item in semantics
+        if isinstance(item, dict) and isinstance(item.get("code"), str)
+    ]
+
+
 def audit_correlation_rules(
     examples_dir: Path,
     targets: tuple[str, ...] = CANONICAL_TARGETS,
@@ -95,6 +119,7 @@ def audit_correlation_rules(
         yaml_content = _read_rule_text(path)
         outcomes: dict[str, str] = {}
         capabilities: dict[str, str] = {}
+        deviations: dict[str, list[str]] = {}
         for target in targets:
             try:
                 result = converter(yaml_content, target=target)
@@ -103,12 +128,20 @@ def audit_correlation_rules(
                 capability = _capability(result, outcome)
                 if capability is not None:
                     capabilities[target] = capability
+                codes = _deviation_codes(result, outcome)
+                if codes is not None:
+                    deviations[target] = codes
             except Exception:
                 # An audit must report a converter fault as a result, not hide
                 # the rest of the corpus behind an early exception.
                 outcomes[target] = "audit_error"
         records.append(
-            {"path": relpath, "outcomes": outcomes, "capabilities": capabilities}
+            {
+                "path": relpath,
+                "outcomes": outcomes,
+                "capabilities": capabilities,
+                "deviations": deviations,
+            }
         )
 
     by_target: dict[str, dict[str, int]] = {}
@@ -123,6 +156,12 @@ def audit_correlation_rules(
                 if target in record["capabilities"]
             )
         )
+    checked_by_target: dict[str, int] = {}
+    deviations_by_target: dict[str, dict[str, int]] = {}
+    for target in targets:
+        checked = [record["deviations"][target] for record in records if target in record["deviations"]]
+        checked_by_target[target] = len(checked)
+        deviations_by_target[target] = dict(Counter(code for codes in checked for code in codes))
     return {
         "contract": _REPORT_CONTRACT,
         "summary": {
@@ -130,11 +169,10 @@ def audit_correlation_rules(
             "targets": list(targets),
             "outcomes_by_target": by_target,
             "capabilities_by_target": capabilities_by_target,
+            "semantics_checked_by_target": checked_by_target,
+            "semantic_deviations_by_target": deviations_by_target,
             "semantic_equivalence": "not_assessed",
-            "limitations": (
-                "Conversion outcomes and declared capability boundaries do not "
-                "prove equivalent alert behavior in a deployed SIEM."
-            ),
+            "limitations": LIMITATIONS,
         },
         "records": records,
     }
@@ -176,6 +214,11 @@ def main(argv: list[str] | None = None) -> int:
                 for capability, count in sorted(capabilities.items())
             )
             print(f"    capability boundaries: {report}")
+        checked = summary["semantics_checked_by_target"][target]
+        deviations = summary["semantic_deviations_by_target"][target]
+        if checked:
+            report = ", ".join(f"{code}={count}" for code, count in sorted(deviations.items()))
+            print(f"    semantic checks on {checked} conversion(s): {report or 'no listed deviation'}")
     print("  semantic equivalence: not_assessed")
     return 0
 

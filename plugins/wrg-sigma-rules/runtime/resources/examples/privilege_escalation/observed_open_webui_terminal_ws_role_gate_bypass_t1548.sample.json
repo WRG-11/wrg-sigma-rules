@@ -1,4 +1,5 @@
 [
   {"expect_match": true, "event": {"Message": "terminal websocket connect authenticated user role\":\"pending"}},
-  {"expect_match": false, "event": {"Message": "terminal websocket connect authenticated user role\":\"user"}}
+  {"expect_match": false, "event": {"Message": "terminal websocket connect authenticated user role\":\"user"}},
+  {"expect_match": false, "event": {"Message": "chat websocket connect authenticated user role\":\"pending"}}
 ]

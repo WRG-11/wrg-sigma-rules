@@ -2,8 +2,8 @@
 Companion detection note covering SIX sibling Sigma rules against FlowiseAI/Flowise, all sandbox-escape/
 RCE/SSRF bugs from the same disclosure round, distinct from the authorization-boundary theme in
 flowise-authz-batch-detection-2026-09-04.md:
-- resources/examples/defense_evasion/observed_flowise_mcp_npm_config_yes_env_bypass_t1562_001.yml
-- resources/examples/defense_evasion/observed_flowise_python_validator_unicode_homoglyph_bypass_t1027.yml
+- resources/examples/defense_impairment/observed_flowise_mcp_npm_config_yes_env_bypass_t1685.yml
+- resources/examples/stealth/observed_flowise_python_validator_unicode_homoglyph_bypass_t1027.yml
 - resources/examples/execution/observed_flowise_sqlite_recordmanager_database_path_override_rce_t1059.yml
 - resources/examples/execution/observed_flowise_typeorm_datasource_entities_rce_t1059.yml
 - resources/examples/privilege_escalation/observed_flowise_nodevm_options_spread_sandbox_escape_t1611.yml

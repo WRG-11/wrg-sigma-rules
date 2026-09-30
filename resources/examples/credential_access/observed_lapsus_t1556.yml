@@ -30,6 +30,7 @@ tags:
 ---
 title: LAPSUS$ — T1556
 id: 7d1af02a-a69f-5a2f-9677-fdcc72718e61
+author: WRG Breach Intel — Phase 6
 status: test
 description: Counting correlation over the base rule. The base rule matches single events; this document
   carries the threshold.
@@ -47,13 +48,12 @@ references:
 - https://www.microsoft.com/en-us/security/blog/2022/03/22/dev-0537-criminal-actor-targeting-organizations-for-data-exfiltration-and-destruction/
 - https://attack.mitre.org/groups/G1004/
 - https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a
-- https://www.bbc.com/news/technology-60836910
-- https://www.bbc.com/news/technology-60661195
-- https://sec.okta.com/scenariobimpact
-- https://www.bleepingcomputer.com/news/security/vodafone-portugal-confirms-cyberattack-disrupted-services-nationwide/
-- https://www.theregister.com/2022/02/08/vodafone_portugal_cyberattack/
+- https://www.theregister.com/2022/03/24/police_lapsus_arrests
+- https://www.microsoft.com/en-us/security/blog/2022/03/22/dev-0537-criminal-actor-targeting-organizations-for-data-exfiltration-and-destruction/
+- https://sec.okta.com/articles/2022/03/official-okta-statement-lapsus-claims/
+- https://www.bleepingcomputer.com/news/security/vodafone-portugal-4g-and-5g-services-down-after-cyberattack/
+- https://securityboulevard.com/2022/03/all-about-lapsus-what-we-know-about-the-extortionist-group/
 - https://twitter.com/AlvieriD
-- https://www.bleepingcomputer.com/tag/vodafone/
 falsepositives:
 - Approved identity administration, password-testing, printer management, or CI secret-scanning activity can produce the same authentication or credential-access telemetry.
 tags:

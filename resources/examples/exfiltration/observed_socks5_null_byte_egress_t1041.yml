@@ -46,7 +46,7 @@ references:
 - https://attack.mitre.org/techniques/T1041/
 - https://attack.mitre.org/techniques/T1071/
 - https://nvd.nist.gov/vuln/detail/CVE-2025-66479
-- https://cybersecuritynews.com/claude-code-network-sandbox-bypass
+- https://cybersecuritynews.com/claude-codes-network-sandbox-vulnerability/
 - https://hackerone.com/reports/3646509
 author: WinstonRedGuard -- sigma plugin observed rules (derived from researcher disclosure)
 date: '2026-05-24'

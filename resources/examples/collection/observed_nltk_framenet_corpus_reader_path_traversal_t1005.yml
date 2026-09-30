@@ -40,7 +40,6 @@ author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corp
 date: '2026-08-11'
 logsource:
   category: application
-  product: ""
 detection:
   selection_framenet_reader_invocation:
     Message|contains: FramenetCorpusReader

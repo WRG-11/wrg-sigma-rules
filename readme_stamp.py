@@ -189,6 +189,37 @@ def count_lucene_convertible(root: Path) -> int:
     return count_rules(root) - count_correlation_rules(root)
 
 
+_TEMPORAL_ORDERED_LINE = re.compile(r"^\s+type:\s*temporal_ordered\s*$", re.M)
+
+
+def count_temporal_ordered_rules(root: Path) -> int:
+    """Rules whose correlation document is ``type: temporal_ordered``.
+
+    splunk and esql reject exactly these (pySigma: "Correlation type
+    'temporal_ordered' is not supported by backend"); eql's ``sequence``
+    expresses them. Derived from text like the counts above; that these are
+    the ONLY splunk/esql failures is pinned against a real conversion by
+    ``tests/test_correlation_target_claim.py``.
+    """
+    total = 0
+    for path in _rule_files(root):
+        text = path.read_text(encoding="utf-8")
+        if _TEMPORAL_ORDERED_LINE.search(text) and any(
+            line.startswith("correlation:") for line in text.splitlines()
+        ):
+            total += 1
+    return total
+
+
+def count_splunk_esql_convertible(root: Path) -> int:
+    """Rules splunk and esql convert = corpus minus ``temporal_ordered`` rules.
+
+    DEMO.md once said splunk converts "all" rules; it never did. The number
+    is stamped now, and the test above keeps it tied to the backends.
+    """
+    return count_rules(root) - count_temporal_ordered_rules(root)
+
+
 # marker name -> resolver(root) -> scalar value. Mirrors a shared metric
 # registry shape so the on-disk marker format stays byte-identical.
 METRICS = {
@@ -201,6 +232,8 @@ METRICS = {
     "windows_product_count": count_windows_product,
     "correlation_rule_count": count_correlation_rules,
     "lucene_convert_count": count_lucene_convertible,
+    "temporal_ordered_rule_count": count_temporal_ordered_rules,
+    "splunk_esql_convert_count": count_splunk_esql_convertible,
 }
 
 # A shields badge cannot carry the HTML-comment markers above: a Markdown
@@ -224,7 +257,7 @@ BADGES = {
 # number in the repo. It read "100-rule" while the corpus held 222.
 PLUGIN_CLAIMS = {
     "sigma_rule_count": re.compile(r"(Ships a )(\d+)(-rule published corpus)"),
-    "tactic_category_count": re.compile(r"(spanning )(\d+)( MITRE ATT&CK tactics)"),
+    "tactic_category_count": re.compile(r"(spanning )(\d+)( categories)"),
 }
 
 # Markers each stamped file MUST contain; an absence here is a warning.
@@ -250,7 +283,14 @@ _README_MARKERS = frozenset(
     }
 )
 _DEMO_MARKERS = frozenset(
-    {"sigma_rule_count", "windows_product_count", "lucene_convert_count"}
+    {
+        "sigma_rule_count",
+        "windows_product_count",
+        "lucene_convert_count",
+        "correlation_rule_count",
+        "temporal_ordered_rule_count",
+        "splunk_esql_convert_count",
+    }
 )
 
 

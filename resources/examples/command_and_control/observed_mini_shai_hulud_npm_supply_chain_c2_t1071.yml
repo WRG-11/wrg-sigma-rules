@@ -2,17 +2,17 @@ title: Mini Shai-Hulud -- T1071 npm supply chain C2 egress to m-kosche.com IOC
 id: 6d9183d6-562c-5445-987a-1df5f450f9af
 status: experimental
 description: 'Campaign-bound sigma detection for Mini Shai-Hulud npm supply chain
-  attack (MsftSecIntel 2026-05-21 disclosure). Detects outbound C2 communication
-  to the m-kosche.com domain family (apex + wildcard subdomains; canonical IOC
-  t.m-kosche.com) or hardcoded C2 IP 185.95.159.32. Initial infection vector:
+  attack (Microsoft Threat Intelligence, 2026-05-20). Detects outbound C2 communication
+  to the m-kosche.com domain family (apex + wildcard subdomains; published IOC
+  t.m-kosche.com) or to 185.95.159.32. That address is not an IOC in the cited
+  sources: it is what t.m-kosche.com resolved to when checked on 2026-09-30, and
+  the address behind a domain can change. Initial infection vector:
   compromised npm packages (antv family confirmed; Bun preinstall hook activation
   + SLSA provenance forge) -- post-install egress to credential-theft + worm
-  propagation C2 endpoint. WRG defansif observation: NextDNS feed already catches
-  the domain (sister Phase E OPSEC v11 wave 2026-05-19 infrastructure ship);
-  this sigma rule adds SIEM-side detection layer for log enrichment +
-  retrospective hunt.
+  propagation C2 endpoint. The rule adds a SIEM-side detection layer for log
+  enrichment and retrospective hunting.
 
-  Aggregated from 1 active campaign disclosure 2026-05-21 (Microsoft Threat
+  Aggregated from 1 active campaign disclosure 2026-05-20 (Microsoft Threat
   Intelligence).
 
   Sister cluster: Nx campaign 4-vector cluster (COMPLETE). Mini Shai-Hulud is the 1st vector (npm package compromise);
@@ -25,7 +25,7 @@ references:
 - https://attack.mitre.org/techniques/T1071/
 - https://attack.mitre.org/techniques/T1195/002/
 - https://attack.mitre.org/techniques/T1041/
-- https://twitter.com/MsftSecIntel
+- https://www.microsoft.com/en-us/security/blog/2026/05/20/mini-shai-hulud-compromised-antv-npm-packages-enable-ci-cd-credential-theft/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-05-22'
 logsource:

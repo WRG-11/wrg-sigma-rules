@@ -6,7 +6,7 @@ description: Breach intel signature for actor alphv, MITRE technique T1059.001. 
 references:
 - https://attack.mitre.org/techniques/T1059/001/
 - https://attack.mitre.org/software/S1068/
-- https://www.mgmresorts.com/en/news/mgm-resorts-cybersecurity-issue.html
+- https://www.bleepingcomputer.com/news/security/mgm-resorts-ransomware-attack-led-to-100-million-loss-data-theft/
 - https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-353a
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2023-09-10'

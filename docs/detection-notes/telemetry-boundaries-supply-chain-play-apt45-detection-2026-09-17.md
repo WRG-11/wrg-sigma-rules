@@ -3,7 +3,7 @@ Companion detection note covering three observed-rule entries whose references
 provide campaign or actor context but do not establish the claimed Windows
 telemetry. This note records the evidence boundary; it does not upgrade any
 entry to production-ready or actor-attributed detection.
-- resources/examples/defense_evasion/observed_unknown_supply_chain_2026_05_t1036_005.yml
+- resources/examples/stealth/observed_unknown_supply_chain_2026_05_t1036_005.yml
 - resources/examples/lateral_movement/observed_play_t1021_002.yml
 - resources/examples/resource_development/observed_apt45_t1588.yml
 No exploit or PoC involved; defensive documentation only.

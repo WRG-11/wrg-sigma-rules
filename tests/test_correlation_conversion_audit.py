@@ -70,11 +70,12 @@ def test_audit_records_capability_and_missing_backend_separately(tmp_path: Path)
                 "elastic": {"correlation_rules": 1},
                 "opensearch": {},
             },
+        # A converted envelope without ``correlation_semantics`` was not
+        # checked: 0 here means "not measured", never "no deviation".
+        "semantics_checked_by_target": {"splunk": 0, "elastic": 0, "opensearch": 0},
+        "semantic_deviations_by_target": {"splunk": {}, "elastic": {}, "opensearch": {}},
         "semantic_equivalence": "not_assessed",
-        "limitations": (
-            "Conversion outcomes and declared capability boundaries do not "
-            "prove equivalent alert behavior in a deployed SIEM."
-        ),
+        "limitations": audit.LIMITATIONS,
     }
     assert payload["contract"] == {"tool": "correlation_conversion_audit", "version": 1}
     assert payload["records"] == [
@@ -86,8 +87,53 @@ def test_audit_records_capability_and_missing_backend_separately(tmp_path: Path)
                 "opensearch": "backend_missing",
             },
             "capabilities": {"elastic": "correlation_rules"},
+            "deviations": {},
         }
     ]
+
+
+def test_audit_counts_checked_semantics_and_their_deviations(tmp_path: Path) -> None:
+    examples = tmp_path / "examples"
+    examples.mkdir()
+    examples.joinpath("c.yml").write_text(
+        "title: correlation\ncorrelation:\n  type: event_count\n", encoding="utf-8"
+    )
+
+    def converter(_: str, *, target: str) -> dict[str, object]:
+        return {
+            "splunk": {
+                "query": "q",
+                "correlation_semantics": [{"code": "fixed_window", "detail": "d"}],
+            },
+            "esql": {"query": "q", "correlation_semantics": []},
+            "opensearch-ppl": {
+                "query": "q",
+                "correlation_semantics": [{"code": "window_dropped", "detail": "d"}],
+            },
+        }[target]
+
+    payload = audit.audit_correlation_rules(
+        examples, targets=("splunk", "esql", "opensearch-ppl"), converter=converter
+    )
+
+    summary = payload["summary"]
+    assert summary["semantics_checked_by_target"] == {"splunk": 1, "esql": 1, "opensearch-ppl": 1}
+    assert summary["semantic_deviations_by_target"] == {
+        "splunk": {"fixed_window": 1},
+        "esql": {},
+        "opensearch-ppl": {"window_dropped": 1},
+    }
+    assert payload["records"][0]["deviations"] == {
+        "splunk": ["fixed_window"],
+        "esql": [],
+        "opensearch-ppl": ["window_dropped"],
+    }
+
+
+def test_canonical_targets_include_the_elastic_correlation_routes() -> None:
+    assert {"esql", "eql"} <= set(audit.CANONICAL_TARGETS)
+    # Aliases share one converter and would inflate coverage.
+    assert not {"elasticsearch", "kibana", "wazuh"} & set(audit.CANONICAL_TARGETS)
 
 
 def test_cli_uses_an_explicit_examples_directory(monkeypatch, tmp_path: Path) -> None:

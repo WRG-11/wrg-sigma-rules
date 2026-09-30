@@ -1,0 +1,31 @@
+title: Template -- Clear Windows Event Logs
+id: 47a715c7-e3d7-443c-8c32-c811a17f07fe
+status: experimental
+description: >-
+  Detects command-line attempts to clear Windows Event Logs through wevtutil
+  or PowerShell. Clearing logs can remove forensic evidence after intrusion.
+references:
+  - https://attack.mitre.org/techniques/T1685/005/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_wevtutil:
+    Image|endswith: '\wevtutil.exe'
+    CommandLine|contains: ' cl '
+  selection_powershell:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+    CommandLine|contains: Clear-EventLog
+  condition: 1 of selection_*
+falsepositives:
+  - Approved log-retention maintenance
+  - Incident-response or test-lab cleanup
+level: high
+tags:
+  - attack.t1685.005
+  - wrg.template
+  - wrg.tactic.defense_impairment

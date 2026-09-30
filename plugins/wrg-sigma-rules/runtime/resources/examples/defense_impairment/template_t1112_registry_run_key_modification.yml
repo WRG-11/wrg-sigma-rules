@@ -1,0 +1,33 @@
+title: Template -- Registry Run key modification through Reg.exe
+id: 9cab42a1-3ec4-58ef-985c-6533249d8094
+status: experimental
+description: >-
+  Canonical Sigma detection template for MITRE ATT&CK T1112 (Modify Registry).
+  Detects Reg.exe adding a value beneath a user or machine Run/RunOnce key,
+  a common persistence-bearing registry modification. Synthetic exemplar from
+  the WinstonRedGuard threat-intel corpus -- no actor binding; review and bind
+  to your environment before deployment.
+references:
+- https://attack.mitre.org/techniques/T1112/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-16'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_reg:
+    Image|endswith: '\reg.exe'
+  selection_add_run_key:
+    CommandLine|contains|all:
+    - ' add '
+    - '\CurrentVersion\Run'
+  condition: selection_reg and selection_add_run_key
+falsepositives:
+- Approved installer or endpoint-management policy creating an application
+  autostart entry
+- Administrator troubleshooting a documented user or machine startup entry
+level: medium
+tags:
+- attack.t1112
+- wrg.template
+- wrg.tactic.defense_impairment

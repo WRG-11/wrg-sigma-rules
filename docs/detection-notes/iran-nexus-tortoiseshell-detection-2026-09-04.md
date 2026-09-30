@@ -4,10 +4,10 @@ Tortoiseshell / Imperial Kitten / TA456, MITRE group G0107), each covering one s
 recruitment-deception attack chain:
 - resources/examples/resource_development/observed_iran_nexus_tortoiseshell_t1583.yml
 - resources/examples/resource_development/observed_iran_nexus_tortoiseshell_t1583_001.yml
-- resources/examples/defense_evasion/observed_iran_nexus_tortoiseshell_t1656.yml
+- resources/examples/stealth/observed_iran_nexus_tortoiseshell_t1684_001.yml
 - resources/examples/initial_access/observed_iran_nexus_tortoiseshell_t1566_002.yml
 - resources/examples/execution/observed_iran_nexus_tortoiseshell_t1204_001.yml
-- resources/examples/defense_evasion/observed_iran_nexus_tortoiseshell_t1656_002.yml (base + correlation pair)
+- resources/examples/stealth/observed_iran_nexus_tortoiseshell_profile_setup_t1684_001.yml (base + correlation pair)
 - resources/examples/resource_development/observed_iran_nexus_tortoiseshell_t1585.yml (base + correlation pair)
 - resources/examples/resource_development/observed_iran_nexus_tortoiseshell_t1585_001.yml (base + correlation pair)
 Sources: Meta/Facebook's own 2021-07-08 official takedown disclosure ("Taking Action Against

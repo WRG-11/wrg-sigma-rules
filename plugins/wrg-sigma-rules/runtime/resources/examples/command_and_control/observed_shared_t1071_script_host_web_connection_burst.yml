@@ -1,0 +1,112 @@
+title: Script Host Making Repeated Web Connections (base)
+name: wrg_6a4307542696575c
+id: 6a430754-2696-575c-b2e8-e1e24cc62953
+status: test
+description: Base event match for the shared rule 'Script Host Making Repeated Web Connections'.
+  On its own it is not the alert; the correlation document carries the threshold and the actor
+  list.
+author: WRG Breach Intel — Phase 6
+date: '2026-05-18'
+modified: '2026-09-30'
+related:
+- id: 53d1b353-e232-59ea-b873-9df419eac70a
+  type: merged
+- id: 7591b320-62a5-5682-869a-6c304ce0ddc2
+  type: merged
+- id: 9b77e269-9a4c-5224-927e-93d344524a26
+  type: merged
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_c2_http:
+    DestinationPort:
+    - 80
+    - 443
+    - 8080
+    - 8443
+    Image|endswith:
+    - \powershell.exe
+    - \cmd.exe
+    - \wscript.exe
+    - \mshta.exe
+    - \rundll32.exe
+  condition: selection_c2_http
+level: informational
+tags:
+- attack.t1071
+---
+title: Script Host Making Repeated Web Connections
+id: 27ea92c7-6af2-57c9-85df-4c6b307cf572
+status: test
+description: 'Shared detection for 3 actors with an observed T1071 incident in the WRG breach
+  catalog: shadowbyt3, shai_hulud_npm_worm, teampcp_unc6780. The logic is a generic pattern,
+  not the documented tradecraft of these actors, so a hit does not say which actor, if any,
+  is responsible. Merged on 2026-09-30 from 3 single-actor rules with identical logic (their
+  ids are listed under related).'
+references:
+- https://attack.mitre.org/techniques/T1071/
+- https://barricadecyber.com/cti-report-shadowbyt3-ransomware-group/
+- https://www.ransomware.live/group/ShadowByt3$
+- https://socradar.io/free-tools/ransomware-intelligence/groups/shadowbyt3
+- https://www.ransomware.live/id/Q3JvcHdpc2UgKFN5bmdlbnRhIEdyb3VwKUBzaGFkb3dieXQzJA==
+- https://www.ransomware.live/id/TGVhZCBDb21wYW55IChMZWFkZXJzaGlwIEJvdWxldmFyZClAc2hhZG93Ynl0MyQ=
+- https://www.stepsecurity.io/blog/binding-gyp-npm-supply-chain-attack-spreads-like-worm
+- https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/
+- https://unit42.paloaltonetworks.com/npm-supply-chain-attack/
+- https://snyk.io/blog/node-gyp-supply-chain-compromise-self-propagating-npm-worm-binding-gyp/
+- https://cybersecuritynews.com/binding-gyp-supply-chain-attack-compromises-dozens-of-npm-packages/
+- https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access
+- https://www.hudsonrock.com/blog/infostealers-just-spawned-a-5000-repo-github-supply-chain-attack
+- https://thehackernews.com/2026/05/megalodon-github-attack-targets-5561.html
+- https://www.stepsecurity.io/blog/megalodon-mass-github-actions-secret-exfiltration-across-5-500-public-repositories
+- https://cybernews.com/security/megalodon-github-5000-repos-backdooring-supply-chain-attack/
+- https://www.rescana.com/post/megalodon-supply-chain-attack-teampcp-compromises-5-561-github-repositories-via-malicious-ci-cd-workflows
+- https://safedep.io/megalodon-mass-github-repo-backdooring-ci-workflows/
+- https://www.securityweek.com/over-5500-github-repositories-infected-in-megalodon-supply-chain-attack/
+- https://www.theregister.com/security/2026/05/22/megalodon-chums-the-waters-in-55k-github-repo-poisonings/5245342
+- https://openai.com/index/our-response-to-the-tanstack-npm-supply-chain-attack/
+- https://x.com/H4ckmanac
+- https://hackread.com/teampcp-mini-shai-hulud-worm-npm-pypi-packages/
+- https://www.stepsecurity.io/blog/mini-shai-hulud-is-back-a-self-spreading-supply-chain-attack-hits-the-npm-ecosystem
+- https://www.theregister.com/security/2026/05/15/openai-caught-in-tanstack-npm-supply-chain-chaos-after-employee-devices-compromised/5241019
+- https://www.opswat.com/blog/mini-shai-hulud-tanstack-openai-and-the-npm-supply-chain-trap
+- https://www.kaspersky.com/blog/critical-supply-chain-attack-trivy-litellm-checkmarx-teampcp/55510/
+- https://www.sans.org/blog/when-security-scanner-became-weapon-inside-teampcp-supply-chain-campaign
+- https://arcticwolf.com/resources/blog/teampcp-supply-chain-attack-campaign-targets-trivy-checkmarx-kics-and-litellm-potential-downstream-impact-to-additional-projects/
+- https://labs.cloudsecurityalliance.org/research/csa-research-note-teampcp-unc6780-ai-developer-supply-chain/
+author: WRG Breach Intel — Phase 6
+date: '2026-05-18'
+modified: '2026-09-30'
+related:
+- id: 8274e0ce-8dfe-5873-ba8e-fd19f9c9188a
+  type: merged
+- id: 1fd40fe8-9fe3-5545-ada1-299a1a0b42ca
+  type: merged
+- id: 9f4263c8-8726-5d99-95bf-6c8ab1ee2dfe
+  type: merged
+correlation:
+  type: event_count
+  rules:
+  - wrg_6a4307542696575c
+  group-by:
+  - DestinationHostname
+  timespan: 30m
+  condition:
+    gte: 31
+falsepositives:
+- Legitimate RMM or automation tooling making frequent outbound HTTPS calls from a scripting-host
+  process
+- Approved monitoring, package-management, or proxy traffic to the named destination is expected
+  from allowlisted build and security hosts.
+level: critical
+tags:
+- attack.command-and-control
+- attack.t1071
+- wrg.observed
+- wrg.observed.actor.shadowbyt3
+- wrg.observed.actor.shai_hulud_npm_worm
+- wrg.observed.actor.teampcp_unc6780
+- wrg.severity.critical
+- wrg.correlation
+- wrg.tactic.command_and_control

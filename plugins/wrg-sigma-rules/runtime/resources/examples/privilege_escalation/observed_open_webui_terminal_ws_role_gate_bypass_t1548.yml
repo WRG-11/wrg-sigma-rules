@@ -34,8 +34,9 @@ logsource:
   product: open_webui
 detection:
   selection_terminal_ws_connection:
-    Message|contains: terminal
-    Message|contains: websocket
+    Message|contains|all:
+    - terminal
+    - websocket
   selection_pending_role:
     Message|contains: 'role":"pending'
   condition: selection_terminal_ws_connection and selection_pending_role
