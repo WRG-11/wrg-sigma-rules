@@ -703,17 +703,20 @@ def _lint_target(yaml_content: str, first_doc: dict[str, Any]) -> dict[str, Any]
     """Return the document the quality linter should judge.
 
     For a plain single-document rule that is the document itself. For a
-    base-rule + correlation-rule pairing it is the LAST document, following
-    the sigma convention that the correlation rule (the thing that actually
-    alerts) is written last and references the base rules by name -- the same
-    convention ``convert_rule`` already uses when picking metadata.
+    base-rule + correlation-rule pairing it is normally the LAST document,
+    following the sigma convention that the correlation rule (the thing that
+    actually alerts) is written last and references the base rules by name --
+    the same convention ``convert_rule`` already uses when picking metadata.
 
     Linting doc[0] instead produced false warnings on every correlation rule
     in this corpus: the base document is deliberately `level: informational`
     and carries no `falsepositives:` or `references:`, because on its own it
     is not an alert and has nothing to tune. The linter was demanding tuning
     notes from the half of the rule that explicitly is not the alert, while
-    never reading the half that is.
+    never reading the half that is. Older pairs predate that convention: they
+    keep the analyst-facing metadata on the base rule and write the
+    correlation document as a bare threshold. In that shape (no references,
+    false positives or tags on the last document) the base is linted instead.
     """
     if not _looks_like_correlation_collection(yaml_content):
         return first_doc
@@ -725,7 +728,13 @@ def _lint_target(yaml_content: str, first_doc: dict[str, Any]) -> dict[str, Any]
         ]
     except yaml.YAMLError:
         return first_doc
-    return docs[-1] if docs else first_doc
+    if not docs:
+        return first_doc
+    last_doc = docs[-1]
+    analyst_metadata = ("references", "falsepositives", "tags")
+    if not any(last_doc.get(field) for field in analyst_metadata):
+        return first_doc
+    return last_doc
 
 
 def _pysigma_validate(yaml_content: str) -> dict[str, Any]:
