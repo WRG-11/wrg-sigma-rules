@@ -13,13 +13,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.1.0] - 2026-09-30
 
-Repository-hygiene release. Corpus 294 → 294 rules (unchanged); no rule's
+Repository-content release. Corpus 294 → 294 rules (unchanged); no rule's
 detection logic, `id`, `level`, tags or references changed. The repository now
-carries only what a user of the corpus or the MCP server needs: planning notes
-and the maintainers' import tooling are gone, rule text no longer points at a
-source readers cannot open, and comments no longer use internal process
-vocabulary. pySigma 1.5.1 is now the minimum, which lets pyparsing 3.3.3 back
-in.
+carries only what users and contributors need: planning notes and the
+maintainers' import tooling are gone, rule text no longer points at sources
+readers cannot open, and rules, notes, tools and tests no longer use the
+maintainers' internal vocabulary. The repository is also a Claude Code plugin
+marketplace now, and pySigma 1.5.1 is the new minimum, which lets pyparsing
+3.3.3 back in.
+
+### Added
+- **Claude Code marketplace manifest** (`.claude-plugin/marketplace.json`).
+  `claude plugin marketplace add` on a clone (or on `WRG-11/wrg-sigma-rules`)
+  followed by `claude plugin install wrg-sigma-rules@wrg-11` installs the
+  plugin, with the same install id the Codex marketplace already used.
+- `docs/evidence-review-audits.md`: the full description of the evidence-review
+  reports, moved out of the README.
+- `CONTRIBUTING.md` and the pull-request template now name the two commands a
+  rule change needs besides `readme_stamp.py`: `scripts/regenerate_index.py`
+  and `scripts/sync_codex_runtime.py`.
 
 ### Changed
 - **Product scope moved into the README.** A new Scope section states what the
@@ -27,24 +39,35 @@ in.
   is out of scope. It replaces the pointer to `ROADMAP.md`; the product
   boundary cited in the [2.0.0] notes now lives there.
 - **Provenance wording in 42 rules.** Their descriptions said a rule was
-  derived from a number of observed incidents "in the WRG breach catalog".
-  That catalog is not public, so the sentence named a source no reader could
-  check; it now reads "Derived from observed incident reporting; see
-  references.", and those references were already listed on each rule. The 11
-  shared rules drop the same phrase from the sentence that lists their member
-  actors. 20 of the 42 also replace an internal build-phase author label with
+  derived from a number of observed incidents in a catalog that is not public,
+  so the sentence named a source no reader could check. It now reads "Derived
+  from observed incident reporting; see references.", and those references
+  were already listed on each rule. The 11 shared rules drop the same catalog
+  reference from the sentence that lists their member actors. 20 of the 42
+  also replace an internal build-phase author label with
   `WinstonRedGuard -- sigma plugin observed rules`, the author label observed
   rules use elsewhere in the corpus. Only `description` and `author` changed.
-- **Comments without internal process vocabulary.** Rule comments, a tool
-  module, two scripts, `requirements.txt`, tests and seven detection notes
-  referred to the maintainers' private workflow (plan phases, agent names,
-  private file paths). The rewritten comments keep the limitations they
-  documented: the T1078 and T1021 admin-RDP filters are single-event
-  stop-gaps for a cross-host signature, the shared T1078 burst rule's
-  correlation counts events per account without requiring distinct hosts, and
-  the encoded-PowerShell filters can be evaded with `-NoProfile`. Detection
-  notes that quoted rule text changed in this release now quote the current
-  text.
+- **Public text without the maintainers' internal vocabulary.** Rule comments
+  and descriptions, the canonical-pattern resource, detection notes, tool
+  docstrings, skills, tests, two scripts and `requirements.txt` used internal
+  terms: plan phases, agent names, private file paths, source-tier labels,
+  "sister" rules and a pattern-library version label. 134 rules opened a
+  `falsepositives` entry with that label ("Pattern library v1 -- review for
+  environment-specific tuning before deployment"); the entry now starts at
+  "Review ...", which `validate_rule` still recognises as a placeholder, and no
+  rule's validation result changed. The canonical-pattern index no longer
+  names private source modules or claims a coverage share nobody measured, and
+  pattern 05 drops a paragraph that referred to material outside this
+  repository. The rewritten rule comments keep the limitations they
+  documented: the T1078 and T1021 admin-RDP filters are single-event stop-gaps
+  for a cross-host signature, the shared T1078 burst rule's correlation counts
+  events per account without requiring distinct hosts, and the
+  encoded-PowerShell filters can be evaded with `-NoProfile`. Detection notes
+  that quoted rule text changed in this release now quote the current text,
+  and one note no longer quotes the Megalodon rule's pre-2.0.0 description.
+- **README.** Shorter install sections; the Claude Code install uses the new
+  marketplace; the quick example installs `requirements.txt` instead of
+  unpinned packages; the evidence-review detail moved to `docs/`.
 - `resources/examples/INDEX.json` keeps `_schema_version`, `_generated_at`,
   `total_rules` and the three lookup tables, which are unchanged. Four fields
   that described the maintainers' import tooling (`_generated_by`,
@@ -60,6 +83,7 @@ in.
   3.3.2 and 3.3.3. The raised pySigma floor keeps an install from pairing
   1.5.0 with 3.3.3. pyparsing stays capped at the versions measured.
 - CI: the CodeQL SARIF upload action is pinned to v4.38.2 (by commit).
+- `.github/FUNDING.yml` lists only the active channel.
 
 ### Removed
 - `ROADMAP.md`. Planning is kept outside the repository; its user-facing part
@@ -75,6 +99,9 @@ in.
   Rebuilding the index, the one part contributors need, is now
   `python scripts/regenerate_index.py`, which writes only
   `resources/examples/INDEX.json`; `tests/test_index_consistency.py` uses it.
+- `prompts/`, an empty placeholder directory, and `.contentauditignore`, an
+  allowlist for the maintainers' own scanner whose only entry referred to the
+  removed migration script.
 
 ### Fixed
 - `validate_rule` no longer reports `references_empty`, `falsepositives_empty`
@@ -85,6 +112,8 @@ in.
   whose correlation document does carry them is still judged on that document.
   None of the 27 multi-document rules in this corpus has the older shape, so
   corpus results do not change; the fix applies to rules users submit.
+- A detection note carried two literal NUL bytes where it meant the escape
+  `\u0000`, so Git treated the file as binary.
 
 ## [2.0.0] - 2026-09-30
 
@@ -407,8 +436,8 @@ OPSEC, container, and release integrity around the corpus.
 
 ## [1.9.0] - 2026-09-10
 
-Corpus 294 → 296 rules: two source-honest canonical templates from the
-`sigma_rule_farmer` coverage queue, each with matching and non-matching
+Corpus 294 → 296 rules: two source-backed canonical templates from the
+maintainers' coverage queue, each with matching and non-matching
 sidecar evidence. This release also broadens client support and rewrites the
 README.
 
@@ -450,15 +479,15 @@ wired into CI.
   not rely on checkout-relative paths or silently drift.
 - **Corpus 278 → 294 rules (16 new).** Two independent sources, measured
   separately rather than merged blindly:
-  - **11 from the `sigma_rule_farmer` queue.** The queue held 36 candidates
-    and 25 of them were already in the corpus — the farmer's own `INDEX.json`
-    claimed `shipped: 0` and was stale, confirmed by a near-identical diff on
+  - **11 from the maintainers' candidate queue.** The queue held 36
+    candidates and 25 of them were already in the corpus — the queue's own
+    index claimed `shipped: 0` and was stale, confirmed by a near-identical diff on
     `barracuda_t1567`. Only the 11 genuinely new ones were taken and the 25
     overlapping files were left untouched. Actors: Blackwater, Crpxo,
     ShinyHunters, TeamPCP/UNC6780, Unknown-supply-chain-2025-03.
-  - **5 from the internal mirror**, selected on the same criterion this
+  - **5 from previously unpublished rules**, selected on the same criterion this
     changelog used for `[1.7.0]`: a rule ships when it brings a **new actor or
-    a new technique**, not merely a new actor×technique pair. Of 69 mirror-only
+    a new technique**, not merely a new actor×technique pair. Of 69 unpublished
     rules, exactly 5 met it, carrying five techniques the corpus did not have —
     T1021.002, T1036.005, T1199, T1556, T1588. The other 64 map onto actors and
     techniques already covered and stay in the queue, which is the same call
@@ -501,7 +530,7 @@ Corpus 253 → 278 rules (ten new actors) plus an MCP surface fix.
 
 ### Added
 
-- Corpus 253 → 278 rules: ten new threat actors from the WRG breach catalog,
+- Corpus 253 → 278 rules: ten new threat actors,
   and one new technique the corpus did not carry (T1567.002, exfiltration to
   cloud storage). Actors: barracuda, emperador, genesis, global_secret_group,
   iran_nexus_tortoiseshell, kairos, ms13_089, panzer, securotrop,
@@ -540,7 +569,7 @@ Corpus 222 -> 253 rules (+31 observed actor-bound rules).
 ### Added
 
 - **31 observed actor rules**, every one bound to an actor with at least one
-  recorded incident in the upstream breach catalog. Tactic spread:
+  recorded incident. Tactic spread:
   initial_access 15, credential_access 3, impact 3, collection 2, execution 2,
   exfiltration 2, lateral_movement 2, command_and_control 1, defense_evasion 1.
   No new tactic directory -- all 14 categories already existed.
@@ -570,8 +599,8 @@ Corpus 222 -> 253 rules (+31 observed actor-bound rules).
   already used (778 existing occurrences), replacing the `wrg.actor.<id>` form
   the generator emitted. Bare `wrg.observed` added alongside.
 - `falsepositives` on skeleton rules now opens with Sigma's own `Unknown`
-  convention instead of a developer to-do ("Phase 6 v1 placeholder detection --
-  bind to a real pattern before deployment"). That field is read by whoever
+  convention instead of a developer to-do ("bind to a real pattern before
+  deployment"). That field is read by whoever
   deploys the rule; it should answer "what legitimate activity trips this",
   not describe work we still owe ourselves.
 
@@ -583,10 +612,10 @@ Corpus 222 -> 253 rules (+31 observed actor-bound rules).
   -- the date-regression guard -- swallowed the error as `return None`, which
   silently disabled backdate protection for exactly the 18 rules that needed
   it. Measured before the fix: 235 of 253 corpus files parsed, 18 did not.
-- Redaction now genericises internal wave-dispatch ids (`internal wave`).
-  The public corpus had zero prior instances; 7 leaked in across 3 of the
-  staged rules, two of them inside `falsepositives`. The reasoning in each
-  comment survives -- only the internal tracking number goes.
+- The import redaction now also removes internal tracking identifiers. The
+  public corpus had zero prior instances; 7 reached 3 of the staged rules,
+  two of them inside `falsepositives`. The reasoning in each comment
+  survives -- only the tracking number goes.
 
 ### Notes
 
@@ -767,7 +796,7 @@ Corpus 100 → 222 rules.
   cross-checked against the actual current source (fix commit diff for
   the former, the live `policy.py` log message text for the latter) to
   confirm the manifestation claim independent of the advisory's own
-  wording. 13 candidate Open WebUI CVEs from the W-cohort radar batch
+  wording. 13 candidate Open WebUI CVEs from the CVE-monitor batch
   were checked first; only 4 were not already covered.
 
   All 10 validate_rule-clean, convert cleanly to Splunk + Elasticsearch.
@@ -775,7 +804,7 @@ Corpus 100 → 222 rules.
   corpus claim updated 193→203, DEMO.md Summary re-read from the live
   resource. Full suite: 631 passed. `claude plugin validate .` passed.
 
-- **Two more Open WebUI rules, found via the W-cohort `ai_runtime_cve_radar`
+- **Two more Open WebUI rules, found via the AI-runtime CVE monitor's
   archive after cross-checking 13 candidate CVEs against the existing
   corpus (11 were already covered by earlier entries in this file)**:
 
@@ -927,7 +956,7 @@ Corpus 100 → 222 rules.
   Elasticsearch.
 
 - **Four more rules: three vLLM, one more Open WebUI**, from the same
-  older W-cohort archive batches:
+  older CVE-monitor archive batches:
 
   - `initial_access/observed_vllm_assert_security_check_optimized_mode_rce_t1195_002.yml` —
     CVE-2026-41523 (CVSS 7.5). A security check written as a plain
@@ -956,7 +985,7 @@ Corpus 100 → 222 rules.
   Elasticsearch.
 
 - **Three vLLM rules — another new runtime family**, sourced from older
-  W-cohort archive batches (vLLM had no prior coverage in this corpus):
+  CVE-monitor archive batches (vLLM had no prior coverage in this corpus):
 
   - `initial_access/observed_vllm_hardcoded_trust_remote_code_bypass_t1195_002.yml` —
     CVE-2026-4944 (CVSS 8.8). Two model files hardcode
@@ -1017,7 +1046,7 @@ Corpus 100 → 222 rules.
   signal beyond "the server died") and the already-covered
   CVE-2026-65920.
 
-- **Five more CVE rules from earlier W-cohort radar batches the same
+- **Five more CVE rules from earlier CVE-monitor batches the same
   day** (05:00-07:00 + one earlier 2026-08-04 batch), one from a
   different vendor entirely:
 
@@ -1048,7 +1077,7 @@ Corpus 100 → 222 rules.
   Elasticsearch. Two more instances of the bare-`127.`-parsed-as-float
   YAML footgun caught and quoted before commit.
 
-- **Four more Open WebUI CVE rules, remaining W-cohort radar output from
+- **Four more Open WebUI CVE rules, remaining CVE-monitor output from
   the same 2026-08-11 batch**:
 
   - `collection/observed_open_webui_knowledge_file_id_cross_user_read_t1005.yml` —
@@ -1077,9 +1106,8 @@ Corpus 100 → 222 rules.
   fixed by quoting the whole line.)
 
 - **Five more Open WebUI CVE rules, sourced from WinstonRedGuard's own
-  `ai_runtime_cve_radar` sentry** (cohort W in the monorepo this plugin
-  ships from) instead of another ad-hoc `cve_lookup` keyword sweep — the
-  radar already polls hourly and had flagged 10 new AI-runtime CVEs
+  AI-runtime CVE monitor** instead of another ad-hoc CVE keyword sweep — the
+  monitor already polls hourly and had flagged 10 new AI-runtime CVEs
   earlier today, all quoting exact source files/lines in their NVD
   entries:
 
@@ -1346,11 +1374,11 @@ Corpus 100 → 222 rules.
   Both `validate_rule`-clean and convert cleanly to Splunk + Elasticsearch.
 
 - **Three prompt-injection-chain vendor-disclosed CVE rules** — sourced
-  after checking whether `sigma_scout` (this monorepo's deterministic
-  vendor-blog discovery funnel) had anything queued first; its 4-feed
+  after checking whether the maintainers' vendor-blog discovery feed had
+  anything queued first; its 4-feed
   registry (GTIG/Microsoft/Cisco Talos/Unit42) returned an empty
   shortlist and one dead feed URL at authoring time, so these three came
-  from the same `cve_lookup` + first-party-advisory process as the ten
+  from the same CVE-lookup + first-party-advisory process as the ten
   above:
 
   - `execution/observed_langroid_sqlchatagent_llm_rce_t1059.yml` —
@@ -1730,8 +1758,8 @@ were either untrue or unmeasured, and are now one or the other.
   backend does not support it.
 - `privilege_escalation` tactic coverage (T1098.003, AWS IAM wildcard-admin
   policy creation via CloudTrail), the corpus's first rule in that tactic and
-  its first `aws`/`cloudtrail` logsource. The rule existed unpublished in the
-  monorepo mirror and is published here as part of closing that drift.
+  its first `aws`/`cloudtrail` logsource. The rule existed unpublished and is
+  published here.
 - Weekly scheduled test run, so a break originating outside the repo can hide
   for at most a week rather than indefinitely.
 
@@ -1794,7 +1822,7 @@ and a YAML alias-bomb hardening pass on `validate_rule`.
   `SigmaCollection` — base-rule + correlation-rule two-document pairs now parse
   and convert; single-document rules unchanged. (#44)
 - `--regenerate-index` in `scripts/migrate_sigma_corpus.py`: rebuilds
-  `INDEX.json` by scanning the rule files on disk (no monorepo dependency),
+  `INDEX.json` by scanning the rule files on disk,
   with `tests/test_index_consistency.py` asserting a regenerate-vs-committed
   snapshot diff so index drift cannot re-accumulate silently. (#42)
 - `test_module_count` as a second self-stamped README metric alongside
@@ -1870,7 +1898,7 @@ and a YAML alias-bomb hardening pass on `validate_rule`.
   use for `&anchor`/`*alias`. `RecursionError` is handled for deep but
   alias-free nesting, and the byte-size cap is retained as a separate guard
   against plain oversized input. (#42)
-- Internal wave-dispatch identifiers and fleet-topology metadata were removed
+- Internal tracking identifiers and workflow metadata were removed
   from public content, and a regression test now blocks them from reaching the
   public surface. (#37, #38, #43)
 
@@ -1959,10 +1987,10 @@ README `sigma_rule_count` self-stamp are all in sync at **68**.
   added across all three index dimensions (categories / detection type /
   target platform). This is an index-*field* resync, not new detection logic.
   (`7962f1e`, #10)
-- **corpus publication gap** — backported 3 published-rule environment
-  filters that were missing from the public corpus. (`b17f8af`, #1)
-- **corpus full-clean** — 4 `template_*` SCCM + RDP environment
-  filters. (`16e9b1f`, #3)
+- **Missing environment filters** — 3 published rules received environment
+  filters they were missing. (`b17f8af`, #1)
+- **Template environment filters** — 4 `template_*` rules received SCCM +
+  RDP environment filters. (`16e9b1f`, #3)
 - **`draft_rule` control-character collapse** — collapse control characters in
   YAML emit and correct the linter return type. (`54612d6`, #7)
 
