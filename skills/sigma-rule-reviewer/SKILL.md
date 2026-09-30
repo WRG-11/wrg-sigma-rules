@@ -115,8 +115,9 @@ If errors or actionable warnings exist, offer to produce a revised version:
 ### Step 5 -- Optional backend conversion
 
 If the user asks for SIEM-specific output, use `mcp__plugin_wrg-sigma-rules_wrg-sigma-rules__convert_rule`
-to convert to Splunk, Elastic/Kibana, OpenSearch (Lucene or `opensearch-ppl`)
-or Wazuh. Always relay the `warnings` array rather than only the query.
+to convert to Splunk, Elastic/Kibana (Lucene, `esql` or `eql`), OpenSearch
+(Lucene or `opensearch-ppl`) or Wazuh. Always relay the `warnings` array rather
+than only the query.
 
 Two things to get right here:
 
@@ -130,6 +131,11 @@ Two things to get right here:
   Lucene-family target (elastic, kibana, wazuh, opensearch). Do not open a
   finding against the rule. Point the user at the targets in the envelope's
   `hint`.
+- A converted correlation rule carries `correlation_semantics`. Relay every
+  entry: it names where the query stops meaning the rule (for example
+  `window_dropped`: "more than 10 in 10 minutes" became "more than 10 in the
+  whole search range"; `cannot_fire_same_logsource`: the query can never
+  alert). These are findings about the conversion, not the rule.
 
 Conversion and validation are syntax evidence only. They do not establish
 semantic equivalence in a deployed SIEM, field mappings, data availability,

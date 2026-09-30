@@ -255,7 +255,7 @@ Rule: `resources/examples/credential_access/template_t1110_brute_force_high_volu
 {
   "ok": false,
   "error": "backend 'elastic' does not support sigma correlation rules: Backend does not support correlation rules.",
-  "hint": "the rule is valid -- this backend cannot express this correlation shape. Targets in this plugin that can convert it: splunk, opensearch-ppl",
+  "hint": "the rule is valid -- this backend cannot express this correlation shape. Targets in this plugin that can convert it: splunk, esql, eql, opensearch-ppl. A successful conversion lists in 'correlation_semantics' where the query changes the rule's window, order or threshold",
   "kind": "backend_capability_gap",
   "capability": "correlation_rules"
 }
@@ -265,9 +265,48 @@ This is a backend limit, not a defect in the rule, and the envelope says so
 rather than returning a bare parse error that reads as "your rule is broken".
 The Lucene-family targets (`elastic`, `kibana`, `wazuh`, `opensearch`) all
 share it: measured across the corpus, they convert <!-- METRIC:lucene_convert_count -->278<!-- /METRIC:lucene_convert_count --> of
-<!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count --> rules while `splunk` and `opensearch-ppl` convert all
-<!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count -->. All four Lucene targets fail on exactly the same
-set — the correlation rules — and on nothing else.
+<!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count --> rules, and all four fail on exactly the same set — the
+<!-- METRIC:correlation_rule_count -->52<!-- /METRIC:correlation_rule_count --> correlation rules — and on nothing else. For Elastic, the
+correlation route is `esql` or `eql` from the same backend package.
+`splunk` and `esql` convert <!-- METRIC:splunk_esql_convert_count -->327<!-- /METRIC:splunk_esql_convert_count -->: every rule except the
+<!-- METRIC:temporal_ordered_rule_count -->3<!-- /METRIC:temporal_ordered_rule_count --> `temporal_ordered` correlations, which neither backend can
+express. `eql` and `opensearch-ppl` convert all <!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count -->.
+
+Converting is not the same as keeping the rule. The same rule on
+`opensearch-ppl`:
+
+```json
+{
+  "ok": true,
+  "query": "| search source=windows-authentication-* | where EventID=4625 AND (LogonType in (2, 3, 10)) | stats count() as event_count by SourceIP | where event_count > 10",
+  "correlation_semantics": [
+    {
+      "code": "window_dropped",
+      "detail": "the correlation timespan 10m does not appear in the opensearch-ppl query, so the threshold applies to the whole search time range instead of 10m"
+    }
+  ]
+}
+```
+
+"More than 10 failed logons in 10 minutes" became "more than 10 in whatever
+range the search covers". Every correlation conversion carries
+`correlation_semantics`; the deviations it checks for, all measured on the
+pinned backends:
+
+| Code | Meaning | Seen on |
+|---|---|---|
+| `window_dropped` | the timespan is not in the query at all | `opensearch-ppl` (`event_count`, `value_count`), `eql` (`temporal`) |
+| `fixed_window` | the window is a fixed bucket, not a sliding span | `splunk`, `esql`, `opensearch-ppl` |
+| `order_not_enforced` | a `temporal_ordered` query matches in any order | `opensearch-ppl` |
+| `subrule_identity_by_eventid` | sub-rules are told apart by distinct EventID | `opensearch-ppl` |
+| `cannot_fire_same_logsource` | ...and every sub-rule reads the same log type, so the query cannot reach its threshold | `opensearch-ppl` (all 3 corpus `temporal_ordered` rules) |
+| `value_count_joins_on_field` | a distinct-value count became a join on one repeated value | `eql` |
+| `threshold_off_by_one` | `gt N` became `runs=N`, one event short | `eql` |
+
+`eql`'s `sequence` is the one route that keeps a `temporal_ordered` rule's
+order and window. An empty list means none of these was found -- not that the
+query behaves like the rule in your SIEM. `python scripts/correlation_conversion_audit.py`
+prints the per-target counts for the whole corpus.
 
 ---
 

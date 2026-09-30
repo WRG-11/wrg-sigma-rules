@@ -13,6 +13,9 @@ requirements):
   caveats noted in the warnings array).
 * ``opensearch`` / ``opensearch-ppl`` -- via ``pysigma-backend-opensearch``
   (Lucene and Piped Processing Language respectively).
+* ``esql`` / ``eql`` -- via ``pysigma-backend-elasticsearch`` (Elastic's
+  ES|QL and Event Query Language). Unlike the Lucene targets, both convert
+  Sigma correlation rules, which makes them the Elastic route for them.
 
 Each backend ships separately on PyPI. Missing backend returns an
 actionable envelope including the exact ``pip install`` command.
@@ -29,6 +32,14 @@ list) to apply one; the difference is visible in the output (``EventID=1``
 appears only with the sysmon pipeline). Pipelines ship as their own PyPI
 packages and are imported lazily, so a missing one fails only the call
 that asked for it.
+
+**Correlation semantics.** A converted correlation query can be valid syntax
+and still ask a different question than the rule: a dropped time window, an
+unenforced order, a distinct-value count rendered as a join, a threshold one
+short. For a correlation rule the envelope carries ``correlation_semantics``,
+a list of the measured deviations the tool looks for (each also appears in
+``warnings``). An empty list means none of those was found -- not that the
+query is equivalent to the rule in a deployed SIEM.
 
 Design-discipline coverage:
 * pySigma missing returns an actionable envelope.
@@ -106,6 +117,20 @@ _BACKEND_SPECS: dict[str, tuple[str, str, str, str | None]] = {
         "opensearch-ppl emits Piped Processing Language, not Lucene; "
         "it is not interchangeable with the 'opensearch' target",
     ),
+    "esql": (
+        "sigma.backends.elasticsearch",
+        "ESQLBackend",
+        "pysigma-backend-elasticsearch",
+        "esql emits ES|QL, not Lucene, and the query reads 'from *'; narrow "
+        "the index pattern before deploying it",
+    ),
+    "eql": (
+        "sigma.backends.elasticsearch",
+        "EqlBackend",
+        "pysigma-backend-elasticsearch",
+        "eql emits Elastic Event Query Language, not Lucene; it is not "
+        "interchangeable with the 'elastic' target",
+    ),
 }
 
 _BACKEND_KEYS: tuple[str, ...] = tuple(_BACKEND_SPECS)
@@ -135,18 +160,36 @@ _MAX_PIPELINE_COUNT = len(_PIPELINE_SPECS)
 
 # Targets whose pySigma implementations can express Sigma correlation rules.
 # Kibana and Wazuh route through the Elasticsearch Lucene backend, so they
-# share its limit. Corpus-level outcomes are intentionally not hard-coded here:
-# rerun ``scripts/correlation_conversion_audit.py`` after a backend upgrade.
-_CORRELATION_CAPABLE_TARGETS: tuple[str, ...] = ("splunk", "opensearch-ppl")
+# share its limit; esql and eql come from the same package and do not.
+# Corpus-level outcomes are intentionally not hard-coded here: rerun
+# ``scripts/correlation_conversion_audit.py`` after a backend upgrade.
+_CORRELATION_CAPABLE_TARGETS: tuple[str, ...] = ("splunk", "esql", "eql", "opensearch-ppl")
 
 # General correlation support does not imply every correlation shape. Keep
 # type-specific hints narrower than the general list so a user whose
 # ``temporal_ordered`` conversion failed is not told to retry Splunk, which
-# cannot express that type. These are converter-capability statements only,
-# not claims of deployed-SIEM semantic equivalence.
+# cannot express that type. opensearch-ppl converts temporal_ordered but
+# enforces no order and tells sub-rules apart by EventID (see
+# ``_correlation_semantics``), so it is not offered here; eql's ``sequence``
+# keeps both the order and the window.
 _CORRELATION_TYPE_CAPABLE_TARGETS: dict[str, tuple[str, ...]] = {
-    "temporal_ordered": ("opensearch-ppl",),
+    "temporal_ordered": ("eql",),
 }
+
+# --- Correlation semantics (measured 2026-09-30 with the pinned backends) ---
+# How each target renders a correlation timespan, and whether that window is a
+# fixed (aligned) bucket or a span sliding from the first matching event. Data
+# rather than code, so a backend that changes its rendering is one row; each
+# row is pinned by a two-directional test in tests/test_correlation_semantics.py.
+_WINDOW_RENDERING: dict[str, tuple[str, str]] = {
+    "splunk": ("span={spec}", "fixed"),
+    "esql": ("date_trunc({count}{esql_unit}, @timestamp)", "fixed"),
+    "opensearch-ppl": ("span(@timestamp, {spec})", "fixed"),
+    "eql": ("maxspan={spec}", "sliding"),
+}
+_ESQL_TIME_UNITS: dict[str, str] = {"s": "seconds", "m": "minutes", "h": "hours", "d": "days"}
+# A construct that makes a temporal_ordered query order-sensitive.
+_ORDER_CONSTRUCTS: dict[str, str] = {"eql": "sequence "}
 
 
 def _correlation_capability_hint(capable_targets: tuple[str, ...]) -> str:
@@ -156,6 +199,8 @@ def _correlation_capability_hint(capable_targets: tuple[str, ...]) -> str:
             "the rule is valid -- this backend cannot express this correlation "
             "shape. Targets in this plugin that can convert it: "
             + ", ".join(capable_targets)
+            + ". A successful conversion lists in 'correlation_semantics' "
+            "where the query changes the rule's window, order or threshold"
         )
     return (
         "the rule is valid -- this backend cannot express this correlation "
@@ -468,6 +513,140 @@ def _redact_query(query: str) -> tuple[str, bool]:
     return _ascii_safe(redacted), flagged
 
 
+def _logsource_key(reference: Any) -> tuple[Any, Any, Any] | None:
+    """(category, product, service) of a resolved sub-rule, else None."""
+    logsource = getattr(getattr(reference, "rule", None), "logsource", None)
+    if logsource is None:
+        return None
+    return (logsource.category, logsource.product, logsource.service)
+
+
+def _check_correlation(rule: Any, target: str, text: str) -> list[dict[str, str]]:
+    """Measured ways the ``target`` query for one correlation departs from it.
+
+    Each check reads the produced query for one specific deviation seen with
+    the pinned backends. A check that cannot tell (an unknown target
+    rendering, a timespan unit it cannot spell) makes no claim either way.
+    """
+    findings: list[dict[str, str]] = []
+    ctype = rule.type.name.lower()
+    timespan = rule.timespan
+    spec = getattr(timespan, "spec", None)
+
+    rendering = _WINDOW_RENDERING.get(target)
+    if spec and rendering is not None:
+        template, kind = rendering
+        esql_unit = _ESQL_TIME_UNITS.get(getattr(timespan, "unit", ""))
+        if "{esql_unit}" in template and esql_unit is None:
+            expected = None
+        else:
+            expected = template.format(
+                spec=spec, count=getattr(timespan, "count", ""), esql_unit=esql_unit or ""
+            )
+        if expected is not None and expected not in text:
+            findings.append({
+                "code": "window_dropped",
+                "detail": (
+                    f"the correlation timespan {spec} does not appear in the {target} "
+                    f"query, so the threshold applies to the whole search time range "
+                    f"instead of {spec}"
+                ),
+            })
+        elif expected is not None and kind == "fixed":
+            findings.append({
+                "code": "fixed_window",
+                "detail": (
+                    f"the {spec} window is rendered as fixed {spec} buckets, not a "
+                    "sliding window: matching events that straddle a bucket "
+                    "boundary are not counted together"
+                ),
+            })
+
+    if ctype == "temporal_ordered":
+        construct = _ORDER_CONSTRUCTS.get(target)
+        if construct is None or construct not in text:
+            findings.append({
+                "code": "order_not_enforced",
+                "detail": (
+                    f"the {target} query has no ordering construct, so it matches "
+                    "the sub-rules in any order (temporal, not temporal_ordered)"
+                ),
+            })
+
+    if ctype in ("temporal", "temporal_ordered") and "dc(EventID)" in text:
+        findings.append({
+            "code": "subrule_identity_by_eventid",
+            "detail": (
+                "the query tells sub-rules apart by their distinct EventID "
+                "values, so sub-rules that read the same log type count as one"
+            ),
+        })
+        keys = {_logsource_key(reference) for reference in rule.rules}
+        if len(rule.rules) > 1 and len(keys) == 1 and None not in keys:
+            category = next(iter(keys))[0]
+            findings.append({
+                "code": "cannot_fire_same_logsource",
+                "detail": (
+                    f"all {len(rule.rules)} sub-rules read {category}, so in a "
+                    "single log source they share one EventID: the distinct-EventID "
+                    "count stays at 1 and the query cannot reach its threshold"
+                ),
+            })
+
+    condition = rule.condition
+    fieldref = getattr(condition, "fieldref", None)
+    if target == "eql" and ctype == "value_count" and fieldref and f"] by {fieldref}" in text:
+        findings.append({
+            "code": "value_count_joins_on_field",
+            "detail": (
+                f"the eql query joins events on {fieldref} (the same value "
+                f"repeated) instead of counting distinct {fieldref} values, so it "
+                "looks for the opposite pattern"
+            ),
+        })
+
+    op = getattr(getattr(condition, "op", None), "name", None)
+    count = getattr(condition, "count", None)
+    if (
+        target == "eql"
+        and ctype in ("event_count", "value_count")
+        and op == "GT"
+        and count is not None
+        and f"runs={count}" in text
+    ):
+        findings.append({
+            "code": "threshold_off_by_one",
+            "detail": (
+                f"eql 'runs={count}' completes at {count} events, but the rule's "
+                f"condition is 'gt {count}' ({count + 1} or more)"
+            ),
+        })
+    return findings
+
+
+def _correlation_semantics(
+    collection: Any, target: str, queries: list[Any]
+) -> list[dict[str, str]] | None:
+    """Deviations for every correlation rule in ``collection``; None if it has none.
+
+    The checks read the joined text of every emitted query, so a collection
+    holding several correlation rules is checked as a whole (the corpus holds
+    one per file).
+    """
+    try:
+        from sigma.correlations import SigmaCorrelationRule
+    except ImportError:
+        return None
+    correlations = [r for r in collection.rules if isinstance(r, SigmaCorrelationRule)]
+    if not correlations:
+        return None
+    text = "\n".join(str(query) for query in queries)
+    findings: list[dict[str, str]] = []
+    for rule in correlations:
+        findings.extend(_check_correlation(rule, target.lower(), text))
+    return findings
+
+
 def convert_rule_body(
     yaml_content: str,
     *,
@@ -641,6 +820,12 @@ def convert_rule_body(
         if q_flagged:
             redaction_applied = True
 
+    # Read before redaction: the checks look for backend syntax (span=,
+    # date_trunc(, dc(EventID)), never for values the redaction rewrites.
+    semantics = _correlation_semantics(collection, target, list(queries))
+    if semantics:
+        warnings.extend(item["detail"] for item in semantics)
+
     # `config["pipeline"]` IS applied (above). Every other config key still
     # is not -- no backend here takes index names or field mappings at
     # instantiation time. A caller passing one would otherwise have it
@@ -696,6 +881,8 @@ def convert_rule_body(
     }
     if alternate:
         out["alternate_queries"] = alternate
+    if semantics is not None:
+        out["correlation_semantics"] = semantics
     safe_out, output_redacted = _redact_output_value(out)
     if redaction_applied or output_redacted:
         safe_out["redaction_applied"] = True
@@ -715,11 +902,16 @@ def register_convert_rule_tool(mcp: Any) -> None:
 
         Use when the caller has a validated sigma rule and needs the
         equivalent query for Splunk SPL, Elasticsearch / Kibana Lucene,
-        OpenSearch (Lucene or PPL), or Wazuh. Returns the primary
-        converted query plus conversion lossiness warnings (e.g.
-        unsupported modifiers). Missing pySigma or missing backend
-        packages return actionable error envelopes with the exact pip
-        install command.
+        Elastic ES|QL or EQL, OpenSearch (Lucene or PPL), or Wazuh.
+        Returns the primary converted query plus conversion lossiness
+        warnings (e.g. unsupported modifiers). Missing pySigma or missing
+        backend packages return actionable error envelopes with the exact
+        pip install command.
+
+        For a correlation rule the result also carries
+        ``correlation_semantics``: measured ways the query departs from the
+        rule (dropped window, unenforced order, threshold one short). Read
+        it before deploying; an empty list is not a proof of equivalence.
 
         For a rule written against a windows/sysmon logsource, pass
         config={"pipeline": "sysmon"} so the abstract logsource is mapped

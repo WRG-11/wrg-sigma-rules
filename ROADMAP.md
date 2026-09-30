@@ -315,6 +315,19 @@ growth.
    regression test against its corpus fixture. This proves converter syntax
    output only, not deployed-SIEM alert semantics.
 
+   **Semantic deviation checks (2026-09-30):** reading the converted queries
+   showed that this syntax-only guard had advertised a path that cannot fire:
+   the `opensearch-ppl` `temporal_ordered` query enforces no order and counts
+   `dc(EventID)`, which stays at 1 when both sub-rules read `process_creation`
+   (all 3 corpus cases). `convert_rule` now reports measured deviations in
+   `correlation_semantics` (window dropped or fixed, order not enforced,
+   sub-rule identity by EventID, value count as a join, threshold one short),
+   each pinned in both directions by `tests/test_correlation_semantics.py`, and
+   the audit counts them per target. `esql` and `eql` joined as targets on that
+   evidence; `eql` replaced `opensearch-ppl` as the `temporal_ordered` hint.
+   Still open: no check proves equivalence, and the fixed-bucket and
+   `threshold_off_by_one` deviations have no workaround in the converter.
+
    **Audit-input integrity (2026-09-17):** correlation conversion,
    observed-evidence inventory, and detection-note gap reporting now fail
    clearly when selected rule YAML cannot be read, decoded, or parsed; the two

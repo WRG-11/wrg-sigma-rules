@@ -107,7 +107,40 @@ repository's own pySigma-based CI accepted every one of them.
   document already had, one tag was lowercased, and a duplicate reference
   introduced by the dead-link replacement above was removed.
 
+Found by converting every corpus correlation rule on the pinned backends
+(pySigma 1.5.1; elasticsearch 2.1.1, opensearch 2.0.3 and splunk 2.1.0
+backends) and reading the queries rather than the success flag:
+- **DEMO.md said `splunk` converts all 330 rules.** It converts 327: pySigma's
+  Splunk backend cannot express the 3 `temporal_ordered` correlations. The
+  count is now stamped (`splunk_esql_convert_count`) and a test ties it to a
+  real conversion; before, only the Lucene count had one.
+- **`convert_rule` recommended `opensearch-ppl` for `temporal_ordered`.** Its
+  query enforces no order and tells sub-rules apart by `dc(EventID)`. In all 3
+  corpus `temporal_ordered` rules both sub-rules read `process_creation`, so in
+  a single log source the count stays at 1 and the query can never alert. The
+  hint now names `eql`, whose `sequence ... maxspan` keeps both the order and
+  the window.
+
 ### Added
+- **`esql` and `eql` conversion targets** (Elastic ES|QL and Event Query
+  Language, from the `pysigma-backend-elasticsearch` package the Lucene
+  targets already use). Unlike Lucene they convert correlation rules: `esql`
+  49 of the 52 corpus correlations (not `temporal_ordered`), `eql` all 52.
+- **`correlation_semantics` on every correlation conversion**: the measured
+  ways the query departs from the rule, each also appended to `warnings`.
+  Codes: `window_dropped` (`opensearch-ppl` drops the window of all 48 corpus
+  `event_count`/`value_count` rules, so "more than 10 in 10 minutes" becomes
+  "more than 10 in the whole search range"), `fixed_window` (Splunk `bin`,
+  ES|QL `date_trunc` and PPL `span` are fixed buckets, not sliding windows),
+  `order_not_enforced`, `subrule_identity_by_eventid`,
+  `cannot_fire_same_logsource`, `value_count_joins_on_field` (`eql` renders a
+  distinct-value count as a join on one repeated value, the opposite pattern)
+  and `threshold_off_by_one` (`eql` renders `gt N` as `runs=N`). An empty list
+  means none of these was found, not that the query is equivalent. Each check
+  is pinned in both directions by `tests/test_correlation_semantics.py`.
+- `scripts/correlation_conversion_audit.py` covers `esql` and `eql` and
+  reports `semantics_checked_by_target` and `semantic_deviations_by_target`,
+  so "no deviation" and "not checked" are different numbers.
 - `tests/test_no_duplicate_yaml_keys.py`: every rule and sample is loaded with
   a strict YAML loader that rejects a repeated mapping key, so the silent loss
   fixed above fails CI instead of passing it. It fails against the corpus as

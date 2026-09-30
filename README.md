@@ -30,12 +30,20 @@ It runs under Claude Code, Codex, Cursor and any MCP-capable client.
   as well as vulnerabilities disclosed in AI/LLM applications and MCP servers.
   Every rule carries an honest Sigma `status:` (see [Rule status](#rule-status)).
 - Multi-backend conversion on pySigma 1.x: Splunk SPL, Elastic and Kibana Lucene,
-  OpenSearch Lucene and PPL, plus a `wazuh` target that reuses the Elasticsearch
-  Lucene backend and says so in its warnings. The Lucene-family targets cannot express
-  Sigma correlation rules, so `convert_rule` reports the
+  Elastic ES|QL and EQL, OpenSearch Lucene and PPL, plus a `wazuh` target that
+  reuses the Elasticsearch Lucene backend and says so in its warnings. The
+  Lucene-family targets cannot express Sigma correlation rules, so `convert_rule`
+  reports the
   <!-- METRIC:correlation_rule_count -->52<!-- /METRIC:correlation_rule_count -->
   correlation rules in the corpus as a capability gap and names the backends that
-  can convert them.
+  can convert them (`esql` and `eql` are the Elastic route).
+- Correlation conversions say where the query stops meaning the rule. Valid syntax
+  is not the same rule: measured on the pinned backends, `opensearch-ppl` drops the
+  time window of every count correlation, and `eql` turns a distinct-value count
+  into a join on one repeated value. Each correlation result carries
+  `correlation_semantics`, the deviations the converter checks for (dropped or
+  fixed window, unenforced order, threshold one short); see
+  [Demo 5](DEMO.md#demo-5----correlation-rules-and-where-they-cannot-go).
 
 The plugin is installed directly from this repository; it is not yet listed in a
 plugin marketplace.
@@ -175,7 +183,7 @@ starting point to bind to your own logsource and tune; each rule's
 
 ## Quality and testing
 
-- <!-- METRIC:test_module_count -->32<!-- /METRIC:test_module_count --> Python test
+- <!-- METRIC:test_module_count -->34<!-- /METRIC:test_module_count --> Python test
   modules cover rule validation and tool-integration smoke tests.
 - pySigma 1.x compatibility is verified against the Splunk, Elasticsearch and
   OpenSearch backend packages.
@@ -267,8 +275,12 @@ quality or note-endorsement labels. The older `reference_hygiene` and
 
 The correlation audit separately counts a backend's declared capability
 boundaries (for example, `correlation_rules` or
-`correlation_type:temporal_ordered`). A successful conversion remains syntax
-evidence only; it does not assert equivalent alert behavior in a deployed SIEM.
+`correlation_type:temporal_ordered`) and, for each converted rule, the
+deviations `convert_rule` checks for (`semantic_deviations_by_target`).
+`semantics_checked_by_target` says how many conversions were checked, so "no
+deviation found" stays distinguishable from "not checked". A conversion with no
+listed deviation is still not a claim of equivalent alert behavior in a deployed
+SIEM.
 
 ## Contributing
 
