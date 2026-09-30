@@ -12,7 +12,6 @@
 # -- FileNotFoundError: /app/.claude-plugin/plugin.json
 !.claude-plugin/plugin.json
 skills/
-prompts/
 scripts/
 tests/
 *.md

@@ -28,7 +28,8 @@ It runs under Claude Code, Codex, Cursor and any MCP-capable client.
   categories: one directory per MITRE ATT&CK Enterprise tactic (v19 names) plus
   `code_review` for source-code review rules. The corpus covers ransomware and threat-actor activity
   as well as vulnerabilities disclosed in AI/LLM applications and MCP servers.
-  Every rule carries an honest Sigma `status:` (see [Rule status](#rule-status)).
+  Every rule carries a Sigma `status:` that matches its evidence (see
+  [Rule status](#rule-status)).
 - Multi-backend conversion on pySigma 1.x: Splunk SPL, Elastic and Kibana Lucene,
   Elastic ES|QL and EQL, OpenSearch Lucene and PPL, plus a `wazuh` target that
   reuses the Elasticsearch Lucene backend and says so in its warnings. The
@@ -45,8 +46,9 @@ It runs under Claude Code, Codex, Cursor and any MCP-capable client.
   fixed window, unenforced order, threshold one short); see
   [Demo 5](DEMO.md#demo-5----correlation-rules-and-where-they-cannot-go).
 
-The plugin is installed directly from this repository; it is not yet listed in a
-plugin marketplace.
+The plugin is installed directly from this repository, which is also its own
+Claude Code and Codex marketplace; it is not yet listed in Anthropic's plugin
+directory.
 
 ## Install
 
@@ -59,15 +61,20 @@ in its own way.
 git clone https://github.com/WRG-11/wrg-sigma-rules.git
 cd wrg-sigma-rules
 pip install -r requirements.txt
-claude plugin validate .
+claude plugin marketplace add .
+claude plugin install wrg-sigma-rules@wrg-11
 ```
 
-`requirements.txt` is not optional: `validate_rule` needs pySigma, `convert_rule`
-needs the backend packages, and the pipeline packages drive the logsource
-mapping. The repo ships `.claude-plugin/plugin.json` and `.mcp.json` (which wires
-`server.py` through `${CLAUDE_PLUGIN_ROOT}`). Point your Claude Code plugin
-configuration at this checkout per
-[the plugin docs](https://code.claude.com/docs/en/plugins).
+Claude Code starts `server.py` with the `python` on your `PATH`, so install
+`requirements.txt` into that interpreter. It is not optional: `validate_rule`
+needs pySigma, `convert_rule` needs the backend packages, and the pipeline
+packages drive the logsource mapping. `claude plugin marketplace add
+WRG-11/wrg-sigma-rules` registers the GitHub repository instead of the clone;
+use it if Claude Code refuses the local path as network-shaped or
+unclassifiable, which it can do for a clone on an external drive.
+`claude plugin validate .` checks the plugin and marketplace manifests, and
+[the plugin docs](https://code.claude.com/docs/en/plugins) cover updating and
+removing an installed plugin.
 
 ### Codex
 
@@ -76,21 +83,11 @@ codex plugin marketplace add .
 codex plugin add wrg-sigma-rules@wrg-11
 ```
 
-The Codex plugin carries a self-contained runtime snapshot of the server and
-corpus, so its installed cache does not rely on checkout-relative paths. Keep it
-current with `python scripts/sync_codex_runtime.py`. Check parity without
-rewriting the snapshot via `python scripts/sync_codex_runtime.py --check`; CI
-fails if it drifts. A Codex package may add a local build suffix to its version,
-but its release base is regression-checked against the server manifest.
-Snapshot parity proves packaged source and corpus identity, not that a
-particular client has provisioned a compatible Python environment or refreshed
-its installed cache. CI installs the bundled runtime requirements on a clean
-runner and completes a package-wrapper MCP handshake, but that remains a
-Python-runtime check rather than evidence that a particular client refreshed
-its installed cache. After installation, verify a real MCP handshake in the
-target client before treating the package as ready.
-The repository smoke harness bounds every protocol reply, so an unresponsive
-server fails the check rather than consuming the workflow timeout.
+The Codex package under `plugins/wrg-sigma-rules/` carries its own copy of the
+server and corpus, so the installed plugin does not depend on this checkout.
+Codex starts it with the `python` on your `PATH`: install
+`plugins/wrg-sigma-rules/runtime/requirements.txt` into that interpreter, then
+confirm in Codex that the server answers before relying on it.
 
 ### Cursor
 
@@ -114,18 +111,17 @@ Replace the path with your clone, then reload Cursor's MCP servers.
 
 ### Any MCP client
 
-`server.py` is a standard stdio MCP server. Cline and Windsurf read the same
-`mcpServers` block shown for Cursor, Continue accepts that JSON file copied into
-`.continue/mcpServers/`, and Zed takes the same `command` and `args` under its
-`context_servers` settings key. MCP is model-agnostic:
-the client's backend model does not change what the server exposes.
+`server.py` is a standard stdio MCP server. Any client that can launch a stdio
+server takes the same `command`, `args`, `cwd` and `env` values shown for
+Cursor; your client's MCP documentation says where that configuration lives.
+The model behind the client does not change what the server exposes.
 
 ## Quick example
 
 Validate and convert a corpus rule end to end, from the repo root:
 
 ```bash
-pip install pysigma pysigma-backend-splunk pysigma-backend-elasticsearch
+pip install -r requirements.txt
 ```
 
 ```python
@@ -194,28 +190,15 @@ starting point to bind to your own logsource and tune; each rule's
   image cannot silently serve stale rule data.
 - README counts are stamped from ground truth: a test runs the same check as
   `python readme_stamp.py --check` and fails CI on any drift, so the numbers here cannot silently go stale.
-- To compare an installed or cached Codex runtime with this checkout without
-  modifying either one, run `python scripts/runtime_identity.py --runtime-root
-  <runtime-path> --expect-same-as .`. A match proves only local runtime/corpus
-  identity. Its `rule_tree_sha256` is a file-tree comparison digest, not the
-  live MCP coverage resource's identity; neither value claims marketplace
-  publication or a client cache refresh.
+- `python scripts/runtime_identity.py --runtime-root <runtime-path>
+  --expect-same-as .` compares an installed Codex runtime with this checkout
+  without modifying either.
 
 ### Evidence-review audits
 
-The following local reports make review queues and conversion boundaries
-visible. They are advisory: none promotes a rule, proves an actor attribution,
-or replaces reading the cited source. Pass `--examples-dir` (and, where
-applicable, `--notes-dir`) when auditing a copied or isolated corpus; a missing
-examples directory is an error rather than an empty result.
-The correlation-conversion audit also fails clearly if any selected corpus YAML
-file cannot be read, decoded, or parsed; a partial conversion count is not a
-reproducible measurement.
-The observed-evidence inventory likewise fails clearly on unreadable or
-invalid observed-rule YAML and unreadable detection notes, rather than
-publishing a partial provenance inventory.
-The detection-note gap report uses the same rule and note input boundary, so a
-partial documentation queue cannot be mistaken for a complete review queue.
+These local reports make review queues and conversion boundaries visible. They
+are advisory: none promotes a rule, proves an actor attribution, or replaces
+reading the cited source.
 
 ```bash
 python scripts/observed_evidence_inventory.py --examples-dir resources/examples
@@ -225,62 +208,8 @@ python scripts/correlation_conversion_audit.py --examples-dir resources/examples
 python scripts/detection_note_gap.py --examples-dir resources/examples --notes-dir docs/detection-notes
 ```
 
-Use `--json path/to/report.json` with any report when a review needs a
-machine-readable snapshot; the advisory reports carry their scope limitation
-inside that JSON so a copied count is not detached from its evidence boundary.
-Each report creates the parent directory of its `--json` target, so the same
-automation path can be used across all four tools.
-Object-shaped report payloads carry `contract.tool` and `contract.version`;
-consumers should ignore unknown keys and only treat a version change as a
-compatibility boundary. `duplicate_rule_check` preserves its legacy bare-list
-default JSON for existing consumers; pass `--json-envelope` to receive its
-versioned `{contract, groups, limitations}` form.
-That option only changes the default fingerprint report: the exact-logic and
-actor-review-queue modes always write their own versioned envelopes when
-`--json` is supplied.
-`--actor-review-queues` instead writes a versioned envelope with three separate
-mechanical queues: exact logic, same comparison shape with different numeric
-thresholds, and shared adjacent sidecar bytes. They are source-review inputs,
-not semantic-equivalence, attribution, provenance, or consolidation verdicts.
-Versioned duplicate-report envelopes also carry `skipped_files` for YAML files
-that the selected mode could not read, decode, or parse. The legacy default
-bare-list JSON remains unchanged; use `--json-envelope` when that visibility is
-needed in a default-mode automation.
-For a fixed corpus and option set, report arrays are emitted deterministically;
-JSON object-member order is not a compatibility guarantee, so consumers should
-parse fields rather than byte-diff raw JSON.
-The inventory retains its attribution, platform and
-telemetry-manifestation fields as `not_assessed` until a human has documented
-the three source matches in [`CONTRIBUTING.md`](CONTRIBUTING.md). Those
-review records live under [`docs/source-reviews/`](docs/source-reviews/): each
-must cite a URL already on the rule, record a review date that is not in the
-future, and include a source quote for every supported or not-supported
-conclusion. The inventory rejects malformed or future-dated records rather
-than treating them as evidence; source or rule drift still requires human
-re-review.
-It also records the literal presence of `WRG breach catalog` and whether a
-multi-document rule keeps references only in a later document. Both are public
-traceability review cues, never source-quality or attribution verdicts.
-The JSON report preserves the public reference lists (including their
-first/later-document split) for human review, without assigning source ranks.
-Its summary distinguishes a structured review record, completion of all three
-source matches, and an explicit unsupported boundary; none of those counts is
-an attribution or promotion decision.
-`public_traceability_queue` is a convenience subset for the two mechanical
-public-review cues; it is not a verdict about a rule or its sources.
-For per-rule JSON, prefer `reference_shape` and
-`is_mentioned_by_detection_note`: both are literal inventory facts, not source
-quality or note-endorsement labels. The older `reference_hygiene` and
-`has_companion_note` fields remain compatibility aliases with identical values.
-
-The correlation audit separately counts a backend's declared capability
-boundaries (for example, `correlation_rules` or
-`correlation_type:temporal_ordered`) and, for each converted rule, the
-deviations `convert_rule` checks for (`semantic_deviations_by_target`).
-`semantics_checked_by_target` says how many conversions were checked, so "no
-deviation found" stays distinguishable from "not checked". A conversion with no
-listed deviation is still not a claim of equivalent alert behavior in a deployed
-SIEM.
+[`docs/evidence-review-audits.md`](docs/evidence-review-audits.md) describes
+each report, its `--json` output and what its numbers do and do not establish.
 
 ## Contributing
 
@@ -304,7 +233,7 @@ that a generated rule is production-ready.
 
 The corpus keeps `stable` deliberately unused. A rule earns that status only
 after production evidence and environment-specific tuning, neither of which a
-public, generic corpus can honestly provide.
+public, generic corpus can provide.
 
 Out of scope:
 
@@ -329,7 +258,7 @@ list.
 
 - [mcp-objauthz-lab](https://github.com/WRG-11/mcp-objauthz-lab): a
   vulnerable-by-design MCP server for learning BOLA and IDOR.
-- [osint-trust-envelope](https://github.com/WRG-11/osint-trust-envelope): honest
-  trust envelopes for OSINT results.
+- [osint-trust-envelope](https://github.com/WRG-11/osint-trust-envelope): trust
+  envelopes for OSINT results.
 
 Full index at [github.com/WRG-11](https://github.com/WRG-11).
