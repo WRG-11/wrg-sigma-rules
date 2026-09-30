@@ -295,8 +295,23 @@ It sets the sourcing bar (attribution, platform and manifestation, each matched
 against the cited source) and documents the three upstream rejections that
 produced it.
 
-See [`ROADMAP.md`](ROADMAP.md) for the repository's current direction, explicit
-product boundaries and evidence required before an item is considered complete.
+## Scope
+
+WRG Sigma Rules is a local, deterministic detection-engineering workbench. It
+helps an MCP-capable client draft, validate and convert Sigma rules; it does
+not deploy detections, collect telemetry, operate a hosted service, or claim
+that a generated rule is production-ready.
+
+The corpus keeps `stable` deliberately unused. A rule earns that status only
+after production evidence and environment-specific tuning, neither of which a
+public, generic corpus can honestly provide.
+
+Out of scope:
+
+- A hosted multi-tenant MCP service or remote telemetry collection.
+- Automatic deployment or activation of generated detections.
+- Marking generic public rules `stable` without production evidence.
+- Growing the corpus with uncited, duplicate or merely plausible detections.
 
 ## License
 
