@@ -18,7 +18,8 @@ detection logic, `id`, `level`, tags or references changed. The repository now
 carries only what a user of the corpus or the MCP server needs: planning notes
 and the maintainers' import tooling are gone, rule text no longer points at a
 source readers cannot open, and comments no longer use internal process
-vocabulary.
+vocabulary. pySigma 1.5.1 is now the minimum, which lets pyparsing 3.3.3 back
+in.
 
 ### Changed
 - **Product scope moved into the README.** A new Scope section states what the
@@ -49,6 +50,16 @@ vocabulary.
   that described the maintainers' import tooling (`_generated_by`,
   `_last_extension`, `_pattern_34_v1_1_redaction_applied`,
   `_source_module_refs`) are removed; nothing in this repository read them.
+- **pySigma 1.5.1 or later is required, and pyparsing 3.3.3 is allowed.**
+  [1.10.1] capped pyparsing below 3.3.3 because it broke conversion. The
+  break is in pySigma 1.5.0, and pySigma 1.5.1 adapted to it
+  (SigmaHQ/pySigma#549, #550). Measured on this corpus: pySigma 1.5.0 with
+  pyparsing 3.3.3 fails or changes 552 of the 2,646 rule/target conversions
+  (every rule whose condition combines and/or/not, plus three correlation
+  rules), while pySigma 1.5.1 converts all 2,646 identically under pyparsing
+  3.3.2 and 3.3.3. The raised pySigma floor keeps an install from pairing
+  1.5.0 with 3.3.3. pyparsing stays capped at the versions measured.
+- CI: the CodeQL SARIF upload action is pinned to v4.38.2 (by commit).
 
 ### Removed
 - `ROADMAP.md`. Planning is kept outside the repository; its user-facing part
