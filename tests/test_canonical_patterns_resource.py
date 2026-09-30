@@ -1,15 +1,11 @@
 """Smoke + content tests for the canonical sigma pattern URI resource.
 
-Sister convention reused from an internal MCP-server resource test
-surface (1st canonical Resource layer test surface; this file is the
-2nd application of the Resources extension lifecycle).
-
 Test surface covers:
 
 * Body content invariants -- canonical_patterns_body() returns markdown
   INDEX + canonical_pattern_by_id_body() returns individual pattern markdown.
 * Normalisation -- accepts ``"1"`` + ``"01"`` + ``"Pattern 1"`` etc.
-* ASCII-only discipline matches Pattern 33 Rule 5.
+* Output is ASCII-only.
 * Unknown ID returns structured JSON envelope.
 * All 5 patterns reachable (01 -- 05).
 """
@@ -22,19 +18,16 @@ from pathlib import Path
 import pytest
 
 # Add the plugin's tools/ directory to sys.path so the resource module is
-# importable without installing the plugin as a package. Mirrors the
-# scaffolding convention used by an internal MCP-server test suite.
+# importable without installing the plugin as a package.
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PLUGIN_ROOT))
 
-# server.py belongs to the public repo's distribution shell and is
-# not mirrored here (tools/sigma_public_resync.ps1 is path-driven, by design).
-# This test asserts wiring ON that module, so in this layout it has no subject.
-# Conditioned on the file itself, never on "we are in the monorepo" -- it
-# activates by itself the day the mirror carries server.py.
+# The wiring test imports server.py. The skip is conditioned on the file
+# itself, so a layout that ships the tools without server.py skips it
+# instead of failing on a missing module.
 requires_server_module = pytest.mark.skipif(
     not (_PLUGIN_ROOT / "server.py").is_file(),
-    reason="server.py is not mirrored here (public-repo distribution shell)",
+    reason="server.py is not present in this layout",
 )
 
 

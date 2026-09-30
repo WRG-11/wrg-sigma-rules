@@ -253,7 +253,7 @@ def main(argv: list[str]) -> int:
         read_response(2)
         send(_request(3, "resources/list"))
         read_response(3)
-        # R89 lesson from #57: a resource can ANNOUNCE itself in resources/list
+        # Lesson from #57: a resource can ANNOUNCE itself in resources/list
         # and still fail the instant something tries to actually READ it (both
         # resources answered ok:false inside the Docker image while listing
         # worked fine outside it). Listing is not evidence of working; reading

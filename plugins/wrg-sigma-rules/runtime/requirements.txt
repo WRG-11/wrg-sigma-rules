@@ -41,5 +41,5 @@ pysigma-backend-opensearch>=2.0.3,<3
 pysigma-pipeline-sysmon>=2.0.0,<3
 pysigma-pipeline-windows>=2.0.0,<3
 
-# Test deps (pytest + monkeypatch; pin loose to track WRG monorepo):
-# pytest>=8.0 -- declared by the parent WRG repo, not pinned here.
+# Test deps are not pinned here: install pytest (>=8.0) separately, as CI
+# does with `pip install -r requirements.txt pytest`.

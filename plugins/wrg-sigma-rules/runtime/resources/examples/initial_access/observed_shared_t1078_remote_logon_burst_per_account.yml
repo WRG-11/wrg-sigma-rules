@@ -38,18 +38,16 @@ detection:
   # Filter requires BOTH conditions (selection-shape: multi-clause
   # within one filter block = AND).
   #
-  # Auto-attack canonical event (built from selection_logon first
-  # values: EventID=4624, LogonType=3, no TargetUserName) does NOT
-  # match LogonType=10 -> filter inert -> rule still fires.
-  # Self-consistency preserved.
+  # A logon built from selection_logon's first values (EventID=4624,
+  # LogonType=3, no TargetUserName) does NOT match LogonType=10, so the
+  # filter does not suppress the rule's basic positive case.
   #
-  # Known tradeoff (documented for V re-verify + Phase 2 evaluation):
-  # this is a SINGLE-EVENT precision narrow. The lapsus actor
-  # signature is multi-host admin-credential reuse within a short
-  # window -- proper detection requires correlation (count() by
-  # account across hosts over time). Phase 1b aggregation matcher
-  # (V design-prep) will support that pattern; this filter is the
-  # Phase 1a stop-gap that keeps precision-on-benign at 1.00.
+  # Known tradeoff: the filter is a SINGLE-EVENT precision narrow. The
+  # lapsus actor signature is multi-host admin-credential reuse within
+  # a short window -- proper detection requires correlation (count()
+  # by account across hosts over time). The correlation below counts
+  # events per account but does not require distinct hosts; the filter
+  # only keeps benign admin RDP logons out of that count.
   filter_legit_admin_interactive_rdp:
     LogonType: 10
     TargetUserName|startswith: admin_

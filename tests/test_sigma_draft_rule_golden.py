@@ -8,9 +8,6 @@ skill layer may vary description wording.
 
 No pySigma importorskip here: draft_rule_body gracefully degrades without
 pySigma. Tests assert on the pySigma-missing envelope when pySigma is absent.
-
-Pre-read discipline applied (prior done report + draft_rule.py read BEFORE
-writing).
 """
 from __future__ import annotations
 

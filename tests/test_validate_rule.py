@@ -189,7 +189,7 @@ def test_validate_field_modifier_pipe_is_not_flagged_as_deprecated_condition() -
     assert "deprecated_pipe_condition" not in rules_hit
 
 
-def test_validate_pattern_34_redacts_internal_identifiers() -> None:
+def test_validate_redacts_internal_identifiers() -> None:
     """Always-redact -- internal IP / corp domain redacted in echo.
 
     The identifiers are injected into `description` rather than by
