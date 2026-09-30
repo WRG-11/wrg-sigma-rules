@@ -13,12 +13,30 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Claim-accuracy release. Corpus 330 → 330 rules; no detection logic changed.
-Every change below comes from re-checking a published claim against its
-source: MITRE ATT&CK Enterprise 19.2 (STIX), the cited web pages, the CVE and
-GitHub advisory databases, and live tool output.
+Claim-accuracy release. Corpus 330 → 294 rules: 47 single-actor rules that
+repeated another rule's detection logic were merged into 11 shared rules
+(**BREAKING** for deployments that reference rule ids, see below). No rule's
+detection logic changed. Every other change below comes from re-checking a
+published claim against its source: MITRE ATT&CK Enterprise 19.2 (STIX), the
+cited web pages, the CVE and GitHub advisory databases, and live tool output.
 
 ### Changed
+- **BREAKING: one rule per detection logic.** 47 `observed_*` rules repeated
+  one of 11 detection logics under a different actor tag; 43 were identical
+  byte for byte, 4 wrote the threshold as `gt: N` instead of `gte: N+1`, which
+  selects the same integer counts. The largest group was 14 files for one
+  "same file-sharing host 4+ times in 10 minutes" signature. Each group is now
+  one `observed_shared_*` rule that carries every member's actor tag and
+  references, and lists the replaced ids under `related` with `type: merged`;
+  the 47 files and their sidecars are gone. A deployment that pins one of those
+  ids finds it in the shared rule's `related` list. The shared rule takes the
+  highest member `level`, so no deployment's alert severity drops; that makes
+  three generic rules `critical`, a level that describes the most severe
+  member actor's record rather than the detection (see Known limitations).
+  Its description says the logic is a generic pattern, not the documented
+  tradecraft of the listed actors, as the companion notes already did. Twelve
+  detection notes now point at the shared rules, and the inline filter
+  rationale that two T1078 member files carried was kept on the shared rules.
 - **ATT&CK v19 taxonomy.** v19 split Defense Evasion into Stealth (TA0005)
   and Defense Impairment (TA0112). The 22 rules under `defense_evasion/` moved
   to `stealth/` or `defense_impairment/` by the tactic ATT&CK assigns to their
@@ -125,10 +143,10 @@ backends) and reading the queries rather than the success flag:
 - **`esql` and `eql` conversion targets** (Elastic ES|QL and Event Query
   Language, from the `pysigma-backend-elasticsearch` package the Lucene
   targets already use). Unlike Lucene they convert correlation rules: `esql`
-  49 of the 52 corpus correlations (not `temporal_ordered`), `eql` all 52.
+  24 of the 27 corpus correlations (not `temporal_ordered`), `eql` all 27.
 - **`correlation_semantics` on every correlation conversion**: the measured
   ways the query departs from the rule, each also appended to `warnings`.
-  Codes: `window_dropped` (`opensearch-ppl` drops the window of all 48 corpus
+  Codes: `window_dropped` (`opensearch-ppl` drops the window of all 23 corpus
   `event_count`/`value_count` rules, so "more than 10 in 10 minutes" becomes
   "more than 10 in the whole search range"), `fixed_window` (Splunk `bin`,
   ES|QL `date_trunc` and PPL `span` are fixed buckets, not sliding windows),
@@ -141,6 +159,13 @@ backends) and reading the queries rather than the success flag:
 - `scripts/correlation_conversion_audit.py` covers `esql` and `eql` and
   reports `semantics_checked_by_target` and `semantic_deviations_by_target`,
   so "no deviation" and "not checked" are different numbers.
+- `tests/test_shared_actor_logic.py`: no two `observed_*` rules may share
+  detection and correlation logic, counting `gt: N` and `gte: N+1` as the
+  same; every shared rule names each actor it tags and relates to the ids it
+  replaced. It fails against the previous corpus.
+- `tests/test_detection_note_rule_paths.py`: every rule path a detection note
+  names must exist. Nothing checked this before; merging the rules above left
+  12 notes pointing at 47 deleted files until they were updated.
 - `tests/test_no_duplicate_yaml_keys.py`: every rule and sample is loaded with
   a strict YAML loader that rejects a repeated mapping key, so the silent loss
   fixed above fails CI instead of passing it. It fails against the corpus as
@@ -161,6 +186,15 @@ backends) and reading the queries rather than the success flag:
 - Three cited pages (Barricade Cyber, Red Packet Security, Suspectfile) sit
   behind a bot challenge that automated checks could not pass, and one
   (toyota-fs.de) did not answer; they were left in place, unverified.
+- Three shared rules are `critical` (T1078 logon burst, T1195 unsigned
+  binary, T1071 script-host web connections) because one merged member was.
+  The level describes that actor's record, not a detection whose
+  probability "borders certainty"; re-levelling is a separate decision.
+- Some shared rules tag actors whose documented tradecraft does not match
+  the generic pattern: printer credential pages (T1552) for an npm worm and a
+  GitHub Actions compromise, unsigned `.exe` installers in `Temp` (T1195) for
+  npm packages. The descriptions and notes say so. Whether such rules should
+  be `template_*` or drop those actor tags is open.
 
 ## [1.11.0] - 2026-09-28
 

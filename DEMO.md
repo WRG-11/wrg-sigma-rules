@@ -230,7 +230,7 @@ With `config={"pipeline": "sysmon"}`:
 
 The difference is the leading `EventID=1`. Without it the query matches *any*
 event carrying an `Image` field, not just process creation -- it runs, returns
-results, and is scoped wrong. <!-- METRIC:windows_product_count -->174<!-- /METRIC:windows_product_count --> of the <!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count --> corpus rules
+results, and is scoped wrong. <!-- METRIC:windows_product_count -->139<!-- /METRIC:windows_product_count --> of the <!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count --> corpus rules
 are `product: windows`, so this is the common case rather than an edge one.
 
 ---
@@ -264,13 +264,13 @@ Rule: `resources/examples/credential_access/template_t1110_brute_force_high_volu
 This is a backend limit, not a defect in the rule, and the envelope says so
 rather than returning a bare parse error that reads as "your rule is broken".
 The Lucene-family targets (`elastic`, `kibana`, `wazuh`, `opensearch`) all
-share it: measured across the corpus, they convert <!-- METRIC:lucene_convert_count -->278<!-- /METRIC:lucene_convert_count --> of
-<!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count --> rules, and all four fail on exactly the same set — the
-<!-- METRIC:correlation_rule_count -->52<!-- /METRIC:correlation_rule_count --> correlation rules — and on nothing else. For Elastic, the
+share it: measured across the corpus, they convert <!-- METRIC:lucene_convert_count -->267<!-- /METRIC:lucene_convert_count --> of
+<!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count --> rules, and all four fail on exactly the same set — the
+<!-- METRIC:correlation_rule_count -->27<!-- /METRIC:correlation_rule_count --> correlation rules — and on nothing else. For Elastic, the
 correlation route is `esql` or `eql` from the same backend package.
-`splunk` and `esql` convert <!-- METRIC:splunk_esql_convert_count -->327<!-- /METRIC:splunk_esql_convert_count -->: every rule except the
+`splunk` and `esql` convert <!-- METRIC:splunk_esql_convert_count -->291<!-- /METRIC:splunk_esql_convert_count -->: every rule except the
 <!-- METRIC:temporal_ordered_rule_count -->3<!-- /METRIC:temporal_ordered_rule_count --> `temporal_ordered` correlations, which neither backend can
-express. `eql` and `opensearch-ppl` convert all <!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count -->.
+express. `eql` and `opensearch-ppl` convert all <!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count -->.
 
 Converting is not the same as keeping the rule. The same rule on
 `opensearch-ppl`:
@@ -318,8 +318,8 @@ stale against the rules. Reading it returns markdown beginning:
 ```markdown
 ## Summary
 
-- Rules: 330
-- Incident rules (observed_*): 234
+- Rules: 294
+- Incident rules (observed_*): 198
 - Pattern rules (template_*): 96
 - Distinct ATT&CK techniques covered: 116
 - Tactic groupings: 16

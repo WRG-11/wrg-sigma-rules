@@ -1,11 +1,9 @@
 <!--
 Companion detection note covering FIVE unrelated ransomware/RaaS-group Sigma rules, each sourced from
 a CISA #StopRansomware advisory (or equivalent CISA KEV listing) plus independent vendor corroboration:
-- resources/examples/initial_access/observed_cl0p_t1190.yml
-- resources/examples/initial_access/observed_play_t1190.yml
-- resources/examples/initial_access/observed_rhysida_t1190.yml
-- resources/examples/lateral_movement/observed_akira_t1021_001.yml
-- resources/examples/initial_access/observed_ransomhouse_t1078.yml
+- resources/examples/initial_access/observed_shared_t1190_web_server_spawns_shell.yml (shared rule; merged 2026-09-30 from single-actor files)
+- resources/examples/lateral_movement/observed_shared_t1021_001_rdp_logon.yml (shared rule; merged 2026-09-30 from single-actor files)
+- resources/examples/initial_access/observed_shared_t1078_network_or_rdp_logon.yml (shared rule; merged 2026-09-30 from single-actor files)
 Advisory sources: CISA AA23-158A (Cl0p/MOVEit) + Mandiant / CISA AA23-352A (Play) + FBI IC3 CSA
 231218 / CISA AA23-319A (Rhysida) / CISA AA24-109A (Akira) + Cisco Talos + FBI IC3 CSA 240418 /
 Unit42-Palo Alto (RansomHouse).
@@ -14,7 +12,7 @@ Detection/defense only, no exploit/PoC reproduced beyond what the advisories alr
 
 # Five CISA-Advisory Ransomware Groups: Two Shared Detection Shapes Across Five Different Actors
 
-Five distinct ransomware/RaaS operations, each with its own CISA #StopRansomware advisory or KEV listing plus independent vendor corroboration (Mandiant, Cisco Talos, FBI IC3, Unit42) — but notice the detection LOGIC itself: three of these five rules (Cl0p, Play, Rhysida) share the exact same `detection:` block verbatim, and two more (Akira, RansomHouse) build on the same underlying RDP-logon signal. This is not an authoring shortcut to be suspicious of — it reflects a genuinely recurring, group-agnostic TTP (web-shell-from-IIS/webserver, and RDP-based lateral movement) that multiple unrelated actors independently converge on, which several CISA advisories cited below explicitly call out as common tradecraft rather than any one group's signature.
+Five distinct ransomware/RaaS operations, each with its own CISA #StopRansomware advisory or KEV listing plus independent vendor corroboration (Mandiant, Cisco Talos, FBI IC3, Unit42) — but notice the detection LOGIC itself: three of these five actors (Cl0p, Play, Rhysida) had the exact same `detection:` block verbatim, and two more (Akira, RansomHouse) build on the same underlying RDP-logon signal. Since 2026-09-30 identical logic lives in one shared rule per logic, carrying every actor's tag (the header lists them). This is not an authoring shortcut to be suspicious of — it reflects a genuinely recurring, group-agnostic TTP (web-shell-from-IIS/webserver, and RDP-based lateral movement) that multiple unrelated actors independently converge on, which several CISA advisories cited below explicitly call out as common tradecraft rather than any one group's signature.
 
 ## What each group actually does (per the cited advisory)
 
@@ -30,9 +28,9 @@ Five distinct ransomware/RaaS operations, each with its own CISA #StopRansomware
 
 ## The shared detection shapes
 
-- **Cl0p, Play, Rhysida (identical `detection:` block):** a process attributed to a webserver/app-server parent (`w3wp.exe`, `httpd.exe`, `nginx.exe`) spawning a shell/interpreter child (`cmd.exe`, `powershell.exe`, `bash`, `sh`) — the generic "web shell got a shell" pattern these three advisories all describe as part of each group's initial-access-to-execution chain, independent of which specific CVE or exposed application got them there.
-- **Akira, Anubis (see this corpus's separate Anubis note; not part of this note's rule set):** `EventID: 4624` + `LogonType: 10` (interactive/RDP logon) — flags ANY successful RDP logon, deliberately broad since the advisory's point is that Akira uses ordinary RDP, not a specific malicious binary.
-- **RansomHouse:** `EventID: 4624 or 4625` (successful OR failed logon) with `LogonType: 3 or 10` (network or RDP), narrowed by two exclusion filters: service accounts (`svc_` prefix) and admin-prefixed accounts on interactive RDP (`admin_` prefix + `LogonType: 10`) — a documented Phase-1a precision narrow after a real false-positive incident (a legitimate admin RDP session tripped the unfiltered version of this rule; see the rule's own inline comments for the full incident trail). The rule's own `falsepositives` field is explicit that this is a SINGLE-EVENT precision narrow standing in for proper multi-host correlation (`count() by account across hosts`) that this corpus's rule format doesn't yet support as a pySigma-portable aggregation.
+- **Cl0p, Play, Rhysida (one shared rule since 2026-09-30, `observed_shared_t1190_web_server_spawns_shell.yml`, with KillSec, NightSpire and Nova):** a process attributed to a webserver/app-server parent (`w3wp.exe`, `httpd.exe`, `nginx.exe`) spawning a shell/interpreter child (`cmd.exe`, `powershell.exe`, `bash`, `sh`) — the generic "web shell got a shell" pattern these three advisories all describe as part of each group's initial-access-to-execution chain, independent of which specific CVE or exposed application got them there.
+- **Akira, Anubis (one shared rule since 2026-09-30, `observed_shared_t1021_001_rdp_logon.yml`; see the separate Anubis note):** `EventID: 4624` + `LogonType: 10` (interactive/RDP logon) — flags ANY successful RDP logon, deliberately broad since the advisory's point is that Akira uses ordinary RDP, not a specific malicious binary.
+- **RansomHouse (shared with AuditTeam since 2026-09-30, `observed_shared_t1078_network_or_rdp_logon.yml`):** `EventID: 4624 or 4625` (successful OR failed logon) with `LogonType: 3 or 10` (network or RDP), narrowed by two exclusion filters: service accounts (`svc_` prefix) and admin-prefixed accounts on interactive RDP (`admin_` prefix + `LogonType: 10`) — a documented Phase-1a precision narrow after a real false-positive incident (a legitimate admin RDP session tripped the unfiltered version of this rule; see the rule's own inline comments for the full incident trail). The rule's own `falsepositives` field is explicit that this is a SINGLE-EVENT precision narrow standing in for proper multi-host correlation (`count() by account across hosts`) that this corpus's rule format doesn't yet support as a pySigma-portable aggregation.
 
 ## Known limitations (per rule)
 

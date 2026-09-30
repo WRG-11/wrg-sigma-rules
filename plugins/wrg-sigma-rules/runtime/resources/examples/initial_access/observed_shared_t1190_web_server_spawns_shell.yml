@@ -1,0 +1,85 @@
+title: Web Server Process Spawning a Shell
+id: 8885f1d3-08f4-5120-8168-be1c17871ea4
+status: test
+description: 'Shared detection for 6 actors with an observed T1190 incident in the WRG breach
+  catalog: cl0p, killsec, nightspire, nova, play, rhysida. The logic is a generic pattern,
+  not the documented tradecraft of these actors, so a hit does not say which actor, if any,
+  is responsible. Merged on 2026-09-30 from 6 single-actor rules with identical logic (their
+  ids are listed under related).'
+references:
+- https://attack.mitre.org/techniques/T1190/
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-158a
+- https://www.mandiant.com/resources/blog/zero-day-moveit-data-theft
+- https://attack.mitre.org/groups/G0092/
+- https://www.progress.com/security/moveit-transfer-and-moveit-cloud-vulnerability
+- https://www.halcyon.ai/threat-group/killsec
+- https://socradar.io/blog/dark-web-profile-killsec/
+- https://www.ransomware.live/group/killsec
+- https://socradar.io/blog/dark-web-profile-nightspire-ransomware/
+- https://www.picussecurity.com/resource/blog/nightspire-ransomware-attack-chain-tools-and-tactics
+- https://blog.barracuda.com/2026/05/01/nightspire-wannabe-warlords-in-ransomwares-shadow-realm
+- https://www.ransomware.live/group/nightspire
+- https://threatlabsnews.xcitium.com/blog/from-ralord-to-nova-how-this-raas-gang-is-wreaking-havoc-worldwide/
+- https://www.cyjax.com/resources/blog/araastocracy-ralord-ransomware-emerges-with-new-dls
+- https://www.ransomlook.io/group/nova
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-352a
+- https://www.ic3.gov/CSA/2023/231218.pdf
+- https://www.bleepingcomputer.com/news/security/fbi-play-ransomware-breached-300-victims-including-critical-orgs/
+- https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001857154&type=8-K
+- https://www.bleepingcomputer.com/news/security/krispy-kreme-cyberattack-impacts-online-orders-and-operations/
+- https://www.ransomware.live/id/Q29ybGV5IE1GR0BwbGF5
+- https://www.ransomware.live/id/VXJzY2hlbCBMYWJvcmF0b3JpZXNAcGxheQ==
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-319a
+- https://www.cisa.gov/sites/default/files/2025-04/aa23-319a-stopransomware-rhysida-ransomware_2.pdf
+author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
+date: '2023-06-15'
+modified: '2026-09-30'
+related:
+- id: fba2a6a6-1028-5e63-aaf6-c9067f594b6b
+  type: merged
+- id: d784d9be-192d-5c7c-addf-725408f34001
+  type: merged
+- id: b21bb787-2ba2-5749-95a0-1222cecd7460
+  type: merged
+- id: 3977383d-36d5-5f0d-9133-0aa88f9f3922
+  type: merged
+- id: a72451ed-d436-5635-9185-1200bcafcf5c
+  type: merged
+- id: ed5ba15c-77b5-56ab-9430-ee7f8a1f02d6
+  type: merged
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_webshell:
+    ParentImage|endswith:
+    - \w3wp.exe
+    - \httpd.exe
+    - \nginx.exe
+    Image|endswith:
+    - \cmd.exe
+    - \powershell.exe
+    - \bash
+    - \sh
+  condition: selection_webshell
+falsepositives:
+- Authorized vulnerability-remediation tooling spawning a shell on a file-transfer appliance
+  during a scheduled patch window
+- A legitimate patch-management or vulnerability-scanning tool spawning a shell on the web-server
+  host during authorized remediation work
+- Scheduled web-application maintenance scripts (cache-clear, log-rotation) that spawn cmd.exe/powershell.exe
+  from the IIS/Apache/Nginx worker process
+- An authorized WAF, APM, or monitoring agent that spawns a diagnostic shell from the web-server
+  worker process during scheduled health checks
+level: high
+tags:
+- attack.t1190
+- wrg.observed
+- wrg.observed.actor.cl0p
+- wrg.observed.actor.killsec
+- wrg.observed.actor.nightspire
+- wrg.observed.actor.nova
+- wrg.observed.actor.play
+- wrg.observed.actor.rhysida
+- wrg.severity.high
+- wrg.tactic.initial_access

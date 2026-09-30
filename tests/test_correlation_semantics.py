@@ -154,7 +154,7 @@ def test_splunk_gt_threshold_is_kept() -> None:
 
 # ----------------------------------------------------------------- scope
 def test_plain_rules_carry_no_correlation_semantics_field() -> None:
-    result = _convert("observed_play_t1190.yml", "splunk")
+    result = _convert("observed_shared_t1190_web_server_spawns_shell.yml", "splunk")
     assert "correlation_semantics" not in result
 
 
@@ -165,7 +165,7 @@ def test_every_corpus_correlation_gets_a_checked_semantics_list() -> None:
         for path in sorted(_EXAMPLES.rglob("*.yml"))
         if any(line.startswith("correlation:") for line in path.read_text(encoding="utf-8").splitlines())
     ]
-    assert len(rules) >= 50
+    assert len(rules) >= 20  # canary: 27 after the 2026-09-30 merge
     for path in rules:
         result = convert_rule_body(path.read_text(encoding="utf-8"), target="esql")
         if not result["ok"]:

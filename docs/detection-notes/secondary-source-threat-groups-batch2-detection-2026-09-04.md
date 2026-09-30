@@ -3,10 +3,10 @@ Companion detection note covering FOUR unrelated named-actor Sigma rules (batch 
 secondary-source cluster), grouped for authoring efficiency. Same caveat as batch 1: these are
 templated actor-attributed rules built on generic technique detections and secondary/aggregator
 sourcing, not vendor-confirmed CVE chains.
-- resources/examples/impact/observed_stormous_ransomware_operator_t1490.yml
-- resources/examples/initial_access/observed_auditteam_t1078.yml
+- resources/examples/impact/observed_shared_t1490_shadow_copy_or_catalog_deletion.yml (shared rule; merged 2026-09-30 from single-actor files)
+- resources/examples/initial_access/observed_shared_t1078_network_or_rdp_logon.yml (shared rule; merged 2026-09-30 from single-actor files)
 - resources/examples/initial_access/observed_blackwater_t1133.yml
-- resources/examples/initial_access/observed_killsec_t1190.yml
+- resources/examples/initial_access/observed_shared_t1190_web_server_spawns_shell.yml (shared rule; merged 2026-09-30 from single-actor files)
 Detection/defense only, no exploit/PoC involved.
 -->
 
@@ -16,13 +16,13 @@ Four more Sigma rules attributed to named actors/groups, continuing this corpus'
 
 ## What each rule actually detects
 
-**1. Stormous — the identical shadow-copy-deletion pattern as Dire Wolf (T1490).** This rule's `detection:` block is BYTE-IDENTICAL to `observed_direwolf_t1490.yml`'s (`vssadmin`/`wmic`/`wbadmin` + `delete shadows`/`shadowcopy delete`/`delete catalog`) — the only differences are the rule's metadata and `level: informational` instead of `medium` (the rule's own authors apparently rated Stormous's version of this signal as carrying less standalone significance). Sourcing is the weakest in this note: an X.com search query and a single ransomware.live catalog entry, no named technical write-up.
+**1. Stormous — the identical shadow-copy-deletion pattern as Dire Wolf (T1490).** Stormous's rule and Dire Wolf's had BYTE-IDENTICAL `detection:` blocks (`vssadmin`/`wmic`/`wbadmin` + `delete shadows`/`shadowcopy delete`/`delete catalog`); the only differences were metadata and `level: informational` instead of `medium`. On 2026-09-30 the two were merged into `observed_shared_t1490_shadow_copy_or_catalog_deletion.yml`, which carries both actor tags at the higher level (`medium`). Sourcing is the weakest in this note: an X.com search query and a single ransomware.live catalog entry, no named technical write-up.
 
 **2. AuditTeam — anomalous interactive/RDP logon after filtering service and known-admin accounts (T1078).** The rule carries unusually detailed inline authoring comments (preserved in the YAML, worth reading directly) documenting a real false-positive fix cycle: an earlier version fired on legitimate admin RDP sessions, and a `filter_legit_admin_interactive_rdp` exclusion (LogonType 10 + `admin_`-prefixed account) was added as what the comments explicitly label a "Phase 1a stop-gap," with the SAME comments noting the actor's real signature is multi-host credential reuse within a short window — something this single-event rule structurally cannot detect without a correlation-rule pairing the corpus's format doesn't yet support. This is worth reading as a rule that is honest, in its own source comments, about its own detection gap.
 
 **3. Blackwater — external-source RDP logon (T1133).** Sourced from a single incident report (a Shenzhen Gongjin Electronics breach write-up) plus secondary aggregators. The detection logic is a bare `EventID 4624 + LogonType 10` (successful interactive/RDP logon) excluding RFC1918 private-IP source ranges — this is the generic "external RDP logon" pattern, with no Blackwater-specific indicator at all.
 
-**4. KillSec — a shell process spawned from a webserver worker process (T1190).** The detection logic (`w3wp.exe`/`httpd.exe`/`nginx.exe` spawning `cmd.exe`/`powershell.exe`/`bash`/`sh`) is the textbook webshell-execution signature — and, as this note's companion batch-3 file documents, is BYTE-IDENTICAL to two other actors' rules in this corpus (`observed_nightspire_t1190.yml`, `observed_nova_t1190.yml`). This is a generic web-shell IOC any of dozens of actors exploiting any web-facing vulnerability could produce, not evidence specific to KillSec.
+**4. KillSec — a shell process spawned from a webserver worker process (T1190).** The detection logic (`w3wp.exe`/`httpd.exe`/`nginx.exe` spawning `cmd.exe`/`powershell.exe`/`bash`/`sh`) is the textbook webshell-execution signature — and, as this note's companion batch-3 file documents, was BYTE-IDENTICAL to other actors' rules in this corpus; since 2026-09-30 all of them are one rule, `observed_shared_t1190_web_server_spawns_shell.yml`, that carries KillSec's tag among six. This is a generic web-shell IOC any of dozens of actors exploiting any web-facing vulnerability could produce, not evidence specific to KillSec.
 
 ## The detection signals
 

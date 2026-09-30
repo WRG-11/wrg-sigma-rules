@@ -1,0 +1,187 @@
+title: Repeated Connections to One File-Sharing Host (base)
+name: wrg_dd85979f4400558d
+id: dd85979f-4400-558d-ba48-c3655c20beb0
+status: test
+description: Base event match for the shared rule 'Repeated Connections to One File-Sharing
+  Host'. On its own it is not the alert; the correlation document carries the threshold and
+  the actor list.
+author: WRG Breach Intel — Phase 6
+date: '2025-03-14'
+modified: '2026-09-30'
+related:
+- id: 02450934-9742-5d77-a854-5332f29a4deb
+  type: merged
+- id: 3a419e63-8b87-52b2-8d6c-737487faf742
+  type: merged
+- id: fcb8d015-f3b1-5c98-b66e-fca5821fb993
+  type: merged
+- id: 4de4546f-b08a-5b0b-a017-6d7a1fed2152
+  type: merged
+- id: 5513072e-a8ee-56cf-a9bc-e8edb29bacfa
+  type: merged
+- id: 998e8128-509b-5337-b885-14a980828947
+  type: merged
+- id: 59097843-fef0-5cab-a5c2-4a64921fb1b5
+  type: merged
+- id: 548abbf2-b176-5f88-a3bf-371fd47422f3
+  type: merged
+- id: 1707f599-cc25-5b87-b7c6-86bcaed942ca
+  type: merged
+- id: dac629d0-ecb2-567c-a7b8-eb909510312a
+  type: merged
+- id: 4de06249-8c4f-5330-84f6-fad1a27c8aa4
+  type: merged
+- id: e028bab0-8943-5829-9159-a9a867f0e147
+  type: merged
+- id: 1a9a728c-5333-52b2-89de-091b99e2d675
+  type: merged
+- id: 0904bcd4-26f6-5d95-b9d4-5bb6989ba889
+  type: merged
+logsource:
+  category: network_connection
+  product: windows
+detection:
+  selection_exfil_host:
+    DestinationHostname|contains:
+    - mega.nz
+    - anonfiles.com
+    - transfer.sh
+    - send.bitwarden.com
+    - file.io
+  condition: selection_exfil_host
+level: informational
+tags:
+- attack.t1567
+- attack.t1567.002
+---
+title: Repeated Connections to One File-Sharing Host
+id: df462490-a067-56de-8e9c-33e8e23001a4
+status: test
+description: 'Shared detection for 14 actors with an observed T1567 / T1567.002 incident in
+  the WRG breach catalog: barracuda, blackwater, crpxo, emperador, genesis, global_secret_group,
+  kairos, krybit, ms13_089, panzer, securotrop, shai_hulud_npm_worm, unknown_supply_chain_2025_03,
+  worldleaks. The logic is a generic pattern, not the documented tradecraft of these actors,
+  so a hit does not say which actor, if any, is responsible. Merged on 2026-09-30 from 14
+  single-actor rules with identical logic (their ids are listed under related).'
+references:
+- https://attack.mitre.org/techniques/T1567/
+- https://attack.mitre.org/techniques/T1567/002/
+- https://www.galaxywarden.com/blog/breach/micro-comm-inc-barracuda-2026-08
+- https://www.ransomware.live/group/barracuda
+- https://www.dexpose.io/barracuda-ransomware-targets-micro-comm-inc/
+- https://www.galaxywarden.com/blog/breach/shenzhen-gongjin-electronics-blackwater-2026-04
+- https://socradar.io/free-tools/ransomware-intelligence/groups/blackwater
+- https://www.ransomware.live/group/blackwater
+- https://socradar.io/free-tools/ransomware-intelligence/groups/crpxo
+- https://cyberpress.org/crpx0-ransomware-claims-hyundai-turkey-breach/
+- https://www.scworld.com/brief/new-crpx0-malware-campaign-uses-onlyfans-lure-for-crypto-theft-and-ransomware
+- https://www.ransomware.live/group/CRPxO
+- https://www.dexpose.io/emperador-ransomware-attack-targets-city-government-of-baguio/
+- https://malware.news/t/emperador-ransomware-attack-targets-city-government-of-baguio/124791
+- https://www.comparitech.com/news/new-ransomware-gang-genesis-claims-9-data-breaches-including-optometrist-and-grocer/
+- https://sosransomware.com/en/ransomware-groups/genesis-ransomware-the-emergence-of-a-new-player-in-digital-extortion-in-2025/
+- https://www.ransomware.live/group/genesis
+- https://www.dexpose.io/global-secret-group-targets-macofin-hellas-s-a-in-ransomware-attack/
+- https://www.watchguard.com/wgrd-security-hub/ransomware-tracker/global-secret-group
+- https://mallory.ai/actors/019f9faf-4972-7417-8cf8-eda4260aa1bd
+- https://socradar.io/blog/dark-web-profile-kairos-extortion-group/
+- https://malpedia.caad.fkie.fraunhofer.de/actor/kairos
+- https://securityaffairs.com/194750/security/u-s-government-agency-paid-1m-to-data-extortion-group-kairos.html
+- https://www.halcyon.ai/ransomware-research-reports/0apt-vs-krybit-ransomware-actors-list-opposing-operators-as-victims
+- https://www.infosecurity-magazine.com/news/ransomware-turf-war-0apt-krybit/
+- https://www.ransomware.live/id/aHVhc2hhbi5jb20uY25Aa3J5Yml0
+- https://web.archive.org/web/20260121035059/https://www.redhotcyber.com/en/post/ms13-089-ransomware-double-extortion-without-encryption/
+- https://www.watchguard.com/wgrd-security-hub/ransomware-tracker/ms13-089
+- https://www.hendryadrian.com/ms13-089-ransomware-hits-virginia-urology-and-dgp-commercialisti/
+- https://www.ransomlook.io/group/panzer
+- https://www.hookphish.com/blog/ransomware-group-panzer-hits-the-minor-food-group/
+- https://www.suspectfile.com/a-young-ransomware-group-an-ancient-risk-securotrop-the-interview/
+- https://www.hookphish.com/blog/ransomware-group-securotrop-hits-structural-component-systems/
+- https://www.ransomware.live/group/securotrop
+- https://www.stepsecurity.io/blog/binding-gyp-npm-supply-chain-attack-spreads-like-worm
+- https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm/
+- https://unit42.paloaltonetworks.com/npm-supply-chain-attack/
+- https://snyk.io/blog/node-gyp-supply-chain-compromise-self-propagating-npm-worm-binding-gyp/
+- https://cybersecuritynews.com/binding-gyp-supply-chain-attack-compromises-dozens-of-npm-packages/
+- https://unit42.paloaltonetworks.com/github-actions-supply-chain-attack/
+- https://www.wiz.io/blog/github-action-tj-actions-changed-files-supply-chain-attack-cve-2025-30066
+- https://www.cisa.gov/news-events/alerts/2025/03/18/supply-chain-compromise-third-party-tj-actionschanged-files-cve-2025-30066-and-reviewdogaction
+- https://www.stepsecurity.io/blog/harden-runner-detection-tj-actions-changed-files-action-is-compromised
+- https://github.com/advisories/ghsa-mrrh-fwg8-r2c3
+- https://github.com/advisories/GHSA-qmg3-hpqr-gqvc
+- https://www.cisa.gov/news-events/cybersecurity-advisories/aa25-050a
+- https://www.group-ib.com/blog/hunters-international/
+- https://www.bleepingcomputer.com/news/security/hunters-international-rebrands-as-world-leaks-in-shift-to-data-extortion/
+- https://www.ransomware.live/id/QWNjZXNzIERlbnRhbEB3b3JsZGxlYWtz
+- https://www.ransomware.live/id/Q0ggS2FybmNoYW5nIFB1YmxpY0B3b3JsZGxlYWtz
+- https://www.ransomware.live/id/VW5pdGVkIEF1dG8gU3VwcGx5QHdvcmxkbGVha3M=
+author: WRG Breach Intel — Phase 6
+date: '2025-03-14'
+modified: '2026-09-30'
+related:
+- id: 5e861a00-a41d-57c7-a5f4-d7a44faf9f0e
+  type: merged
+- id: 35c4b9b1-88e3-5bc8-aced-8caa0ffe4ecf
+  type: merged
+- id: d2348088-5e75-5369-bbeb-6346d3b25179
+  type: merged
+- id: ad999bef-99e5-5a00-b0d3-eebfa9671432
+  type: merged
+- id: 07398270-d972-5acd-8275-4194f49d1890
+  type: merged
+- id: 0a78d7f3-5c6e-5de5-9f77-6f67fee2b232
+  type: merged
+- id: 29d6d6bc-dc86-5218-8a37-e2a94a506159
+  type: merged
+- id: 6760a56a-40a2-5deb-a807-d20cd6b9dc18
+  type: merged
+- id: 79e57389-3dad-5d3a-82f8-ab62b10ffb45
+  type: merged
+- id: a02cb9ed-d371-54e5-88a1-4c939776be0c
+  type: merged
+- id: 5c593e08-2bd6-5704-9a0b-8375df17d331
+  type: merged
+- id: ee746ebc-9cf3-5996-880b-907c2e635ff5
+  type: merged
+- id: db105e40-b5e6-5eb2-a26e-6a7e4d45daad
+  type: merged
+- id: 9ba39f0c-951f-5d43-b40f-fbe52cc2713f
+  type: merged
+correlation:
+  type: event_count
+  rules:
+  - wrg_dd85979f4400558d
+  group-by:
+  - DestinationHostname
+  timespan: 10m
+  condition:
+    gte: 4
+falsepositives:
+- Approved business file transfer, backup synchronization, or incident-response collection
+  to the named cloud service can produce the same network telemetry.
+- Backup software uploading encrypted archives to a sanctioned cloud endpoint that happens
+  to share infrastructure with a listed exfil host
+- Employees using a sanctioned file-sharing service for authorized large-file transfer
+level: high
+tags:
+- attack.exfiltration
+- attack.t1567
+- attack.t1567.002
+- wrg.observed
+- wrg.observed.actor.barracuda
+- wrg.observed.actor.blackwater
+- wrg.observed.actor.crpxo
+- wrg.observed.actor.emperador
+- wrg.observed.actor.genesis
+- wrg.observed.actor.global_secret_group
+- wrg.observed.actor.kairos
+- wrg.observed.actor.krybit
+- wrg.observed.actor.ms13_089
+- wrg.observed.actor.panzer
+- wrg.observed.actor.securotrop
+- wrg.observed.actor.shai_hulud_npm_worm
+- wrg.observed.actor.unknown_supply_chain_2025_03
+- wrg.observed.actor.worldleaks
+- wrg.severity.high
+- wrg.correlation
+- wrg.tactic.exfiltration

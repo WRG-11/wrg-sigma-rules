@@ -254,8 +254,19 @@ growth.
 
 1. **Make advisory audits portable and reviewable.** Audit CLIs must accept an
    explicit corpus root, fail clearly when it is absent, and retain their
-   advisory status. The duplicate audit's 11 exact-logic groups are a source
+   advisory status. The duplicate audit's 11 exact-logic groups were a source
    review queue, not candidates for automatic consolidation.
+
+   **Consolidation decided (2026-09-30):** the maintainers chose one rule per
+   detection logic, with an actor list, over one file per actor. The 11
+   exact-logic groups plus 4 files that differed only in writing `gt: N` for
+   `gte: N+1` (47 files) became 11 `observed_shared_*` rules that keep every
+   actor tag and reference and list the replaced ids under `related`
+   (`type: merged`). Rules whose detection matched but whose `logsource`
+   differed (LAPSUS$ T1078/T1110 use `category: authentication`) were not
+   merged. `tests/test_shared_actor_logic.py` now fails on a new clone. Still
+   unassessed: actor attribution per shared rule, and the `critical` level
+   three generic shared rules inherited from one member.
    **Exit evidence:** isolated-fixture CLI tests and a reproducible JSON report.
 
    **Portability completed (2026-09-17):** the observed-evidence inventory,

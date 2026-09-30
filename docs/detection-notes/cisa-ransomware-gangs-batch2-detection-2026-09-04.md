@@ -3,7 +3,7 @@ Companion detection note covering FOUR unrelated Sigma rules -- three ransomware
 actively-exploited CVE, each with its own independent vendor/CISA sourcing:
 - resources/examples/initial_access/observed_inc_ransom_t1566_001.yml
 - resources/examples/initial_access/observed_interlock_t1189.yml
-- resources/examples/lateral_movement/observed_anubis_ransomware_t1021_001.yml
+- resources/examples/lateral_movement/observed_shared_t1021_001_rdp_logon.yml (shared rule; merged 2026-09-30 from single-actor files)
 - resources/examples/initial_access/observed_sharepoint_cve_2026_58644_w3wp_shell_spawn_t1190.yml
 Sources: BleepingComputer + Microsoft Security blog (INC Ransom) / BleepingComputer + Sekoia (Interlock) /
 BleepingComputer + TrendMicro (Anubis) / CISA KEV + Microsoft's own advisory + Rapid7 (SharePoint CVE-2026-58644).
@@ -28,7 +28,7 @@ Four independently-sourced threats — three ransomware operations and one CVSS-
 
 - **#1 (process_creation logsource):** an Office application (`winword.exe`, `excel.exe`, `powerpnt.exe`, `outlook.exe`) spawning a shell/script-interpreter child (`cmd.exe`, `powershell.exe`, `wscript.exe`, `mshta.exe`) — the classic macro-enabled-document-shells-out pattern.
 - **#2 (proxy logsource):** a request carrying a legacy-plugin User-Agent string (`Java/1.`, `Java/6`, `Java/7`, `Shockwave Flash`, `Silverlight`) AND fetching a payload-shaped URI (`.exe`, `.jar`, `.hta`, `.js`, `.vbs`) — the combination is the discriminator, since either condition alone is common browsing noise.
-- **#3 (Windows security logsource):** `EventID: 4624` + `LogonType: 10` (any successful interactive/RDP logon) — deliberately broad, same shape as this corpus's Akira rule (see companion batch1 note), since the advisory's point is that Anubis affiliates use ordinary RDP for lateral movement.
+- **#3 (Windows security logsource):** `EventID: 4624` + `LogonType: 10` (any successful interactive/RDP logon) — deliberately broad; since 2026-09-30 it is the same rule as Akira's (`observed_shared_t1021_001_rdp_logon.yml`, see companion batch1 note), since the advisory's point is that Anubis affiliates use ordinary RDP for lateral movement.
 - **#4 (process_creation logsource):** `w3wp.exe` as parent spawning a shell/interpreter child, OR `w3wp.exe` as parent with a command line containing an encoded-PowerShell flag (`-EncodedCommand`, `-enc `, `-ec `) — either condition alone is sufficient.
 
 ## Known limitations (per rule)

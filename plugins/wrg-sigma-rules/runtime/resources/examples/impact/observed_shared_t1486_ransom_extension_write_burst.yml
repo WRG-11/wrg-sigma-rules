@@ -1,0 +1,122 @@
+title: Burst of File Writes with Ransomware Extensions (base)
+name: wrg_ada5b41cfc7e5e17
+id: ada5b41c-fc7e-5e17-96e1-c26a44342add
+status: test
+description: Base event match for the shared rule 'Burst of File Writes with Ransomware Extensions'.
+  On its own it is not the alert; the correlation document carries the threshold and the actor
+  list.
+author: WRG Breach Intel — Phase 6
+date: '2023-02-23'
+modified: '2026-09-30'
+related:
+- id: 46a96a47-1c5a-5f2d-9f52-193e805db153
+  type: merged
+- id: 09881c80-e6d4-5f91-8092-fd445bf394db
+  type: merged
+- id: 043f09c0-2425-5a4b-a47a-e10cd7ee0a62
+  type: merged
+- id: 0b242091-f213-5554-adc7-4b4ce700aa93
+  type: merged
+- id: c08cdd5b-b7e4-5ac8-b398-91d6d5ec544c
+  type: merged
+- id: 1e852b36-19a3-5812-b126-00b2cb94c519
+  type: merged
+- id: 57e85575-14d4-5b52-87ec-c471f444164f
+  type: merged
+logsource:
+  category: file_event
+  product: windows
+detection:
+  selection_extension:
+    TargetFilename|endswith:
+    - .encrypted
+    - .locked
+    - .enc
+    - .crypto
+    - .lockbit
+    - .alphv
+    - .akira
+    - .clop
+  condition: selection_extension
+level: informational
+tags:
+- attack.t1486
+---
+title: Burst of File Writes with Ransomware Extensions
+id: 16a5ebac-7159-5d15-bfe6-a4eb736ac53b
+status: test
+description: 'Shared detection for 7 actors with an observed T1486 incident in the WRG breach
+  catalog: blackwater, crpxo, genesis, global_secret_group, lockbit, panzer, securotrop. The
+  logic is a generic pattern, not the documented tradecraft of these actors, so a hit does
+  not say which actor, if any, is responsible. Merged on 2026-09-30 from 7 single-actor rules
+  with identical logic (their ids are listed under related).'
+references:
+- https://attack.mitre.org/techniques/T1486/
+- https://www.galaxywarden.com/blog/breach/shenzhen-gongjin-electronics-blackwater-2026-04
+- https://socradar.io/free-tools/ransomware-intelligence/groups/blackwater
+- https://www.ransomware.live/group/blackwater
+- https://socradar.io/free-tools/ransomware-intelligence/groups/crpxo
+- https://cyberpress.org/crpx0-ransomware-claims-hyundai-turkey-breach/
+- https://www.scworld.com/brief/new-crpx0-malware-campaign-uses-onlyfans-lure-for-crypto-theft-and-ransomware
+- https://www.ransomware.live/group/CRPxO
+- https://www.comparitech.com/news/new-ransomware-gang-genesis-claims-9-data-breaches-including-optometrist-and-grocer/
+- https://sosransomware.com/en/ransomware-groups/genesis-ransomware-the-emergence-of-a-new-player-in-digital-extortion-in-2025/
+- https://www.ransomware.live/group/genesis
+- https://www.dexpose.io/global-secret-group-targets-macofin-hellas-s-a-in-ransomware-attack/
+- https://www.watchguard.com/wgrd-security-hub/ransomware-tracker/global-secret-group
+- https://mallory.ai/actors/019f9faf-4972-7417-8cf8-eda4260aa1bd
+- https://attack.mitre.org/software/S1202/
+- https://techcrunch.com/2023/02/07/lockbit-ransomware-royal-mail/
+- https://www.bleepingcomputer.com/news/security/royal-mail-cyberattack-linked-to-lockbit-ransomware-operation/
+- https://www.ransomlook.io/group/panzer
+- https://www.hookphish.com/blog/ransomware-group-panzer-hits-the-minor-food-group/
+- https://www.suspectfile.com/a-young-ransomware-group-an-ancient-risk-securotrop-the-interview/
+- https://www.hookphish.com/blog/ransomware-group-securotrop-hits-structural-component-systems/
+- https://www.ransomware.live/group/securotrop
+author: WRG Breach Intel — Phase 6
+date: '2023-02-23'
+modified: '2026-09-30'
+related:
+- id: 13fc531e-840a-551a-b228-67ce8371c006
+  type: merged
+- id: 1d928cd0-9d90-51f5-a2b4-bc7583167440
+  type: merged
+- id: 6693e894-87b6-5343-9ddf-ac84bcdd33f0
+  type: merged
+- id: efbeef2b-d376-5c9d-9aa4-9f76997bf18a
+  type: merged
+- id: dfaa58ce-d357-5dc6-abe8-ed9d0f379843
+  type: merged
+- id: a014006e-f760-5f70-9b60-426bc20b8b62
+  type: merged
+- id: bda90b09-0a7b-588b-9fa2-85a4bd90a3db
+  type: merged
+correlation:
+  type: event_count
+  rules:
+  - wrg_ada5b41cfc7e5e17
+  group-by:
+  - Image
+  timespan: 5m
+  condition:
+    gte: 21
+falsepositives:
+- Approved backup, recovery, encryption testing, or file-maintenance activity can produce
+  the same bulk file-change telemetry.
+- Backup or archival software writing container files with an unusual extension into user
+  directories
+level: high
+tags:
+- attack.impact
+- attack.t1486
+- wrg.observed
+- wrg.observed.actor.blackwater
+- wrg.observed.actor.crpxo
+- wrg.observed.actor.genesis
+- wrg.observed.actor.global_secret_group
+- wrg.observed.actor.lockbit
+- wrg.observed.actor.panzer
+- wrg.observed.actor.securotrop
+- wrg.severity.high
+- wrg.correlation
+- wrg.tactic.impact
