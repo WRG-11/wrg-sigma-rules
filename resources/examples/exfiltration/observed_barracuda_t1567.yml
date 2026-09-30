@@ -31,7 +31,7 @@ description: Breach intel signature for actor barracuda, MITRE technique T1567. 
 references:
 - https://attack.mitre.org/techniques/T1567/
 - https://www.galaxywarden.com/blog/breach/micro-comm-inc-barracuda-2026-08
-- https://cti.ransomware.live/group/Barracuda
+- https://www.ransomware.live/group/barracuda
 - https://www.dexpose.io/barracuda-ransomware-targets-micro-comm-inc/
 author: WRG Breach Intel — Phase 6
 date: '2026-08-06'

@@ -5,10 +5,9 @@ description: Breach intel signature for actor inc_ransom, MITRE technique T1566.
   Derived from 1 observed incident(s) in the WRG breach catalog.
 references:
 - https://attack.mitre.org/techniques/T1566/001/
-- https://www.bleepingcomputer.com/news/security/new-inc-ransom-ransomware-gang-threatens-victims-with-data-leaks/
-- https://www.microsoft.com/en-us/security/blog/2024/10/28/inc-ransomware-targeting-healthcare/
+- https://www.microsoft.com/en-us/security/blog/2024/10/22/microsoft-threat-intelligence-healthcare-ransomware-report-highlights-need-for-collective-industry-action/
 - https://www.nhsdg.co.uk/cyber-attack/
-- https://www.bleepingcomputer.com/news/security/inc-ransom-claims-responsibility-for-attack-on-nhs-scotland/
+- https://www.bleepingcomputer.com/news/security/inc-ransom-threatens-to-leak-3tb-of-nhs-scotland-stolen-data/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2024-05-07'
 logsource:

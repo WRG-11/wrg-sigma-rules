@@ -1,8 +1,8 @@
 <!--
 Companion detection note covering THREE Sigma rules for hosted-LLM abuse:
 - resources/examples/command_and_control/observed_promptflux_honestcue_gemini_api_dns_scripting_host_t1102_002.yml
-- resources/examples/defense_evasion/observed_promptflux_llm_self_regenerating_vbscript_t1027.yml
-- resources/examples/defense_evasion/observed_pliny_dataset_card_pretext_jailbreak_t1027.yml
+- resources/examples/stealth/observed_promptflux_llm_self_regenerating_vbscript_t1027.yml
+- resources/examples/stealth/observed_pliny_dataset_card_pretext_jailbreak_t1027.yml
 Sources: GTIG AI Threat Tracker, 2025-11-06 and 2026-05-12 (fetched 2026-09-23);
 the X post linked in the third rule (search-indexed; the post body itself sits behind a login wall).
 Detection/defense only, no malware code or jailbreak payload reproduced.

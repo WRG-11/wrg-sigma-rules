@@ -1,0 +1,30 @@
+title: Template -- PowerShell .NET Reflection Assembly Load
+id: 39e96b25-7d32-4ac6-ae07-1f007a1bf8c2
+status: experimental
+description: >-
+  Detects PowerShell invoking .NET reflection assembly-loading methods, which
+  can load managed code into memory without a conventional executable file.
+references:
+  - https://attack.mitre.org/techniques/T1620/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_powershell:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+  selection_reflection_load:
+    CommandLine|contains:
+      - '[System.Reflection.Assembly]::Load'
+      - '[Reflection.Assembly]::Load'
+  condition: selection_powershell and selection_reflection_load
+falsepositives:
+  - Approved developer tooling that dynamically loads managed assemblies
+level: high
+tags:
+  - attack.t1620
+  - wrg.template
+  - wrg.tactic.stealth

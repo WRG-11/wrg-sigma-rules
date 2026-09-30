@@ -4,8 +4,9 @@ title: "wrg-sigma-rules"
 abstract: >-
   Sigma detection rules for ransomware operators, threat actors, and
   vulnerabilities disclosed in AI/LLM applications and MCP servers, with
-  multi-backend conversion (Splunk, Elastic/Kibana, OpenSearch, Wazuh), an MCP
-  server, and CI-pinned corpus claims. observed_* rules are derived from a
+  multi-backend conversion (Splunk, Elastic/Kibana, OpenSearch; Wazuh through
+  the Elastic Lucene backend), an MCP server, and CI-pinned corpus claims.
+  observed_* rules are derived from a
   specific, cited incident; template_* rules are canonical technique shapes to
   adapt to your own environment.
 type: software

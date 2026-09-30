@@ -16,19 +16,22 @@ It runs under Claude Code, Codex, Cursor and any MCP-capable client.
 - Three MCP tools. `draft_rule` turns a natural-language description into a Sigma
   YAML scaffold. `validate_rule` checks a rule against pySigma plus a
   best-practice linter. `convert_rule` compiles a rule to a Splunk, Elastic,
-  OpenSearch, Wazuh or Kibana query.
+  OpenSearch or Kibana query; its `wazuh` target returns Elasticsearch Lucene
+  output with a warning, because pySigma has no Wazuh backend.
 - Three Claude Code skills: `sigma-rule-writer`, `sigma-rule-reviewer` and
   `threat-coverage-gap-analyzer`. The packaged Codex variants retain the same
   evidence boundaries: coverage counts do not establish missing ATT&CK scope,
   conversion does not establish deployed semantics, and `observed_*` public
   contributions require the sourcing bar in `CONTRIBUTING.md`.
 - A published corpus of <!-- METRIC:sigma_rule_count -->330<!-- /METRIC:sigma_rule_count -->
-  rules across <!-- METRIC:tactic_category_count -->17<!-- /METRIC:tactic_category_count -->
-  MITRE ATT&CK tactic categories, covering ransomware and threat-actor activity
+  rules in <!-- METRIC:tactic_category_count -->16<!-- /METRIC:tactic_category_count -->
+  categories: one directory per MITRE ATT&CK Enterprise tactic (v19 names) plus
+  `code_review` for source-code review rules. The corpus covers ransomware and threat-actor activity
   as well as vulnerabilities disclosed in AI/LLM applications and MCP servers.
   Every rule carries an honest Sigma `status:` (see [Rule status](#rule-status)).
 - Multi-backend conversion on pySigma 1.x: Splunk SPL, Elastic and Kibana Lucene,
-  OpenSearch Lucene and PPL, plus Wazuh. The Lucene-family targets cannot express
+  OpenSearch Lucene and PPL, plus a `wazuh` target that reuses the Elasticsearch
+  Lucene backend and says so in its warnings. The Lucene-family targets cannot express
   Sigma correlation rules, so `convert_rule` reports the
   <!-- METRIC:correlation_rule_count -->52<!-- /METRIC:correlation_rule_count -->
   correlation rules in the corpus as a capability gap and names the backends that
@@ -103,8 +106,10 @@ Replace the path with your clone, then reload Cursor's MCP servers.
 
 ### Any MCP client
 
-`server.py` is a standard stdio MCP server, so Cline, Continue, Zed and Windsurf
-load it with the same `mcpServers` block shown for Cursor. MCP is model-agnostic:
+`server.py` is a standard stdio MCP server. Cline and Windsurf read the same
+`mcpServers` block shown for Cursor, Continue accepts that JSON file copied into
+`.continue/mcpServers/`, and Zed takes the same `command` and `args` under its
+`context_servers` settings key. MCP is model-agnostic:
 the client's backend model does not change what the server exposes.
 
 ## Quick example
@@ -150,8 +155,8 @@ This corpus uses Sigma's `status:` field literally rather than aspirationally:
 
 | `status:` | Count | Meaning here |
 |---|---|---|
-| `test` | <!-- METRIC:status_test_count -->82<!-- /METRIC:status_test_count --> | Derived from a real, cited incident (the `observed_*` rules) |
-| `experimental` | <!-- METRIC:status_experimental_count -->248<!-- /METRIC:status_experimental_count --> | Canonical detection shapes, many self-described as synthetic exemplars |
+| `test` | <!-- METRIC:status_test_count -->82<!-- /METRIC:status_test_count --> | Mostly `observed_*` rules; CI requires a sidecar sample for every one, with no exceptions |
+| `experimental` | <!-- METRIC:status_experimental_count -->248<!-- /METRIC:status_experimental_count --> | Both `template_*` and `observed_*` rules; new ones need a sidecar sample, older ones may sit in a tracked exception baseline |
 | `stable` | <!-- METRIC:status_stable_count -->0<!-- /METRIC:status_stable_count --> | Unused, deliberately |
 
 `stable` in the Sigma specification means a rule runs in production and is well
@@ -170,16 +175,17 @@ starting point to bind to your own logsource and tune; each rule's
 
 ## Quality and testing
 
-- <!-- METRIC:test_module_count -->30<!-- /METRIC:test_module_count --> Python test
+- <!-- METRIC:test_module_count -->31<!-- /METRIC:test_module_count --> Python test
   modules cover rule validation and tool-integration smoke tests.
 - pySigma 1.x compatibility is verified against the Splunk, Elasticsearch and
   OpenSearch backend packages.
-- CI runs the full suite on Ubuntu, Windows and macOS runners on every push.
+- CI runs the full suite on Ubuntu, Windows and macOS runners on every push to
+  `main` and every pull request against it.
 - The Docker CI smoke exchange compares the container coverage resource's
   corpus fingerprint with the checked-out corpus, so an otherwise healthy
   image cannot silently serve stale rule data.
-- README counts are stamped from ground truth: `python readme_stamp.py --check`
-  fails CI on any drift, so the numbers here cannot silently go stale.
+- README counts are stamped from ground truth: a test runs the same check as
+  `python readme_stamp.py --check` and fails CI on any drift, so the numbers here cannot silently go stale.
 - To compare an installed or cached Codex runtime with this checkout without
   modifying either one, run `python scripts/runtime_identity.py --runtime-root
   <runtime-path> --expect-same-as .`. A match proves only local runtime/corpus

@@ -255,7 +255,7 @@ def test_plugin_claim_is_rewritten_from_ground_truth(tmp_path: Path) -> None:
     for name in ("a.yml", "b.yml", "c.yml"):
         _write_rule(corpus / name, "test")
 
-    text = "Ships a 100-rule published corpus spanning 9 MITRE ATT&CK tactics."
+    text = "Ships a 100-rule published corpus spanning 9 categories."
     out, drift = rs.stamp_text(
         text,
         tmp_path,
@@ -266,7 +266,7 @@ def test_plugin_claim_is_rewritten_from_ground_truth(tmp_path: Path) -> None:
     )
 
     assert "Ships a 3-rule published corpus" in out
-    assert "spanning 1 MITRE ATT&CK tactics" in out
+    assert "spanning 1 categories" in out
     assert ("sigma_rule_count (claim)", "100", "3") in drift
 
 

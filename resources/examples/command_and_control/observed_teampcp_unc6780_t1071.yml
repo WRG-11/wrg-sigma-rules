@@ -42,12 +42,12 @@ references:
 - https://www.rescana.com/post/megalodon-supply-chain-attack-teampcp-compromises-5-561-github-repositories-via-malicious-ci-cd-workflows
 - https://safedep.io/megalodon-mass-github-repo-backdooring-ci-workflows/
 - https://www.securityweek.com/over-5500-github-repositories-infected-in-megalodon-supply-chain-attack/
-- https://www.theregister.com/security/2026/05/22/megalodon-chums-the-waters-in-55k-github-repo-poisonings/
+- https://www.theregister.com/security/2026/05/22/megalodon-chums-the-waters-in-55k-github-repo-poisonings/5245342
 - https://openai.com/index/our-response-to-the-tanstack-npm-supply-chain-attack/
 - https://x.com/H4ckmanac
 - https://hackread.com/teampcp-mini-shai-hulud-worm-npm-pypi-packages/
 - https://www.stepsecurity.io/blog/mini-shai-hulud-is-back-a-self-spreading-supply-chain-attack-hits-the-npm-ecosystem
-- https://www.theregister.com/security/2026/05/15/openai-caught-in-tanstack-npm-supply-chain-chaos-after-employee-devices-compromised/
+- https://www.theregister.com/security/2026/05/15/openai-caught-in-tanstack-npm-supply-chain-chaos-after-employee-devices-compromised/5241019
 - https://www.opswat.com/blog/mini-shai-hulud-tanstack-openai-and-the-npm-supply-chain-trap
 - https://www.kaspersky.com/blog/critical-supply-chain-attack-trivy-litellm-checkmarx-teampcp/55510/
 - https://www.sans.org/blog/when-security-scanner-became-weapon-inside-teampcp-supply-chain-campaign

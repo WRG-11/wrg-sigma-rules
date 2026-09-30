@@ -65,8 +65,8 @@ detection:
 
 ## Reference rules from corpus
 
-- `defense_evasion/template_t1027_obfuscated_files_or_information_encoded_payload.yml`
-- `defense_evasion/observed_alphv_t1027_obfuscation.yml`
+- `stealth/template_t1027_obfuscated_files_or_information_encoded_payload.yml`
+- `stealth/observed_alphv_t1027_obfuscation.yml`
 - `execution/template_t1059_001_powershell_encoded_command_execution.yml`
 - `execution/observed_alphv_t1059_001.yml`
 

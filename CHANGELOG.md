@@ -13,9 +13,51 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Description-accuracy change. Corpus 330 → 330 rules; no rule content changed.
+Claim-accuracy release. Corpus 330 → 330 rules; no detection logic changed.
+Every change below comes from re-checking a published claim against its
+source: MITRE ATT&CK Enterprise 19.2 (STIX), the cited web pages, the CVE and
+GitHub advisory databases, and live tool output.
 
 ### Changed
+- **ATT&CK v19 taxonomy.** v19 split Defense Evasion into Stealth (TA0005)
+  and Defense Impairment (TA0112). The 22 rules under `defense_evasion/` moved
+  to `stealth/` or `defense_impairment/` by the tactic ATT&CK assigns to their
+  tagged technique. Five more rules changed directory because their directory
+  was not one of their technique's v19 tactics (for example T1219 is Command
+  and Control, T1112 is Defense Impairment and Persistence), and one was
+  renamed in place. The corpus now has one
+  directory per v19 tactic plus `code_review`; the README and plugin manifest
+  no longer call 16 directories "17 MITRE ATT&CK tactics".
+- **Revoked techniques replaced by their ATT&CK successors** (`revoked-by`
+  relationships in the v19 STIX data): T1562.001 → T1685, T1070.001 →
+  T1685.005, T1656 → T1684.001. Rule files whose names carried a revoked ID
+  were renamed; rule `id:` values are unchanged.
+- **T1656.002 removed.** Two rules tagged a technique ID that exists in no
+  ATT&CK release (checked against 18.1 and 19.2). Both describe impersonation
+  and now carry T1684.001.
+- Five rules tagged the retired `attack.defense_evasion` tactic; five rules
+  lacked the tactic tag for a technique they carry. Both are corrected, and
+  each rule's `wrg.tactic.*` tag now matches its directory.
+- **References that returned 404/410 or no longer resolved** were replaced by
+  the article that reports the same event, checked live for status and title,
+  or removed when no such article was found. Several dead URLs did not match
+  the real article's address at all (for example a BleepingComputer AT&T slug
+  and a The Register Claude Code slug that the sites never published); two
+  The Register URLs only lacked the article number the site now requires.
+  Two ATT&CK URLs used a dot instead of a slash (`T1059.001/`) and 404ed.
+- **LAPSUS$ and Vodafone Portugal.** A detection note called the February 2022
+  Vodafone Portugal attack a confirmed LAPSUS$ incident. The incident is
+  confirmed; the attribution rests on the group's own reported Telegram claim
+  (Security Boulevard), and The Portugal News reported the same day that the
+  group had not yet claimed it. The note now says so, and the rules cite both
+  the incident and the claim.
+- **Mini Shai-Hulud.** The rule cited a Twitter profile rather than the
+  disclosure; it now cites Microsoft Threat Intelligence's 2026-05-20 blog
+  post. Its description called 185.95.159.32 a "hardcoded C2 IP", which none
+  of eight campaign write-ups reports; the address is what `t.m-kosche.com`
+  resolved to when checked on 2026-09-30, and the description now says that.
+  An internal operations aside (including a non-English word) was removed
+  from the same description.
 - The plugin manifest description no longer opens with "Production-grade".
   The roadmap's product boundary states that the project does not claim a
   generated rule is production-ready, and `stable` is deliberately unused;
@@ -28,6 +70,35 @@ Description-accuracy change. Corpus 330 → 330 rules; no rule content changed.
   technique lists; it now distinguishes `observed_*` rules (derived from a
   specific, cited incident) from `template_*` technique shapes, matching the
   README's definition.
+- README: the Rule status table no longer equates `test` with `observed_*`
+  (both prefixes appear under both statuses); `convert_rule`'s `wazuh` target
+  is described as Elasticsearch Lucene output with a warning, since pySigma has
+  no Wazuh backend; CI is described as running on pushes to `main` and pull
+  requests rather than "every push"; and the client list no longer says Zed
+  reads an `mcpServers` block (Zed uses `context_servers`).
+- DEMO.md: the input block is the rule file as it stands rather than an
+  unmarked abridgement; the correlation-gap `hint` matches current output;
+  `draft_rule`, which no demo exercises, is no longer listed as demonstrated;
+  "real production rules" is gone; and the reproduction steps clone before
+  installing requirements.
+- Skills: `sigma-rule-writer` no longer promises a "production-grade" rule,
+  and `threat-coverage-gap-analyzer`'s example no longer names T1078.004 as
+  absent from a corpus that now contains it, nor quotes an unsourced total.
+
+### Added
+- `tests/test_attack_v19_taxonomy.py`: directories must equal the v19 tactics
+  plus `code_review`, no rule may carry a retired ATT&CK tag, and every
+  `wrg.tactic.*` tag must match its directory. Against the previous corpus the
+  first two tests fail.
+
+### Known limitations
+- Five SGLang GitHub advisories cited by five rules return 404 publicly; the
+  companion note already documents this and names the corroborating sources.
+- A HackerOne report cited by two rules is not publicly disclosed; the rules
+  also cite press coverage of it.
+- Three cited pages (Barricade Cyber, Red Packet Security, Suspectfile) sit
+  behind a bot challenge that automated checks could not pass, and one
+  (toyota-fs.de) did not answer; they were left in place, unverified.
 
 ## [1.11.0] - 2026-09-28
 

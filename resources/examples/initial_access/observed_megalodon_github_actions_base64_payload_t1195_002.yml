@@ -28,6 +28,7 @@ date: 2026/05/25
 tags:
   - attack.initial_access
   - attack.execution
+  - attack.stealth
   - attack.t1195.002
   - attack.t1059.004
   - attack.t1140

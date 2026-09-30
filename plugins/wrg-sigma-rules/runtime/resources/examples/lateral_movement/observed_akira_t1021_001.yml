@@ -6,9 +6,9 @@ description: Breach intel signature for actor akira, MITRE technique T1021.001. 
 references:
 - https://attack.mitre.org/techniques/T1021/001/
 - https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-109a
-- https://blog.talosintelligence.com/akira-ransomware/
+- https://blog.talosintelligence.com/akira-ransomware-continues-to-evolve/
 - https://www.ic3.gov/CSA/2024/240418.pdf
-- https://www.bleepingcomputer.com/news/security/cisco-vpn-zero-day-exploited-by-akira-ransomware/
+- https://www.bleepingcomputer.com/news/security/cisco-warns-of-vpn-zero-day-exploited-by-ransomware-gangs/
 - https://www.ransomware.live/id/Q2hlcm9rZWUgRGlzdHJpYnV0aW5nIENvQGFraXJh
 - https://www.ransomware.live/id/S2Vubm9uIFdvcmxkd2lkZUBha2lyYQ==
 - https://www.ransomware.live/id/Tm9ydGhlcm4gT2hpbyBSZWdpb25hbCBNdWx0aXBsZSBMaXN0aW5nIFNlcnZpY2VAYWtpcmE=

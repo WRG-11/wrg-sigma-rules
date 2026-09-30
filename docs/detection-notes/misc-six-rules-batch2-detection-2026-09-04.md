@@ -1,7 +1,7 @@
 <!--
 Companion detection note covering SIX unrelated single-vendor Sigma rules, grouped for authoring
 efficiency (each genuinely distinct, no shared vendor or mechanism):
-- resources/examples/defense_evasion/observed_aws_api_mcp_server_policy_load_failure_silent_bypass_t1562_001.yml
+- resources/examples/defense_impairment/observed_aws_api_mcp_server_policy_load_failure_silent_bypass_t1685.yml
 - resources/examples/execution/observed_banks_prompt_jinja2_ssti_t1059.yml
 - resources/examples/execution/observed_bedrock_agentcore_install_packages_extras_metachar_injection_t1059.yml
 - resources/examples/execution/observed_fastgpt_sandbox_regex_bypass_import_t1059_007.yml

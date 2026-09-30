@@ -79,7 +79,7 @@ detection:
 
 ## Reference rules from corpus
 
-- `defense_evasion/template_t1036_005_masquerading_match_legitimate_name_anomalous_path.yml`
+- `stealth/template_t1036_005_masquerading_match_legitimate_name_anomalous_path.yml`
 - `execution/template_t1059_command_and_scripting_interpreter_generic_shell_spawn.yml`
 - `execution/template_t1204_001_user_execution_malicious_link_click_follow_through.yml`
 

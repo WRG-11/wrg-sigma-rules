@@ -2,7 +2,7 @@
 Companion detection note covering TWO sibling Sigma rules against Anthropic's own Claude Code products
 (different repos, same vendor):
 - resources/examples/initial_access/observed_claude_code_action_mcp_json_pr_rce_t1195_002.yml
-- resources/examples/collection/observed_claude_code_copy_tmp_symlink_t1552.yml
+- resources/examples/credential_access/observed_claude_code_copy_tmp_symlink_t1552.yml
 Advisory sources: GHSA-8q5r-mmjf-575q (repos/anthropics/claude-code-action) / GHSA-4vp2-6q8c-pvq2
 (repos/anthropics/claude-code), both fetched via `gh api repos/<owner>/<repo>/security-advisories/<id>`.
 Detection/defense only, no exploit/PoC reproduced beyond what the vendor advisories already published.

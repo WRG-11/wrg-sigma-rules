@@ -14,8 +14,9 @@ allowed-tools:
 # Sigma Rule Writer
 
 Guides a SOC analyst, threat-intel responder, or bug-bounty hunter through
-writing a production-grade sigma detection rule from a plain-English threat
-description.
+writing a validated Sigma detection rule from a plain-English threat
+description. The result is a starting point to tune against your own
+telemetry, not a production-ready rule.
 
 Trigger when the user says any of:
 

@@ -224,7 +224,7 @@ BADGES = {
 # number in the repo. It read "100-rule" while the corpus held 222.
 PLUGIN_CLAIMS = {
     "sigma_rule_count": re.compile(r"(Ships a )(\d+)(-rule published corpus)"),
-    "tactic_category_count": re.compile(r"(spanning )(\d+)( MITRE ATT&CK tactics)"),
+    "tactic_category_count": re.compile(r"(spanning )(\d+)( categories)"),
 }
 
 # Markers each stamped file MUST contain; an absence here is a warning.

@@ -32,8 +32,8 @@ references:
 - https://attack.mitre.org/techniques/T1041/
 - https://attack.mitre.org/techniques/T1071/
 - https://nvd.nist.gov/vuln/detail/CVE-2025-66479
-- https://www.theregister.com/2026/05/21/claude_code_sandbox_bypass
-- https://www.securityweek.com/claude-code-network-sandbox-bypass
+- https://www.theregister.com/security/2026/05/20/even-claude-agrees-hole-in-its-sandbox-was-real-and-dangerous/5243662
+- https://www.securityweek.com/anthropic-silently-patches-claude-code-sandbox-bypass/
 - https://hackerone.com/reports/3646509
 author: WinstonRedGuard -- sigma plugin observed rules (derived from researcher disclosure; sister extension to socks5_null_byte_egress_t1041)
 date: '2026-05-24'

@@ -1,0 +1,28 @@
+title: Template -- Remote Access Software Execution
+id: 6b098a4c-57bd-43bf-a6a2-5fdede6b50c6
+status: experimental
+description: >-
+  Detects execution of commonly abused remote-access software that can grant
+  an operator interactive control of a host.
+references:
+  - https://attack.mitre.org/techniques/T1219/
+author: WinstonRedGuard -- sigma plugin canonical templates
+date: '2026-09-17'
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_remote_access:
+    Image|endswith:
+      - '\AnyDesk.exe'
+      - '\TeamViewer.exe'
+      - '\ScreenConnect.Client.exe'
+      - '\rustdesk.exe'
+  condition: selection_remote_access
+falsepositives:
+  - Organization-approved remote support software
+level: medium
+tags:
+  - attack.t1219
+  - wrg.template
+  - wrg.tactic.command_and_control

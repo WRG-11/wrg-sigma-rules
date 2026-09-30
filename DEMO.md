@@ -1,9 +1,9 @@
 # wrg-sigma-rules -- DEMO
 
-End-to-end demonstration of the MCP tools (`validate_rule`, `convert_rule`,
-`draft_rule`) and the coverage resource, using real production rules from the
-plugin's corpus. Demos 1-3 use **Mini Shai-Hulud npm supply chain C2 egress**
-(MsftSecIntel 2026-05-21 disclosure; rule
+End-to-end demonstration of the `validate_rule` and `convert_rule` MCP tools
+and the coverage resource, using rules from the plugin's published corpus
+(none of them `stable`; see the README's Rule status section). Demos 1-3 use **Mini Shai-Hulud npm supply chain C2 egress**
+(Microsoft Threat Intelligence, 2026-05-20; rule
 `observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml`); demos 4-6 use the
 rules named in each section.
 
@@ -19,14 +19,31 @@ pipeline). All outputs are real tool invocations, not hand-edited.
 title: Mini Shai-Hulud -- T1071 npm supply chain C2 egress to m-kosche.com IOC
 id: 6d9183d6-562c-5445-987a-1df5f450f9af
 status: experimental
-description: Campaign-bound sigma detection for Mini Shai-Hulud npm supply chain
-  attack (MsftSecIntel 2026-05-21 disclosure). Detects outbound C2 communication
-  to the m-kosche.com domain family or hardcoded C2 IP 185.95.159.32.
+description: 'Campaign-bound sigma detection for Mini Shai-Hulud npm supply chain
+  attack (Microsoft Threat Intelligence, 2026-05-20). Detects outbound C2 communication
+  to the m-kosche.com domain family (apex + wildcard subdomains; published IOC
+  t.m-kosche.com) or to 185.95.159.32. That address is not an IOC in the cited
+  sources: it is what t.m-kosche.com resolved to when checked on 2026-09-30, and
+  the address behind a domain can change. Initial infection vector:
+  compromised npm packages (antv family confirmed; Bun preinstall hook activation
+  + SLSA provenance forge) -- post-install egress to credential-theft + worm
+  propagation C2 endpoint. The rule adds a SIEM-side detection layer for log
+  enrichment and retrospective hunting.
+
+  Aggregated from 1 active campaign disclosure 2026-05-20 (Microsoft Threat
+  Intelligence).
+
+  Sister cluster: Nx campaign 4-vector cluster (COMPLETE). Mini Shai-Hulud is the 1st vector (npm package compromise);
+  cross-reference observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml (2nd
+  vector; CLI installer), observed_nx_console_t1195_002.yml (3rd vector; VS
+  Code extension), and observed_clawhavoc_claude_skills_t1195_002.yml (4th
+  vector; Claude Code Skills) in the same corpus for campaign-wide detection
+  coverage.'
 references:
 - https://attack.mitre.org/techniques/T1071/
 - https://attack.mitre.org/techniques/T1195/002/
 - https://attack.mitre.org/techniques/T1041/
-- https://twitter.com/MsftSecIntel
+- https://www.microsoft.com/en-us/security/blog/2026/05/20/mini-shai-hulud-compromised-antv-npm-packages-enable-ci-cd-credential-theft/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-05-22'
 logsource:
@@ -60,6 +77,15 @@ tags:
 - attack.t1071
 - attack.t1195.002
 - attack.t1041
+- wrg.observed.campaign.mini_shai_hulud
+- wrg.observed.cluster.nx_campaign_4_vector
+- wrg.observed.cluster.nx_campaign_4_vector_complete
+- wrg.observed.ioc.m_kosche_com_domain_family
+- wrg.observed.ioc.ip_185_95_159_32
+- wrg.observed.vector.npm_supply_chain_bun_preinstall_hook
+- wrg.severity.high
+- wrg.observed
+- wrg.tactic.command_and_control
 ```
 
 ---
@@ -229,7 +255,7 @@ Rule: `resources/examples/credential_access/template_t1110_brute_force_high_volu
 {
   "ok": false,
   "error": "backend 'elastic' does not support sigma correlation rules: Backend does not support correlation rules.",
-  "hint": "the rule is valid -- this backend cannot express correlations. Targets in this plugin that can: splunk, opensearch-ppl",
+  "hint": "the rule is valid -- this backend cannot express this correlation shape. Targets in this plugin that can convert it: splunk, opensearch-ppl",
   "kind": "backend_capability_gap",
   "capability": "correlation_rules"
 }
@@ -256,8 +282,8 @@ stale against the rules. Reading it returns markdown beginning:
 - Rules: 330
 - Incident rules (observed_*): 234
 - Pattern rules (template_*): 96
-- Distinct ATT&CK techniques covered: 117
-- Tactic groupings: 17
+- Distinct ATT&CK techniques covered: 116
+- Tactic groupings: 16
 ```
 
 followed by a technique-by-tactic table, a per-technique rule count, and a
@@ -270,8 +296,9 @@ list of any rule contributing no coverage at all.
 To regenerate these outputs locally:
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/WRG-11/wrg-sigma-rules.git
 cd wrg-sigma-rules
+pip install -r requirements.txt
 python -c "
 import sys, json
 sys.path.insert(0, '.')

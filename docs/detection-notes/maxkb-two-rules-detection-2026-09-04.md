@@ -1,8 +1,8 @@
 <!--
 Companion detection note covering TWO sibling Sigma rules against 1Panel-dev/MaxKB's code sandbox, both
 disclosed together, both defeating a different half of the sandbox's security model:
-- resources/examples/defense_evasion/observed_maxkb_frame_introspection_result_spoofing_t1036.yml
-- resources/examples/defense_evasion/observed_maxkb_sendto_fastopen_sandbox_bypass_t1562_001.yml
+- resources/examples/stealth/observed_maxkb_frame_introspection_result_spoofing_t1036.yml
+- resources/examples/defense_impairment/observed_maxkb_sendto_fastopen_sandbox_bypass_t1685.yml
 Advisory sources: GHSA-f3c8-p474-xwfv (CVSS 3.1) / GHSA-w9g4-q3gm-6q6w (CVSS 5.0), both fetched via
 `gh api repos/1Panel-dev/MaxKB/security-advisories/<id>`.
 Detection/defense only, no exploit/PoC reproduced beyond what the vendor advisories already published.

@@ -107,7 +107,7 @@ When comparison scope is not supplied, write `not assessed` in the candidate
 column rather than deriving an ATT&CK total or an absence claim.
 
 ### Priority research candidates (not rules)
-1. **T1078.004 Cloud Accounts** -- absent from this corpus and present in
+1. **<Txxxx Technique name>** -- absent from this corpus and present in
    <supplied scope>. Rationale: <why this matters for the user's environment>.
    Next step: establish a source, platform, and telemetry manifestation before
    considering a rule.
@@ -149,7 +149,7 @@ Do not auto-launch -- operator drives.
   generate telemetry for (e.g. recommending Linux audit rules for a
   Windows-only shop)
 - Padding the gap list with every uncovered technique (top 5-10 with
-  rationale is more actionable than 553 with none)
+  rationale is more actionable than an exhaustive list with none)
 - Adding closure cues ("Now you have a clear path!") -- operator drives next
   step
 

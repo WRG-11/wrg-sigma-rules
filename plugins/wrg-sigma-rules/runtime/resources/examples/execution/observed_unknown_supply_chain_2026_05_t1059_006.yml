@@ -6,7 +6,7 @@ description: Breach intel signature for actor unknown_supply_chain_2026_05, MITR
 references:
 - https://attack.mitre.org/techniques/T1059/006/
 - https://attack.mitre.org/techniques/T1195/
-- https://www.bleepingcomputer.com/news/security/jdownloader-supply-chain-attack-delivers-python-rat/
+- https://www.bleepingcomputer.com/news/security/jdownloader-site-hacked-to-replace-installers-with-python-rat-malware/
 author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corpus)
 date: '2026-05-06'
 logsource:

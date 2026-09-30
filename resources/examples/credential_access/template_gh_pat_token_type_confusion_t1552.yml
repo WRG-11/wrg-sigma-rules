@@ -44,6 +44,7 @@ author: WRG-11
 date: 2026/05/25
 tags:
   - attack.credential_access
+  - attack.initial_access
   - attack.t1552
   - attack.t1195.002
   - wrg.template
