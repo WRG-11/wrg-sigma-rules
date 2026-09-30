@@ -11,6 +11,70 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [2.1.0] - 2026-09-30
+
+Repository-hygiene release. Corpus 294 → 294 rules (unchanged); no rule's
+detection logic, `id`, `level`, tags or references changed. The repository now
+carries only what a user of the corpus or the MCP server needs: planning notes
+and the maintainers' import tooling are gone, rule text no longer points at a
+source readers cannot open, and comments no longer use internal process
+vocabulary.
+
+### Changed
+- **Product scope moved into the README.** A new Scope section states what the
+  workbench does and does not do, why `stable` is deliberately unused, and what
+  is out of scope. It replaces the pointer to `ROADMAP.md`; the product
+  boundary cited in the [2.0.0] notes now lives there.
+- **Provenance wording in 42 rules.** Their descriptions said a rule was
+  derived from a number of observed incidents "in the WRG breach catalog".
+  That catalog is not public, so the sentence named a source no reader could
+  check; it now reads "Derived from observed incident reporting; see
+  references.", and those references were already listed on each rule. The 11
+  shared rules drop the same phrase from the sentence that lists their member
+  actors. 20 of the 42 also replace an internal build-phase author label with
+  `WinstonRedGuard -- sigma plugin observed rules`, the author label observed
+  rules use elsewhere in the corpus. Only `description` and `author` changed.
+- **Comments without internal process vocabulary.** Rule comments, a tool
+  module, two scripts, `requirements.txt`, tests and seven detection notes
+  referred to the maintainers' private workflow (plan phases, agent names,
+  private file paths). The rewritten comments keep the limitations they
+  documented: the T1078 and T1021 admin-RDP filters are single-event
+  stop-gaps for a cross-host signature, the shared T1078 burst rule's
+  correlation counts events per account without requiring distinct hosts, and
+  the encoded-PowerShell filters can be evaded with `-NoProfile`. Detection
+  notes that quoted rule text changed in this release now quote the current
+  text.
+- `resources/examples/INDEX.json` keeps `_schema_version`, `_generated_at`,
+  `total_rules` and the three lookup tables, which are unchanged. Four fields
+  that described the maintainers' import tooling (`_generated_by`,
+  `_last_extension`, `_pattern_34_v1_1_redaction_applied`,
+  `_source_module_refs`) are removed; nothing in this repository read them.
+
+### Removed
+- `ROADMAP.md`. Planning is kept outside the repository; its user-facing part
+  is the README's Scope section.
+- `scripts/migrate_sigma_corpus.py` and
+  `tests/test_write_rule_yaml_date_regression_guard.py`. The script was the
+  maintainers' import tool for sources that are not part of this repository.
+  It ignored every argument except `--regenerate-index`, `--help` included,
+  and resolved its output directory for a different repository layout: run
+  from a clone of this repository, it wrote rule files under
+  `plugins/wrg-sigma-rules/resources/examples/` two directories above the
+  clone, outside the checkout. If you ran it, check for that directory.
+  Rebuilding the index, the one part contributors need, is now
+  `python scripts/regenerate_index.py`, which writes only
+  `resources/examples/INDEX.json`; `tests/test_index_consistency.py` uses it.
+
+### Fixed
+- `validate_rule` no longer reports `references_empty`, `falsepositives_empty`
+  and `mitre_tag_missing` for a base-rule + correlation pair written in the
+  older shape, which keeps references, false positives and tags on the base
+  rule and writes the correlation document as a bare threshold. When the last
+  document carries none of those fields, the base document is linted; a pair
+  whose correlation document does carry them is still judged on that document.
+  None of the 27 multi-document rules in this corpus has the older shape, so
+  corpus results do not change; the fix applies to rules users submit.
+
 ## [2.0.0] - 2026-09-30
 
 Claim-accuracy release. Corpus 330 → 294 rules: 47 single-actor rules that
@@ -1910,7 +1974,8 @@ README `sigma_rule_count` self-stamp are all in sync at **68**.
 [1.4.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.3.0...v1.4.0
 [1.5.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.4.0...v1.5.0
 [1.6.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.5.0...v1.6.0
-[Unreleased]: https://github.com/WRG-11/wrg-sigma-rules/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/WRG-11/wrg-sigma-rules/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.11.0...v2.0.0
 [1.11.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.10.1...v1.11.0
 [1.7.0]: https://github.com/WRG-11/wrg-sigma-rules/compare/v1.6.0...v1.7.0
