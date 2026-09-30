@@ -1,8 +1,7 @@
 title: Web Server Process Spawning a Shell
 id: 8885f1d3-08f4-5120-8168-be1c17871ea4
 status: test
-description: 'Shared detection for 6 actors with an observed T1190 incident in the WRG breach
-  catalog: cl0p, killsec, nightspire, nova, play, rhysida. The logic is a generic pattern,
+description: 'Shared detection for 6 actors with an observed T1190 incident: cl0p, killsec, nightspire, nova, play, rhysida. The logic is a generic pattern,
   not the documented tradecraft of these actors, so a hit does not say which actor, if any,
   is responsible. Merged on 2026-09-30 from 6 single-actor rules with identical logic (their
   ids are listed under related).'

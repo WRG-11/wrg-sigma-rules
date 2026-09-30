@@ -2,7 +2,7 @@ title: Coinbase Cartel -- T1657
 id: 85de43e1-4d5b-54ca-b1ca-e10303321ce2
 status: test
 description: Breach intel signature for actor coinbase_cartel, MITRE technique T1657.
-  Derived from 1 observed incident(s) in the WRG breach catalog.
+  Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1657/
 - https://businessinsights.bitdefender.com/coinbase-cartel-ransomware-group-extortion-tactics

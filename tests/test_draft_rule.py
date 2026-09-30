@@ -5,8 +5,8 @@ Design-discipline coverage:
   uses monkeypatch to simulate ImportError.
 * YAML line + column -- covered via the validate_rule tests; draft
   itself produces parseable YAML by construction.
-* Always-redact -- ``test_pattern_34_redaction_applied`` /
-  ``test_pattern_34_internal_domain_redacted``.
+* Always-redact -- ``test_internal_ip_redacted`` /
+  ``test_internal_domain_redacted``.
 * ASCII-only -- ``test_ascii_only_output``.
 
 10-case happy + edge + error coverage pattern.
@@ -89,7 +89,7 @@ def test_draft_rule_invalid_severity_returns_error() -> None:
     assert "valid_severity" in result
 
 
-def test_pattern_34_redaction_applied() -> None:
+def test_internal_ip_redacted() -> None:
     # Always-redact -- internal IP must be replaced with placeholder.
     result = draft_rule_body(
         "C2 beaconing from 10.10.5.42 to attacker server",
@@ -103,7 +103,7 @@ def test_pattern_34_redaction_applied() -> None:
     )
 
 
-def test_pattern_34_internal_domain_redacted() -> None:
+def test_internal_domain_redacted() -> None:
     # Always-redact -- ``.corp`` / ``.internal`` suffixes redacted.
     result = draft_rule_body(
         "User joe@acme.corp received phishing link from finance.lan",

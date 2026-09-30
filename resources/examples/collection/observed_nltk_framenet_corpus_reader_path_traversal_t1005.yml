@@ -56,7 +56,7 @@ falsepositives:
   substring unrelated to path traversal -- narrow in practice given
   real FrameNet frame names are drawn from a fixed, published
   vocabulary, not free-form user input
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the
   frame-name argument passed to `frame()`, which most infrastructure
   log sources do not capture by default; it also does not cover the

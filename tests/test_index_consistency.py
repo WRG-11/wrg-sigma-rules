@@ -5,7 +5,7 @@ new-rule additions) because nothing asserted the two stay in sync: total_rules
 said 68 while disk held 73, and the 'persistence' tactic (12th ATT&CK category)
 was completely unindexed. This suite regenerates the index from disk and
 diffs it against the committed INDEX.json -- any future addition/rename/
-removal that skips `scripts/migrate_sigma_corpus.py --regenerate-index` fails
+removal that skips `scripts/regenerate_index.py` fails
 CI instead of silently drifting again.
 """
 from __future__ import annotations
@@ -17,12 +17,12 @@ from pathlib import Path
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PLUGIN_ROOT))
 
-from scripts.migrate_sigma_corpus import regenerate_index_from_disk  # noqa: E402
+from scripts.regenerate_index import regenerate_index_from_disk  # noqa: E402
 
 _EXAMPLES_DIR = _PLUGIN_ROOT / "resources" / "examples"
 _INDEX_PATH = _EXAMPLES_DIR / "INDEX.json"
 
-_REGEN_HINT = "run `py -3 scripts/migrate_sigma_corpus.py --regenerate-index`"
+_REGEN_HINT = "run `python scripts/regenerate_index.py`"
 
 
 def _load_index() -> dict:

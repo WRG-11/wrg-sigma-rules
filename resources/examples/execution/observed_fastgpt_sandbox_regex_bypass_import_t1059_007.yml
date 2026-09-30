@@ -51,7 +51,7 @@ falsepositives:
   `child_process` elsewhere in the same submission -- narrow in practice
   given the specific adjacency required, but a log source capturing only
   partial code snippets could produce a coincidental match
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the actual
   code string submitted to the sandbox, which most infrastructure log
   sources do not capture by default

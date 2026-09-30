@@ -57,7 +57,7 @@ falsepositives:
   alone, since the malicious byte pattern lives inside the file content;
   the advisory's own recommended mitigation (prefer `.safetensors`,
   which this rule cannot detect the absence of) is the stronger control
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires file-content inspection (the specific
   opcode+length byte pattern) for a precise signal, which most
   infrastructure log sources do not capture -- the file-event-only

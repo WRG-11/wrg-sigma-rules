@@ -1,9 +1,8 @@
 """Integration smoke -- end-to-end sigma plugin pipeline tests.
 
 3 pipeline e2e scenarios + 4 backend matrix + 5 pipeline variation tests.
-Import-guard discipline (ss15.14 v1.2 7th realisation, cross-corpus
-sister pattern): pytest.importorskip("sigma") ensures ALL tests skip
-when pySigma is absent and ALL pass when installed.
+pytest.importorskip("sigma") skips every test when pySigma is absent;
+with pySigma installed, all of them must pass.
 
 E2E pipeline: draft_rule_body -> validate_rule_body -> convert_rule_body.
 Backend matrix: splunk / elastic / kibana / wazuh.

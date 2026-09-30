@@ -1,8 +1,7 @@
 title: Qilin -- T1555
 id: f85540e1-5e73-545a-91b3-5745cfc2e00a
 status: test
-description: Breach intel signature for actor qilin, MITRE technique T1555. Derived
-  from 9 observed incident(s) in the WRG breach catalog.
+description: Breach intel signature for actor qilin, MITRE technique T1555. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1555/
 - https://www.bleepingcomputer.com/news/security/qilin-ransomware-gang-linked-to-attack-on-london-hospitals/

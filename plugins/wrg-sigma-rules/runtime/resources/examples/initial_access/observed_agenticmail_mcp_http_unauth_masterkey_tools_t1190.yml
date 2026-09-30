@@ -62,7 +62,7 @@ falsepositives:
   opt-in via `--http`/`MCP_HTTP=1`) -- this vulnerability does not apply,
   and this rule's `proxy`/HTTP-based logsource would see no traffic to
   flag in that configuration
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

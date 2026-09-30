@@ -62,7 +62,7 @@ falsepositives:
   exploitation chain -- on a `OLLAMA_HOST=0.0.0.0` deployment, routine
   model management traffic to both endpoints is otherwise normal and
   expected
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

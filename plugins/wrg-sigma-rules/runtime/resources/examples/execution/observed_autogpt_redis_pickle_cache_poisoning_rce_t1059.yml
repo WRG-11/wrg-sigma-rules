@@ -61,7 +61,7 @@ falsepositives:
   preceding Redis read in application logs, or the specific proof file
   `/tmp/autogpt_pickle_rce_official` the advisory's own PoC creates, for
   higher confidence
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

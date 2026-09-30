@@ -14,15 +14,16 @@
 # are API-compatible for what it uses), so the bound sits at the next unseen
 # major rather than excluding 2.x. CI runs the suite against both.
 mcp>=1.28.1,<3         # high-level MCP server runtime (server.py entry-point)
-pysigma>=1.5.0,<2
+pysigma>=1.5.1,<2
 # pySigma parses conditions and correlations through pyparsing (a transitive
-# dep). pyparsing 3.3.3 changed parse-action handling so pySigma's backends
-# raise "'str' object is not callable" while converting correlation rules,
-# turning the conversion suite red. Unlike the major bounds above, this break
-# shipped in a PATCH, so the bound sits just below it. 3.3.2 is the last version
-# CI ran green on (through v1.10.0). Revisit when a newer pyparsing is confirmed
-# compatible with the pinned pySigma.
-pyparsing>=3.3.2,<3.3.3
+# dep). pyparsing 3.3.3 changed parse-action handling, and pySigma 1.5.0 breaks
+# under it: every rule whose condition combines and/or/not, and some
+# correlation rules, fail to convert or convert differently ("'str' object is
+# not callable"). pySigma 1.5.1 adapted (SigmaHQ/pySigma#549, #550), hence its
+# floor above. That break shipped in a PATCH, so the upper bound admits only
+# pyparsing versions this suite has run green on (3.3.2 and 3.3.3); widen it
+# once a newer one passes.
+pyparsing>=3.3.2,<3.3.4
 PyYAML>=6.0.3,<7
 
 # Backend integrations are installed by this requirements file and
@@ -41,5 +42,5 @@ pysigma-backend-opensearch>=2.0.3,<3
 pysigma-pipeline-sysmon>=2.0.0,<3
 pysigma-pipeline-windows>=2.0.0,<3
 
-# Test deps (pytest + monkeypatch; pin loose to track WRG monorepo):
-# pytest>=8.0 -- declared by the parent WRG repo, not pinned here.
+# Test deps are not pinned here: install pytest (>=8.0) separately, as CI
+# does with `pip install -r requirements.txt pytest`.

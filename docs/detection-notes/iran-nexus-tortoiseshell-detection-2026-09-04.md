@@ -15,8 +15,8 @@ Hackers in Iran") + Proofpoint's independent TA456 technical writeup ("I Knew Yo
 both cited on all eight rules.
 Detection/defense only, no exploit/PoC reproduced beyond what the two source disclosures already
 published. Note: unlike this corpus's CVE-sourced rules, these eight rules' own `description:` fields
-are templated ("Breach intel signature for actor..., derived from 1 observed incident(s) in the WRG
-breach catalog") rather than incident-narrative prose — the campaign context below is reconstructed
+are templated ("Breach intel signature for actor ..., MITRE technique .... Derived from
+observed incident reporting; see references.") rather than incident-narrative prose — the campaign context below is reconstructed
 from the two cited sources, not copied from the rules' own description text.
 -->
 

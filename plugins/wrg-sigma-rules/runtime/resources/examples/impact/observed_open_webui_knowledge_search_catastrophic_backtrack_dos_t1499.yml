@@ -55,7 +55,7 @@ falsepositives:
   cost against the actual file content searched -- not every pattern of
   this shape is exponential against every subject; correlate with
   sustained high CPU on the serving worker to confirm actual impact
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of tool-call
   arguments, which most infrastructure log sources do not capture by
   default

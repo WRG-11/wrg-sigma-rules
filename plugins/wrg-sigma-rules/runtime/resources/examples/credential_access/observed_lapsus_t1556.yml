@@ -2,9 +2,8 @@ title: LAPSUS$ — T1556 (base)
 id: 7753566a-7b67-5fab-99ee-d9a4761cb177
 name: wrg_7753566a7b675fab
 status: test
-description: Breach intel signature for actor lapsus, MITRE technique T1556. Derived from 5 observed incident(s)
-  in the WRG breach catalog.
-author: WRG Breach Intel — Phase 6
+description: Breach intel signature for actor lapsus, MITRE technique T1556. Derived from observed incident reporting; see references.
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2026-05-10'
 logsource:
   product: windows
@@ -30,7 +29,7 @@ tags:
 ---
 title: LAPSUS$ — T1556
 id: 7d1af02a-a69f-5a2f-9677-fdcc72718e61
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 status: test
 description: Counting correlation over the base rule. The base rule matches single events; this document
   carries the threshold.

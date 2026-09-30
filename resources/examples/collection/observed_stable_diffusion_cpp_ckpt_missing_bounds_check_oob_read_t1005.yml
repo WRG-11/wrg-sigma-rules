@@ -56,7 +56,7 @@ falsepositives:
   filename/extension alone; the advisory's own recommended mitigation
   (prefer `.safetensors`) is the stronger control this rule cannot
   verify the absence of
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule is identical in shape to its two sibling
   `.ckpt` rules for the reason stated in the description above -- three
   distinct CVEs, one detectable file-event signal

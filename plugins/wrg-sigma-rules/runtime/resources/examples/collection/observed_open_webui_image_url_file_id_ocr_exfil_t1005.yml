@@ -50,7 +50,7 @@ falsepositives:
   alone, since both submit a bare file-id-shaped string; correlate the
   referenced file's actual owner against the requesting user for
   confirmation
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the
   actual request body content, which most infrastructure log sources
   do not capture by default

@@ -1,8 +1,7 @@
 title: ALPHV/BlackCat -- T1059.001
 id: 9aa6d2c4-4cf6-5cdd-8618-724ded1815de
 status: test
-description: Breach intel signature for actor alphv, MITRE technique T1059.001. Derived from 1 observed incident(s) in the
-  WRG breach catalog.
+description: Breach intel signature for actor alphv, MITRE technique T1059.001. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1059/001/
 - https://attack.mitre.org/software/S1068/
@@ -20,7 +19,7 @@ detection:
     - ' -enc '
     - ' -EncodedCommand '
     - ' -e '
-  # FP-fix sister to the filter on observed_alphv_t1027_obfuscation: the
+  # Same false-positive fix as the filter on observed_alphv_t1027_obfuscation: the
   # same legit encoded-PS SCCM benign event tripped both rules (T1027 from
   # the obfuscated-payload side, T1059.001 from the powershell.exe Image
   # side). Filter is duplicated per-rule rather than shared because Sigma

@@ -81,7 +81,7 @@ description: |
   Campaign-bound sigma detection for the s1ngularity Nx command-line
   supply chain compromise (Docker AI Coding Agent Horror Stories Issue 1 anchor,
   May 2026; 1000+ developer tokens exfiltrated). Part of the broader Nx campaign
-  4-vector cluster alongside Mini Shai-Hulud npm, ClawHavoc Claude Skills, and
+  cluster alongside Mini Shai-Hulud npm, ClawHavoc Claude Skills, and
   nx-console VS Code extension. Attack chain:
 
   (1) Compromised Nx CLI installer (npm install -g nx affected version range)
@@ -109,11 +109,11 @@ description: |
   (this corpus's "Nx campaign" cluster, five vectors total including this
   one) for campaign-wide detection coverage.
 
-  Sister context: GitGuardian 2026 report 28.65M secret-leak baseline + AI-commit
+  Context: GitGuardian 2026 report 28.65M secret-leak baseline + AI-commit
   token-leak rate 3.2 percent vs human-baseline 1.5 percent (Docker article
   quantitative anchor); Docker philosophy explicit "sandboxing structural over
   detection" (sbx CLI microVM) -- WRG complementary detection-as-code layer
-  fills the Docker-acknowledged detection gap. Source: Tier 1 first-party
+  fills the Docker-acknowledged detection gap. Source: first-party
   Docker engineering blog post (docker.com/blog/ai-coding-agent-horror-stories
   -security-risks 2026-05).
 
@@ -140,7 +140,7 @@ falsepositives:
 - Build pipeline that reads .npmrc / GITHUB_TOKEN as part of normal CI workflow -- exclude by source-host identity (CI runner hostname) or session-user (svc account)
 - Developer-tool egress with curl / Invoke-WebRequest is common in install scripts that fetch supplementary assets -- combine with credential-file scan selection to reduce false positives
 - The `Computer`-level group-by correlates same-host activity, not same-process-tree activity -- a developer machine running many concurrent, unrelated npm installs and credential-adjacent tooling could coincidentally satisfy the ordering within the 5-minute window; narrow further with a process-tree/session correlation field if your log source provides one
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Review for environment-specific tuning before deployment
 level: high
 tags:
 - attack.t1195.002

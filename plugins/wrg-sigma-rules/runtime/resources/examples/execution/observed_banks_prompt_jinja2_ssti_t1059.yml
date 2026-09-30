@@ -66,7 +66,7 @@ falsepositives:
 - A legitimate prompt template that discusses Python dunder-attribute
   syntax in prose (e.g. documentation or a tutorial) -- narrow in
   practice given the specific idiom combination required
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the
   template content actually passed to `Prompt()`, which most log sources
   do not capture by default

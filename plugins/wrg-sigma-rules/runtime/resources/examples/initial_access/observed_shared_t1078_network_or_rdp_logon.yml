@@ -1,8 +1,7 @@
 title: Network or RDP Logon Outside Service and Admin Accounts
 id: b9b55a5e-e741-5685-bd8e-bdd6f28611f4
 status: test
-description: 'Shared detection for 2 actors with an observed T1078 incident in the WRG breach
-  catalog: auditteam, ransomhouse. The logic is a generic pattern, not the documented tradecraft
+description: 'Shared detection for 2 actors with an observed T1078 incident: auditteam, ransomhouse. The logic is a generic pattern, not the documented tradecraft
   of these actors, so a hit does not say which actor, if any, is responsible. Merged on 2026-09-30
   from 2 single-actor rules with identical logic (their ids are listed under related).'
 references:
@@ -43,24 +42,22 @@ detection:
   # Filter requires BOTH conditions (selection-shape: multi-clause
   # within one filter block = AND).
   #
-  # Auto-attack canonical event (built from selection_logon first
-  # values: EventID=4624, LogonType=3, no TargetUserName) does NOT
-  # match LogonType=10 -> filter inert -> rule still fires.
-  # Self-consistency preserved.
+  # A logon built from selection_logon's first values (EventID=4624,
+  # LogonType=3, no TargetUserName) does NOT match LogonType=10, so the
+  # filter does not suppress the rule's basic positive case.
   #
-  # Known tradeoff (documented for V re-verify + Phase 2 evaluation):
-  # this is a SINGLE-EVENT precision narrow. The lapsus actor
-  # signature is multi-host admin-credential reuse within a short
+  # Known tradeoff: this is a SINGLE-EVENT precision narrow. The lapsus
+  # actor signature is multi-host admin-credential reuse within a short
   # window -- proper detection requires correlation (count() by
-  # account across hosts over time). Phase 1b aggregation matcher
-  # (V design-prep) will support that pattern; this filter is the
-  # Phase 1a stop-gap that keeps precision-on-benign at 1.00.
+  # account across hosts over time), which this single-event rule
+  # cannot express; the filter is a stop-gap that only keeps benign
+  # admin RDP logons from alerting.
   filter_legit_admin_interactive_rdp:
     LogonType: 10
     TargetUserName|startswith: admin_
   condition: selection_logon and not filter_service_accounts and not filter_legit_admin_interactive_rdp
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Review for environment-specific tuning before deployment
 - 'an internal tuning cycle: aggregation (count() by TargetUserName > 3 in 15m) dropped --
   pySigma parses the pipe form but every real backend rejects it at conversion time (see T1567.001''s
   documented fix for the same class). Single-event precision narrow until a correlation-rule

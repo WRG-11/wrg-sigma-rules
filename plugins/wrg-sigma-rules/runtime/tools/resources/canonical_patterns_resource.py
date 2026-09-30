@@ -1,9 +1,5 @@
 """MCP Resource module exposing the 5 canonical sigma detection patterns.
 
-Sister to an internal MCP-server resources module (1st canonical
-Resource layer for WRG core; this module is the 2nd application of
-the Resources extension lifecycle).
-
 Resources exposed:
 
 * ``wrg-sigma://patterns/canonical-5`` -- INDEX.md (overview + selection
@@ -15,7 +11,7 @@ Test surface: ``canonical_patterns_body()`` and
 ``canonical_pattern_by_id_body(pattern_id)`` exposed at module level so
 unit tests can assert content without invoking the MCP machinery.
 
-ASCII-only discipline (Pattern 33 Rule 5 cross-platform safe).
+Output is ASCII-only (cross-platform safe).
 """
 from __future__ import annotations
 
@@ -146,9 +142,6 @@ def register_canonical_pattern_resources(mcp: Any) -> None:
     the ``@resource()`` decorator (FastMCP, or a future plugin-host
     MCP shim). Idempotent on import (decorator runs once per server
     construction).
-
-    Sister to an internal MCP-server corpus-resources registration helper
-    (1st canonical; this is the 2nd application).
 
     Called from ``server.py`` alongside the 3 tool registrations. The
     resource module itself stays decoupled from the MCP runtime so its

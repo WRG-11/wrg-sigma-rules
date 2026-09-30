@@ -60,7 +60,7 @@ falsepositives:
   tooling/scripts that coincidentally match one of these phrases -- narrow
   in practice given the specific imperative phrasing selected, but not
   impossible
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule does not attempt to detect the path-manipulation
   half of the advisory (crafted control-plane/group identifiers), since
   no example malformed identifier is quoted in the advisory to key on

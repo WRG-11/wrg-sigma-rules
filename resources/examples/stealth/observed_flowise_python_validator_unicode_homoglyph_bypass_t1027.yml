@@ -60,7 +60,7 @@ falsepositives:
   conditions narrows false positives but application-level logging is
   required to see the actual submitted code rather than just its
   presence
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of
   `customReadCSV` / LLM-generated `pythonCode` content, which most
   infrastructure log sources do not capture by default

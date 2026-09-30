@@ -1,8 +1,7 @@
 title: ALPHV/BlackCat -- T1027
 id: c4ec65bc-6e83-589a-932e-8180abb3f7e8
 status: test
-description: Breach intel signature for actor alphv, MITRE technique T1027. Derived from 1 observed incident(s) in the WRG
-  breach catalog.
+description: Breach intel signature for actor alphv, MITRE technique T1027. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1027/
 - https://attack.mitre.org/software/S1068/

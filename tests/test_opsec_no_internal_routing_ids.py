@@ -27,7 +27,7 @@ _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 # Word-bounded matching prevents the pattern from firing inside longer public
 # identifiers such as external advisory IDs. The allowlist below documents the
 # two known advisory-reference exceptions without repeating their contents.
-_WAVE_ID_RE = re.compile(r"\bR\d+-\d+[a-z]?\b", re.IGNORECASE)
+_ROUTING_ID_RE = re.compile(r"\bR\d+-\d+[a-z]?\b", re.IGNORECASE)
 
 # Paths permitted to contain the pattern (documented exceptions only).
 #
@@ -63,7 +63,7 @@ def _tracked_files() -> list[str]:
     return [line for line in result.stdout.splitlines() if line]
 
 
-def test_no_internal_wave_dispatch_ids_in_tracked_content() -> None:
+def test_no_internal_routing_ids_in_tracked_content() -> None:
     """Fail if any internal routing identifier leaked into public tracked content."""
     offenders: list[str] = []
     for rel in _tracked_files():
@@ -73,7 +73,7 @@ def test_no_internal_wave_dispatch_ids_in_tracked_content() -> None:
             text = (_PLUGIN_ROOT / rel).read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue  # binary / unreadable -- not prose, nothing to leak
-        for match in _WAVE_ID_RE.finditer(text):
+        for match in _ROUTING_ID_RE.finditer(text):
             line_no = text.count("\n", 0, match.start()) + 1
             offenders.append(f"{rel}:{line_no}: {match.group(0)}")
 

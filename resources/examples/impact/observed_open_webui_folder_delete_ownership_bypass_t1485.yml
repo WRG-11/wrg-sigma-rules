@@ -48,7 +48,7 @@ falsepositives:
   correlate the caller's identity against the folder's actual owner
   (from application-level audit logs) to confirm an unauthorized
   deletion rather than routine owner cleanup
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

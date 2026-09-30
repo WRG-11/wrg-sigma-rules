@@ -38,7 +38,7 @@ description: 'Detects deliberate disk-exhaustion attack pattern that causes
   pressure events (which usually trigger only signal 1 OR signal 2
   alone, not both with timestamp gap).
 
-  Sister: stealth via indicator removal (T1070 base
+  Related: stealth via indicator removal (T1070 base
   technique) extends to T1685.005 (clear Windows event logs) and
   T1070.002 (clear Linux/Mac system logs); this rule is the disk-
   exhaustion-induced variant.'

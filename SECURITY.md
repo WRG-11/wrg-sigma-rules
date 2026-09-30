@@ -21,7 +21,8 @@ Anything in this repository, including:
   way its title claims to cover, or ReDoS-prone regex inside a rule.
 - **MCP server and tooling** (`server.py`, `tools/`, `scripts/`) — e.g. injection or
   unsafe handling of untrusted rule/log content.
-- **Skills and prompts** (`skills/`, `prompts/`) — e.g. prompt-injection vectors.
+- **Skills** (`skills/` and the Codex package's `plugins/wrg-sigma-rules/skills/`) —
+  e.g. prompt-injection vectors.
 
 Ordinary rule false positives / false negatives without a security impact are regular
 bugs — please use [issues](https://github.com/WRG-11/wrg-sigma-rules/issues) for those.

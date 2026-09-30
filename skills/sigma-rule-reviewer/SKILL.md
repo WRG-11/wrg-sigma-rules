@@ -12,7 +12,7 @@ allowed-tools:
 # Sigma Rule Reviewer
 
 Reviews a sigma rule the user already has, produces a structured findings
-report, and offers concrete revisions. Sister skill to `sigma-rule-writer`
+report, and offers concrete revisions. Companion to `sigma-rule-writer`
 (which drafts new rules from scratch).
 
 Trigger when the user does any of:

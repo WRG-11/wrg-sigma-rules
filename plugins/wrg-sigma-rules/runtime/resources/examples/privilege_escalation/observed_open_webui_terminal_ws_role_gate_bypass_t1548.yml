@@ -49,7 +49,7 @@ falsepositives:
   access grants exclude all pending-role accounts by policy -- the
   vulnerability requires both a configured server AND matching access
   grants to be reachable at all
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging that
   correlates a WebSocket connection with the authenticating account's
   role, which most infrastructure log sources do not capture by default

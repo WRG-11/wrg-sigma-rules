@@ -61,7 +61,7 @@ falsepositives:
   practice given the specific combination of the utils path, the
   `nodeVMOptions` key, and a `require.builtin` override this signature
   requires together
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of custom
   function request bodies, which most infrastructure log sources do
   not capture by default

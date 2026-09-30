@@ -75,7 +75,7 @@ correlation:
   - Computer
   timespan: 30m
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Review for environment-specific tuning before deployment
 - Backup or disaster-recovery maintenance window that prunes shadow copies while an
   archival job writes encrypted containers on the same host
 - Security testing or tabletop exercise replaying ransomware behaviour

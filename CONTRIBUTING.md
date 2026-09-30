@@ -80,8 +80,10 @@ Every rule:
 - [ ] ATT&CK technique in `tags:` (e.g. `attack.t1071`); the coverage
       resource ignores rules without one
 - [ ] Passes `validate_rule` (pySigma round-trip + linter)
-- [ ] `resources/examples/INDEX.json` updated, and `python readme_stamp.py`
-      run so the README counts match
+- [ ] `python scripts/regenerate_index.py` run so `resources/examples/INDEX.json`
+      lists the rule, and `python readme_stamp.py` run so the README counts match
+- [ ] `python scripts/sync_codex_runtime.py` run so the Codex package carries the
+      same corpus (CI fails when the two differ)
 - [ ] `python -m pytest -q` green
 
 ## Rules that do not claim to be observed
@@ -92,6 +94,15 @@ The corresponding honesty requirement is the label itself: if a rule was
 built from a generic technique description, it is a template, and calling it
 `observed_` misrepresents where it came from. Three rules in this corpus were
 relabelled `template_` for exactly that reason.
+
+## Keeping the Codex package in sync
+
+`plugins/wrg-sigma-rules/runtime/` is a copy of `server.py`, `requirements.txt`,
+`.claude-plugin/`, `tools/` and `resources/`. After changing any of them, run
+`python scripts/sync_codex_runtime.py`; `python scripts/sync_codex_runtime.py
+--check` verifies the copy without rewriting it, and CI fails when the two
+differ. The Codex manifest may add a local build suffix to its version, but its
+release base must match `.claude-plugin/plugin.json`.
 
 ## On volume
 

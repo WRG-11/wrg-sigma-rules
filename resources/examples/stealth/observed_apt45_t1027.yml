@@ -1,8 +1,7 @@
 title: APT45 -- T1027
 id: eea38eb6-606c-5548-b0b1-36dfaf7b1c5d
 status: test
-description: Breach intel signature for actor apt45, MITRE technique T1027. Derived
-  from 1 observed incident(s) in the WRG breach catalog.
+description: Breach intel signature for actor apt45, MITRE technique T1027. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1027/
 - https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access

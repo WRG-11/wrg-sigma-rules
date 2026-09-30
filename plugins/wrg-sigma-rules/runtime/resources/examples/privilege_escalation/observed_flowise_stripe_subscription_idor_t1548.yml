@@ -54,7 +54,7 @@ falsepositives:
   body's `subscriptionId` or the caller's own organization to compare
   against; correlate with application-level authorization logs to
   confirm a cross-tenant identifier was actually used
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

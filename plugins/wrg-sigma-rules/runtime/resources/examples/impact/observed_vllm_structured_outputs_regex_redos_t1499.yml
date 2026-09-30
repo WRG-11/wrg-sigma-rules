@@ -52,7 +52,7 @@ falsepositives:
   distinguish intent from pattern structure alone; most nested-quantifier
   regexes in practice ARE adversarial or accidental performance bugs, so
   this is a reasonably tight signal but not a zero-false-positive one
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the
   actual regex parameter value, which most infrastructure log sources
   do not capture by default

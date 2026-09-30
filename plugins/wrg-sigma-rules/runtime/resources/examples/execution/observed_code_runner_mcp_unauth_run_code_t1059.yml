@@ -54,7 +54,7 @@ falsepositives:
   before the request reaches this server -- if the log source captures
   traffic at the proxy layer rather than the origin, the missing-header
   condition may not reflect true unauthenticated exposure
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; port 3088 is the documented default but is operator-
   configurable, so this selection needs adjustment for non-default ports
 level: critical

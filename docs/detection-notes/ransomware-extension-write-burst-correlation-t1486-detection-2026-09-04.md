@@ -28,7 +28,7 @@ Only the actor name, `date`/`references`, and `level` (ranged `informational` th
 
 - **Genesis** — same actor as this note's T1567 sibling; 9 claimed breaches, 2 observed incidents in this corpus.
 - **Global Secret Group** — Macofin Hellas S.A. breach (2026-08).
-- **LockBit** — the corpus's oldest entry in this cluster (dated 2023-02-23, predating the "WRG Breach Intel — Phase 6" templated-authoring era of the other files), citing the **Royal Mail** breach (BBC, BleepingComputer) and MITRE's own LockBit software profile (S1202). Its extension list covered OTHER actors' extensions too (`.alphv`, `.akira`, `.clop` alongside `.lockbit`) — the rule never fired only on LockBit's own extension, it fires on any of the eight.
+- **LockBit** — the corpus's oldest entry in this cluster (dated 2023-02-23, predating the templated authoring of the other files), citing the **Royal Mail** breach (BBC, BleepingComputer) and MITRE's own LockBit software profile (S1202). Its extension list covered OTHER actors' extensions too (`.alphv`, `.akira`, `.clop` alongside `.lockbit`) — the rule never fired only on LockBit's own extension, it fires on any of the eight.
 - **Panzer** — Minor Food Group breach (2026-08).
 - **Securotrop** — Structural Component Systems breach; sourced partly from a direct interview with the group (suspectfile.com).
 - **Blackwater** (added 2026-09-04) — Shenzhen Gongjin Electronics breach (2026-04), via galaxywarden.com + SOCRadar + ransomware.live.

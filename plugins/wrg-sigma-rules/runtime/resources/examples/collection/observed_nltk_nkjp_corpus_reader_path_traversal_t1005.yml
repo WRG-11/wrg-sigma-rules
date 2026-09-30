@@ -52,7 +52,7 @@ falsepositives:
   substring unrelated to path traversal (e.g. an ellipsis-style
   filename) -- narrow in practice given real NKJP corpus fileids are
   drawn from a fixed directory structure, not free-form user input
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the
   `fileids` argument passed to corpus reader methods, which most
   infrastructure log sources do not capture by default

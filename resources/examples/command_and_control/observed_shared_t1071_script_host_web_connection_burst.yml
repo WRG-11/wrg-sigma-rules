@@ -5,7 +5,7 @@ status: test
 description: Base event match for the shared rule 'Script Host Making Repeated Web Connections'.
   On its own it is not the alert; the correlation document carries the threshold and the actor
   list.
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2026-05-18'
 modified: '2026-09-30'
 related:
@@ -39,8 +39,7 @@ tags:
 title: Script Host Making Repeated Web Connections
 id: 27ea92c7-6af2-57c9-85df-4c6b307cf572
 status: test
-description: 'Shared detection for 3 actors with an observed T1071 incident in the WRG breach
-  catalog: shadowbyt3, shai_hulud_npm_worm, teampcp_unc6780. The logic is a generic pattern,
+description: 'Shared detection for 3 actors with an observed T1071 incident: shadowbyt3, shai_hulud_npm_worm, teampcp_unc6780. The logic is a generic pattern,
   not the documented tradecraft of these actors, so a hit does not say which actor, if any,
   is responsible. Merged on 2026-09-30 from 3 single-actor rules with identical logic (their
   ids are listed under related).'
@@ -75,7 +74,7 @@ references:
 - https://www.sans.org/blog/when-security-scanner-became-weapon-inside-teampcp-supply-chain-campaign
 - https://arcticwolf.com/resources/blog/teampcp-supply-chain-attack-campaign-targets-trivy-checkmarx-kics-and-litellm-potential-downstream-impact-to-additional-projects/
 - https://labs.cloudsecurityalliance.org/research/csa-research-note-teampcp-unc6780-ai-developer-supply-chain/
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2026-05-18'
 modified: '2026-09-30'
 related:

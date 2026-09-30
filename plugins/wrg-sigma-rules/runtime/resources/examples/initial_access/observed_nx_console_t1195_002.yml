@@ -20,14 +20,14 @@ description: 'Campaign-bound sigma detection for the nx-console VS Code extensio
   spawned from the extension host (PowerShell / curl / wget / node egress to
   api.github.com or non-standard DNS resolvers after extension install).
 
-  Sister cluster: Nx campaign 4-vector cluster -- Mini Shai-Hulud npm + s1ngularity
+  Related rules: Nx campaign cluster -- Mini Shai-Hulud npm + s1ngularity
   CLI + ClawHavoc Claude Skills + nx-console VS Code. Cross-reference
   observed_mini_shai_hulud_npm_supply_chain_c2_t1071.yml,
   observed_s1ngularity_nx_npm_token_exfil_t1195_002.yml, and
-  observed_clawhavoc_claude_skills_t1195_002.yml (4-vector cluster COMPLETE)
+  observed_clawhavoc_claude_skills_t1195_002.yml
   in the same corpus.
 
-  Source: Tier 1 multi-source disclosure (StepSecurity blog 2026-05-18 direct;
+  Source: multi-source disclosure (StepSecurity blog 2026-05-18 direct;
   amplified by industry reporting). Aggregated from 1 first-party StepSecurity
   disclosure 2026-05-18.'
 references:
@@ -79,7 +79,7 @@ falsepositives:
 - Legitimate developer install of nrwl.angular-console at safe versions (not v18.95.0; verify version pin against StepSecurity disclosure window) -- tune CommandLine substring to include affected version marker
 - Developer-tool egress to api.github.com is normal for project workflow -- combine parent-image VS Code filter AND credential-file substring to reduce noise
 - Legitimate Sigstore signing workflow (cosign / rekor) by your own release pipelines -- exclude known build identities from the selection_sigstore_artifact_indicator selection
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Review for environment-specific tuning before deployment
 level: high
 tags:
 - attack.t1195.002

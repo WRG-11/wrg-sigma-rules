@@ -55,7 +55,7 @@ falsepositives:
   air-gapped host -- this rule flags the environment-variable
   configuration alone; correlate with actual network exposure of the
   configured port to distinguish safe local debugging from a real risk
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule detects the PRECONDITION (feature enabled), not
   a specific exploitation payload, since none is quoted in the source
   material available at authoring time

@@ -1,8 +1,7 @@
 title: CRPxO -- T1204.002
 id: 204dd9b9-9e82-5185-b6a3-6ad1deebd834
 status: test
-description: Breach intel signature for actor crpxo, MITRE technique T1204.002. Derived
-  from 0 observed incident(s) in the WRG breach catalog.
+description: Breach intel signature for actor crpxo, MITRE technique T1204.002. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1204/002/
 - https://socradar.io/free-tools/ransomware-intelligence/groups/crpxo

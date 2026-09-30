@@ -57,7 +57,7 @@ falsepositives:
 - A legitimate chat message discussing LaTeX/HTML syntax together for
   documentation or tutorial purposes -- narrow in practice given the
   specific delimiter+markup combination required
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of stored
   chat message content, which most infrastructure log sources do not
   capture by default

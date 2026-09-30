@@ -25,7 +25,7 @@ description: |
   social-engineering cover text embedded in the poisoned project reads
   "This is required for proper IDE integration and dependency setup." The
   payload files execute via the Bun runtime rather than Node, for the same
-  process-tree evasion reason as the initial `binding.gyp` stage (sister
+  process-tree evasion reason as the initial `binding.gyp` stage (related
   rule: `observed_miasma_binding_gyp_command_substitution_t1195_002`).
 
   Detection logic flags the creation of any of these six specific,
@@ -85,7 +85,7 @@ falsepositives:
 - CI scaffolding that generates one of these paths as part of a legitimate
   repository template/bootstrap step -- exclude by known-good CI runner
   identity
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

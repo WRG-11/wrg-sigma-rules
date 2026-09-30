@@ -23,7 +23,8 @@ Every rule:
 - [ ] `observed_*` / `template_*` prefix matches actual provenance
 - [ ] ATT&CK technique in `tags:`
 - [ ] Passes `validate_rule`
-- [ ] `resources/examples/INDEX.json` updated, `python readme_stamp.py` run
+- [ ] `python scripts/regenerate_index.py`, `python readme_stamp.py` and
+      `python scripts/sync_codex_runtime.py` run
 - [ ] `python -m pytest -q` green
 
 ## Non-rule changes

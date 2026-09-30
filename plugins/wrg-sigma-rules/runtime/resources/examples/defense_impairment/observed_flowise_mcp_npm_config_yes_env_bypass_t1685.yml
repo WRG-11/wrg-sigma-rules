@@ -61,7 +61,7 @@ falsepositives:
   integration -- narrow given these variables have no legitimate
   purpose in an untrusted, attacker-supplied MCP server config, which
   is the threat model this rule targets
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of MCP
   server configuration submissions, which most infrastructure log
   sources do not capture by default

@@ -3,7 +3,7 @@ Companion detection note covering FOUR unrelated named-actor Sigma rules, groupe
 efficiency. Unlike this corpus's CVE/vendor-disclosure rules, these are templated "breach intel
 signature" entries: a named threat actor mapped to ONE generic MITRE technique, sourced primarily
 from secondary/aggregator threat-intel sites (socradar, ransomware.live, cyberpress) rather than
-CISA/first-party-vendor advisories -- the source-quality difference from this corpus's Tier-1 CVE
+CISA/first-party-vendor advisories -- the source-quality difference from this corpus's primary-sourced CVE
 notes is deliberately called out below, not glossed over.
 - resources/examples/execution/observed_crpxo_t1204_002.yml
 - resources/examples/impact/observed_coinbase_cartel_t1657.yml

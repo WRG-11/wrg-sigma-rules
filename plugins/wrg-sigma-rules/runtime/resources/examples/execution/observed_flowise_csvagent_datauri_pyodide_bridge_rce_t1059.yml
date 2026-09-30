@@ -60,7 +60,7 @@ falsepositives:
   narrow in practice given the specific string-terminator-then-import
   shape this signature requires, well outside any valid base64
   payload
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of chatflow
   prediction request bodies, which most infrastructure log sources do
   not capture by default

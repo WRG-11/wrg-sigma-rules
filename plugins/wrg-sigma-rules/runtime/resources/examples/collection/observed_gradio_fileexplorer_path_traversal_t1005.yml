@@ -52,7 +52,7 @@ falsepositives:
 - Legitimate file-browsing traffic where a path segment coincidentally
   contains `..` as part of a real filename (rare but possible on some
   filesystems) -- narrow in practice given the specific patterns matched
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; the exact query-parameter shape a given FileExplorer-backed
   Gradio app uses may differ from this rule's generic assumptions
 level: high

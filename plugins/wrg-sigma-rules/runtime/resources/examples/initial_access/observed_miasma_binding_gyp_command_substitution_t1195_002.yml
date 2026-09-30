@@ -125,7 +125,7 @@ correlation:
 falsepositives:
 - A developer or CI runner that legitimately uses Bun as its primary JS runtime for an unrelated project, where a native-addon build step and a Bun invocation happen to occur close together for reasons unconnected to this campaign -- correlate with a preceding `binding.gyp`-triggered `node-gyp` step from a freshly-installed package, not a long-lived project's own build pipeline
 - The `Computer`-level group-by correlates same-host activity, not same-process-tree activity -- a host running many concurrent, unrelated npm installs and Bun workloads could coincidentally satisfy the ordering within the 5-minute window; narrow further with a process-tree/session correlation field if your log source provides one
-- Pattern library v1 -- review for environment-specific tuning before deployment
+- Review for environment-specific tuning before deployment
 level: high
 tags:
 - attack.t1195.002

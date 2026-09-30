@@ -49,7 +49,7 @@ falsepositives:
   cannot determine the caller's actual permission level; correlate
   against application-level access-control logs to confirm a read-only
   user performed the write
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

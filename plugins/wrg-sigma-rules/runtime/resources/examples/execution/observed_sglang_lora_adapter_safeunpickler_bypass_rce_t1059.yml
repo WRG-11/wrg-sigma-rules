@@ -56,7 +56,7 @@ falsepositives:
   network proxy logs typically cannot inspect decoded pickle opcode
   content; correlate with network-exposure scope (this endpoint should
   not be internet-reachable) to prioritize investigation
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

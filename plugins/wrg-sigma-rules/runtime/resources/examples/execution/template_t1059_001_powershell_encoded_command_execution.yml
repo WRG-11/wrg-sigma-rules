@@ -17,15 +17,15 @@ detection:
     - ' -enc '
     - ' -EncodedCommand '
     - ' -e '
-  # Filter add — sister to observed_alphv_t1059_001
-  # (cross-corpus backport). Legit SCCM / installer / management-context
+  # Filter added to match observed_alphv_t1059_001.
+  # Legit SCCM / installer / management-context
   # PowerShell uses the `-NoProfile -EncodedCommand <short payload>`
   # combination for system-context execution; the selection_*
   # block above previously fired on this benign pattern (prior
-  # false-positive finding). Same tradeoff as the T1027 sister: adversaries
+  # false-positive finding). Same tradeoff as the T1027 template: adversaries
   # appending `-NoProfile` to bare encoded PS would evade this filter;
-  # Phase 2 candidate is to add an entropy / length qualifier to the
-  # payload (sister T1027 has the long_base64_blob selection; this
+  # an entropy / length qualifier on the payload would narrow that
+  # gap (the T1027 template has the long_base64_blob selection; this
   # template does not, so the filter is the primary tradeoff knob).
   filter_legit_sccm_installer_encoded_ps:
     CommandLine|contains: ' -NoProfile -EncodedCommand '

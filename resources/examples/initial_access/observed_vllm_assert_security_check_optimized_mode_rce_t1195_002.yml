@@ -53,7 +53,7 @@ falsepositives:
   untrusted HuggingFace model -- this rule flags the configuration
   precondition, not confirmed exploitation; treat a hit as "review
   whether this deployment loads untrusted models", not as an attack alert
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

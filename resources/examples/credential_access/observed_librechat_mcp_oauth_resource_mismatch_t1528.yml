@@ -57,7 +57,7 @@ falsepositives:
   this rule needs adaptation to whatever LibreChat's actual deployment
   logs capture (or an application-level hook added specifically to record
   the resource-origin comparison outcome)
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

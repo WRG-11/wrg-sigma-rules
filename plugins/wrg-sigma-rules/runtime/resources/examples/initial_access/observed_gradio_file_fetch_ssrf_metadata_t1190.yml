@@ -59,7 +59,7 @@ falsepositives:
   configured to fetch from private-range asset servers -- narrow in
   practice given the specific metadata/loopback/link-local ranges this
   rule targets, but possible in tightly-controlled internal-only setups
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

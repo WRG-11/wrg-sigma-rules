@@ -1,8 +1,7 @@
 title: LAPSUS$ -- T1078
 id: b6d23664-a6e7-583a-b2fc-f54bd7ef04e6
 status: test
-description: Breach intel signature for actor lapsus, MITRE technique T1078. Derived from 1 observed incident(s) in the WRG
-  breach catalog.
+description: Breach intel signature for actor lapsus, MITRE technique T1078. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1078/
 - https://attack.mitre.org/groups/G1004/
@@ -30,8 +29,8 @@ detection:
   # Tradeoff: this is a single-event precision narrow. The LAPSUS$
   # actor signature is multi-host admin-credential reuse within a
   # short window -- proper detection requires correlation (count() by
-  # account across hosts over time). A future aggregation matcher will
-  # support that pattern; this filter is the stop-gap.
+  # account across hosts over time), which a single-event rule cannot
+  # express; this filter is the stop-gap.
   filter_legit_admin_interactive_rdp:
     LogonType: 10
     TargetUserName|startswith: admin_

@@ -53,7 +53,7 @@ falsepositives:
   correlate with actual RESPONSE body content (application-level
   logging) to confirm source-code disclosure occurred, rather than
   treating every request as a hit
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

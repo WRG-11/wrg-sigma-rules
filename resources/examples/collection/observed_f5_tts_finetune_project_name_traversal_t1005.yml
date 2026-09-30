@@ -57,7 +57,7 @@ falsepositives:
 - A legitimate project name that happens to start with a character this
   rule's substring match treats as path-like for unrelated reasons --
   narrow in practice given the specific patterns matched
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

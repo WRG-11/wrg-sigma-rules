@@ -51,7 +51,7 @@ falsepositives:
   permissions or the deployment's feature-switch state; correlate with
   application-level authorization logs to confirm a permission-lacking
   user actually reached the endpoint
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

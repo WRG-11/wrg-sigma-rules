@@ -5,7 +5,7 @@ status: test
 description: Base event match for the shared rule 'Repeated Connections to One File-Sharing
   Host'. On its own it is not the alert; the correlation document carries the threshold and
   the actor list.
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2025-03-14'
 modified: '2026-09-30'
 related:
@@ -57,8 +57,7 @@ tags:
 title: Repeated Connections to One File-Sharing Host
 id: df462490-a067-56de-8e9c-33e8e23001a4
 status: test
-description: 'Shared detection for 14 actors with an observed T1567 / T1567.002 incident in
-  the WRG breach catalog: barracuda, blackwater, crpxo, emperador, genesis, global_secret_group,
+description: 'Shared detection for 14 actors with an observed T1567 / T1567.002 incident: barracuda, blackwater, crpxo, emperador, genesis, global_secret_group,
   kairos, krybit, ms13_089, panzer, securotrop, shai_hulud_npm_worm, unknown_supply_chain_2025_03,
   worldleaks. The logic is a generic pattern, not the documented tradecraft of these actors,
   so a hit does not say which actor, if any, is responsible. Merged on 2026-09-30 from 14
@@ -115,7 +114,7 @@ references:
 - https://www.ransomware.live/id/QWNjZXNzIERlbnRhbEB3b3JsZGxlYWtz
 - https://www.ransomware.live/id/Q0ggS2FybmNoYW5nIFB1YmxpY0B3b3JsZGxlYWtz
 - https://www.ransomware.live/id/VW5pdGVkIEF1dG8gU3VwcGx5QHdvcmxkbGVha3M=
-author: WRG Breach Intel — Phase 6
+author: WinstonRedGuard -- sigma plugin observed rules
 date: '2025-03-14'
 modified: '2026-09-30'
 related:

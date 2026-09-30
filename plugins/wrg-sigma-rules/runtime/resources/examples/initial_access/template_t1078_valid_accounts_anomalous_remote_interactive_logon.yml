@@ -21,8 +21,8 @@ detection:
     - 10
   filter_service_accounts:
     TargetUserName|startswith: svc_
-  # Filter add — sister to observed_lapsus_t1078
-  # (cross-corpus backport). Authorized admin operators routinely access
+  # Filter added to match observed_lapsus_t1078.
+  # Authorized admin operators routinely access
   # servers via RDP (LogonType 10) for maintenance; the rule
   # previously fired on legit_rdp_logon (admin_dave / LogonType 10) in
   # a prior false-positive review. Filter requires BOTH conditions (Sigma
@@ -30,8 +30,8 @@ detection:
   # Tradeoff: this is a single-event precision narrow. T1078 in the
   # wild is multi-host admin-credential reuse within a short window;
   # proper detection requires correlation (count() by account across
-  # hosts over time). Phase 1b aggregation matcher (V design-prep)
-  # will support that pattern; this filter is the stop-gap.
+  # hosts over time), which a single-event rule cannot express; this
+  # filter is the stop-gap.
   filter_legit_admin_interactive_rdp:
     LogonType: 10
     TargetUserName|startswith: admin_

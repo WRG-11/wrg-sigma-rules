@@ -5,7 +5,7 @@ description: |
   Campaign-bound sigma detection for the propagation and exfiltration stage
   of the "Miasma" / "Phantom Gyp" npm supply-chain worm (StepSecurity + Snyk
   disclosure, 2026-06-03). After the `binding.gyp` code-execution stage
-  (sister rule `observed_miasma_binding_gyp_command_substitution_t1195_002`)
+  (related rule `observed_miasma_binding_gyp_command_substitution_t1195_002`)
   harvests npm/GitHub/cloud credentials, the worm uses the stolen GitHub
   token two ways:
 
@@ -81,7 +81,7 @@ falsepositives:
   severity level rather than high; do not treat a hit on naming alone as
   high-confidence without the mutation-name signal or external
   corroboration
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

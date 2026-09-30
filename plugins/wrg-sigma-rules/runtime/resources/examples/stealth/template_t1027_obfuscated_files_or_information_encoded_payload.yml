@@ -22,17 +22,17 @@ detection:
     - ' -e '
   selection_long_base64_blob:
     CommandLine|re: '[A-Za-z0-9+/]{200,}={0,2}'
-  # Filter add — sister to observed_alphv_t1027_obfuscation
-  # (cross-corpus backport). Legit SCCM / installer / management-context
+  # Filter added to match observed_alphv_t1027_obfuscation.
+  # Legit SCCM / installer / management-context
   # PowerShell uses the `-NoProfile -EncodedCommand <short payload>`
   # combination for system-context execution; the selection_* blocks
   # above match on the bare `-EncodedCommand` substring and previously
   # fired on this benign pattern (prior false-positive finding).
   # Tradeoff: adversaries appending `-NoProfile` to bare encoded PS
-  # would evade this filter; Phase 2 candidate is to promote
-  # selection_long_base64_blob (200+ char payload) to the primary
-  # signal once Phase 1b 67-rule scale surfaces real-world payload
-  # length distribution.
+  # would evade this filter, even with a long payload. Where the
+  # payload lengths of legitimate tooling are known, exempting
+  # selection_long_base64_blob (200+ char payload) from the filter
+  # closes that gap.
   filter_legit_sccm_installer_encoded_ps:
     CommandLine|contains: ' -NoProfile -EncodedCommand '
   condition: (selection_encoded_powershell or selection_long_base64_blob) and not filter_legit_sccm_installer_encoded_ps

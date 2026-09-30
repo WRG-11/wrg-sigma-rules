@@ -1,8 +1,7 @@
 title: Unsigned Executable Launched from Temp, Downloads or Installers
 id: a31fc9f4-13c6-57a1-9f9a-41e12740a46e
 status: test
-description: 'Shared detection for 4 actors with an observed T1195 incident in the WRG breach
-  catalog: shai_hulud_npm_worm, teampcp_unc6780, unknown_supply_chain_2025_03, xpl0itrs. The
+description: 'Shared detection for 4 actors with an observed T1195 incident: shai_hulud_npm_worm, teampcp_unc6780, unknown_supply_chain_2025_03, xpl0itrs. The
   logic is a generic pattern, not the documented tradecraft of these actors, so a hit does
   not say which actor, if any, is responsible. Merged on 2026-09-30 from 4 single-actor rules
   with identical logic (their ids are listed under related).'

@@ -189,7 +189,7 @@ def test_validate_field_modifier_pipe_is_not_flagged_as_deprecated_condition() -
     assert "deprecated_pipe_condition" not in rules_hit
 
 
-def test_validate_pattern_34_redacts_internal_identifiers() -> None:
+def test_validate_redacts_internal_identifiers() -> None:
     """Always-redact -- internal IP / corp domain redacted in echo.
 
     The identifiers are injected into `description` rather than by
@@ -568,6 +568,7 @@ def test_placeholder_falsepositives_are_flagged() -> None:
         "N/A",
         "TODO -- replace with a concrete benign scenario",
         "Pattern library v1 -- review for environment-specific tuning before deployment",
+        "Review for environment-specific tuning before deployment",
         # A bare denial is still an unfilled block, so `none` stays flagged
         # when nothing follows it -- see the sibling test for the shape that
         # does carry a scenario.
@@ -749,3 +750,97 @@ def test_correlation_rule_placeholder_is_still_caught() -> None:
         "  - Unknown",
     )
     assert "falsepositives_placeholder" in _lint_rules(weakened)
+
+
+def test_legacy_correlation_pair_lints_metadata_on_the_base_rule() -> None:
+    """Older pairs keep analyst-facing metadata on their base rule.
+
+    The correlation document only supplies the threshold, so treating it as the
+    lint target fabricated three metadata warnings.
+    """
+    legacy_pair = """\
+title: Legacy correlation base
+name: legacy_correlation_base
+id: 88888888-8888-4888-8888-888888888888
+status: test
+description: Base rule with the analyst-facing metadata.
+references:
+  - https://attack.mitre.org/techniques/T1110/
+falsepositives:
+  - Shared egress address during a scheduled authentication test
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4625
+  condition: selection
+level: medium
+tags:
+  - attack.t1110
+---
+title: Legacy correlation threshold
+id: 99999999-9999-4999-8999-999999999999
+status: test
+description: Counting correlation over the base rule.
+correlation:
+  type: event_count
+  rules:
+    - legacy_correlation_base
+  group-by:
+    - IpAddress
+  timespan: 10m
+  condition:
+    gte: 11
+"""
+    rules = _lint_rules(legacy_pair)
+    assert "references_empty" not in rules
+    assert "falsepositives_empty" not in rules
+    assert "mitre_tag_missing" not in rules
+
+
+def test_modern_correlation_pair_still_lints_the_alerting_document() -> None:
+    """The fallback must not hide gaps on a pair whose last document has metadata.
+
+    Here the correlation document carries tags but no references: the linter must
+    keep judging that document and report it, not fall back to the complete base.
+    """
+    modern_pair = """\
+title: Modern correlation base
+name: modern_correlation_base
+id: 77777777-7777-4777-8777-777777777777
+status: test
+description: Base rule.
+references:
+  - https://attack.mitre.org/techniques/T1110/
+falsepositives:
+  - Scheduled authentication test
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4625
+  condition: selection
+level: informational
+tags:
+  - attack.t1110
+---
+title: Modern correlation alert
+id: 66666666-6666-4666-8666-666666666666
+status: test
+description: Alerting correlation with tags but no references.
+correlation:
+  type: event_count
+  rules:
+    - modern_correlation_base
+  group-by:
+    - IpAddress
+  timespan: 10m
+  condition:
+    gte: 11
+tags:
+  - attack.t1110
+level: medium
+"""
+    assert "references_empty" in _lint_rules(modern_pair)

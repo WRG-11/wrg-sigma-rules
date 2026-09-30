@@ -53,7 +53,7 @@ falsepositives:
   submodel or the caller's actual permission set; correlate with
   application-level access-control logs to confirm an unauthorized
   submodel was reached
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

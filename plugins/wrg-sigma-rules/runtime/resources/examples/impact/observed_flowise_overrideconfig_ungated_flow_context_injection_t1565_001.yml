@@ -60,7 +60,7 @@ falsepositives:
   three fields since application logs cannot see the chatflow's
   `apiOverrideStatus` setting; correlate with that setting to confirm
   the override was actually unauthorized
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of
   prediction request bodies, which most infrastructure log sources do
   not capture by default

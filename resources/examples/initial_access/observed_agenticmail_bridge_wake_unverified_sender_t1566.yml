@@ -65,7 +65,7 @@ falsepositives:
   `isOperatorReplySender` check -- the filter condition should then exclude
   it; a hit on a patched install indicates either a log-format mismatch or
   a genuinely unverified sender still reaching the bridge
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; log field names are inferred from the advisory's own source
   citations (`dispatcher.ts`, `host-bridge.ts`, `bridge-wake.ts`), not from
   a captured production log sample

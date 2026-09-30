@@ -62,7 +62,7 @@ falsepositives:
   from an attacker exploiting the wildcard-CORS/no-auth gap; correlate
   with the HTTP request's Origin header and auth state if the log source
   captures it
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: high
 tags:

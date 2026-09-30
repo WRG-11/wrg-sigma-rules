@@ -8,10 +8,9 @@ DROPS, or whether a rule silently stopped contributing coverage (an
 ``untagged`` rule: valid YAML, no `attack.*` tag, contributes nothing to
 the resource this repo's own README calls its coverage evidence).
 
-Same ratchet shape as tools/static_audit/mcp_tool_docs_baseline.json in the
-WRG monorepo this corpus mirrors from: a floor that can only move up, and a
-ceiling that can only move down, both explicit so drift shows as a diff to
-this file rather than a silent number change nobody reviewed.
+It is a ratchet: a floor that can only move up, and a ceiling that can only
+move down, both explicit so drift shows as a diff to this file rather than a
+silent number change nobody reviewed.
 
 Usage:
     python scripts/coverage_gate.py         # check against the floor/ceiling below

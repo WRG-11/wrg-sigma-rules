@@ -65,7 +65,7 @@ falsepositives:
   reach -- these modules have no SSRF protection by design in the
   vulnerable version, so intended internal use is indistinguishable
   from abuse without a policy-level allowlist this rule cannot see
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of workflow
   module invocations with their resolved URL parameters, which most
   infrastructure log sources do not capture by default

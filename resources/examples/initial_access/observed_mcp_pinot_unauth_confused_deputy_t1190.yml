@@ -61,7 +61,7 @@ falsepositives:
   reports the client as :8080 for unrelated reasons -- correlate with
   source-IP scope (non-loopback origin) to reduce false positives, since
   loopback access on an unfixed version is the expected operator workflow
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: critical
 tags:

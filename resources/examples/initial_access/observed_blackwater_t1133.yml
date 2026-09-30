@@ -1,8 +1,7 @@
 title: Blackwater -- T1133
 id: 06132b2b-d662-593c-afba-a574591e4abe
 status: test
-description: Breach intel signature for actor blackwater, MITRE technique T1133. Derived
-  from 0 observed incident(s) in the WRG breach catalog.
+description: Breach intel signature for actor blackwater, MITRE technique T1133. Derived from observed incident reporting; see references.
 references:
 - https://attack.mitre.org/techniques/T1133/
 - https://www.galaxywarden.com/blog/breach/shenzhen-gongjin-electronics-blackwater-2026-04
@@ -25,8 +24,8 @@ detection:
     - '-'
   condition: selection_remote_service and not filter_internal_source
 falsepositives:
-- Pattern library v1 -- review for environment-specific tuning before deployment
-- 'internal wave: aggregation (count() by IpAddress > 5 in 10m) dropped -- pySigma parses
+- Review for environment-specific tuning before deployment
+- 'an internal tuning cycle: aggregation (count() by IpAddress > 5 in 10m) dropped -- pySigma parses
   the pipe form but every real backend rejects it at conversion time (see T1567.001''s
   documented fix for the same class). Single-event precision narrow until a correlation-rule
   pairing is authored.'

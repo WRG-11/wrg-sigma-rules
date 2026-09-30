@@ -1,18 +1,10 @@
 """Corpus validation -- every WRG sigma rule example validates clean.
 
-51 parametrized tests covering all tactics:
-  code_review / collection / command_and_control / credential_access /
-  defense_evasion / execution / exfiltration / impact / initial_access /
-  lateral_movement / resource_development
+One parametrized test per rule file under resources/examples/**/*.yml,
+discovered at collection time, so every tactic directory is covered.
 
-Import-guard discipline (ss15.14 v1.2 7th realisation; cross-corpus
-sister pattern, MATURE cluster):
-  pytest.importorskip("sigma") ensures ALL 51 tests SKIP when pySigma is
-  not installed, and ALL 51 PASS when it is -- scaffold-cross-validation.
-
-Delta-1: the original brief targeted a rule path that does not exist in
-  this repository; the actual corpus lives in resources/examples/**/*.yml
-  (migration artifact). 51 rules discovered at collection time.
+pytest.importorskip("sigma") skips the whole module when pySigma is not
+installed; with pySigma installed, every rule must validate clean.
 """
 from __future__ import annotations
 
@@ -22,7 +14,7 @@ from pathlib import Path
 import pytest
 
 # Import-guard: ALL tests in this module skip if pySigma is absent.
-# When pySigma is installed, all 51 corpus rules must validate clean.
+# When pySigma is installed, every corpus rule must validate clean.
 pytest.importorskip("sigma", reason="pySigma required for corpus validation")
 
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
@@ -139,7 +131,7 @@ def test_corpus_rule_schema_valid(rule_path: Path) -> None:
     ids=[p.stem for p in _CORPUS_RULES],
 )
 def test_corpus_rule_ascii_output(rule_path: Path) -> None:
-    """Validate output strings must be ASCII-only (Pattern 33 Rule 5)."""
+    """Validate output strings must be ASCII-only."""
     yaml_content = rule_path.read_text(encoding="utf-8")
     result = validate_rule_body(yaml_content)
     for err in result.get("schema_errors", []):

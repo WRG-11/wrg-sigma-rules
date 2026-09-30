@@ -46,7 +46,7 @@ falsepositives:
   advisory documents the vulnerable CODE PATH (missing filter), not a
   specific log line format; deploying this rule requires adapting it to
   whatever Open WebUI''s actual application logs capture'
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment
 level: medium
 tags:

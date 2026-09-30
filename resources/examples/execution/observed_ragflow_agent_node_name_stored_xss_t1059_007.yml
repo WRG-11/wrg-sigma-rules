@@ -60,7 +60,7 @@ falsepositives:
   prose for documentation purposes -- narrow in practice given typical
   node-naming conventions, but not impossible in a tutorial or
   demonstration workspace
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the actual
   DSL/node-name content submitted, which most infrastructure log sources
   do not capture by default

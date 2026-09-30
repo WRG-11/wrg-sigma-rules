@@ -1,0 +1,14 @@
+{
+  "name": "wrg-11",
+  "description": "Detection-engineering plugins published by WRG-11.",
+  "owner": {
+    "name": "WRG-11",
+    "url": "https://github.com/WRG-11"
+  },
+  "plugins": [
+    {
+      "name": "wrg-sigma-rules",
+      "source": "."
+    }
+  ]
+}

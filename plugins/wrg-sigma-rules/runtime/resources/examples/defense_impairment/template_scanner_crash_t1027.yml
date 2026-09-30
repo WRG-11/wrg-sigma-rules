@@ -11,7 +11,7 @@ description: 'Detects malicious PR pattern designed to crash or
   (1) Attacker crafts a PR containing (a) a large binary or
   pathologically-structured input file designed to trigger scanner
   timeout / OOM / parser exception, AND (b) a credential (gho_/ghu_/ghs_
-  PAT variant; sister to template_gh_pat_token_type_confusion_t1552.yml).
+  PAT variant; see template_gh_pat_token_type_confusion_t1552.yml).
 
   (2) CI invokes scanner against changed files. Scanner crashes early
   (parser exception, timeout, OOM) and the wrapping check_run completes
@@ -31,13 +31,13 @@ description: 'Detects malicious PR pattern designed to crash or
 
   Detection logic targets github.audit / CI pipeline events with the
   composite (short-runtime + success-conclusion + size-mismatch) profile.
-  Sister to template_gh_pat_token_type_confusion_t1552.yml (the credential
+  Related to template_gh_pat_token_type_confusion_t1552.yml (the credential
   surface that survives the evasion).
 
   Threat intel context: T1027 (Obfuscated Files / Information) typically
   covers payload obfuscation; this rule extends T1027 to cover
-  scanner-evasion-via-crash as a defense-impairment sub-pattern. Sister
-  alphv T1027 obfuscation rule in same category
+  scanner-evasion-via-crash as a defense-impairment sub-pattern. The related
+  alphv T1027 obfuscation rule in the same category
   (observed_alphv_t1027_obfuscation.yml) covers payload-encoding form;
   this rule covers control-flow-disruption form.
 

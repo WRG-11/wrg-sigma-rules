@@ -46,7 +46,7 @@ falsepositives:
 - A legitimate, deliberately-allowlisted use case where an operator has
   reviewed and trusts inline SVG model images -- narrow in practice
   given this is not a supported/expected pattern
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of the
   actual profile_image_url value submitted, which most infrastructure
   log sources do not capture by default

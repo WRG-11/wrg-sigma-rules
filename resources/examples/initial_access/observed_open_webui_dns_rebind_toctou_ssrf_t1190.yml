@@ -56,7 +56,7 @@ falsepositives:
   hostname over time -- this rule's short-window framing narrows that,
   but a log source without precise per-request DNS-answer correlation
   cannot fully separate the two
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires DNS-resolution logging correlated to
   the requesting application process, which most infrastructure log
   sources do not capture by default

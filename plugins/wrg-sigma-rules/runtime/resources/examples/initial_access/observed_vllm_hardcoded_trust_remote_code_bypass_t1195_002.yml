@@ -54,7 +54,7 @@ falsepositives:
   cannot distinguish an intentionally-trusting deployment from one
   believing itself protected by content alone; correlate with the
   deployment's actual startup configuration
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of which
   model class is being loaded, which most infrastructure log sources do
   not capture by default

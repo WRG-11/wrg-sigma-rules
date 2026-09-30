@@ -60,7 +60,7 @@ falsepositives:
   options (connection pooling, timeouts) without touching these three
   keys -- this rule specifically requires one of the three dangerous
   option names, which no ordinary connection tuning needs
-- Pattern library v1 -- review for environment-specific tuning before
+- Review for environment-specific tuning before
   deployment; this rule requires application-level logging of node
   configuration content, which most infrastructure log sources do not
   capture by default
