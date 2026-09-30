@@ -108,6 +108,10 @@ repository's own pySigma-based CI accepted every one of them.
   introduced by the dead-link replacement above was removed.
 
 ### Added
+- `tests/test_no_duplicate_yaml_keys.py`: every rule and sample is loaded with
+  a strict YAML loader that rejects a repeated mapping key, so the silent loss
+  fixed above fails CI instead of passing it. It fails against the corpus as
+  it stood before that fix.
 - `.rsigma-lint.yml`, declaring the corpus's `wrg`, `owasp` and `ofac` tag
   namespaces. With it the corpus validates under RSigma 0.22.0 with no parse
   or compile errors and lints with no findings.
