@@ -41,7 +41,6 @@ author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corp
 date: '2026-08-11'
 logsource:
   category: application
-  product: ""
 detection:
   selection_csv_file_parameter:
     Message|contains: csvFile

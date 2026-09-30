@@ -37,7 +37,7 @@ detection:
   selection_chat_completions_context:
     Message|contains: image_url
   selection_non_url_value:
-    Message|re: '"url":"(?!https?://|data:image/)[a-zA-Z0-9-]+"'
+    Message|re: '"url":"[a-zA-Z0-9-]+"'
   condition: selection_chat_completions_context and selection_non_url_value
 falsepositives:
 - A deployment already upgraded to 0.9.6+, where the file-id resolution

@@ -31,11 +31,11 @@ author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corp
 date: '2026-08-11'
 logsource:
   category: proxy
-  product: ""
 detection:
   selection_sync_cleanup_endpoint:
-    cs-uri-stem|contains: /knowledge/
-    cs-uri-stem|contains: /sync
+    cs-uri-stem|contains|all:
+    - /knowledge/
+    - /sync
   selection_method_post_or_delete:
     cs-method:
     - POST

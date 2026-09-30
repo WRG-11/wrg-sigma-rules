@@ -60,7 +60,7 @@ tags:
 - attack.t1071.001
 - wrg.observed.campaign.keyv_cacheable_npm_worm
 - wrg.observed.ioc.npm_cache_com_domain
-- wrg.observed.ioc.eth_c2_0xE1f2395ee43e45A1556EC6438a88c31B83493103
+- wrg.observed.ioc.eth_c2_0xe1f2395ee43e45a1556ec6438a88c31b83493103
 - wrg.observed.vector.npm_maintainer_account_compromise
 - wrg.observed.vector.malicious_release_valid_provenance
 - wrg.severity.critical

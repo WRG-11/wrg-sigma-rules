@@ -24,7 +24,7 @@ references:
   - https://attack.mitre.org/techniques/T1140/
   - https://www.stepsecurity.io/blog/megalodon-mass-github-actions-secret-exfiltration-across-5-500-public-repositories
 author: WRG-11
-date: 2026/05/25
+date: '2026-05-25'
 tags:
   - attack.initial_access
   - attack.execution

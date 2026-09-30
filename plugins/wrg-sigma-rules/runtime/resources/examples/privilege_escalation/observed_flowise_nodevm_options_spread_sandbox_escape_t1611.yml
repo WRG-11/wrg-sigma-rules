@@ -42,7 +42,6 @@ author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corp
 date: '2026-08-11'
 logsource:
   category: application
-  product: ""
 detection:
   selection_node_custom_function_endpoint:
     Message|contains: /api/v1/node-custom-function

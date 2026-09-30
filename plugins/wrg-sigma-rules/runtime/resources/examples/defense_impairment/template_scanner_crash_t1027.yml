@@ -48,7 +48,7 @@ references:
   - https://attack.mitre.org/techniques/T1027/
   - https://attack.mitre.org/techniques/T1685/
 author: WRG-11
-date: 2026/05/25
+date: '2026-05-25'
 tags:
   - attack.stealth
   - attack.defense_impairment

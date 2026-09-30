@@ -46,7 +46,6 @@
     "resources/examples/impact/template_t1657_financial_theft_extortion_crypto_mixer_payout.yml",
     "resources/examples/initial_access/observed_flowise_ipv4_mapped_ipv6_ssrf_bypass_t1190.yml",
     "resources/examples/initial_access/observed_kong_konnect_mcp_indirect_prompt_injection_t1190.yml",
-    "resources/examples/initial_access/observed_microsoft_apm_symlink_dereference_deploy_t1195_002.yml",
     "resources/examples/initial_access/observed_open_webui_dns_rebind_toctou_ssrf_t1190.yml",
     "resources/examples/initial_access/observed_open_webui_vega_resource_loader_ssrf_t1190.yml",
     "resources/examples/initial_access/template_t1078_002_domain_account_exploitation_nopac_cve_2021_42278_42287.yml",

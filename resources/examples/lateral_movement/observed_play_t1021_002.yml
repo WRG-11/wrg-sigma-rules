@@ -29,6 +29,7 @@ tags:
 ---
 title: Play Ransomware — T1021.002
 id: 3157354e-88b1-51c1-923a-9830ca5a9f49
+author: WRG Breach Intel — Phase 6
 status: test
 description: Counting correlation over the base rule. The base rule matches single events; this document
   carries the threshold.

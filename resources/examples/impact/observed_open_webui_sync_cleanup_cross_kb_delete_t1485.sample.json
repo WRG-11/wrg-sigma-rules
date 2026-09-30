@@ -1,4 +1,5 @@
 [
   {"expect_match": true, "event": {"cs-uri-stem": "/api/v1/knowledge/kb-A/sync/cleanup", "cs-method": "DELETE"}},
-  {"expect_match": false, "event": {"cs-uri-stem": "/api/v1/knowledge/kb-A/sync/cleanup", "cs-method": "GET"}}
+  {"expect_match": false, "event": {"cs-uri-stem": "/api/v1/knowledge/kb-A/sync/cleanup", "cs-method": "GET"}},
+  {"expect_match": false, "event": {"cs-uri-stem": "/api/v1/chats/sync", "cs-method": "POST"}}
 ]

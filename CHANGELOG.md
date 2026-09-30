@@ -85,7 +85,32 @@ GitHub advisory databases, and live tool output.
   and `threat-coverage-gap-analyzer`'s example no longer names T1078.004 as
   absent from a corpus that now contains it, nor quotes an unsourced total.
 
+### Fixed
+Found by running RSigma 0.22.0's validator and linter over the corpus; this
+repository's own pySigma-based CI accepted every one of them.
+- **Three rules silently lost part of their detection.** Each repeated a
+  field key inside one selection (for example `cs-uri-stem|contains` twice).
+  YAML keeps only the last value, so pySigma evaluated a broader rule than the
+  one written: the Open WebUI knowledge-sync rule matched any POST/DELETE to a
+  path containing `/sync`, the terminal-WebSocket rule dropped `terminal`, and
+  the APM symlink rule dropped `-s`. They now use `|all` or a separate
+  selection. Each sidecar sample gained a negative case that the old rule
+  matched and the fixed rule does not; the APM rule gained its first sample
+  and left the exception baseline (63 → 62 entries).
+- A regex used a negative lookahead, which RE2-family engines (including
+  RSigma's) and Lucene `regexp` do not support. The lookahead was redundant:
+  the character class that follows cannot match `https://` or `data:`; old
+  and new patterns agree on every probe string tried.
+- Six `date:` values used `YYYY/MM/DD`; the specification requires
+  `YYYY-MM-DD`. Sixty-five logsource blocks carried `product: ""`; the key is
+  now omitted. Two correlation documents gained the `author` their base
+  document already had, one tag was lowercased, and a duplicate reference
+  introduced by the dead-link replacement above was removed.
+
 ### Added
+- `.rsigma-lint.yml`, declaring the corpus's `wrg`, `owasp` and `ofac` tag
+  namespaces. With it the corpus validates under RSigma 0.22.0 with no parse
+  or compile errors and lints with no findings.
 - `tests/test_attack_v19_taxonomy.py`: directories must equal the v19 tactics
   plus `code_review`, no rule may carry a retired ATT&CK tag, and every
   `wrg.tactic.*` tag must match its directory. Against the previous corpus the

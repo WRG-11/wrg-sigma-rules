@@ -30,6 +30,7 @@ tags:
 ---
 title: LAPSUS$ — T1556
 id: 7d1af02a-a69f-5a2f-9677-fdcc72718e61
+author: WRG Breach Intel — Phase 6
 status: test
 description: Counting correlation over the base rule. The base rule matches single events; this document
   carries the threshold.

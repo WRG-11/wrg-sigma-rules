@@ -33,7 +33,6 @@ author: WinstonRedGuard -- sigma plugin observed rules (derived from breach corp
 date: '2026-08-11'
 logsource:
   category: proxy
-  product: ""
 detection:
   selection_image_edit_endpoint:
     cs-uri-stem|contains: /api/v1/images/edit
