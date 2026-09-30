@@ -22,7 +22,7 @@ pysigma>=1.5.0,<2
 # shipped in a PATCH, so the bound sits just below it. 3.3.2 is the last version
 # CI ran green on (through v1.10.0). Revisit when a newer pyparsing is confirmed
 # compatible with the pinned pySigma.
-pyparsing>=3.3.2,<3.3.3
+pyparsing>=3.3.2,<3.3.4
 PyYAML>=6.0.3,<7
 
 # Backend integrations are installed by this requirements file and
