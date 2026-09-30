@@ -1,6 +1,6 @@
 {
   "name": "wrg-sigma-rules",
-  "version": "1.11.0",
+  "version": "2.0.0",
   "description": "Sigma detection rule writing, validation, and conversion for SOC analysts and threat-intel teams. LLM-assisted draft + pySigma validation + multi-backend conversion (Splunk, Elastic, OpenSearch; Wazuh through the Elastic Lucene backend) with logsource-aware processing pipelines. Ships a 294-rule published corpus spanning 16 categories (every MITRE ATT&CK Enterprise tactic plus code review), covering ransomware and threat-actor activity as well as vulnerabilities disclosed in AI/LLM applications and MCP servers.",
   "author": {
     "name": "WRG (WinstonRedGuard)"
