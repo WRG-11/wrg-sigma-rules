@@ -11,6 +11,36 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > milestone — there is no PyPI artifact, and the detection logic is already
 > live on `main`.
 
+## [Unreleased]
+
+Documentation only. Corpus 294 → 294 rules (unchanged); no rule's detection
+logic, `id`, `level`, tags or references changed, and no tool or manifest
+changed.
+
+### Changed
+
+- The README opens with the three tools, the size of the corpus and the Claude
+  Code install commands, and goes from 264 lines to 204. The steps for Codex,
+  Cursor and other MCP clients moved to `docs/install.md` unchanged.
+- "What it does" is split into "Skills" and "Conversion"; the text is the
+  same. The audit commands are no longer repeated in the README, because
+  `docs/evidence-review-audits.md` already lists them. "Scope" no longer
+  repeats what "Rule status" says about `stable`.
+
+### Fixed
+
+- One rule description
+  (`observed_photo_zip_nodejs_run_key_persistence_t1547_001`) and its detection
+  note still named a maintainers' tool as the way the advisory was found. Both
+  now say only what a reader can check: the rule was authored from the
+  published Microsoft advisory.
+
+### Added
+
+- `tests/test_readme_links.py` fails when a relative link in the README or in
+  a page directly under `docs/` points at a missing file or at a heading that
+  is not there.
+
 ## [2.1.0] - 2026-09-30
 
 Repository-content release. Corpus 294 → 294 rules (unchanged); no rule's

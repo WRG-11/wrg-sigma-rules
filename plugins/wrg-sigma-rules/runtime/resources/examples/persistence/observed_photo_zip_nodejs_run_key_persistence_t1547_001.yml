@@ -16,8 +16,7 @@ description: |
   indicators (for example the .cfd photo-NNNN domains or the documented C2 IPs)
   for confirmation.
 
-  Surfaced by the wrg sigma_scout vendor-blog funnel (Microsoft Security feed)
-  and authored from the published advisory, not from synthetic content.
+  Authored from the published Microsoft advisory, not from synthetic content.
 references:
   - https://www.microsoft.com/en-us/security/blog/2026/06/25/photo-zip-campaign-targeting-hospitality-industry-delivers-node-js-implant-persistent-access/
   - https://attack.mitre.org/techniques/T1547/001/
