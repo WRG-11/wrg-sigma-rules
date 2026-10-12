@@ -11,51 +11,16 @@ Sigma detection-rule authoring, validation and multi-backend conversion,
 delivered as a Model Context Protocol (MCP) server with a published rule corpus.
 It runs under Claude Code, Codex, Cursor and any MCP-capable client.
 
-## What it does
+- `draft_rule` turns a natural-language description into a Sigma YAML scaffold.
+- `validate_rule` checks a rule against pySigma plus a best-practice linter.
+- `convert_rule` compiles a rule to a Splunk, Elastic, OpenSearch or Kibana query.
 
-- Three MCP tools. `draft_rule` turns a natural-language description into a Sigma
-  YAML scaffold. `validate_rule` checks a rule against pySigma plus a
-  best-practice linter. `convert_rule` compiles a rule to a Splunk, Elastic,
-  OpenSearch or Kibana query; its `wazuh` target returns Elasticsearch Lucene
-  output with a warning, because pySigma has no Wazuh backend.
-- Three Claude Code skills: `sigma-rule-writer`, `sigma-rule-reviewer` and
-  `threat-coverage-gap-analyzer`. The packaged Codex variants retain the same
-  evidence boundaries: coverage counts do not establish missing ATT&CK scope,
-  conversion does not establish deployed semantics, and `observed_*` public
-  contributions require the sourcing bar in `CONTRIBUTING.md`.
-- A published corpus of <!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count -->
-  rules in <!-- METRIC:tactic_category_count -->16<!-- /METRIC:tactic_category_count -->
-  categories: one directory per MITRE ATT&CK Enterprise tactic (v19 names) plus
-  `code_review` for source-code review rules. The corpus covers ransomware and threat-actor activity
-  as well as vulnerabilities disclosed in AI/LLM applications and MCP servers.
-  Every rule carries a Sigma `status:` that matches its evidence (see
-  [Rule status](#rule-status)).
-- Multi-backend conversion on pySigma 1.x: Splunk SPL, Elastic and Kibana Lucene,
-  Elastic ES|QL and EQL, OpenSearch Lucene and PPL, plus a `wazuh` target that
-  reuses the Elasticsearch Lucene backend and says so in its warnings. The
-  Lucene-family targets cannot express Sigma correlation rules, so `convert_rule`
-  reports the
-  <!-- METRIC:correlation_rule_count -->27<!-- /METRIC:correlation_rule_count -->
-  correlation rules in the corpus as a capability gap and names the backends that
-  can convert them (`esql` and `eql` are the Elastic route).
-- Correlation conversions say where the query stops meaning the rule. Valid syntax
-  is not the same rule: measured on the pinned backends, `opensearch-ppl` drops the
-  time window of every count correlation, and `eql` turns a distinct-value count
-  into a join on one repeated value. Each correlation result carries
-  `correlation_semantics`, the deviations the converter checks for (dropped or
-  fixed window, unenforced order, threshold one short); see
-  [Demo 5](DEMO.md#demo-5----correlation-rules-and-where-they-cannot-go).
-
-The plugin is installed directly from this repository, which is also its own
-Claude Code and Codex marketplace; it is not yet listed in Anthropic's plugin
-directory.
+The corpus holds <!-- METRIC:sigma_rule_count -->294<!-- /METRIC:sigma_rule_count -->
+rules in <!-- METRIC:tactic_category_count -->16<!-- /METRIC:tactic_category_count -->
+categories. It covers ransomware and threat-actor activity as well as vulnerabilities
+disclosed in AI/LLM applications and MCP servers.
 
 ## Install
-
-The server is a single stdio MCP process (`server.py`). Each client points at it
-in its own way.
-
-### Claude Code
 
 ```bash
 git clone https://github.com/WRG-11/wrg-sigma-rules.git
@@ -65,56 +30,41 @@ claude plugin marketplace add .
 claude plugin install wrg-sigma-rules@wrg-11
 ```
 
-Claude Code starts `server.py` with the `python` on your `PATH`, so install
-`requirements.txt` into that interpreter. It is not optional: `validate_rule`
-needs pySigma, `convert_rule` needs the backend packages, and the pipeline
-packages drive the logsource mapping. `claude plugin marketplace add
-WRG-11/wrg-sigma-rules` registers the GitHub repository instead of the clone;
-use it if Claude Code refuses the local path as network-shaped or
-unclassifiable, which it can do for a clone on an external drive.
-`claude plugin validate .` checks the plugin and marketplace manifests, and
-[the plugin docs](https://code.claude.com/docs/en/plugins) cover updating and
-removing an installed plugin.
+That installs the server as a Claude Code plugin. Codex, Cursor and other MCP clients
+take the same server; [`docs/install.md`](docs/install.md) has the steps for each and the
+notes on which interpreter runs it. Captured output from the tools is in
+[`DEMO.md`](DEMO.md).
 
-### Codex
+The plugin is installed directly from this repository, which is also its own
+Claude Code and Codex marketplace; it is not yet listed in Anthropic's plugin
+directory.
 
-```bash
-codex plugin marketplace add .
-codex plugin add wrg-sigma-rules@wrg-11
-```
+## Skills
 
-The Codex package under `plugins/wrg-sigma-rules/` carries its own copy of the
-server and corpus, so the installed plugin does not depend on this checkout.
-Codex starts it with the `python` on your `PATH`: install
-`plugins/wrg-sigma-rules/runtime/requirements.txt` into that interpreter, then
-confirm in Codex that the server answers before relying on it.
+There are three Claude Code skills: `sigma-rule-writer`, `sigma-rule-reviewer` and
+`threat-coverage-gap-analyzer`. The packaged Codex variants retain the same
+evidence boundaries: coverage counts do not establish missing ATT&CK scope,
+conversion does not establish deployed semantics, and `observed_*` public
+contributions require the sourcing bar in `CONTRIBUTING.md`.
 
-### Cursor
+## Conversion
 
-Cursor speaks MCP directly, so the same server works with no plugin manifest. Add
-it to your project `.cursor/mcp.json` (or the global `~/.cursor/mcp.json`):
+Conversion runs on pySigma 1.x and targets Splunk SPL, Elastic and Kibana Lucene,
+Elastic ES|QL and EQL, OpenSearch Lucene and PPL, plus a `wazuh` target that
+reuses the Elasticsearch Lucene backend and says so in its warnings. The
+Lucene-family targets cannot express Sigma correlation rules, so `convert_rule`
+reports the
+<!-- METRIC:correlation_rule_count -->27<!-- /METRIC:correlation_rule_count -->
+correlation rules in the corpus as a capability gap and names the backends that
+can convert them (`esql` and `eql` are the Elastic route).
 
-```json
-{
-  "mcpServers": {
-    "wrg-sigma-rules": {
-      "command": "python",
-      "args": ["/path/to/wrg-sigma-rules/server.py"],
-      "cwd": "/path/to/wrg-sigma-rules",
-      "env": { "PYTHONPATH": "/path/to/wrg-sigma-rules" }
-    }
-  }
-}
-```
-
-Replace the path with your clone, then reload Cursor's MCP servers.
-
-### Any MCP client
-
-`server.py` is a standard stdio MCP server. Any client that can launch a stdio
-server takes the same `command`, `args`, `cwd` and `env` values shown for
-Cursor; your client's MCP documentation says where that configuration lives.
-The model behind the client does not change what the server exposes.
+Correlation conversions say where the query stops meaning the rule. Valid syntax
+is not the same rule: measured on the pinned backends, `opensearch-ppl` drops the
+time window of every count correlation, and `eql` turns a distinct-value count
+into a join on one repeated value. Each correlation result carries
+`correlation_semantics`, the deviations the converter checks for (dropped or
+fixed window, unenforced order, threshold one short); see
+[Demo 5](DEMO.md#demo-5----correlation-rules-and-where-they-cannot-go).
 
 ## Quick example
 
@@ -142,7 +92,9 @@ Full captured output (validate JSON, Splunk SPL, Elasticsearch Lucene) is in
 
 ## The corpus
 
-Every rule lives under `resources/examples/<tactic>/` and is one of two kinds:
+Every rule lives under `resources/examples/<tactic>/`: one directory per MITRE ATT&CK
+Enterprise tactic (v19 names) plus `code_review` for source-code review rules. Each rule
+is one of two kinds:
 
 - `template_*`: a canonical detection shape to adapt to your own environment.
 - `observed_*`: derived from a specific, cited incident. `CONTRIBUTING.md` sets
@@ -179,7 +131,7 @@ starting point to bind to your own logsource and tune; each rule's
 
 ## Quality and testing
 
-- <!-- METRIC:test_module_count -->35<!-- /METRIC:test_module_count --> Python test
+- <!-- METRIC:test_module_count -->36<!-- /METRIC:test_module_count --> Python test
   modules cover rule validation and tool-integration smoke tests.
 - pySigma 1.x compatibility is verified against the Splunk, Elasticsearch and
   OpenSearch backend packages.
@@ -199,17 +151,9 @@ starting point to bind to your own logsource and tune; each rule's
 These local reports make review queues and conversion boundaries visible. They
 are advisory: none promotes a rule, proves an actor attribution, or replaces
 reading the cited source.
-
-```bash
-python scripts/observed_evidence_inventory.py --examples-dir resources/examples
-python scripts/duplicate_rule_check.py --examples-dir resources/examples --exact-actor-logic
-python scripts/duplicate_rule_check.py --examples-dir resources/examples --actor-review-queues
-python scripts/correlation_conversion_audit.py --examples-dir resources/examples
-python scripts/detection_note_gap.py --examples-dir resources/examples --notes-dir docs/detection-notes
-```
-
-[`docs/evidence-review-audits.md`](docs/evidence-review-audits.md) describes
-each report, its `--json` output and what its numbers do and do not establish.
+[`docs/evidence-review-audits.md`](docs/evidence-review-audits.md) lists the
+commands and describes each report, its `--json` output and what its numbers
+do and do not establish.
 
 ## Contributing
 
@@ -230,10 +174,6 @@ WRG Sigma Rules is a local, deterministic detection-engineering workbench. It
 helps an MCP-capable client draft, validate and convert Sigma rules; it does
 not deploy detections, collect telemetry, operate a hosted service, or claim
 that a generated rule is production-ready.
-
-The corpus keeps `stable` deliberately unused. A rule earns that status only
-after production evidence and environment-specific tuning, neither of which a
-public, generic corpus can provide.
 
 Out of scope:
 
