@@ -13,8 +13,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Documentation only. Corpus 294 → 294 rules (unchanged); no rule, tool or
-manifest changed.
+Documentation only. Corpus 294 → 294 rules (unchanged); no rule's detection
+logic, `id`, `level`, tags or references changed, and no tool or manifest
+changed.
 
 ### Changed
 
@@ -25,6 +26,14 @@ manifest changed.
   same. The audit commands are no longer repeated in the README, because
   `docs/evidence-review-audits.md` already lists them. "Scope" no longer
   repeats what "Rule status" says about `stable`.
+
+### Fixed
+
+- One rule description
+  (`observed_photo_zip_nodejs_run_key_persistence_t1547_001`) and its detection
+  note still named a maintainers' tool as the way the advisory was found. Both
+  now say only what a reader can check: the rule was authored from the
+  published Microsoft advisory.
 
 ### Added
 
