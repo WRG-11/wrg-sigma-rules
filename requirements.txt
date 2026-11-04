@@ -40,7 +40,7 @@ pysigma-backend-opensearch>=2.0.3,<3
 # field names but drops the event selection, so these are runtime deps rather
 # than optional extras -- the test suite asserts the difference.
 pysigma-pipeline-sysmon>=2.0.0,<3
-pysigma-pipeline-windows>=2.0.0,<3
+pysigma-pipeline-windows>=2.0.0,<4
 
 # Test deps are not pinned here: install pytest (>=8.0) separately, as CI
 # does with `pip install -r requirements.txt pytest`.
