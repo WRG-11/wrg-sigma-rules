@@ -39,7 +39,7 @@ pysigma-backend-opensearch>=2.0.3,<3
 # Without a pipeline a windows/sysmon rule converts to a query that keeps the
 # field names but drops the event selection, so these are runtime deps rather
 # than optional extras -- the test suite asserts the difference.
-pysigma-pipeline-sysmon>=2.0.0,<3
+pysigma-pipeline-sysmon>=2.0.0,<4
 pysigma-pipeline-windows>=2.0.0,<3
 
 # Test deps are not pinned here: install pytest (>=8.0) separately, as CI
